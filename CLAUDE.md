@@ -38,6 +38,7 @@
 - No mocking in Vitest tests (test real implementations)
 - Follow hexagonal architecture for storage layers (port/adapter pattern)
 - Prefer editing existing files over creating new ones
+- Do not forget logging of all important events
 - Only create documentation files when explicitly requested
 
 ## Tailwind CSS v4 Configuration
@@ -97,3 +98,73 @@ test: {
   setupFiles: ['./src/lib/test-utils/setup.ts']
 }
 ```
+
+## WebSocket Architecture
+
+### Critical Setup Requirements
+
+**IMPORTANT**: SvelteKit does not expose the HTTP server directly, so WebSocket requires a custom server setup.
+
+### Production/Testing Server
+- Uses **@sveltejs/adapter-node** (not adapter-auto) to generate standalone Node.js build
+- Custom `server.js` wraps SvelteKit handler and initializes WebSocket on the same HTTP server
+- Playwright E2E tests use this custom server to test WebSocket functionality
+
+```javascript
+// server.js - Custom server with WebSocket
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
+import { handler } from './build/handler.js';
+
+const server = createServer(handler);
+const wss = new WebSocketServer({ server, path: '/ws' });
+// ... WebSocket logic
+server.listen(PORT);
+```
+
+### Lazy Logger Pattern
+**CRITICAL**: The WebSocket server (`src/lib/server/websocket/index.ts`) uses **lazy imports** for the logger to avoid `$app/environment` dependency issues during Vite config loading:
+
+```typescript
+// ❌ DON'T: Direct import causes Vite config errors
+import { gameLogger } from '../logger';
+
+// ✅ DO: Lazy import
+let gameLogger: any = null;
+async function getLogger() {
+  if (!gameLogger) {
+    const module = await import('../logger');
+    gameLogger = module.gameLogger;
+  }
+  return gameLogger;
+}
+
+// Usage: getLogger().then(logger => logger.websocket('event', data));
+```
+
+**Why**: The logger imports `$app/environment` which is not available during Vite config evaluation. Lazy imports defer loading until runtime when SvelteKit is fully initialized.
+
+### Testing with WebSocket
+- **Playwright config**: Uses `npm run build && node server.js` command
+- **Port**: 4173 (production preview port)
+- **Vitest tests**: No special setup needed (uses in-memory implementations)
+
+### File Structure
+```
+server.js                              # Custom production server with WebSocket
+src/lib/server/websocket/index.ts      # WebSocket server with lazy logger
+src/lib/stores/websocket.ts            # Client-side WebSocket store
+playwright.config.ts                   # Configured to use custom server
+svelte.config.js                       # Uses adapter-node
+```
+
+### Known Limitations
+- **Development mode**: WebSocket is not available in `npm run dev` - this is a known limitation
+- **Playwright only**: E2E tests run against production build (`npm run build` + `node server.js`)
+- **Manual testing**: To test WebSocket features manually, use `npm run build && node server.js`
+
+### Troubleshooting
+If you see `[404] GET /ws` errors:
+1. Verify you're using adapter-node (not adapter-auto)
+2. Check that Playwright uses `npm run build && node server.js` command
+3. Ensure port 4173 is not already in use

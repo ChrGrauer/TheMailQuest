@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { getSession } from '$lib/server/game/session-manager';
+import { getPlayersByIds } from '$lib/server/game/player-manager';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -13,6 +14,18 @@ export const load: PageServerLoad = async ({ params }) => {
 		});
 	}
 
+	// Collect all player IDs from teams and destinations
+	const allPlayerIds: string[] = [];
+	session.esp_teams.forEach((team) => allPlayerIds.push(...team.players));
+	session.destinations.forEach((dest) => allPlayerIds.push(...dest.players));
+
+	// Fetch player details
+	const players = getPlayersByIds(allPlayerIds);
+	const playerNames: Record<string, string> = {};
+	players.forEach((player) => {
+		playerNames[player.id] = player.displayName;
+	});
+
 	return {
 		session: {
 			roomCode: session.roomCode,
@@ -20,6 +33,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			current_phase: session.current_phase,
 			esp_teams: session.esp_teams,
 			destinations: session.destinations
-		}
+		},
+		playerNames
 	};
 };
