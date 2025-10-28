@@ -3,7 +3,7 @@ import { getSession } from '$lib/server/game/session-manager';
 import { getPlayersByIds } from '$lib/server/game/player-manager';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, cookies }) => {
 	const { roomCode } = params;
 
 	const session = getSession(roomCode);
@@ -13,6 +13,10 @@ export const load: PageServerLoad = async ({ params }) => {
 			message: 'Game session not found'
 		});
 	}
+
+	// US-1.3: Check if current user is the facilitator
+	const facilitatorId = cookies.get('facilitatorId');
+	const isFacilitator = facilitatorId === session.facilitatorId;
 
 	// Collect all player IDs from teams and destinations
 	const allPlayerIds: string[] = [];
@@ -34,6 +38,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			esp_teams: session.esp_teams,
 			destinations: session.destinations
 		},
-		playerNames
+		playerNames,
+		isFacilitator // US-1.3: Pass to client to show/hide Start Game button
 	};
 };

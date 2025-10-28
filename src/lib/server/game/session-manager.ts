@@ -71,10 +71,11 @@ function createInitialDestinations(): Destination[] {
 
 /**
  * Create a new game session
+ * @param facilitatorId The ID of the facilitator creating the session (US-1.3)
  * @returns The newly created game session
  * @throws Error if unable to generate a unique room code after 100 attempts
  */
-export function createGameSession(): GameSession {
+export function createGameSession(facilitatorId: string): GameSession {
   let roomCode = generateRoomCode();
   let attempts = 0;
   const maxAttempts = 100;
@@ -97,6 +98,7 @@ export function createGameSession(): GameSession {
 
   const session: GameSession = {
     roomCode,
+    facilitatorId, // US-1.3: Store facilitator ID
     current_round: 0,
     current_phase: 'lobby',
     esp_teams: createInitialESPTeams(),
@@ -109,6 +111,7 @@ export function createGameSession(): GameSession {
 
   gameLogger.event('session_created', {
     roomCode,
+    facilitatorId, // US-1.3: Log facilitator ID
     timestamp: now.toISOString()
   });
 

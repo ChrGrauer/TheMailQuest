@@ -7,7 +7,7 @@
 
 	export let data: PageData;
 
-	const { session } = data;
+	const { session, isFacilitator } = data; // US-1.3: Get facilitator status
 	let playerNames = data.playerNames || {}; // Initialize from server data
 
 	let copySuccess = false;
@@ -24,6 +24,11 @@
 	let currentPlayerId: string | null = null;
 	let displayNameInput: HTMLInputElement;
 
+	// US-1.3: Game start state
+	let isStartingGame = false;
+	let startGameError = '';
+	let gameStarted = false;
+
 	// Slot state (will be updated via WebSocket)
 	let espTeams = session.esp_teams;
 	let destinations = session.destinations;
@@ -33,6 +38,14 @@
 
 	$: totalPlayers = espTeamCount + destinationCount;
 	$: isSessionFull = totalPlayers >= 8; // 5 ESP + 3 Destinations = 8 total slots
+
+	// US-1.3: Start game validation
+	$: canStartGame = espTeamCount > 0 && destinationCount > 0;
+	$: startGameTooltip = !canStartGame
+		? espTeamCount === 0
+			? 'At least 1 ESP team is required'
+			: 'At least 1 Destination is required'
+		: '';
 
 	// Focus the display name input when modal opens
 	$: if (showRoleModal && displayNameInput) {
@@ -190,6 +203,40 @@
 			return (espTeams.find(t => t.name === teamName)?.players.length ?? 0) > 0;
 		} else {
 			return (destinations.find(d => d.name === teamName)?.players.length ?? 0) > 0;
+		}
+	}
+
+	// US-1.3: Start game function
+	async function handleStartGame() {
+		if (!canStartGame || isStartingGame) {
+			return;
+		}
+
+		isStartingGame = true;
+		startGameError = '';
+
+		try {
+			const response = await fetch(`/api/sessions/${session.roomCode}/start`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			const result = await response.json();
+
+			if (!response.ok || !result.success) {
+				startGameError = result.error || 'Failed to start game';
+				isStartingGame = false;
+				return;
+			}
+
+			// Success! Game started
+			gameStarted = true;
+			// TODO: Redirect to appropriate page based on role or show game started message
+		} catch (error) {
+			startGameError = 'An error occurred. Please try again.';
+			isStartingGame = false;
 		}
 	}
 </script>
@@ -437,22 +484,43 @@
 								<div class="h-2 w-2 animate-pulse rounded-full bg-[#10B981]"></div>
 								<span>{totalPlayers} players ready</span>
 							</div>
+							{#if isFacilitator && !canStartGame}
+								<div class="mt-2 text-sm text-amber-600">
+									⚠️ {startGameTooltip}
+								</div>
+							{/if}
+							{#if startGameError}
+								<div class="mt-2 text-sm text-red-600">
+									{startGameError}
+								</div>
+							{/if}
 						</div>
 
-						<div class="flex gap-4">
-							<button
-								disabled
-								class="cursor-not-allowed rounded-lg border-2 border-[#E5E7EB] bg-white px-8 py-4 font-semibold text-[#6B7280] opacity-50 transition-all hover:bg-[#F9FAFB] active:scale-95"
-							>
-								Settings
-							</button>
-							<button
-								disabled
-								class="cursor-not-allowed rounded-lg bg-gradient-to-r from-[#0B5540] to-[#10B981] px-8 py-4 font-semibold text-white opacity-50 shadow-lg transition-all hover:shadow-xl active:scale-95"
-							>
-								Start Game
-							</button>
-						</div>
+						{#if isFacilitator && !gameStarted}
+							<div class="flex gap-4">
+								<button
+									disabled
+									class="cursor-not-allowed rounded-lg border-2 border-[#E5E7EB] bg-white px-8 py-4 font-semibold text-[#6B7280] opacity-50 transition-all hover:bg-[#F9FAFB] active:scale-95"
+								>
+									Settings
+								</button>
+								<button
+									on:click={handleStartGame}
+									disabled={!canStartGame || isStartingGame}
+									class="rounded-lg bg-gradient-to-r from-[#0B5540] to-[#10B981] px-8 py-4 font-semibold text-white shadow-lg transition-all hover:shadow-xl active:scale-95 {!canStartGame || isStartingGame
+										? 'cursor-not-allowed opacity-50'
+										: ''}"
+									aria-label="Start game"
+									title={startGameTooltip}
+								>
+									{#if isStartingGame}
+										Starting...
+									{:else}
+										Start Game
+									{/if}
+								</button>
+							</div>
+						{/if}
 					</div>
 				{/if}
 			</div>

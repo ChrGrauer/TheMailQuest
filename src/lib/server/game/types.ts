@@ -1,6 +1,7 @@
 /**
  * Game Session Type Definitions
  * US-1.1: Create Game Session
+ * US-1.3: Game Lobby Management (added facilitatorId)
  */
 
 export interface ESPTeam {
@@ -19,6 +20,7 @@ export interface Destination {
 
 export interface GameSession {
   roomCode: string;
+  facilitatorId: string;
   current_round: number;
   current_phase: string;
   esp_teams: ESPTeam[];
