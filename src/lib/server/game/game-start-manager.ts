@@ -176,8 +176,10 @@ export function startGame(request: StartGameRequest): StartGameResult {
 	}
 
 	// Start the game
+	// Note: Round stays at 0 during resource_allocation (setup phase)
+	// Round will be set to 1 when transitioning to 'planning' phase (US-1.4)
 	session.current_phase = 'resource_allocation';
-	session.current_round = 1;
+	session.current_round = 0;
 
 	// Update activity
 	updateActivity(roomCode);

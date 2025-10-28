@@ -19,6 +19,13 @@ export interface LobbyUpdate {
 	};
 }
 
+export interface GameStateUpdate {
+	phase: string;
+	round: number;
+	timer_duration?: number;
+	timer_remaining?: number;
+}
+
 export interface WebSocketStore {
 	connected: boolean;
 	roomCode: string | null;
@@ -36,6 +43,7 @@ function createWebSocketStore() {
 	let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 	let currentRoomCode: string | null = null;
 	let lobbyUpdateCallback: ((data: LobbyUpdate) => void) | null = null;
+	let gameStateUpdateCallback: ((data: GameStateUpdate) => void) | null = null;
 
 	function cleanup() {
 		if (reconnectTimer) {
@@ -51,7 +59,11 @@ function createWebSocketStore() {
 	return {
 		subscribe,
 
-		connect(roomCode: string, onLobbyUpdate: (data: LobbyUpdate) => void): void {
+		connect(
+			roomCode: string,
+			onLobbyUpdate: (data: LobbyUpdate) => void,
+			onGameStateUpdate?: (data: GameStateUpdate) => void
+		): void {
 			if (!browser) return;
 			if (ws?.readyState === WebSocket.OPEN && currentRoomCode === roomCode) return;
 
@@ -60,6 +72,7 @@ function createWebSocketStore() {
 
 			currentRoomCode = roomCode;
 			lobbyUpdateCallback = onLobbyUpdate;
+			gameStateUpdateCallback = onGameStateUpdate || null;
 
 			const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 			const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -94,6 +107,23 @@ function createWebSocketStore() {
 								}
 								break;
 
+							case 'game_state_update':
+								// US-1.4: Handle game phase transitions
+								if (gameStateUpdateCallback) {
+									gameStateUpdateCallback({
+										phase: message.phase,
+										round: message.round,
+										timer_duration: message.timer_duration,
+										timer_remaining: message.timer_remaining
+									});
+								}
+								break;
+
+							case 'resources_allocated':
+								// US-1.4: Resources have been allocated
+								// Could be used for additional UI feedback
+								break;
+
 							default:
 								// Handle other message types
 								break;
@@ -120,7 +150,7 @@ function createWebSocketStore() {
 					// Auto-reconnect after 3 seconds if we still have a room code
 					if (currentRoomCode && lobbyUpdateCallback) {
 						reconnectTimer = setTimeout(() => {
-							this.connect(currentRoomCode!, lobbyUpdateCallback!);
+							this.connect(currentRoomCode!, lobbyUpdateCallback!, gameStateUpdateCallback || undefined);
 						}, 3000);
 					}
 				};

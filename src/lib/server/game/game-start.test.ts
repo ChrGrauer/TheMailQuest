@@ -115,7 +115,7 @@ describe('Feature: Game Lobby Management - Business Logic', () => {
 	// ============================================================================
 
 	describe('Scenario: Clicking Start Game launches resource allocation phase', () => {
-		test('Given sufficient players, When facilitator starts the game, Then game transitions to resource_allocation with round 1', () => {
+		test('Given sufficient players, When facilitator starts the game, Then game transitions to resource_allocation with round still 0', () => {
 			// Given - Create session with minimum players
 			const facilitatorId = 'facilitator_123';
 			const session = createGameSession(facilitatorId);
@@ -144,12 +144,14 @@ describe('Feature: Game Lobby Management - Business Logic', () => {
 				facilitatorId
 			});
 
-			// Then - Game should transition to resource_allocation with round 1
+			// Then - Game should transition to resource_allocation
+			// Round stays at 0 (setup phase, not a game round yet)
+			// Round will become 1 when transitioning to planning phase (US-1.4)
 			expect(result.success).toBe(true);
 
 			const updatedSession = getSession(session.roomCode);
 			expect(updatedSession?.current_phase).toBe('resource_allocation');
-			expect(updatedSession?.current_round).toBe(1);
+			expect(updatedSession?.current_round).toBe(0);
 		});
 	});
 
@@ -253,7 +255,7 @@ describe('Feature: Game Lobby Management - Business Logic', () => {
 
 			const updatedSession = getSession(session.roomCode);
 			expect(updatedSession?.current_phase).toBe('resource_allocation');
-			expect(updatedSession?.current_round).toBe(1);
+			expect(updatedSession?.current_round).toBe(0);
 		});
 
 		test('When trying to start with invalid room code, Then it should return error', () => {

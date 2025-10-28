@@ -43,6 +43,7 @@ function generateRoomCode(): string {
 
 /**
  * Create initial ESP teams with predefined names
+ * US-1.4: Added resource allocation fields
  */
 function createInitialESPTeams(): ESPTeam[] {
   const teamNames = ['SendWave', 'MailMonkey', 'BluePost', 'SendBolt', 'RocketMail'];
@@ -52,12 +53,19 @@ function createInitialESPTeams(): ESPTeam[] {
     players: [],
     budget: 0,
     clients: [],
-    technical_stack: []
+    technical_stack: [],
+    // US-1.4: Initialize resource allocation fields
+    credits: 0,
+    reputation: {},
+    active_clients: [],
+    technical_auth: [],
+    round_history: []
   }));
 }
 
 /**
  * Create initial destinations with predefined names
+ * US-1.4: Added resource allocation fields
  */
 function createInitialDestinations(): Destination[] {
   const destinationNames = ['Gmail', 'Outlook', 'Yahoo'];
@@ -65,7 +73,11 @@ function createInitialDestinations(): Destination[] {
   return destinationNames.map(name => ({
     name,
     players: [],
-    budget: 0
+    budget: 0,
+    // US-1.4: Initialize resource allocation fields
+    filtering_policies: {},
+    esp_reputation: {},
+    user_satisfaction: 100
   }));
 }
 

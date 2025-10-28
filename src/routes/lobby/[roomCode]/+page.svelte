@@ -3,7 +3,8 @@
 	import { fly, scale, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { onMount, onDestroy } from 'svelte';
-	import { websocketStore, type LobbyUpdate } from '$lib/stores/websocket';
+	import { goto } from '$app/navigation';
+	import { websocketStore, type LobbyUpdate, type GameStateUpdate } from '$lib/stores/websocket';
 
 	export let data: PageData;
 
@@ -28,6 +29,10 @@
 	let isStartingGame = false;
 	let startGameError = '';
 	let gameStarted = false;
+
+	// US-1.4: Store player's role and team for redirect
+	let playerRole: 'ESP' | 'Destination' | 'Facilitator' | null = isFacilitator ? 'Facilitator' : null;
+	let playerTeamName: string | null = null;
 
 	// Slot state (will be updated via WebSocket)
 	let espTeams = session.esp_teams;
@@ -57,8 +62,8 @@
 		// Initialize slot counts
 		updateSlotCounts();
 
-		// Connect to WebSocket and subscribe to lobby updates
-		websocketStore.connect(session.roomCode, handleLobbyUpdate);
+		// Connect to WebSocket and subscribe to lobby updates and game state changes
+		websocketStore.connect(session.roomCode, handleLobbyUpdate, handleGameStateUpdate);
 	});
 
 	onDestroy(() => {
@@ -83,6 +88,25 @@
 
 		// Recalculate slot counts
 		updateSlotCounts();
+	}
+
+	// US-1.4: Handle game state updates and redirect players
+	function handleGameStateUpdate(data: GameStateUpdate) {
+		if (data.phase === 'planning' && data.round === 1) {
+			// Game has started! Redirect based on player role
+			if (playerRole === 'ESP' && playerTeamName) {
+				// Redirect ESP players to their team dashboard
+				const teamNameLower = playerTeamName.toLowerCase();
+				goto(`/game/${session.roomCode}/esp/${teamNameLower}`);
+			} else if (playerRole === 'Destination' && playerTeamName) {
+				// Redirect Destination players to their dashboard
+				const destNameLower = playerTeamName.toLowerCase();
+				goto(`/game/${session.roomCode}/destination/${destNameLower}`);
+			} else if (playerRole === 'Facilitator') {
+				// Redirect facilitator to facilitator dashboard
+				goto(`/game/${session.roomCode}/facilitator`);
+			}
+		}
 	}
 
 	async function copyRoomCode() {
@@ -173,6 +197,10 @@
 			currentPlayerId = result.playerId;
 			hasJoined = true;
 
+			// US-1.4: Store player role and team for redirect logic
+			playerRole = selectedRole;
+			playerTeamName = selectedTeam;
+
 			// Store player name
 			playerNames[result.playerId] = result.player.displayName;
 
@@ -233,7 +261,7 @@
 
 			// Success! Game started
 			gameStarted = true;
-			// TODO: Redirect to appropriate page based on role or show game started message
+			// Redirect will happen automatically via WebSocket game_state_update message
 		} catch (error) {
 			startGameError = 'An error occurred. Please try again.';
 			isStartingGame = false;
