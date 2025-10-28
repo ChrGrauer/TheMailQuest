@@ -452,7 +452,15 @@ test.describe('Feature: Join Game Session - E2E', () => {
   // ============================================================================
 
   test.describe('Scenario: Player cannot join full session', () => {
+    // Run this test serially to avoid resource contention
+    // This test creates 9 browser pages (1 facilitator + 5 ESP + 3 destinations + 9th player)
+    // When run in parallel with other tests, it can cause timeouts and flaky failures
+    test.describe.configure({ mode: 'serial' });
+
     test('should show "session is full" message when trying to join full lobby', async ({ page, context }) => {
+      // Increase timeout for this resource-intensive test (creates 9 browser pages)
+      test.setTimeout(30000); // 30 seconds
+
       // Given a game session with all 8 slots occupied
       const roomCode = await createTestSession(page);
 
@@ -472,6 +480,12 @@ test.describe('Feature: Join Game Session - E2E', () => {
       for (let i = 0; i < destinations.length; i++) {
         const playerPage = await context.newPage();
         await playerPage.goto(`/lobby/${roomCode}`);
+
+        // Wait for page to stabilize (animations to complete) before interacting
+        // This test creates many pages and can cause resource contention
+        await playerPage.waitForLoadState('networkidle');
+        await playerPage.waitForTimeout(200);
+
         await playerPage.click(`text=${destinations[i]}`);
         await playerPage.locator('input[name="displayName"]').fill(`DestPlayer${i + 1}`);
         await playerPage.click('button:has-text("Join Game")');
@@ -481,6 +495,7 @@ test.describe('Feature: Join Game Session - E2E', () => {
       // When a 9th player tries to join
       const player9Page = await context.newPage();
       await player9Page.goto(`/lobby/${roomCode}`);
+      await player9Page.waitForLoadState('networkidle');
 
       // Then the player should see "This session is full"
       await expect(player9Page.locator('text=This session is full')).toBeVisible();
