@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destination Dashboard - Mail Quest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f8faf9 0%, #e8f5f0 100%);
+            min-height: 100vh;
+            color: #1a1a1a;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .destination-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .destination-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .destination-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1E40AF;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .budget-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+        }
+
+        .budget-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .budget-item-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .budget-item-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1E40AF;
+        }
+
+        .budget-item-value.forecast {
+            color: #D97706;
+        }
+
+        .budget-separator {
+            width: 1px;
+            height: 30px;
+            background: #E5E7EB;
+        }
+
+        .game-status {
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .round-timer-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .round-indicator {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .round-indicator .current {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .phase-timer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .phase-name {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Quick Actions Bar */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .quick-action-btn:hover {
+            border-color: #3B82F6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .quick-action-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .quick-action-content {
+            flex: 1;
+            text-align: left;
+        }
+
+        .quick-action-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1E40AF;
+            margin-bottom: 0.25rem;
+        }
+
+        .quick-action-subtitle {
+            font-size: 0.75rem;
+            color: #6B7280;
+        }
+
+        .quick-action-badge {
+            padding: 0.25rem 0.75rem;
+            background: #FEF3C7;
+            color: #92400E;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1E40AF;
+        }
+
+        /* Budget Card */
+        .budget-card {
+            grid-column: 1 / -1;
+        }
+
+        .budget-display {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .budget-main {
+            flex: 1;
+        }
+
+        .budget-label {
+            font-size: 0.875rem;
+            color: #6B7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .budget-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1E40AF;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .budget-currency {
+            font-size: 1.25rem;
+            color: #3B82F6;
+        }
+
+        .budget-forecast {
+            background: #F9FAFB;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #BFDBFE;
+        }
+
+        .forecast-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .forecast-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1E40AF;
+        }
+
+        .forecast-delta {
+            font-size: 0.875rem;
+            color: #2563EB;
+            margin-top: 0.25rem;
+        }
+
+        /* ESP Traffic Card */
+        .esp-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .esp-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .esp-item:hover {
+            background: #F3F4F6;
+        }
+
+        .esp-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
+        }
+
+        .esp-info {
+            flex: 1;
+        }
+
+        .esp-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+
+        .esp-stats {
+            font-size: 0.75rem;
+            color: #6B7280;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .esp-volume {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .esp-volume-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 600;
+        }
+
+        /* ESP Comprehensive Stats */
+        .esp-comprehensive-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .esp-comprehensive-item {
+            padding: 1.25rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            border: 2px solid #E5E7EB;
+            transition: all 0.3s ease;
+        }
+
+        .esp-comprehensive-item:hover {
+            border-color: #3B82F6;
+            background: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        .esp-comprehensive-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .esp-comprehensive-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .comprehensive-stat {
+            text-align: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .comprehensive-stat-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .comprehensive-stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .comprehensive-reputation.excellent,
+        .comprehensive-satisfaction.excellent {
+            color: #059669;
+        }
+
+        .comprehensive-reputation.good,
+        .comprehensive-satisfaction.good {
+            color: #2563EB;
+        }
+
+        .comprehensive-reputation.warning,
+        .comprehensive-satisfaction.warning {
+            color: #D97706;
+        }
+
+        .comprehensive-reputation.poor,
+        .comprehensive-satisfaction.poor {
+            color: #DC2626;
+        }
+
+        .comprehensive-spam.low {
+            color: #059669;
+        }
+
+        .comprehensive-spam.medium {
+            color: #D97706;
+        }
+
+        .comprehensive-spam.high {
+            color: #DC2626;
+        }
+
+        /* User Satisfaction Card */
+        .satisfaction-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .satisfaction-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .satisfaction-item:hover {
+            background: #F3F4F6;
+        }
+
+        .satisfaction-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
+        }
+
+        .satisfaction-info {
+            flex: 1;
+        }
+
+        .satisfaction-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .satisfaction-bar {
+            width: 100%;
+            height: 8px;
+            background: #E5E7EB;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .satisfaction-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .satisfaction-fill.excellent {
+            background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+        }
+
+        .satisfaction-fill.good {
+            background: linear-gradient(90deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        .satisfaction-fill.warning {
+            background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
+        }
+
+        .satisfaction-fill.poor {
+            background: linear-gradient(90deg, #EF4444 0%, #DC2626 100%);
+        }
+
+        .satisfaction-score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .satisfaction-score.excellent {
+            color: #059669;
+        }
+
+        .satisfaction-score.good {
+            color: #2563EB;
+        }
+
+        .satisfaction-score.warning {
+            color: #D97706;
+        }
+
+        .satisfaction-score.poor {
+            color: #DC2626;
+        }
+
+        /* Coordination Info Card */
+        .coordination-card {
+            grid-column: 1 / -1;
+        }
+
+        .coordination-status {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .coordination-item {
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%);
+            border-radius: 8px;
+            border-left: 4px solid #3B82F6;
+        }
+
+        .coordination-label {
+            font-size: 0.75rem;
+            color: #1E40AF;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .coordination-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1E40AF;
+        }
+
+        .coordination-description {
+            font-size: 0.875rem;
+            color: #4B5563;
+            margin-top: 0.5rem;
+        }
+
+        /* Lock-in Button */
+        .lock-in-container {
+            grid-column: 1 / -1;
+            position: sticky;
+            bottom: 2rem;
+        }
+
+        .lock-in-btn {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(30, 64, 175, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .lock-in-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+        }
+
+        .lock-in-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 1000px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid #E5E7EB;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1E40AF;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #F3F4F6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: #6B7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #E5E7EB;
+            color: #1a1a1a;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        /* Filtering Controls */
+        .filtering-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .filter-esp-item {
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-esp-item.filtering-active {
+            border-color: #EF4444;
+            background: linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%);
+        }
+
+        .filter-esp-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-esp-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
+        }
+
+        .filter-esp-info {
+            flex: 1;
+        }
+
+        .filter-esp-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-esp-stats {
+            font-size: 0.75rem;
+            color: #6B7280;
+        }
+
+        .filter-toggle {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 200px;
+        }
+
+        .filter-level-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-level-current {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #1E40AF;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-level-current.permissive {
+            color: #059669;
+        }
+
+        .filter-level-current.moderate {
+            color: #2563EB;
+        }
+
+        .filter-level-current.strict {
+            color: #D97706;
+        }
+
+        .filter-level-current.maximum {
+            color: #DC2626;
+        }
+
+        .filter-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #10B981 0%, #3B82F6 33%, #F59E0B 66%, #EF4444 100%);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .filter-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #1E40AF;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #1E40AF;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-level-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.25rem;
+        }
+
+        .filter-level-labels span {
+            font-size: 0.625rem;
+            color: #9CA3AF;
+            font-weight: 600;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #E5E7EB;
+            background: white;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .toggle-btn.allow {
+            background: #10B981;
+            color: white;
+            border-color: #10B981;
+        }
+
+        .toggle-btn.filter {
+            background: #EF4444;
+            color: white;
+            border-color: #EF4444;
+        }
+
+        .toggle-btn:hover:not(.allow):not(.filter) {
+            border-color: #3B82F6;
+            color: #1E40AF;
+        }
+
+        .filter-impact {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            border-left: 4px solid #EF4444;
+        }
+
+        .filter-impact.no-filter {
+            border-left-color: #10B981;
+        }
+
+        .filter-impact-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-impact-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .impact-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .impact-stat-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .impact-stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .impact-stat-value.negative {
+            color: #EF4444;
+        }
+
+        .impact-stat-value.positive {
+            color: #10B981;
+        }
+
+        /* Coordination Panel */
+        .coordination-section {
+            margin-bottom: 2rem;
+        }
+
+        .coordination-section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1E40AF;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .destination-collaboration {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .destination-collab-item {
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 1.25rem;
+            background: #F9FAFB;
+        }
+
+        .destination-collab-item.active {
+            border-color: #3B82F6;
+            background: linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%);
+        }
+
+        .collab-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .collab-destinations {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .collab-destination-icon {
+            font-size: 1.25rem;
+        }
+
+        .collab-status {
+            padding: 0.375rem 0.875rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .collab-status.active {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .collab-status.available {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        .collab-description {
+            font-size: 0.875rem;
+            color: #6B7280;
+            margin-bottom: 1rem;
+        }
+
+        .collab-benefits {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .collab-benefit {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .collab-benefit-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .collab-benefit-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1E40AF;
+        }
+
+        .collab-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-activate {
+            flex: 1;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-activate:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-activate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-deactivate {
+            flex: 1;
+            padding: 0.75rem;
+            background: white;
+            color: #EF4444;
+            border: 2px solid #EF4444;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-deactivate:hover {
+            background: #FEF2F2;
+        }
+
+        .shared-budget-info {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FEF9E7 100%);
+            border: 2px solid #FCD34D;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .shared-budget-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #92400E;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .shared-budget-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .shared-budget-item {
+            text-align: center;
+        }
+
+        .shared-budget-label {
+            font-size: 0.75rem;
+            color: #78350F;
+            margin-bottom: 0.25rem;
+        }
+
+        .shared-budget-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #92400E;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .coordination-status {
+                grid-template-columns: 1fr;
+            }
+
+            .budget-display {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+            }
+
+            .header-stats {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .budget-header {
+                width: 100%;
+            }
+
+            .filter-impact-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .collab-benefits {
+                grid-template-columns: 1fr;
+            }
+
+            .shared-budget-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="destination-info">
+                <div class="destination-avatar">📬</div>
+                <div class="destination-name">Gmail</div>
+            </div>
+            
+            <div class="header-stats">
+                <div class="budget-header">
+                    <div class="budget-item">
+                        <div class="budget-item-label">Budget</div>
+                        <div class="budget-item-value">800</div>
+                    </div>
+                    <div class="budget-separator"></div>
+                    <div class="budget-item">
+                        <div class="budget-item-label">After Lock-in</div>
+                        <div class="budget-item-value forecast">650</div>
+                    </div>
+                </div>
+
+                <div class="game-status">
+                    <div class="round-timer-group">
+                        <div class="round-indicator">
+                            Round <span class="current">2</span> / 4
+                        </div>
+                        <div class="phase-timer">
+                            <span class="phase-name">Planning</span>
+                            <span class="timer">4:32</span>
+                        </div>
+                    </div>
+                    <span>⏱️</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Quick Actions Bar -->
+        <div class="quick-actions">
+            <button class="quick-action-btn" onclick="openFilteringControls()">
+                <div class="quick-action-icon">🛡️</div>
+                <div class="quick-action-content">
+                    <div class="quick-action-title">Filtering Controls</div>
+                    <div class="quick-action-subtitle">Manage ESP filtering</div>
+                </div>
+                <span class="quick-action-badge">2 active filters</span>
+            </button>
+
+            <button class="quick-action-btn" onclick="openCoordinationPanel()">
+                <div class="quick-action-icon">🤝</div>
+                <div class="quick-action-content">
+                    <div class="quick-action-title">Coordination Panel</div>
+                    <div class="quick-action-subtitle">Inter-destination collaboration</div>
+                </div>
+                <span class="quick-action-badge">1 active</span>
+            </button>
+        </div>
+
+        <div class="dashboard-layout">
+            <!-- ESP Overview with All Stats -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h2 class="card-title">📊 ESP Statistics Overview</h2>
+                </div>
+                <div class="esp-comprehensive-grid">
+                    <div class="esp-comprehensive-item">
+                        <div class="esp-comprehensive-header">
+                            <div class="esp-icon">SW</div>
+                            <div class="esp-info">
+                                <div class="esp-name">SendWave</div>
+                                <div class="esp-stats">4 active clients</div>
+                            </div>
+                        </div>
+                        <div class="esp-comprehensive-stats">
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Volume</div>
+                                <div class="comprehensive-stat-value">185K</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Reputation</div>
+                                <div class="comprehensive-stat-value comprehensive-reputation good">78</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">User Satisfaction</div>
+                                <div class="comprehensive-stat-value comprehensive-satisfaction good">78%</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Spam Complaints</div>
+                                <div class="comprehensive-stat-value comprehensive-spam low">0.8%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="esp-comprehensive-item">
+                        <div class="esp-comprehensive-header">
+                            <div class="esp-icon">MM</div>
+                            <div class="esp-info">
+                                <div class="esp-name">MailMonkey</div>
+                                <div class="esp-stats">3 active clients</div>
+                            </div>
+                        </div>
+                        <div class="esp-comprehensive-stats">
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Volume</div>
+                                <div class="comprehensive-stat-value">142K</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Reputation</div>
+                                <div class="comprehensive-stat-value comprehensive-reputation warning">65</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">User Satisfaction</div>
+                                <div class="comprehensive-stat-value comprehensive-satisfaction warning">65%</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Spam Complaints</div>
+                                <div class="comprehensive-stat-value comprehensive-spam medium">1.4%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="esp-comprehensive-item">
+                        <div class="esp-comprehensive-header">
+                            <div class="esp-icon">BP</div>
+                            <div class="esp-info">
+                                <div class="esp-name">BluePost</div>
+                                <div class="esp-stats">5 active clients</div>
+                            </div>
+                        </div>
+                        <div class="esp-comprehensive-stats">
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Volume</div>
+                                <div class="comprehensive-stat-value">238K</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Reputation</div>
+                                <div class="comprehensive-stat-value comprehensive-reputation poor">52</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">User Satisfaction</div>
+                                <div class="comprehensive-stat-value comprehensive-satisfaction poor">52%</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Spam Complaints</div>
+                                <div class="comprehensive-stat-value comprehensive-spam high">2.8%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="esp-comprehensive-item">
+                        <div class="esp-comprehensive-header">
+                            <div class="esp-icon">SB</div>
+                            <div class="esp-info">
+                                <div class="esp-name">SendBolt</div>
+                                <div class="esp-stats">2 active clients</div>
+                            </div>
+                        </div>
+                        <div class="esp-comprehensive-stats">
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Volume</div>
+                                <div class="comprehensive-stat-value">95K</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Reputation</div>
+                                <div class="comprehensive-stat-value comprehensive-reputation excellent">88</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">User Satisfaction</div>
+                                <div class="comprehensive-stat-value comprehensive-satisfaction excellent">88%</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Spam Complaints</div>
+                                <div class="comprehensive-stat-value comprehensive-spam low">0.3%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="esp-comprehensive-item">
+                        <div class="esp-comprehensive-header">
+                            <div class="esp-icon">RM</div>
+                            <div class="esp-info">
+                                <div class="esp-name">RocketMail</div>
+                                <div class="esp-stats">3 active clients</div>
+                            </div>
+                        </div>
+                        <div class="esp-comprehensive-stats">
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Volume</div>
+                                <div class="comprehensive-stat-value">156K</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Reputation</div>
+                                <div class="comprehensive-stat-value comprehensive-reputation good">71</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">User Satisfaction</div>
+                                <div class="comprehensive-stat-value comprehensive-satisfaction good">71%</div>
+                            </div>
+                            <div class="comprehensive-stat">
+                                <div class="comprehensive-stat-label">Spam Complaints</div>
+                                <div class="comprehensive-stat-value comprehensive-spam low">1.0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coordination Status -->
+            <div class="card coordination-card">
+                <div class="card-header">
+                    <h2 class="card-title">🤝 Inter-Destination Coordination</h2>
+                    <button class="btn-details" onclick="openCoordinationPanel()" style="padding: 0.5rem 1rem; font-size: 0.875rem; border: 2px solid #E5E7EB; background: white; color: #6B7280; font-weight: 600; cursor: pointer; border-radius: 8px;">
+                        Manage →
+                    </button>
+                </div>
+                <div class="coordination-status">
+                    <div class="coordination-item">
+                        <div class="coordination-label">Active Collaborations</div>
+                        <div class="coordination-value">1</div>
+                        <div class="coordination-description">Gmail ↔ Outlook intelligence sharing</div>
+                    </div>
+
+                    <div class="coordination-item">
+                        <div class="coordination-label">Shared Budget Pool</div>
+                        <div class="coordination-value">450</div>
+                        <div class="coordination-description">Combined credits for joint actions</div>
+                    </div>
+
+                    <div class="coordination-item">
+                        <div class="coordination-label">Intelligence Level</div>
+                        <div class="coordination-value">Medium</div>
+                        <div class="coordination-description">Shared ESP behavior insights</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lock-in Button -->
+            <div class="lock-in-container">
+                <button class="lock-in-btn">
+                    <span>🔒</span>
+                    <span>Lock In Decisions</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Filtering Controls Modal -->
+    <div id="filteringControlsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span>🛡️</span>
+                    <span>Filtering Controls</span>
+                </h2>
+                <button class="modal-close" onclick="closeModal('filteringControlsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="filtering-grid">
+                    <!-- ESP 1 - Permissive -->
+                    <div class="filter-esp-item">
+                        <div class="filter-esp-header">
+                            <div class="filter-esp-icon">SW</div>
+                            <div class="filter-esp-info">
+                                <div class="filter-esp-name">SendWave</div>
+                                <div class="filter-esp-stats">185K emails/round • Reputation: 78 • 4 clients</div>
+                            </div>
+                            <div class="filter-toggle">
+                                <div class="filter-level-label">Filtering Level</div>
+                                <div class="filter-level-current permissive">Permissive</div>
+                                <input type="range" min="0" max="3" value="0" class="filter-slider" 
+                                       onchange="updateFilterLevel(this, 'SendWave')" 
+                                       oninput="updateFilterLevel(this, 'SendWave')">
+                                <div class="filter-level-labels">
+                                    <span>Permissive</span>
+                                    <span>Moderate</span>
+                                    <span>Strict</span>
+                                    <span>Maximum</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-impact no-filter">
+                            <div class="filter-impact-title">Current Impact</div>
+                            <div class="filter-impact-stats">
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Spam Reduction</div>
+                                    <div class="impact-stat-value">0%</div>
+                                </div>
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Legitimate Emails Blocked</div>
+                                    <div class="impact-stat-value">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ESP 2 - Strict -->
+                    <div class="filter-esp-item filtering-active">
+                        <div class="filter-esp-header">
+                            <div class="filter-esp-icon">BP</div>
+                            <div class="filter-esp-info">
+                                <div class="filter-esp-name">BluePost</div>
+                                <div class="filter-esp-stats">238K emails/round • Reputation: 52 • 5 clients</div>
+                            </div>
+                            <div class="filter-toggle">
+                                <div class="filter-level-label">Filtering Level</div>
+                                <div class="filter-level-current strict">Strict</div>
+                                <input type="range" min="0" max="3" value="2" class="filter-slider" 
+                                       onchange="updateFilterLevel(this, 'BluePost')" 
+                                       oninput="updateFilterLevel(this, 'BluePost')">
+                                <div class="filter-level-labels">
+                                    <span>Permissive</span>
+                                    <span>Moderate</span>
+                                    <span>Strict</span>
+                                    <span>Maximum</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-impact">
+                            <div class="filter-impact-title">Active Filtering Impact</div>
+                            <div class="filter-impact-stats">
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Spam Reduction</div>
+                                    <div class="impact-stat-value positive">-65%</div>
+                                </div>
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Legitimate Emails Blocked</div>
+                                    <div class="impact-stat-value negative">8%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ESP 3 - Permissive -->
+                    <div class="filter-esp-item">
+                        <div class="filter-esp-header">
+                            <div class="filter-esp-icon">SB</div>
+                            <div class="filter-esp-info">
+                                <div class="filter-esp-name">SendBolt</div>
+                                <div class="filter-esp-stats">95K emails/round • Reputation: 88 • 2 clients</div>
+                            </div>
+                            <div class="filter-toggle">
+                                <div class="filter-level-label">Filtering Level</div>
+                                <div class="filter-level-current permissive">Permissive</div>
+                                <input type="range" min="0" max="3" value="0" class="filter-slider" 
+                                       onchange="updateFilterLevel(this, 'SendBolt')" 
+                                       oninput="updateFilterLevel(this, 'SendBolt')">
+                                <div class="filter-level-labels">
+                                    <span>Permissive</span>
+                                    <span>Moderate</span>
+                                    <span>Strict</span>
+                                    <span>Maximum</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-impact no-filter">
+                            <div class="filter-impact-title">Current Impact</div>
+                            <div class="filter-impact-stats">
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Spam Reduction</div>
+                                    <div class="impact-stat-value">0%</div>
+                                </div>
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Legitimate Emails Blocked</div>
+                                    <div class="impact-stat-value">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ESP 4 - Moderate -->
+                    <div class="filter-esp-item">
+                        <div class="filter-esp-header">
+                            <div class="filter-esp-icon">MM</div>
+                            <div class="filter-esp-info">
+                                <div class="filter-esp-name">MailMonkey</div>
+                                <div class="filter-esp-stats">142K emails/round • Reputation: 65 • 3 clients</div>
+                            </div>
+                            <div class="filter-toggle">
+                                <div class="filter-level-label">Filtering Level</div>
+                                <div class="filter-level-current moderate">Moderate</div>
+                                <input type="range" min="0" max="3" value="1" class="filter-slider" 
+                                       onchange="updateFilterLevel(this, 'MailMonkey')" 
+                                       oninput="updateFilterLevel(this, 'MailMonkey')">
+                                <div class="filter-level-labels">
+                                    <span>Permissive</span>
+                                    <span>Moderate</span>
+                                    <span>Strict</span>
+                                    <span>Maximum</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-impact">
+                            <div class="filter-impact-title">Active Filtering Impact</div>
+                            <div class="filter-impact-stats">
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Spam Reduction</div>
+                                    <div class="impact-stat-value positive">-35%</div>
+                                </div>
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Legitimate Emails Blocked</div>
+                                    <div class="impact-stat-value negative">3%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ESP 5 - Permissive -->
+                    <div class="filter-esp-item">
+                        <div class="filter-esp-header">
+                            <div class="filter-esp-icon">RM</div>
+                            <div class="filter-esp-info">
+                                <div class="filter-esp-name">RocketMail</div>
+                                <div class="filter-esp-stats">156K emails/round • Reputation: 71 • 3 clients</div>
+                            </div>
+                            <div class="filter-toggle">
+                                <div class="filter-level-label">Filtering Level</div>
+                                <div class="filter-level-current permissive">Permissive</div>
+                                <input type="range" min="0" max="3" value="0" class="filter-slider" 
+                                       onchange="updateFilterLevel(this, 'RocketMail')" 
+                                       oninput="updateFilterLevel(this, 'RocketMail')">
+                                <div class="filter-level-labels">
+                                    <span>Permissive</span>
+                                    <span>Moderate</span>
+                                    <span>Strict</span>
+                                    <span>Maximum</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-impact no-filter">
+                            <div class="filter-impact-title">Current Impact</div>
+                            <div class="filter-impact-stats">
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Spam Reduction</div>
+                                    <div class="impact-stat-value">0%</div>
+                                </div>
+                                <div class="impact-stat">
+                                    <div class="impact-stat-label">Legitimate Emails Blocked</div>
+                                    <div class="impact-stat-value">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coordination Panel Modal -->
+    <div id="coordinationPanelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span>🤝</span>
+                    <span>Inter-Destination Coordination</span>
+                </h2>
+                <button class="modal-close" onclick="closeModal('coordinationPanelModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Shared Budget -->
+                <div class="coordination-section">
+                    <div class="shared-budget-info">
+                        <div class="shared-budget-title">
+                            <span>💰</span>
+                            <span>Shared Budget Pool</span>
+                        </div>
+                        <div class="shared-budget-content">
+                            <div class="shared-budget-item">
+                                <div class="shared-budget-label">Total Pool</div>
+                                <div class="shared-budget-value">450</div>
+                            </div>
+                            <div class="shared-budget-item">
+                                <div class="shared-budget-label">Your Contribution</div>
+                                <div class="shared-budget-value">150</div>
+                            </div>
+                            <div class="shared-budget-item">
+                                <div class="shared-budget-label">Available to Use</div>
+                                <div class="shared-budget-value">450</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collaboration Options -->
+                <div class="coordination-section">
+                    <div class="coordination-section-title">
+                        <span>🔗</span>
+                        <span>Collaboration Agreements</span>
+                    </div>
+                    
+                    <div class="destination-collaboration">
+                        <!-- Active Collaboration -->
+                        <div class="destination-collab-item active">
+                            <div class="collab-header">
+                                <div class="collab-destinations">
+                                    <span class="collab-destination-icon">📬</span>
+                                    <span>Gmail</span>
+                                    <span>↔</span>
+                                    <span class="collab-destination-icon">📮</span>
+                                    <span>Outlook</span>
+                                </div>
+                                <span class="collab-status active">✓ Active</span>
+                            </div>
+                            <div class="collab-description">
+                                Share real-time intelligence about ESP behavior patterns, reputation changes, and emerging threats. Coordinate filtering strategies for problematic ESPs.
+                            </div>
+                            <div class="collab-benefits">
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Intelligence Sharing</div>
+                                    <div class="collab-benefit-value">Medium Level</div>
+                                </div>
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Coordination Cost</div>
+                                    <div class="collab-benefit-value">-50 cr/round</div>
+                                </div>
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Effectiveness Bonus</div>
+                                    <div class="collab-benefit-value">+15%</div>
+                                </div>
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Shared Budget Access</div>
+                                    <div class="collab-benefit-value">450 credits</div>
+                                </div>
+                            </div>
+                            <div class="collab-actions">
+                                <button class="btn-deactivate">Deactivate Collaboration</button>
+                            </div>
+                        </div>
+
+                        <!-- Available Collaboration -->
+                        <div class="destination-collab-item">
+                            <div class="collab-header">
+                                <div class="collab-destinations">
+                                    <span class="collab-destination-icon">📬</span>
+                                    <span>Gmail</span>
+                                    <span>↔</span>
+                                    <span class="collab-destination-icon">📪</span>
+                                    <span>Yahoo</span>
+                                </div>
+                                <span class="collab-status available">Available</span>
+                            </div>
+                            <div class="collab-description">
+                                Extend intelligence sharing to Yahoo. Creates a three-way coordination network for comprehensive ESP monitoring and unified response strategies.
+                            </div>
+                            <div class="collab-benefits">
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Intelligence Sharing</div>
+                                    <div class="collab-benefit-value">High Level</div>
+                                </div>
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Coordination Cost</div>
+                                    <div class="collab-benefit-value">-75 cr/round</div>
+                                </div>
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Effectiveness Bonus</div>
+                                    <div class="collab-benefit-value">+25%</div>
+                                </div>
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Shared Budget Access</div>
+                                    <div class="collab-benefit-value">700+ credits</div>
+                                </div>
+                            </div>
+                            <div class="collab-actions">
+                                <button class="btn-activate">Activate Collaboration</button>
+                            </div>
+                        </div>
+
+                        <!-- Future Collaboration -->
+                        <div class="destination-collab-item">
+                            <div class="collab-header">
+                                <div class="collab-destinations">
+                                    <span class="collab-destination-icon">📮</span>
+                                    <span>Outlook</span>
+                                    <span>↔</span>
+                                    <span class="collab-destination-icon">📪</span>
+                                    <span>Yahoo</span>
+                                </div>
+                                <span class="collab-status available">Available</span>
+                            </div>
+                            <div class="collab-description">
+                                Direct collaboration between Outlook and Yahoo for targeted coordination on specific ESPs or threat patterns.
+                            </div>
+                            <div class="collab-benefits">
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Intelligence Sharing</div>
+                                    <div class="collab-benefit-value">Medium Level</div>
+                                </div>
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Coordination Cost</div>
+                                    <div class="collab-benefit-value">-50 cr/round</div>
+                                </div>
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Effectiveness Bonus</div>
+                                    <div class="collab-benefit-value">+15%</div>
+                                </div>
+                                <div class="collab-benefit">
+                                    <div class="collab-benefit-label">Shared Budget Access</div>
+                                    <div class="collab-benefit-value">Varies</div>
+                                </div>
+                            </div>
+                            <div class="collab-actions">
+                                <button class="btn-activate" disabled>Requires Outlook & Yahoo Agreement</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal Management
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on backdrop click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal(modal.id);
+                }
+            });
+        });
+
+        // Navigation functions
+        function openFilteringControls() {
+            openModal('filteringControlsModal');
+        }
+
+        function openCoordinationPanel() {
+            openModal('coordinationPanelModal');
+        }
+
+        // Filter level update
+        function updateFilterLevel(slider, espName) {
+            const levels = ['Permissive', 'Moderate', 'Strict', 'Maximum'];
+            const levelClasses = ['permissive', 'moderate', 'strict', 'maximum'];
+            const value = parseInt(slider.value);
+            
+            // Update the current level display
+            const levelDisplay = slider.closest('.filter-toggle').querySelector('.filter-level-current');
+            levelDisplay.textContent = levels[value];
+            levelDisplay.className = 'filter-level-current ' + levelClasses[value];
+            
+            // Update the impact section
+            const filterItem = slider.closest('.filter-esp-item');
+            const impactSection = filterItem.querySelector('.filter-impact');
+            const impactStats = impactSection.querySelector('.filter-impact-stats');
+            
+            // Update visual state
+            if (value === 0) {
+                filterItem.classList.remove('filtering-active');
+                impactSection.classList.add('no-filter');
+                impactSection.classList.remove('filter');
+                impactSection.querySelector('.filter-impact-title').textContent = 'Current Impact';
+            } else {
+                filterItem.classList.add('filtering-active');
+                impactSection.classList.remove('no-filter');
+                impactSection.classList.add('filter');
+                impactSection.querySelector('.filter-impact-title').textContent = 'Active Filtering Impact';
+            }
+            
+            // Calculate impacts based on level
+            const impacts = {
+                0: { spam: 0, legitimate: 0 },
+                1: { spam: 35, legitimate: 3 },
+                2: { spam: 65, legitimate: 8 },
+                3: { spam: 85, legitimate: 15 }
+            };
+            
+            const impact = impacts[value];
+            impactStats.innerHTML = `
+                <div class="impact-stat">
+                    <div class="impact-stat-label">Spam Reduction</div>
+                    <div class="impact-stat-value ${impact.spam > 0 ? 'positive' : ''}">
+                        ${impact.spam > 0 ? '-' : ''}${impact.spam}%
+                    </div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-stat-label">Legitimate Emails Blocked</div>
+                    <div class="impact-stat-value ${impact.legitimate > 0 ? 'negative' : ''}">
+                        ${impact.legitimate}%
+                    </div>
+                </div>
+            `;
+        }
+
+        // Timer countdown simulation
+        function updateTimer() {
+            const timerElement = document.querySelector('.timer');
+            let totalSeconds = 4 * 60 + 32; // 4:32
+
+            setInterval(() => {
+                if (totalSeconds <= 0) return;
+                
+                totalSeconds--;
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTimer();
+        });
+    </script>
+</body>
+</html>

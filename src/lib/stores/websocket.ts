@@ -1,12 +1,14 @@
 /**
  * WebSocket Store
  * US-1.2: Join Game Session - Real-time lobby updates
+ * US-2.5: Destination Dashboard - Real-time destination updates
  *
  * Provides a reusable, reactive WebSocket connection with auto-reconnection
  */
 
 import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
+import type { DestinationDashboardUpdate } from '$lib/server/game/types';
 
 export interface LobbyUpdate {
 	espTeams: Array<{ name: string; players: string[] }>;
@@ -63,6 +65,7 @@ function createWebSocketStore() {
 	let lobbyUpdateCallback: ((data: LobbyUpdate) => void) | null = null;
 	let gameStateUpdateCallback: ((data: GameStateUpdate) => void) | null = null;
 	let espDashboardUpdateCallback: ((data: ESPDashboardUpdate) => void) | null = null;
+	let destinationDashboardUpdateCallback: ((data: DestinationDashboardUpdate) => void) | null = null;
 
 	function cleanup() {
 		if (reconnectTimer) {
@@ -82,7 +85,8 @@ function createWebSocketStore() {
 			roomCode: string,
 			onLobbyUpdate: (data: LobbyUpdate) => void,
 			onGameStateUpdate?: (data: GameStateUpdate) => void,
-			onESPDashboardUpdate?: (data: ESPDashboardUpdate) => void
+			onESPDashboardUpdate?: (data: ESPDashboardUpdate) => void,
+			onDestinationDashboardUpdate?: (data: DestinationDashboardUpdate) => void
 		): void {
 			if (!browser) return;
 			if (ws?.readyState === WebSocket.OPEN && currentRoomCode === roomCode) return;
@@ -94,6 +98,7 @@ function createWebSocketStore() {
 			lobbyUpdateCallback = onLobbyUpdate;
 			gameStateUpdateCallback = onGameStateUpdate || null;
 			espDashboardUpdateCallback = onESPDashboardUpdate || null;
+			destinationDashboardUpdateCallback = onDestinationDashboardUpdate || null;
 
 			const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 			const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -152,6 +157,13 @@ function createWebSocketStore() {
 								}
 								break;
 
+							case 'destination_dashboard_update':
+								// US-2.5: Destination Dashboard real-time updates
+								if (destinationDashboardUpdateCallback) {
+									destinationDashboardUpdateCallback(message.data);
+								}
+								break;
+
 							default:
 								// Handle other message types
 								break;
@@ -182,7 +194,8 @@ function createWebSocketStore() {
 								currentRoomCode!,
 								lobbyUpdateCallback!,
 								gameStateUpdateCallback || undefined,
-								espDashboardUpdateCallback || undefined
+								espDashboardUpdateCallback || undefined,
+								destinationDashboardUpdateCallback || undefined
 							);
 						}, 3000);
 					}
@@ -201,6 +214,7 @@ function createWebSocketStore() {
 			lobbyUpdateCallback = null;
 			gameStateUpdateCallback = null;
 			espDashboardUpdateCallback = null;
+			destinationDashboardUpdateCallback = null;
 			set({ connected: false, roomCode: null, error: null });
 		}
 	};

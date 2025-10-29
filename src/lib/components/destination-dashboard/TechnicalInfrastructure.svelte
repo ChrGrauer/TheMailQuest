@@ -1,0 +1,133 @@
+<script lang="ts">
+	/**
+	 * TechnicalInfrastructure Component (Destination version)
+	 * US-2.5: Destination Kingdom Dashboard
+	 *
+	 * Displays:
+	 * - Owned destination technical upgrades with Active status
+	 * - Missing tech shown as Inactive
+	 * - Checkmark icons for owned tech, cross for missing
+	 * - Based on DESTINATION_TECHNICAL_UPGRADES config
+	 */
+
+	import {
+		DESTINATION_TECHNICAL_UPGRADES,
+		type DestinationTechnicalUpgrade
+	} from '$lib/config/destination-technical-upgrades';
+
+	interface Props {
+		ownedTech: string[]; // Array of owned tech IDs
+	}
+
+	let { ownedTech }: Props = $props();
+
+	// Group technologies by category
+	const techByCategory = $derived.by(() => {
+		const grouped = new Map<string, DestinationTechnicalUpgrade[]>();
+
+		DESTINATION_TECHNICAL_UPGRADES.forEach((tech) => {
+			const category = tech.category || 'other';
+			if (!grouped.has(category)) {
+				grouped.set(category, []);
+			}
+			grouped.get(category)!.push(tech);
+		});
+
+		return grouped;
+	});
+
+	function isTechOwned(techId: string): boolean {
+		return ownedTech.includes(techId);
+	}
+</script>
+
+<div class="bg-white rounded-xl shadow-md p-6" data-testid="technical-infrastructure">
+	<h2 class="text-lg font-bold text-gray-800 mb-4">🔧 Technical Infrastructure</h2>
+
+	<div class="space-y-6">
+		{#each [...techByCategory.entries()] as [category, techs]}
+			<div>
+				<!-- Category Header -->
+				<h3 class="text-sm font-semibold text-blue-700 uppercase tracking-wide mb-3">
+					{category}
+				</h3>
+
+				<!-- Tech Items -->
+				<div class="space-y-2">
+					{#each techs as tech}
+						{@const owned = isTechOwned(tech.id)}
+
+						<div
+							data-testid="tech-item-{tech.id}"
+							class="flex items-center gap-3 p-3 rounded-lg transition-all duration-200 {owned
+								? 'bg-green-50 border border-green-200'
+								: 'bg-gray-50 border border-gray-200'}"
+						>
+							<!-- Icon -->
+							<div
+								data-testid="tech-icon-{tech.id}"
+								class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 {owned
+									? 'bg-green-500 text-white'
+									: 'bg-gray-300 text-gray-600'}"
+							>
+								{#if owned}
+									<span class="font-bold">✓</span>
+								{:else}
+									<span class="font-bold">✕</span>
+								{/if}
+							</div>
+
+							<!-- Info -->
+							<div class="flex-1 min-w-0">
+								<div class="flex items-center gap-2 mb-1">
+									<span
+										class="font-semibold text-gray-800 text-sm truncate"
+									>
+										{tech.name}
+									</span>
+									<span
+										data-testid="tech-status-{tech.id}"
+										class="px-2 py-0.5 rounded text-xs font-semibold {owned
+											? 'bg-green-200 text-green-800'
+											: 'bg-gray-200 text-gray-600'}"
+									>
+										{owned ? 'Active' : 'Inactive'}
+									</span>
+								</div>
+								<div class="text-xs text-gray-500">
+									{tech.description}
+								</div>
+							</div>
+
+							<!-- Cost (if not owned) -->
+							{#if !owned && tech.cost}
+								<div class="text-right flex-shrink-0">
+									<div class="text-sm font-bold text-gray-700">
+										{tech.cost}
+									</div>
+									<div class="text-xs text-gray-500">credits</div>
+								</div>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/each}
+	</div>
+
+	{#if ownedTech.length === 0}
+		<div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+			<div class="flex items-start gap-3">
+				<span class="text-2xl">⚠️</span>
+				<div>
+					<div class="font-semibold text-amber-800 mb-1">
+						No Technical Upgrades Installed
+					</div>
+					<div class="text-sm text-amber-700">
+						Consider installing authentication checks and spam filters to improve your email filtering capabilities.
+					</div>
+				</div>
+			</div>
+		</div>
+	{/if}
+</div>
