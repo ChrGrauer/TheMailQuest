@@ -247,11 +247,21 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 
 			await alicePage.waitForURL(`/game/${roomCode}/esp/sendwave`, { timeout: 10000 });
 
-			// Then - Alice should see allocated resources
-			await expect(alicePage.locator('text=/1000.*credits/i')).toBeVisible({
-				timeout: 5000
-			});
-			await expect(alicePage.locator('text=/70.*reputation/i')).toBeVisible({
+			// Wait for dashboard to be ready (US-2.1)
+			await alicePage.waitForFunction(
+				() => (window as any).__espDashboardTest?.ready === true,
+				{},
+				{ timeout: 10000 }
+			);
+
+			// Then - Alice should see allocated resources (using US-2.1 dashboard testids)
+			const budgetElement = alicePage.locator('[data-testid="budget-current"]');
+			await expect(budgetElement).toBeVisible({ timeout: 5000 });
+			const budgetText = await budgetElement.textContent();
+			expect(budgetText).toMatch(/1[,]?000/); // Accepts both "1000" and "1,000"
+
+			// Check reputation is displayed (US-2.1 shows per-destination)
+			await expect(alicePage.locator('[data-testid="reputation-gmail"]')).toBeVisible({
 				timeout: 5000
 			});
 
@@ -360,16 +370,26 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			const reconnectedAlicePage = await newContext.newPage();
 			await reconnectedAlicePage.goto(`/game/${roomCode}/esp/sendwave`);
 
-			// Then - Alice should see the game in progress
+			// Wait for dashboard to be ready (US-2.1)
+			await reconnectedAlicePage.waitForFunction(
+				() => (window as any).__espDashboardTest?.ready === true,
+				{},
+				{ timeout: 10000 }
+			);
+
+			// Then - Alice should see the game in progress (using US-2.1 dashboard testids)
 			await expect(reconnectedAlicePage.locator('[data-testid="game-timer"]')).toBeVisible({
 				timeout: 5000
 			});
-			await expect(reconnectedAlicePage.locator('text=/1000.*credits/i')).toBeVisible({
-				timeout: 5000
-			});
-			await expect(reconnectedAlicePage.locator('text=/round.*1/i')).toBeVisible({
-				timeout: 5000
-			});
+
+			const budgetElement = reconnectedAlicePage.locator('[data-testid="budget-current"]');
+			await expect(budgetElement).toBeVisible({ timeout: 5000 });
+			const budgetText = await budgetElement.textContent();
+			expect(budgetText).toMatch(/1[,]?000/); // Accepts both "1000" and "1,000"
+
+			const roundIndicator = reconnectedAlicePage.locator('[data-testid="round-indicator"]');
+			await expect(roundIndicator).toBeVisible({ timeout: 5000 });
+			await expect(roundIndicator).toContainText(/round.*1/i);
 
 			await reconnectedAlicePage.close();
 			await newContext.close();
