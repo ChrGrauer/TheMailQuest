@@ -18,8 +18,7 @@
 	import type { ESPDestinationStats } from '$lib/server/game/types';
 
 	// Components
-	import GameStateHeader from '$lib/components/esp-dashboard/GameStateHeader.svelte';
-	import BudgetDisplay from '$lib/components/esp-dashboard/BudgetDisplay.svelte';
+	import DestinationHeader from '$lib/components/destination-dashboard/DestinationHeader.svelte';
 	import LockInButton from '$lib/components/esp-dashboard/LockInButton.svelte';
 	import ESPStatisticsOverview from '$lib/components/destination-dashboard/ESPStatisticsOverview.svelte';
 	import CoordinationStatus from '$lib/components/destination-dashboard/CoordinationStatus.svelte';
@@ -249,74 +248,17 @@
 			</div>
 		</div>
 	{:else}
+		<!-- Header -->
+		<DestinationHeader
+			destinationName={destinationName}
+			budget={budget}
+			currentRound={currentRound}
+			totalRounds={4}
+			timerSeconds={timerRemaining}
+		/>
+
 		<!-- Dashboard Content -->
 		<div class="container mx-auto px-4 py-6 max-w-7xl">
-			<!-- Header -->
-			<div data-testid="game-header" class="mb-6">
-				<div class="bg-white rounded-xl shadow-md p-6">
-					<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-						<!-- Destination Info -->
-						<div class="flex items-center gap-4">
-							<div
-								data-testid="destination-icon"
-								class="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-3xl"
-							>
-								📬
-							</div>
-							<div>
-								<h1
-									data-testid="destination-name"
-									class="text-3xl font-bold text-blue-800"
-								>
-									{destinationName}
-								</h1>
-								<p class="text-sm text-gray-500">Destination Kingdom</p>
-							</div>
-						</div>
-
-						<!-- Game Status -->
-						<div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-							<!-- Budget -->
-							<div class="bg-blue-50 px-6 py-3 rounded-lg border-2 border-blue-200">
-								<div class="text-xs font-semibold text-blue-700 uppercase mb-1">
-									Budget
-								</div>
-								<div
-									data-testid="budget-current"
-									class="text-2xl font-bold text-blue-800"
-								>
-									{budget}
-								</div>
-							</div>
-
-							<!-- Round & Phase -->
-							<div class="bg-gradient-to-br from-blue-600 to-blue-500 px-6 py-3 rounded-lg text-white">
-								<div
-									data-testid="round-indicator"
-									class="text-sm font-semibold mb-1"
-								>
-									Round <span class="text-lg">{currentRound}</span> / 4
-								</div>
-								<div class="flex items-center gap-2">
-									<span
-										data-testid="phase-indicator"
-										class="text-sm capitalize opacity-90"
-									>
-										{currentPhase}
-									</span>
-									<span class="text-xs opacity-75">•</span>
-									<span
-										data-testid="timer-display"
-										class="text-xl font-mono font-bold"
-									>
-										{timerDisplay}
-									</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
 
 			<!-- Quick Actions -->
 			<DestinationQuickActions
