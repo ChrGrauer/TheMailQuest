@@ -1,67 +1,341 @@
 <script lang="ts">
+	/**
+	 * ESP Team Dashboard Page
+	 * US-2.1: ESP Team Dashboard
+	 *
+	 * Main dashboard for ESP teams showing:
+	 * - Budget (current + forecast)
+	 * - Reputation gauges per destination
+	 * - Active client portfolio
+	 * - Technical infrastructure status
+	 * - Game state (round, timer)
+	 * - Quick actions (marketplace, tech shop, client management)
+	 * - Lock-in button
+	 */
+
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { websocketStore, type ESPDashboardUpdate } from '$lib/stores/websocket';
+	import GameStateHeader from '$lib/components/esp-dashboard/GameStateHeader.svelte';
+	import ReputationGauges from '$lib/components/esp-dashboard/ReputationGauges.svelte';
+	import ClientPortfolio from '$lib/components/esp-dashboard/ClientPortfolio.svelte';
+	import TechnicalInfrastructure from '$lib/components/esp-dashboard/TechnicalInfrastructure.svelte';
+	import QuickActions from '$lib/components/esp-dashboard/QuickActions.svelte';
+	import LockInButton from '$lib/components/esp-dashboard/LockInButton.svelte';
 
-	const roomCode = $page.params.roomCode;
-	const teamName = $page.params.teamName;
+	// Get params from page store
+	let roomCode = $derived($page.params.roomCode || '');
+	let teamName = $derived($page.params.teamName || '');
 
-	let credits = 1000;
-	let reputation: Record<string, number> = { Gmail: 70 };
-	let round = 1;
-	let timerRemaining = 300;
+	// Dashboard state
+	let loading = $state(true);
+	let error = $state<string | null>(null);
 
-	// Format timer as M:SS
-	$: timerDisplay = `${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`;
+	// Team data
+	let credits = $state(1000);
+	let pendingCosts = $state(0);
+	let reputation = $state<Record<string, number>>({ Gmail: 70, Outlook: 70, Yahoo: 70 });
+	let clients = $state<
+		Array<{
+			name: string;
+			status: 'Active' | 'Paused';
+			revenue?: number;
+			volume?: string;
+			risk?: 'Low' | 'Medium' | 'High';
+		}>
+	>([]);
+	let ownedTech = $state<string[]>([]);
 
-	onMount(() => {
-		// Placeholder: In real implementation, this would connect to WebSocket
-		// and update based on game state
+	// Game state
+	let currentRound = $state(1);
+	let totalRounds = $state(4);
+	let currentPhase = $state('planning');
+	let timerSeconds = $state(300);
+
+	// Destinations with weights
+	let destinations = $state([
+		{ name: 'Gmail', weight: 50 },
+		{ name: 'Outlook', weight: 30 },
+		{ name: 'Yahoo', weight: 20 }
+	]);
+
+	// Test state for WebSocket status (used by E2E tests)
+	let testWsConnected = $state<boolean | null>(null);
+	let testWsError = $state<string | null>(null);
+
+	// WebSocket connection status (use test values if set)
+	let wsConnected = $derived(testWsConnected !== null ? testWsConnected : $websocketStore.connected);
+	let wsError = $derived(testWsError !== null ? testWsError : $websocketStore.error);
+
+	/**
+	 * Fetch initial dashboard data from API
+	 */
+	async function fetchDashboardData() {
+		try {
+			loading = true;
+			error = null;
+
+			const response = await fetch(`/api/sessions/${roomCode}/esp/${teamName}`);
+			const data = await response.json();
+
+			if (!data.success) {
+				throw new Error(data.error || 'Failed to load dashboard data');
+			}
+
+			// Update team data
+			credits = data.team.credits || 1000;
+			reputation = data.team.reputation || { Gmail: 70, Outlook: 70, Yahoo: 70 };
+			clients = data.team.clients || [];
+			ownedTech = data.team.technical_auth || [];
+
+			// Update game state
+			currentRound = data.game.current_round || 1;
+			currentPhase = data.game.current_phase || 'planning';
+
+			// Update timer
+			if (data.game.timer) {
+				timerSeconds = data.game.timer.remaining || 300;
+			}
+
+			// Update destinations
+			if (data.destinations) {
+				destinations = data.destinations;
+			}
+
+			loading = false;
+		} catch (err) {
+			error = (err as Error).message;
+			loading = false;
+		}
+	}
+
+	/**
+	 * Handle real-time dashboard updates from WebSocket
+	 */
+	function handleDashboardUpdate(update: ESPDashboardUpdate) {
+		if (update.credits !== undefined) {
+			credits = update.credits;
+		}
+
+		if (update.reputation) {
+			reputation = { ...reputation, ...update.reputation };
+		}
+
+		if (update.clients) {
+			clients = update.clients;
+		}
+
+		if (update.technical_auth) {
+			ownedTech = update.technical_auth;
+		}
+
+		if (update.pending_costs !== undefined) {
+			pendingCosts = update.pending_costs;
+		}
+	}
+
+	/**
+	 * Handle game state updates (phase, round, timer)
+	 */
+	function handleGameStateUpdate(data: any) {
+		if (data.phase) {
+			currentPhase = data.phase;
+		}
+
+		if (data.round !== undefined) {
+			currentRound = data.round;
+		}
+
+		if (data.timer_remaining !== undefined) {
+			timerSeconds = data.timer_remaining;
+		}
+	}
+
+	/**
+	 * Quick action handlers (placeholders for future US)
+	 */
+	function handleMarketplaceClick() {
+		console.log('Navigate to Client Marketplace (US-2.2)');
+		// TODO: Implement in US-2.2
+	}
+
+	function handleTechShopClick() {
+		console.log('Navigate to Technical Shop (US-2.3)');
+		// TODO: Implement in US-2.3
+	}
+
+	function handleClientManagementClick() {
+		console.log('Navigate to Client Management (US-2.4)');
+		// TODO: Implement in US-2.4
+	}
+
+	function handleLockIn() {
+		console.log('Lock in decisions (US-3.1)');
+		// TODO: Implement in US-3.1
+	}
+
+	/**
+	 * Lifecycle: Mount
+	 */
+	onMount(async () => {
+		// Fetch initial data
+		await fetchDashboardData();
+
+		// Connect to WebSocket for real-time updates
+		websocketStore.connect(
+			roomCode,
+			() => {}, // Lobby updates not needed for ESP dashboard
+			handleGameStateUpdate,
+			handleDashboardUpdate
+		);
+
+		// Expose test API (only for E2E tests)
+		// This allows tests to simulate real-time updates without WebSocket
+		if (typeof window !== 'undefined') {
+			(window as any).__espDashboardTest = {
+				get ready() {
+					return !loading && !error;
+				}, // Signal that initial fetch is complete
+				setCredits: (value: number) => (credits = value),
+				setPendingCosts: (value: number) => (pendingCosts = value),
+				setReputation: (value: Record<string, number>) => (reputation = { ...reputation, ...value }),
+				setClients: (value: typeof clients) => (clients = value),
+				setOwnedTech: (value: string[]) => (ownedTech = value),
+				setRound: (value: number) => (currentRound = value),
+				setPhase: (value: string) => (currentPhase = value),
+				setTimer: (value: number) => (timerSeconds = value),
+				setWsStatus: (connected: boolean, errorMsg?: string) => {
+					// For testing WebSocket connection states - use local test variables
+					testWsConnected = connected;
+					testWsError = connected ? null : (errorMsg || 'Connection lost');
+				},
+				setError: (errorMsg: string | null) => (error = errorMsg),
+				setLoading: (isLoading: boolean) => (loading = isLoading)
+			};
+		}
+	});
+
+	/**
+	 * Lifecycle: Destroy
+	 */
+	onDestroy(() => {
+		websocketStore.disconnect();
 	});
 </script>
 
-<div class="container">
-	<h1>ESP Team: {teamName}</h1>
-	<p>Room Code: {roomCode}</p>
-	<p>Round {round} - Planning Phase</p>
+<div data-testid="esp-dashboard" class="min-h-screen bg-gradient-to-b from-gray-50 to-emerald-50">
+	<!-- Error Banner (shown at top when error occurs, without hiding dashboard) -->
+	{#if error && !loading}
+		<div class="bg-red-50 border-b-2 border-red-200 py-3">
+			<div class="max-w-7xl mx-auto px-4">
+				<div
+					data-testid="error-banner"
+					class="flex items-center justify-between bg-red-100 border border-red-300 rounded-lg px-4 py-2"
+				>
+					<div class="flex items-center gap-3">
+						<span class="text-2xl">⚠️</span>
+						<div>
+							<p class="text-sm font-semibold text-red-800">Error</p>
+							<p class="text-sm text-red-700">{error}</p>
+						</div>
+					</div>
+					<button
+						onclick={() => (error = null)}
+						class="text-red-600 hover:text-red-800 font-bold text-lg"
+						aria-label="Dismiss error"
+					>
+						×
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 
-	<div data-testid="game-timer" class="timer">
-		{timerDisplay}
-	</div>
+	<!-- Game State Header -->
+	<GameStateHeader
+		teamName={teamName}
+		currentBudget={credits}
+		pendingCosts={pendingCosts}
+		currentRound={currentRound}
+		totalRounds={totalRounds}
+		timerSeconds={timerSeconds}
+	/>
 
-	<div class="resources">
-		<p>{credits} credits</p>
-		<p>
-			{Object.values(reputation)[0] || 70} reputation
-		</p>
-	</div>
+	<!-- Loading State -->
+	{#if loading}
+		<div class="max-w-7xl mx-auto px-4 py-8">
+			<div
+				data-testid="loading-reputation"
+				class="bg-white rounded-xl shadow-md p-12 text-center"
+			>
+				<div
+					class="animate-spin w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4"
+				></div>
+				<p class="text-gray-600">Loading dashboard...</p>
+				{#if error}
+					<p data-testid="error-message" class="text-orange-600 mt-4">{error}</p>
+				{/if}
+			</div>
+		</div>
+	{:else}
+		<!-- Main Dashboard Content -->
+		<div class="max-w-7xl mx-auto px-4 py-8">
+			<!-- WebSocket Connection Status -->
+			<div data-testid="ws-status" class="mb-4 text-sm">
+				{#if wsConnected}
+					<span class="text-green-600 flex items-center gap-2">
+						<span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+						Connected
+					</span>
+				{:else if wsError}
+					<span class="text-red-600 flex items-center gap-2">
+						<span class="w-2 h-2 bg-red-600 rounded-full"></span>
+						Disconnected - {wsError}
+					</span>
+				{:else}
+					<span class="text-gray-500 flex items-center gap-2">
+						<span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+						Connecting...
+					</span>
+				{/if}
+			</div>
 
-	<p class="placeholder-notice">
-		This is a placeholder dashboard. Full implementation coming in future user stories.
-	</p>
+			<!-- Quick Actions -->
+			<div class="mb-8">
+				<QuickActions
+					activeClientsCount={clients.length}
+					missingMandatoryTech={currentRound >= 2 && !ownedTech.includes('DMARC')}
+					availableClientsCount={3}
+					onMarketplaceClick={handleMarketplaceClick}
+					onTechShopClick={handleTechShopClick}
+					onClientManagementClick={handleClientManagementClick}
+				/>
+			</div>
+
+			<!-- Reputation Gauges (Full Width) -->
+			<div class="mb-6">
+				<ReputationGauges reputation={reputation} destinations={destinations} />
+			</div>
+
+			<!-- Full-width Sections -->
+			<div class="space-y-6 mb-6">
+				<!-- Technical Infrastructure -->
+				<TechnicalInfrastructure
+					ownedTech={ownedTech}
+					currentRound={currentRound}
+					onTechShopClick={handleTechShopClick}
+				/>
+
+				<!-- Client Portfolio -->
+				<ClientPortfolio clients={clients} onMarketplaceClick={handleMarketplaceClick} />
+			</div>
+
+			<!-- Lock In Button -->
+			<LockInButton
+				phase={currentPhase}
+				pendingDecisions={pendingCosts > 0 ? 1 : 0}
+				onLockIn={handleLockIn}
+			/>
+		</div>
+	{/if}
 </div>
-
-<style>
-	.container {
-		padding: 2rem;
-		max-width: 1200px;
-		margin: 0 auto;
-	}
-
-	.timer {
-		font-size: 2rem;
-		font-weight: bold;
-		margin: 1rem 0;
-	}
-
-	.resources {
-		margin: 2rem 0;
-	}
-
-	.placeholder-notice {
-		margin-top: 2rem;
-		padding: 1rem;
-		background-color: #f3f4f6;
-		border-radius: 0.5rem;
-		color: #6b7280;
-	}
-</style>

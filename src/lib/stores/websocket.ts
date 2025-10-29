@@ -26,6 +26,24 @@ export interface GameStateUpdate {
 	timer_remaining?: number;
 }
 
+/**
+ * US-2.1: ESP Dashboard Update
+ * Real-time updates for ESP team dashboard
+ */
+export interface ESPDashboardUpdate {
+	credits?: number;
+	reputation?: Record<string, number>;
+	clients?: Array<{
+		name: string;
+		status: 'Active' | 'Paused';
+		revenue?: number;
+		volume?: string;
+		risk?: 'Low' | 'Medium' | 'High';
+	}>;
+	technical_auth?: string[];
+	pending_costs?: number;
+}
+
 export interface WebSocketStore {
 	connected: boolean;
 	roomCode: string | null;
@@ -44,6 +62,7 @@ function createWebSocketStore() {
 	let currentRoomCode: string | null = null;
 	let lobbyUpdateCallback: ((data: LobbyUpdate) => void) | null = null;
 	let gameStateUpdateCallback: ((data: GameStateUpdate) => void) | null = null;
+	let espDashboardUpdateCallback: ((data: ESPDashboardUpdate) => void) | null = null;
 
 	function cleanup() {
 		if (reconnectTimer) {
@@ -62,7 +81,8 @@ function createWebSocketStore() {
 		connect(
 			roomCode: string,
 			onLobbyUpdate: (data: LobbyUpdate) => void,
-			onGameStateUpdate?: (data: GameStateUpdate) => void
+			onGameStateUpdate?: (data: GameStateUpdate) => void,
+			onESPDashboardUpdate?: (data: ESPDashboardUpdate) => void
 		): void {
 			if (!browser) return;
 			if (ws?.readyState === WebSocket.OPEN && currentRoomCode === roomCode) return;
@@ -73,6 +93,7 @@ function createWebSocketStore() {
 			currentRoomCode = roomCode;
 			lobbyUpdateCallback = onLobbyUpdate;
 			gameStateUpdateCallback = onGameStateUpdate || null;
+			espDashboardUpdateCallback = onESPDashboardUpdate || null;
 
 			const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 			const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -124,6 +145,13 @@ function createWebSocketStore() {
 								// Could be used for additional UI feedback
 								break;
 
+							case 'esp_dashboard_update':
+								// US-2.1: ESP Dashboard real-time updates
+								if (espDashboardUpdateCallback) {
+									espDashboardUpdateCallback(message.data);
+								}
+								break;
+
 							default:
 								// Handle other message types
 								break;
@@ -150,7 +178,12 @@ function createWebSocketStore() {
 					// Auto-reconnect after 3 seconds if we still have a room code
 					if (currentRoomCode && lobbyUpdateCallback) {
 						reconnectTimer = setTimeout(() => {
-							this.connect(currentRoomCode!, lobbyUpdateCallback!, gameStateUpdateCallback || undefined);
+							this.connect(
+								currentRoomCode!,
+								lobbyUpdateCallback!,
+								gameStateUpdateCallback || undefined,
+								espDashboardUpdateCallback || undefined
+							);
 						}, 3000);
 					}
 				};
@@ -166,6 +199,8 @@ function createWebSocketStore() {
 			cleanup();
 			currentRoomCode = null;
 			lobbyUpdateCallback = null;
+			gameStateUpdateCallback = null;
+			espDashboardUpdateCallback = null;
 			set({ connected: false, roomCode: null, error: null });
 		}
 	};
