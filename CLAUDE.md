@@ -168,3 +168,168 @@ If you see `[404] GET /ws` errors:
 1. Verify you're using adapter-node (not adapter-auto)
 2. Check that Playwright uses `npm run build && node server.js` command
 3. Ensure port 4173 is not already in use
+
+### WebSocket Real-time Updates
+The WebSocket store supports multiple message types for different features:
+- **lobby_update**: Player joins/leaves, team assignments
+- **game_state_update**: Round transitions, phase changes, timer updates
+- **esp_dashboard_update**: Real-time budget, reputation, clients, tech updates (US-2.1)
+
+Example usage in components:
+```typescript
+websocketStore.connect(
+  roomCode,
+  onLobbyUpdate,          // Required
+  onGameStateUpdate,      // Optional
+  onESPDashboardUpdate    // Optional (US-2.1+)
+);
+```
+
+## E2E Testing Patterns
+
+### Test API Pattern for Svelte Components
+For E2E tests that need to modify component state without triggering full backend flows, expose a test API via `window.__testName`:
+
+```typescript
+// In Svelte component (onMount)
+if (typeof window !== 'undefined') {
+  (window as any).__espDashboardTest = {
+    get ready() { return !loading && !error; }, // Reactive getter
+    setCredits: (value: number) => (credits = value),
+    setReputation: (value: Record<string, number>) => (reputation = { ...reputation, ...value }),
+    // ... other setters
+  };
+}
+
+// In E2E test
+await page.evaluate(() => {
+  (window as any).__espDashboardTest.setCredits(800);
+});
+```
+
+**Key principles:**
+- Use **reactive getters** for computed properties (`get ready()`)
+- Use **local state variables** for WebSocket testing (avoid mutating stores directly)
+- Wait for `ready` flag before making assertions
+- Keep test API minimal and focused on state manipulation
+
+### Local State for Testing WebSocket
+When testing WebSocket states, use local variables that override derived values:
+
+```typescript
+// Test state variables (null means use real store value)
+let testWsConnected = $state<boolean | null>(null);
+let testWsError = $state<string | null>(null);
+
+// Derived values use test override if set
+let wsConnected = $derived(testWsConnected !== null ? testWsConnected : $websocketStore.connected);
+
+// Test API mutates local variables
+setWsStatus: (connected: boolean, errorMsg?: string) => {
+  testWsConnected = connected;
+  testWsError = connected ? null : (errorMsg || 'Connection lost');
+}
+```
+
+## Configuration Patterns
+
+### Externalizing Game Configuration
+Game rules and mechanics should be externalized to configuration files for easy balancing:
+
+**Example**: `src/lib/config/technical-upgrades.ts`
+```typescript
+export interface TechnicalUpgrade {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  category: 'authentication' | 'infrastructure' | 'monitoring' | 'security';
+  mandatory?: boolean;        // Is this required?
+  mandatoryFrom?: number;      // From which round?
+}
+
+export const TECHNICAL_UPGRADES: TechnicalUpgrade[] = [
+  { id: 'dmarc', name: 'DMARC', cost: 200, mandatory: true, mandatoryFrom: 3, category: 'authentication' },
+  // ... more upgrades
+];
+```
+
+**Benefits:**
+- Easy to add/remove/modify game mechanics
+- Centralized configuration for balancing
+- Type-safe with TypeScript interfaces
+- Can be unit tested independently
+
+## Accessibility Patterns
+
+### Keyboard Navigation with Focus Indicators
+All interactive elements must have visible focus indicators using Tailwind's ring utilities:
+
+```svelte
+<button
+  class="... focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+>
+  Action Button
+</button>
+```
+
+**Testing focus indicators:**
+```typescript
+const focusStyles = await element.evaluate((el) => {
+  const styles = window.getComputedStyle(el);
+  return {
+    outlineWidth: styles.outlineWidth,
+    boxShadow: styles.boxShadow  // Tailwind ring uses box-shadow
+  };
+});
+
+// Check for either outline OR ring (box-shadow)
+const hasOutline = focusStyles.outlineWidth !== '0px';
+const hasRing = focusStyles.boxShadow !== 'none' && focusStyles.boxShadow.length > 0;
+expect(hasOutline || hasRing).toBeTruthy();
+```
+
+### Color-Blind Friendly Design
+Don't rely solely on color to convey information. Use:
+- **Icons** alongside colors (✓ for success, ⚠ for warning, ✗ for error)
+- **Text labels** with status information
+- **ARIA attributes** for screen readers
+
+Example from reputation gauges:
+```svelte
+<div data-status="excellent" aria-label="Gmail reputation: 95 - Excellent">
+  <span class="text-green-700">✓</span> {/* Icon for color-blind users */}
+  <span>95</span>
+  <div class="bg-green-500 h-2" /> {/* Color bar */}
+</div>
+```
+
+## Error Handling Patterns
+
+### Error Banners vs. Error Pages
+**Error Banner** (non-blocking): Show at top of page, dashboard remains functional
+```svelte
+{#if error && !loading}
+  <div class="fixed top-0 left-0 right-0 z-50">
+    <div data-testid="error-banner">
+      {error}
+      <button onclick={() => (error = null)}>×</button>
+    </div>
+  </div>
+{/if}
+```
+
+**Error Page** (blocking): Replace entire page content when critical failure
+```svelte
+{#if loading}
+  <!-- Loading state -->
+{:else if criticalError}
+  <!-- Error page with retry button -->
+{:else}
+  <!-- Normal content -->
+{/if}
+```
+
+**Rule of thumb:**
+- Use **banner** for: Network issues, data sync errors, recoverable errors
+- Use **page** for: Authentication failures, fatal errors, initial load failures
