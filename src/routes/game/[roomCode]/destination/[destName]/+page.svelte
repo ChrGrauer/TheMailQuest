@@ -18,7 +18,7 @@
 	import type { ESPDestinationStats } from '$lib/server/game/types';
 
 	// Components
-	import DestinationHeader from '$lib/components/destination-dashboard/DestinationHeader.svelte';
+	import DashboardHeader from '$lib/components/shared/DashboardHeader.svelte';
 	import LockInButton from '$lib/components/esp-dashboard/LockInButton.svelte';
 	import ESPStatisticsOverview from '$lib/components/destination-dashboard/ESPStatisticsOverview.svelte';
 	import CoordinationStatus from '$lib/components/destination-dashboard/CoordinationStatus.svelte';
@@ -139,13 +139,11 @@
 	// Handle coordination panel click (placeholder for US-2.7)
 	function handleCoordinationClick() {
 		// TODO: Open coordination panel modal (US-2.7)
-		console.warn('Coordination panel not yet implemented (US-2.7)');
 	}
 
 	// Handle lock-in click
 	function handleLockIn() {
 		// TODO: Implement lock-in logic (US-2.8)
-		console.warn('Lock-in mechanism not yet implemented (US-2.8)');
 	}
 
 	// Mount lifecycle
@@ -249,12 +247,13 @@
 		</div>
 	{:else}
 		<!-- Header -->
-		<DestinationHeader
-			destinationName={destinationName}
-			budget={budget}
+		<DashboardHeader
+			entityName={destinationName}
+			currentBudget={budget}
 			currentRound={currentRound}
 			totalRounds={4}
 			timerSeconds={timerRemaining}
+			theme="blue"
 		/>
 
 		<!-- Dashboard Content -->

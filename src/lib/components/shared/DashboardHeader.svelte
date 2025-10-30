@@ -1,33 +1,43 @@
 <script lang="ts">
 	/**
-	 * GameStateHeader Component
-	 * US-2.1: ESP Team Dashboard
+	 * DashboardHeader Component (Shared)
+	 * Used by both ESP and Destination dashboards
 	 *
 	 * Displays:
-	 * - Team name with avatar
-	 * - Budget (current + forecast)
+	 * - Entity name (team or destination) with avatar
+	 * - Budget (current + optional forecast)
 	 * - Round indicator (e.g., "Round 2 / 4")
 	 * - Countdown timer with color changes
 	 */
 
 	interface Props {
-		teamName: string;
+		/** Display name (team or destination) */
+		entityName: string;
+		/** Current budget/credits */
 		currentBudget?: number;
+		/** Pending costs (for forecast display) */
 		pendingCosts?: number;
+		/** Current round number */
 		currentRound?: number;
+		/** Total rounds in game */
 		totalRounds?: number;
+		/** Timer in seconds */
 		timerSeconds?: number;
+		/** Callback when timer updates */
 		onTimerUpdate?: (seconds: number) => void;
+		/** Theme color: 'emerald' for ESP, 'blue' for Destination */
+		theme?: 'emerald' | 'blue';
 	}
 
 	let {
-		teamName,
+		entityName,
 		currentBudget = 1000,
 		pendingCosts = 0,
 		currentRound = 1,
 		totalRounds = 4,
 		timerSeconds = 0,
-		onTimerUpdate
+		onTimerUpdate,
+		theme = 'emerald'
 	}: Props = $props();
 
 	// Calculate forecast budget after lock-in
@@ -75,21 +85,36 @@
 		};
 	});
 
-	// Get team avatar initials (first 2 letters)
-	let teamInitials = $derived(teamName.substring(0, 2).toUpperCase());
+	// Get entity initials (first 2 letters)
+	let entityInitials = $derived(entityName.substring(0, 2).toUpperCase());
+
+	// Theme-specific colors
+	let avatarGradient = $derived(
+		theme === 'emerald'
+			? 'from-emerald-400 to-emerald-600'
+			: 'from-blue-500 to-blue-700'
+	);
+	let budgetColor = $derived(theme === 'emerald' ? 'text-emerald-600' : 'text-blue-600');
 </script>
 
-<header class="bg-white px-6 py-4 shadow-sm sticky top-0 z-10">
+<header
+	data-testid="game-header"
+	class="bg-white px-6 py-4 shadow-sm sticky top-0 z-10"
+>
 	<div class="flex items-center justify-between">
-		<!-- Team Info -->
+		<!-- Entity Info -->
 		<div class="flex items-center gap-3">
 			<div
-				class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-md"
+				data-testid={theme === 'blue' ? 'destination-icon' : 'team-icon'}
+				class="w-12 h-12 rounded-full bg-gradient-to-br {avatarGradient} flex items-center justify-center text-white font-bold text-lg shadow-md"
 			>
-				{teamInitials}
+				{entityInitials}
 			</div>
-			<h1 class="text-2xl font-bold text-gray-800">
-				{teamName}
+			<h1
+				data-testid={theme === 'blue' ? 'destination-name' : 'team-name'}
+				class="text-2xl font-bold text-gray-800"
+			>
+				{entityName}
 			</h1>
 		</div>
 
@@ -100,14 +125,14 @@
 				<div class="text-xs text-gray-500 uppercase tracking-wide">Budget</div>
 				<div
 					data-testid="budget-current"
-					class="text-3xl font-bold text-emerald-600 flex items-baseline gap-2"
+					class="text-3xl font-bold {budgetColor} flex items-baseline gap-2"
 				>
 					{currentBudget.toLocaleString()}
 					<span class="text-base text-gray-500">credits</span>
 				</div>
 			</div>
 
-			<!-- Forecast Budget (After Lock-in) -->
+			<!-- Forecast Budget (After Lock-in) - ESP only -->
 			{#if showForecast}
 				<div class="text-right border-l border-gray-300 pl-6">
 					<div class="text-xs text-gray-500 uppercase tracking-wide">After Lock-in</div>
@@ -128,24 +153,16 @@
 		<!-- Game State Info -->
 		<div class="flex items-center gap-6">
 			<!-- Round Indicator -->
-			<div
-				data-testid="round-indicator"
-				class="flex items-center gap-2 text-gray-700"
-			>
+			<div data-testid="round-indicator" class="flex items-center gap-2 text-gray-700">
 				<span class="text-sm font-medium">Round {currentRound} / {totalRounds}</span>
 			</div>
 
 			<!-- Timer -->
 			<div
-				data-testid="game-timer"
+				data-testid={theme === 'blue' ? 'timer-display' : 'game-timer'}
 				class="flex items-center gap-2 {timerClass()}"
 			>
-				<svg
-					class="w-5 h-5"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
