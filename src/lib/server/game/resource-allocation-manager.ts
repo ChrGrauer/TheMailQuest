@@ -1,9 +1,10 @@
 /**
  * Resource Allocation Manager
  * US-1.4: Resources Allocation
+ * US-2.2: Client Marketplace (added client generation)
  *
  * Handles allocation of starting resources to ESP teams and destinations
- * - ESP Teams: credits, reputation per destination
+ * - ESP Teams: credits, reputation per destination, client marketplace stock
  * - Destinations: budgets
  * - Shared pool creation
  * - Configuration validation
@@ -14,6 +15,7 @@ import { getSession, updateActivity } from './session-manager';
 import { validateRoomCode } from './validation/room-validator';
 import type { GameConfiguration } from './types';
 import { gameLogger } from '../logger';
+import { generateClientStockForTeam } from './client-generator';
 
 // ============================================================================
 // DEFAULT CONFIGURATION
@@ -197,11 +199,15 @@ export function allocateResources(request: ResourceAllocationRequest): ResourceA
 				team.technical_auth = team.technical_auth || [];
 				team.round_history = team.round_history || [];
 
+				// US-2.2: Generate 13 clients for marketplace
+				team.available_clients = generateClientStockForTeam(team.name, destinationNames);
+
 				gameLogger.event('esp_resources_allocated', {
 					roomCode,
 					teamName: team.name,
 					credits: team.credits,
-					reputation: team.reputation
+					reputation: team.reputation,
+					clientsGenerated: team.available_clients.length
 				});
 			}
 		}

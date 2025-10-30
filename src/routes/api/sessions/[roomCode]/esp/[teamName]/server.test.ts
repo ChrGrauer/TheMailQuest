@@ -2,10 +2,12 @@
  * US-2.1: ESP Team Dashboard API - Unit Tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GET } from './+server';
 import { createGameSession, deleteSession } from '$lib/server/game/session-manager';
 import { allocateResources } from '$lib/server/game/resource-allocation-manager';
+import { transitionPhase } from '$lib/server/game/phase-manager';
+import { initializeTimer } from '$lib/server/game/timer-manager';
 
 describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 	let testRoomCode: string;
@@ -71,8 +73,17 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 			}
 		];
 
+		// Transition to resource_allocation phase first (from lobby)
+		transitionPhase({ roomCode: testRoomCode, toPhase: 'resource_allocation' });
+
 		// Allocate resources to initialize team data
 		allocateResources({ roomCode: testRoomCode });
+
+		// Transition to planning phase (sets round = 1)
+		transitionPhase({ roomCode: testRoomCode, toPhase: 'planning' });
+
+		// Initialize timer
+		initializeTimer({ roomCode: testRoomCode, duration: 300 });
 	});
 
 	afterEach(() => {
