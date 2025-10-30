@@ -185,7 +185,57 @@ websocketStore.connect(
 );
 ```
 
+### Broadcasting Computed Values via WebSocket
+When broadcasting state updates, include computed/derived values that the client needs:
+
+```typescript
+// Calculate available clients count (filtered by current round)
+const availableClientsCount = team.available_clients.filter(
+  (client) => client.available_from_round <= currentRound
+).length;
+
+// Broadcast with computed count
+gameWss.broadcastToRoom(roomCode, {
+  type: 'esp_dashboard_update',
+  data: {
+    credits: team.credits,
+    clients: team.active_clients,
+    available_clients_count: availableClientsCount  // Computed value
+  }
+});
+```
+
+**Why:** Avoids clients having to recompute values from partial data. Keep computed logic server-side.
+
 ## E2E Testing Patterns
+
+### Reusable Test Helpers
+Create reusable test helpers in `tests/helpers/` to avoid duplication across test files:
+
+```typescript
+// tests/helpers/game-setup.ts
+export async function createGameWith2ESPTeams(
+  facilitatorPage: Page,
+  context: BrowserContext
+): Promise<{ roomCode: string; alicePage: Page; bobPage: Page; destinationPage: Page }> {
+  const roomCode = await createTestSession(facilitatorPage);
+  const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+  const bobPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
+  const destinationPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'Gmail');
+
+  await startGameAndWaitForDashboards(facilitatorPage, [alicePage, bobPage]);
+
+  return { roomCode, alicePage, bobPage, destinationPage };
+}
+```
+
+**Benefits:**
+- DRY principle - single source of truth for test setup
+- Easy to update all tests when setup logic changes
+- Clearer test intent (focus on what's being tested, not setup boilerplate)
+- Consistent test data across test files
+
+**Pattern:** Group related helpers (game-setup.ts, assertions.ts, fixtures.ts)
 
 ### Test API Pattern for Svelte Components
 For E2E tests that need to modify component state without triggering full backend flows, expose a test API via `window.__testName`:
@@ -333,3 +383,78 @@ Example from reputation gauges:
 **Rule of thumb:**
 - Use **banner** for: Network issues, data sync errors, recoverable errors
 - Use **page** for: Authentication failures, fatal errors, initial load failures
+
+## TypeScript Safety Patterns
+
+### Optional Chaining for Optional Fields
+Always use optional chaining when accessing optional TypeScript fields, even if you expect them to be present:
+
+```typescript
+// ❌ DON'T: Assumes status exists
+data-status={client.status.toLowerCase()}
+
+// ✅ DO: Safe with fallback
+data-status={client.status?.toLowerCase() || 'active'}
+
+// ✅ DO: Safe check before use
+{#if client.status}
+  <span>{client.status.toLowerCase()}</span>
+{/if}
+```
+
+**Why:** TypeScript `optional` fields can be undefined at runtime. Optional chaining prevents crashes.
+
+### Round-based Filtering Pattern
+When data has round-based availability, filter server-side and pass filtered results:
+
+```typescript
+// API endpoint: Filter by current round
+const availableClients = team.available_clients.filter(
+  (client) => client.available_from_round <= session.current_round
+);
+
+return {
+  available_clients_count: availableClients.length,
+  // Don't send full available_clients array unless needed
+};
+```
+
+**Benefits:**
+- Clients don't need to know filtering logic
+- Reduces payload size
+- Single source of truth for "what's available now"
+
+## Git Commit Organization
+
+### Separating Commits by Concern
+When working on multiple changes, organize commits by type of change:
+
+1. **Feature commits**: Complete feature implementations (e.g., "Implement US-2.2: Client Marketplace")
+2. **Refactor commits**: Code organization improvements (e.g., "refactor: Complete dashboard header unification")
+3. **Fix commits**: Bug fixes and missing integrations (e.g., "fix: Integrate client generation into resource allocation")
+
+**Example workflow:**
+```bash
+# After implementing a feature, you might have:
+# - Feature files (new components, APIs, tests)
+# - Refactoring (extracted shared components)
+# - Integration fixes (connecting feature to existing systems)
+
+# Commit 1: Feature implementation
+git add features/ src/lib/components/feature/ tests/feature.spec.ts
+git commit -m "Implement US-X.X: Feature Name"
+
+# Commit 2: Refactoring
+git add src/lib/components/shared/
+git commit -m "refactor: Extract shared components"
+
+# Commit 3: Integration fixes
+git add src/lib/server/integration-point.ts
+git commit -m "fix: Connect feature to existing system"
+```
+
+**Benefits:**
+- Easier code review (reviewers see logical groupings)
+- Cleaner git history
+- Easier to revert specific changes
+- Better documentation of what changed and why
