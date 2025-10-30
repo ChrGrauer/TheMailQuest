@@ -68,6 +68,11 @@ export const GET: RequestHandler = async ({ params }) => {
 		timerRemaining = Math.max(0, session.timer.duration - elapsed);
 	}
 
+	// Filter available clients by current round
+	const availableClients = team.available_clients.filter(
+		(client) => client.available_from_round <= session.current_round
+	);
+
 	// Prepare dashboard data
 	const dashboardData = {
 		success: true,
@@ -76,6 +81,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			credits: team.credits,
 			reputation: team.reputation,
 			active_clients: team.active_clients,
+			available_clients_count: availableClients.length,
 			technical_auth: team.technical_auth,
 			round_history: team.round_history
 		},

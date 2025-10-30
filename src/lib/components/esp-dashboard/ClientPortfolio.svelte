@@ -80,7 +80,7 @@
 				{#each clients as client, index}
 					<div
 						data-testid="client-card-{index}"
-						data-status={client.status.toLowerCase()}
+						data-status={client.status?.toLowerCase() || 'active'}
 						class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
 					>
 						<div class="flex items-start justify-between">

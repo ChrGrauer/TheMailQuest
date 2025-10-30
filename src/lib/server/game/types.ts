@@ -3,6 +3,7 @@
  * US-1.1: Create Game Session
  * US-1.3: Game Lobby Management (added facilitatorId)
  * US-1.4: Resources Allocation (added resources, timer, shared_pool, phase_start_time)
+ * US-2.2: Client Marketplace (added Client, ClientType, ClientRequirements, available_clients)
  * US-2.5: Destination Dashboard (added destination fields, ESPDestinationStats, DestinationDashboardUpdate)
  */
 
@@ -18,6 +19,8 @@ export interface ESPTeam {
   active_clients: string[];
   technical_auth: string[];
   round_history: any[];
+  // US-2.2: Client marketplace fields
+  available_clients: Client[]; // Marketplace stock (not yet acquired)
 }
 
 export interface Destination {
@@ -31,6 +34,44 @@ export interface Destination {
   // US-2.5: Destination dashboard fields
   technical_stack?: string[]; // Owned destination technologies
   spam_level?: number; // Current spam level percentage (0-100)
+}
+
+/**
+ * US-2.2: Client Type
+ * Represents the different types of clients available in the marketplace
+ */
+export type ClientType =
+  | 'premium_brand'
+  | 'growing_startup'
+  | 're_engagement'
+  | 'aggressive_marketer'
+  | 'event_seasonal';
+
+/**
+ * US-2.2: Client Requirements
+ * Technical and reputation requirements for acquiring a client (mainly for Premium Brand)
+ */
+export interface ClientRequirements {
+  tech: string[]; // Required tech IDs: ['spf', 'dkim', 'dmarc']
+  reputation: number; // Minimum overall reputation (weighted average)
+}
+
+/**
+ * US-2.2: Client
+ * Represents an email client that can be acquired by ESP teams
+ */
+export interface Client {
+  id: string; // Unique identifier (e.g., "client-sendwave-001")
+  name: string; // Display name (e.g., "Tech Innovators")
+  type: ClientType; // Client type category
+  cost: number; // Acquisition cost in credits
+  revenue: number; // Revenue per round
+  volume: number; // Email volume (numeric, format with formatVolume() for display)
+  risk: 'Low' | 'Medium' | 'High'; // Risk level
+  spam_rate: number; // Spam complaint rate percentage (e.g., 1.2 for 1.2%)
+  available_from_round: number; // Round when this client becomes available (1, 2, or 3)
+  requirements?: ClientRequirements; // Optional requirements (for Premium Brand clients)
+  status?: 'Active' | 'Paused'; // Status for acquired clients in portfolio (used in US-2.4.0)
 }
 
 export interface GameTimer {

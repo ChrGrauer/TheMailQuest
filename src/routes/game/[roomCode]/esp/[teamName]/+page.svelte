@@ -16,12 +16,13 @@
 	import { page } from '$app/stores';
 	import { onMount, onDestroy } from 'svelte';
 	import { websocketStore, type ESPDashboardUpdate } from '$lib/stores/websocket';
-	import GameStateHeader from '$lib/components/esp-dashboard/GameStateHeader.svelte';
+	import DashboardHeader from '$lib/components/shared/DashboardHeader.svelte';
 	import ReputationGauges from '$lib/components/esp-dashboard/ReputationGauges.svelte';
 	import ClientPortfolio from '$lib/components/esp-dashboard/ClientPortfolio.svelte';
 	import TechnicalInfrastructure from '$lib/components/esp-dashboard/TechnicalInfrastructure.svelte';
 	import QuickActions from '$lib/components/esp-dashboard/QuickActions.svelte';
 	import LockInButton from '$lib/components/esp-dashboard/LockInButton.svelte';
+	import ClientMarketplaceModal from '$lib/components/esp-dashboard/ClientMarketplaceModal.svelte';
 
 	// Get params from page store
 	let roomCode = $derived($page.params.roomCode || '');
@@ -44,6 +45,7 @@
 			risk?: 'Low' | 'Medium' | 'High';
 		}>
 	>([]);
+	let availableClientsCount = $state(0);
 	let ownedTech = $state<string[]>([]);
 
 	// Game state
@@ -58,6 +60,9 @@
 		{ name: 'Outlook', weight: 30 },
 		{ name: 'Yahoo', weight: 20 }
 	]);
+
+	// UI state
+	let showMarketplace = $state(false);
 
 	// Test state for WebSocket status (used by E2E tests)
 	let testWsConnected = $state<boolean | null>(null);
@@ -85,7 +90,8 @@
 			// Update team data
 			credits = data.team.credits || 1000;
 			reputation = data.team.reputation || { Gmail: 70, Outlook: 70, Yahoo: 70 };
-			clients = data.team.clients || [];
+			clients = data.team.active_clients || [];
+			availableClientsCount = data.team.available_clients_count || 0;
 			ownedTech = data.team.technical_auth || [];
 
 			// Update game state
@@ -125,6 +131,10 @@
 			clients = update.clients;
 		}
 
+		if (update.available_clients_count !== undefined) {
+			availableClientsCount = update.available_clients_count;
+		}
+
 		if (update.technical_auth) {
 			ownedTech = update.technical_auth;
 		}
@@ -152,26 +162,51 @@
 	}
 
 	/**
-	 * Quick action handlers (placeholders for future US)
+	 * Calculate overall reputation as weighted average
+	 * Gmail: 50%, Outlook: 30%, Yahoo: 20%
+	 */
+	function calculateOverallReputation(
+		rep: Record<string, number>,
+		dests: Array<{ name: string; weight: number }>
+	): number {
+		let weightedSum = 0;
+		let totalWeight = 0;
+
+		dests.forEach((dest) => {
+			const repValue = rep[dest.name] || 0;
+			weightedSum += repValue * dest.weight;
+			totalWeight += dest.weight;
+		});
+
+		return Math.round(weightedSum / totalWeight);
+	}
+
+	/**
+	 * Quick action handlers
 	 */
 	function handleMarketplaceClick() {
-		console.log('Navigate to Client Marketplace (US-2.2)');
-		// TODO: Implement in US-2.2
+		showMarketplace = true;
 	}
 
 	function handleTechShopClick() {
-		console.log('Navigate to Technical Shop (US-2.3)');
-		// TODO: Implement in US-2.3
+		// TODO: Implement in US-2.3 - Navigate to Technical Shop
 	}
 
 	function handleClientManagementClick() {
-		console.log('Navigate to Client Management (US-2.4)');
-		// TODO: Implement in US-2.4
+		// TODO: Implement in US-2.4 - Navigate to Client Management
 	}
 
 	function handleLockIn() {
-		console.log('Lock in decisions (US-3.1)');
-		// TODO: Implement in US-3.1
+		// TODO: Implement in US-3.1 - Lock in decisions
+	}
+
+	/**
+	 * Handle successful client acquisition
+	 * Credits will update automatically via WebSocket
+	 */
+	function handleClientAcquired(clientId: string, cost: number) {
+		// Credits will be updated by WebSocket esp_dashboard_update message
+		// No action needed here - just for future extensibility
 	}
 
 	/**
@@ -252,13 +287,14 @@
 	{/if}
 
 	<!-- Game State Header -->
-	<GameStateHeader
-		teamName={teamName}
+	<DashboardHeader
+		entityName={teamName}
 		currentBudget={credits}
 		pendingCosts={pendingCosts}
 		currentRound={currentRound}
 		totalRounds={totalRounds}
 		timerSeconds={timerSeconds}
+		theme="emerald"
 	/>
 
 	<!-- Loading State -->
@@ -305,7 +341,7 @@
 				<QuickActions
 					activeClientsCount={clients.length}
 					missingMandatoryTech={currentRound >= 2 && !ownedTech.includes('DMARC')}
-					availableClientsCount={3}
+					availableClientsCount={availableClientsCount}
 					onMarketplaceClick={handleMarketplaceClick}
 					onTechShopClick={handleTechShopClick}
 					onClientManagementClick={handleClientManagementClick}
@@ -338,4 +374,17 @@
 			/>
 		</div>
 	{/if}
+
+	<!-- Client Marketplace Modal -->
+	<ClientMarketplaceModal
+		show={showMarketplace}
+		onClose={() => (showMarketplace = false)}
+		{roomCode}
+		{teamName}
+		currentCredits={credits}
+		{currentRound}
+		{ownedTech}
+		overallReputation={calculateOverallReputation(reputation, destinations)}
+		onClientAcquired={handleClientAcquired}
+	/>
 </div>
