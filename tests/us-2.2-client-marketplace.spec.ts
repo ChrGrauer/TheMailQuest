@@ -11,7 +11,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Open marketplace
-		await alicePage.getByTestId('quick-action-marketplace').click();
+		await alicePage.getByTestId('quick-action-client-marketplace').click();
 
 		// Wait for modal and for clients to load
 		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
@@ -35,7 +35,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 	test('Scenario: Filter clients by risk level', async ({ page, context }) => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('quick-action-marketplace').click();
+		await alicePage.getByTestId('quick-action-client-marketplace').click();
 		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
@@ -76,7 +76,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const initialCredits = parseInt(initialCreditsText?.replace(/[^0-9]/g, '') || '0');
 
 		// Open marketplace
-		await alicePage.getByTestId('quick-action-marketplace').click();
+		await alicePage.getByTestId('quick-action-client-marketplace').click();
 		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
@@ -137,7 +137,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		await alicePage.waitForTimeout(200);
 
 		// Open marketplace
-		await alicePage.getByTestId('quick-action-marketplace').click();
+		await alicePage.getByTestId('quick-action-client-marketplace').click();
 		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
@@ -166,7 +166,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Open marketplace and get initial count
-		await alicePage.getByTestId('quick-action-marketplace').click();
+		await alicePage.getByTestId('quick-action-client-marketplace').click();
 		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
@@ -198,7 +198,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		// Close and reopen marketplace
 		await alicePage.getByTestId('close-modal').click();
 		await alicePage.waitForTimeout(300);
-		await alicePage.getByTestId('quick-action-marketplace').click();
+		await alicePage.getByTestId('quick-action-client-marketplace').click();
 		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
@@ -218,7 +218,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const { alicePage, bobPage } = await createGameWith2ESPTeams(page, context);
 
 		// Alice opens marketplace
-		await alicePage.getByTestId('quick-action-marketplace').click();
+		await alicePage.getByTestId('quick-action-client-marketplace').click();
 		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
@@ -246,7 +246,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		await alicePage.getByTestId('close-modal').click();
 
 		// Bob opens his marketplace
-		await bobPage.getByTestId('quick-action-marketplace').click();
+		await bobPage.getByTestId('quick-action-client-marketplace').click();
 		await bobPage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
 		await bobPage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 

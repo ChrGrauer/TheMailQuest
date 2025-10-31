@@ -1,135 +1,50 @@
 # Claude Context - The Mail Quest
 
 ## Project Overview
+**The Mail Quest** is a multiplayer game built with SvelteKit where ESP teams compete to deliver emails.
 
-**The Mail Quest** is a multiplayer game built with SvelteKit where ESP teams compete to deliver emails to destinations. The project follows ATDD (Acceptance Test-Driven Development) methodology with a Red-Green-Refactor cycle.
-
-## Development Workflow
-
-### ATDD Process
-1. Read `.feature` files containing Gherkin-style acceptance criteria
-2. Implement test steps first (Red phase - tests fail)
-3. Implement code to make tests pass (Green phase)
+**Development Methodology**: ATDD (Acceptance Test-Driven Development)
+1. Read `.feature` files (Gherkin acceptance criteria)
+2. Write failing tests (Red phase)
+3. Implement code to pass tests (Green phase)
 4. Refactor while keeping tests green
 
-### Testing Strategy
-- **Vitest**: Unit tests and integration tests (business logic)
-- **Playwright**: E2E tests and UI interactions (user flows)
-- All tests must pass before committing
-
 ## Tech Stack
-
 - **Framework**: SvelteKit 2.x with Svelte 5
-- **Language**: TypeScript (strongly preferred over JavaScript)
-- **Styling**: Tailwind CSS v4.1.15 (important: uses v4 syntax!)
-- **Testing**: Vitest + Playwright
+- **Language**: TypeScript (strongly preferred)
+- **Styling**: Tailwind CSS v4.1.15 (uses v4 syntax - see below)
+- **Testing**: Vitest (unit/integration) + Playwright (E2E)
 - **Logger**: Pino (server-side only)
 - **WebSocket**: ws library
 
 ## Critical Rules
+- ❌ **NEVER** use `console.log()` - use Pino logger (server-side)
+- ❌ No mocking in Vitest tests (test real implementations)
+- ✅ Follow hexagonal architecture for storage (port/adapter pattern)
+- ✅ Prefer editing existing files over creating new ones
+- ✅ Log all important events with Pino
+- ✅ Only create documentation when explicitly requested
 
-### Logging
-- ❌ **NEVER** use `console.log()` or `console.error()` in production code
-- ✅ Use Pino logger for all server-side logging
-- ✅ Client-side errors should be handled gracefully (TODO: implement proper client error reporting)
+## Tailwind CSS v4
+**CRITICAL**: Uses v4.1.15 syntax (different from v3):
+- ✅ `@import "tailwindcss";` (not `@tailwind base/components/utilities;`)
+- ✅ `@theme { --font-sans: 'Roboto'; }` (not `tailwind.config.js`)
 
-### Code Quality
-- No console logging in production code
-- No mocking in Vitest tests (test real implementations)
-- Follow hexagonal architecture for storage layers (port/adapter pattern)
-- Prefer editing existing files over creating new ones
-- Do not forget logging of all important events
-- Only create documentation files when explicitly requested
-
-## Tailwind CSS v4 Configuration
-
-**CRITICAL**: This project uses Tailwind CSS v4.1.15, which has different configuration:
-
-### ❌ Don't Use (Tailwind v3 syntax):
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
-
-### ✅ Use Instead (Tailwind v4 syntax):
-```css
-@import "tailwindcss";
-
-@theme {
-  --font-sans: 'Roboto', system-ui, sans-serif;
-}
-```
-
-### Key Differences:
-- No `tailwind.config.js` file (delete it if exists)
-- Configuration done in CSS using `@theme` directive
-- Use `@import "tailwindcss"` instead of `@tailwind` directives
-
-## Architecture Patterns
-
-### Hexagonal Architecture (Ports & Adapters)
-Used for storage layers to allow easy swapping of implementations:
-Benefits:
-- Easy to replace in-memory storage with Redis/PostgreSQL later
-- Testable without mocks
-- Clear separation of concerns
-
-## Key Implementation Details
-
-### UI Components
-- **Font**: Roboto (400, 500, 600, 700 weights)
-- **Animations**: Svelte transitions (fly, scale, fade) with staggered delays (50ms)
+## UI Design System
+- **Font**: Roboto (400, 500, 600, 700)
+- **Colors**: Primary #10B981, Dark #0B5540, Light #D1FAE5
+- **Animations**: Svelte transitions (fly, scale, fade) with 50ms stagger
 - **Responsive**: Grid collapses to single column on mobile (lg:grid-cols-2)
-- **Max width**: 1400px for main container
-- **Colors**:
-  - Primary dark: #0B5540
-  - Primary: #10B981
-  - Primary light: #D1FAE5
-  - Backgrounds: #f8faf9 to #e8f5f0 gradient
-
-### Test Setup
-```typescript
-// vite.config.ts
-test: {
-  include: ['src/**/*.{test,spec}.{js,ts}'],
-  environment: 'node',
-  globals: true,
-  setupFiles: ['./src/lib/test-utils/setup.ts']
-}
-```
+- **Max width**: 1400px main container
 
 ## WebSocket Architecture
+**Setup**: Custom `server.js` wraps SvelteKit with WebSocket (uses `@sveltejs/adapter-node`)
+- **Production/Testing**: `npm run build && node server.js` (port 4173)
+- **Dev limitation**: WebSocket not available in `npm run dev`
 
-### Critical Setup Requirements
-
-**IMPORTANT**: SvelteKit does not expose the HTTP server directly, so WebSocket requires a custom server setup.
-
-### Production/Testing Server
-- Uses **@sveltejs/adapter-node** (not adapter-auto) to generate standalone Node.js build
-- Custom `server.js` wraps SvelteKit handler and initializes WebSocket on the same HTTP server
-- Playwright E2E tests use this custom server to test WebSocket functionality
-
-```javascript
-// server.js - Custom server with WebSocket
-import { createServer } from 'http';
-import { WebSocketServer } from 'ws';
-import { handler } from './build/handler.js';
-
-const server = createServer(handler);
-const wss = new WebSocketServer({ server, path: '/ws' });
-// ... WebSocket logic
-server.listen(PORT);
-```
-
-### Lazy Logger Pattern
-**CRITICAL**: The WebSocket server (`src/lib/server/websocket/index.ts`) uses **lazy imports** for the logger to avoid `$app/environment` dependency issues during Vite config loading:
-
+**Lazy Logger Pattern** (CRITICAL):
 ```typescript
-// ❌ DON'T: Direct import causes Vite config errors
-import { gameLogger } from '../logger';
-
-// ✅ DO: Lazy import
+// ✅ Lazy import to avoid $app/environment issues during Vite config
 let gameLogger: any = null;
 async function getLogger() {
   if (!gameLogger) {
@@ -138,323 +53,83 @@ async function getLogger() {
   }
   return gameLogger;
 }
-
-// Usage: getLogger().then(logger => logger.websocket('event', data));
 ```
 
-**Why**: The logger imports `$app/environment` which is not available during Vite config evaluation. Lazy imports defer loading until runtime when SvelteKit is fully initialized.
+**Message Types**: `lobby_update`, `game_state_update`, `esp_dashboard_update`
 
-### Testing with WebSocket
-- **Playwright config**: Uses `npm run build && node server.js` command
-- **Port**: 4173 (production preview port)
-- **Vitest tests**: No special setup needed (uses in-memory implementations)
+**Broadcasting Tip**: Include computed/derived values in broadcasts to avoid client-side recomputation
 
-### File Structure
-```
-server.js                              # Custom production server with WebSocket
-src/lib/server/websocket/index.ts      # WebSocket server with lazy logger
-src/lib/stores/websocket.ts            # Client-side WebSocket store
-playwright.config.ts                   # Configured to use custom server
-svelte.config.js                       # Uses adapter-node
-```
-
-### Known Limitations
-- **Development mode**: WebSocket is not available in `npm run dev` - this is a known limitation
-- **Playwright only**: E2E tests run against production build (`npm run build` + `node server.js`)
-- **Manual testing**: To test WebSocket features manually, use `npm run build && node server.js`
-
-### Troubleshooting
-If you see `[404] GET /ws` errors:
-1. Verify you're using adapter-node (not adapter-auto)
-2. Check that Playwright uses `npm run build && node server.js` command
-3. Ensure port 4173 is not already in use
-
-### WebSocket Real-time Updates
-The WebSocket store supports multiple message types for different features:
-- **lobby_update**: Player joins/leaves, team assignments
-- **game_state_update**: Round transitions, phase changes, timer updates
-- **esp_dashboard_update**: Real-time budget, reputation, clients, tech updates (US-2.1)
-
-Example usage in components:
-```typescript
-websocketStore.connect(
-  roomCode,
-  onLobbyUpdate,          // Required
-  onGameStateUpdate,      // Optional
-  onESPDashboardUpdate    // Optional (US-2.1+)
-);
-```
-
-### Broadcasting Computed Values via WebSocket
-When broadcasting state updates, include computed/derived values that the client needs:
-
-```typescript
-// Calculate available clients count (filtered by current round)
-const availableClientsCount = team.available_clients.filter(
-  (client) => client.available_from_round <= currentRound
-).length;
-
-// Broadcast with computed count
-gameWss.broadcastToRoom(roomCode, {
-  type: 'esp_dashboard_update',
-  data: {
-    credits: team.credits,
-    clients: team.active_clients,
-    available_clients_count: availableClientsCount  // Computed value
-  }
-});
-```
-
-**Why:** Avoids clients having to recompute values from partial data. Keep computed logic server-side.
-
-## E2E Testing Patterns
+## Testing Patterns
 
 ### Reusable Test Helpers
-Create reusable test helpers in `tests/helpers/` to avoid duplication across test files:
+Create helpers in `tests/helpers/` (game-setup.ts, assertions.ts, fixtures.ts) to avoid duplication:
+- **Benefits**: DRY principle, easy updates, clearer test intent
 
+### Test API Pattern
+Expose test API via `window.__testName` for E2E state manipulation:
 ```typescript
-// tests/helpers/game-setup.ts
-export async function createGameWith2ESPTeams(
-  facilitatorPage: Page,
-  context: BrowserContext
-): Promise<{ roomCode: string; alicePage: Page; bobPage: Page; destinationPage: Page }> {
-  const roomCode = await createTestSession(facilitatorPage);
-  const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
-  const bobPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
-  const destinationPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'Gmail');
-
-  await startGameAndWaitForDashboards(facilitatorPage, [alicePage, bobPage]);
-
-  return { roomCode, alicePage, bobPage, destinationPage };
-}
+// In component
+(window as any).__espDashboardTest = {
+  get ready() { return !loading && !error; },  // Reactive getter
+  setCredits: (value: number) => (credits = value)
+};
 ```
+**Principles**: Use reactive getters, local state for WebSocket testing, wait for `ready` flag
 
-**Benefits:**
-- DRY principle - single source of truth for test setup
-- Easy to update all tests when setup logic changes
-- Clearer test intent (focus on what's being tested, not setup boilerplate)
-- Consistent test data across test files
-
-**Pattern:** Group related helpers (game-setup.ts, assertions.ts, fixtures.ts)
-
-### Test API Pattern for Svelte Components
-For E2E tests that need to modify component state without triggering full backend flows, expose a test API via `window.__testName`:
-
+### Game Configuration
+Externalize game rules to config files (`src/lib/config/`) for easy balancing:
 ```typescript
-// In Svelte component (onMount)
-if (typeof window !== 'undefined') {
-  (window as any).__espDashboardTest = {
-    get ready() { return !loading && !error; }, // Reactive getter
-    setCredits: (value: number) => (credits = value),
-    setReputation: (value: Record<string, number>) => (reputation = { ...reputation, ...value }),
-    // ... other setters
-  };
-}
-
-// In E2E test
-await page.evaluate(() => {
-  (window as any).__espDashboardTest.setCredits(800);
-});
-```
-
-**Key principles:**
-- Use **reactive getters** for computed properties (`get ready()`)
-- Use **local state variables** for WebSocket testing (avoid mutating stores directly)
-- Wait for `ready` flag before making assertions
-- Keep test API minimal and focused on state manipulation
-
-### Local State for Testing WebSocket
-When testing WebSocket states, use local variables that override derived values:
-
-```typescript
-// Test state variables (null means use real store value)
-let testWsConnected = $state<boolean | null>(null);
-let testWsError = $state<string | null>(null);
-
-// Derived values use test override if set
-let wsConnected = $derived(testWsConnected !== null ? testWsConnected : $websocketStore.connected);
-
-// Test API mutates local variables
-setWsStatus: (connected: boolean, errorMsg?: string) => {
-  testWsConnected = connected;
-  testWsError = connected ? null : (errorMsg || 'Connection lost');
-}
-```
-
-## Configuration Patterns
-
-### Externalizing Game Configuration
-Game rules and mechanics should be externalized to configuration files for easy balancing:
-
-**Example**: `src/lib/config/technical-upgrades.ts`
-```typescript
-export interface TechnicalUpgrade {
-  id: string;
-  name: string;
-  description: string;
-  cost: number;
-  category: 'authentication' | 'infrastructure' | 'monitoring' | 'security';
-  mandatory?: boolean;        // Is this required?
-  mandatoryFrom?: number;      // From which round?
-}
-
 export const TECHNICAL_UPGRADES: TechnicalUpgrade[] = [
-  { id: 'dmarc', name: 'DMARC', cost: 200, mandatory: true, mandatoryFrom: 3, category: 'authentication' },
-  // ... more upgrades
+  { id: 'dmarc', cost: 200, mandatory: true, mandatoryFrom: 3 },
 ];
 ```
 
-**Benefits:**
-- Easy to add/remove/modify game mechanics
-- Centralized configuration for balancing
-- Type-safe with TypeScript interfaces
-- Can be unit tested independently
+## Accessibility
+- **Focus indicators**: All interactive elements need `focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2`
+- **Color-blind friendly**: Use icons + text labels alongside colors (✓/⚠/✗)
+- **ARIA attributes**: Add `aria-label`, `role`, `aria-live` for screen readers
+- **Modals**: Include `role="dialog"`, `aria-modal="true"`, focus management, Escape key support
 
-## Accessibility Patterns
+## Error Handling
+- **Error Banner** (non-blocking): Fixed top banner for recoverable errors (network, sync)
+- **Error Page** (blocking): Full page replacement for critical errors (auth, fatal)
+- Use `role="alert"` and `aria-live="assertive"` for error messages
 
-### Keyboard Navigation with Focus Indicators
-All interactive elements must have visible focus indicators using Tailwind's ring utilities:
+## TypeScript Safety
+- **Optional chaining**: Always use `?.` for optional fields (`client.status?.toLowerCase() || 'default'`)
+- **Server-side filtering**: Filter round-based data on server, send filtered results to reduce payload
 
-```svelte
-<button
-  class="... focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
->
-  Action Button
-</button>
-```
+## Git Commits
+Organize commits by concern:
+1. **Feature**: `Implement US-X.X: Feature Name`
+2. **Refactor**: `refactor: Extract shared components`
+3. **Fix**: `fix: Connect feature to existing system`
 
-**Testing focus indicators:**
+## State Management
+
+### Resource Tracking Pattern
+Separate arrays for definitions vs. ownership:
 ```typescript
-const focusStyles = await element.evaluate((el) => {
-  const styles = window.getComputedStyle(el);
-  return {
-    outlineWidth: styles.outlineWidth,
-    boxShadow: styles.boxShadow  // Tailwind ring uses box-shadow
-  };
-});
-
-// Check for either outline OR ring (box-shadow)
-const hasOutline = focusStyles.outlineWidth !== '0px';
-const hasRing = focusStyles.boxShadow !== 'none' && focusStyles.boxShadow.length > 0;
-expect(hasOutline || hasRing).toBeTruthy();
+interface Team {
+  available_clients: Client[];    // ALL definitions (immutable source)
+  active_clients: string[];       // IDs of owned items
+  client_states: Record<string, ClientState>;  // Runtime state
+}
+// Acquisition: Add to active_clients, keep available_clients unchanged
+// Portfolio: available_clients.filter(c => active_clients.includes(c.id))
+// Marketplace: available_clients.filter(c => !active_clients.includes(c.id))
 ```
+**Why**: Immutable source prevents data inconsistencies, easy filtering for different views
 
-### Color-Blind Friendly Design
-Don't rely solely on color to convey information. Use:
-- **Icons** alongside colors (✓ for success, ⚠ for warning, ✗ for error)
-- **Text labels** with status information
-- **ARIA attributes** for screen readers
-
-Example from reputation gauges:
+### Svelte 5 Two-way Binding
+Use `$bindable()` and `bind:` prefix:
 ```svelte
-<div data-status="excellent" aria-label="Gmail reputation: 95 - Excellent">
-  <span class="text-green-700">✓</span> {/* Icon for color-blind users */}
-  <span>95</span>
-  <div class="bg-green-500 h-2" /> {/* Color bar */}
-</div>
+// Child: let { show = $bindable() }: Props = $props();
+// Parent: <Modal bind:show={showModal} />  <!-- bind: prefix required -->
 ```
 
-## Error Handling Patterns
-
-### Error Banners vs. Error Pages
-**Error Banner** (non-blocking): Show at top of page, dashboard remains functional
-```svelte
-{#if error && !loading}
-  <div class="fixed top-0 left-0 right-0 z-50">
-    <div data-testid="error-banner">
-      {error}
-      <button onclick={() => (error = null)}>×</button>
-    </div>
-  </div>
-{/if}
-```
-
-**Error Page** (blocking): Replace entire page content when critical failure
-```svelte
-{#if loading}
-  <!-- Loading state -->
-{:else if criticalError}
-  <!-- Error page with retry button -->
-{:else}
-  <!-- Normal content -->
-{/if}
-```
-
-**Rule of thumb:**
-- Use **banner** for: Network issues, data sync errors, recoverable errors
-- Use **page** for: Authentication failures, fatal errors, initial load failures
-
-## TypeScript Safety Patterns
-
-### Optional Chaining for Optional Fields
-Always use optional chaining when accessing optional TypeScript fields, even if you expect them to be present:
-
-```typescript
-// ❌ DON'T: Assumes status exists
-data-status={client.status.toLowerCase()}
-
-// ✅ DO: Safe with fallback
-data-status={client.status?.toLowerCase() || 'active'}
-
-// ✅ DO: Safe check before use
-{#if client.status}
-  <span>{client.status.toLowerCase()}</span>
-{/if}
-```
-
-**Why:** TypeScript `optional` fields can be undefined at runtime. Optional chaining prevents crashes.
-
-### Round-based Filtering Pattern
-When data has round-based availability, filter server-side and pass filtered results:
-
-```typescript
-// API endpoint: Filter by current round
-const availableClients = team.available_clients.filter(
-  (client) => client.available_from_round <= session.current_round
-);
-
-return {
-  available_clients_count: availableClients.length,
-  // Don't send full available_clients array unless needed
-};
-```
-
-**Benefits:**
-- Clients don't need to know filtering logic
-- Reduces payload size
-- Single source of truth for "what's available now"
-
-## Git Commit Organization
-
-### Separating Commits by Concern
-When working on multiple changes, organize commits by type of change:
-
-1. **Feature commits**: Complete feature implementations (e.g., "Implement US-2.2: Client Marketplace")
-2. **Refactor commits**: Code organization improvements (e.g., "refactor: Complete dashboard header unification")
-3. **Fix commits**: Bug fixes and missing integrations (e.g., "fix: Integrate client generation into resource allocation")
-
-**Example workflow:**
-```bash
-# After implementing a feature, you might have:
-# - Feature files (new components, APIs, tests)
-# - Refactoring (extracted shared components)
-# - Integration fixes (connecting feature to existing systems)
-
-# Commit 1: Feature implementation
-git add features/ src/lib/components/feature/ tests/feature.spec.ts
-git commit -m "Implement US-X.X: Feature Name"
-
-# Commit 2: Refactoring
-git add src/lib/components/shared/
-git commit -m "refactor: Extract shared components"
-
-# Commit 3: Integration fixes
-git add src/lib/server/integration-point.ts
-git commit -m "fix: Connect feature to existing system"
-```
-
-**Benefits:**
-- Easier code review (reviewers see logical groupings)
-- Cleaner git history
-- Easier to revert specific changes
-- Better documentation of what changed and why
+## Shared Components Pattern
+Extract reusable UI patterns into `src/lib/components/shared/`:
+- **When**: Component used in 2+ places with identical/similar styling
+- **Benefits**: DRY principle, consistent appearance, easy updates
+- **Example**: StatusBadge with `role="status"` and `aria-label`

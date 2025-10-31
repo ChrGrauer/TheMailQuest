@@ -31,7 +31,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 	<!-- Client Marketplace -->
 	<button
-		data-testid="quick-action-marketplace"
+		data-testid="quick-action-client-marketplace"
 		onclick={onMarketplaceClick}
 		class="bg-white hover:bg-gray-50 border-2 border-emerald-200 rounded-xl p-6 transition-all hover:shadow-lg hover:-translate-y-1 text-left group focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
 	>

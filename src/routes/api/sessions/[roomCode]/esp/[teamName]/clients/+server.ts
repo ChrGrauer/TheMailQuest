@@ -65,9 +65,11 @@ export const GET: RequestHandler = async ({ params, url }) => {
 	// Get current round (default to 1 if not started)
 	const currentRound = session.current_round || 1;
 
-	// Filter clients by round availability
+	// Filter clients by round availability AND exclude already-acquired clients
 	const availableClients = team.available_clients.filter(
-		(client: Client) => client.available_from_round <= currentRound
+		(client: Client) =>
+			client.available_from_round <= currentRound &&
+			!team.active_clients.includes(client.id) // Exclude already-acquired clients
 	);
 
 	gameLogger.event('client_marketplace_fetch_success', {

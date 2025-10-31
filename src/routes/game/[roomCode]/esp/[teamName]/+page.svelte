@@ -24,6 +24,7 @@
 	import LockInButton from '$lib/components/esp-dashboard/LockInButton.svelte';
 	import ClientMarketplaceModal from '$lib/components/esp-dashboard/ClientMarketplaceModal.svelte';
 	import TechnicalShopModal from '$lib/components/esp-dashboard/TechnicalShopModal.svelte';
+	import ClientManagementModal from '$lib/components/esp-dashboard/ClientManagementModal.svelte';
 
 	// Get params from page store
 	let roomCode = $derived($page.params.roomCode || '');
@@ -65,6 +66,7 @@
 	// UI state
 	let showMarketplace = $state(false);
 	let showTechShop = $state(false);
+	let showClientManagement = $state(false);
 
 	// Test state for WebSocket status (used by E2E tests)
 	let testWsConnected = $state<boolean | null>(null);
@@ -195,7 +197,7 @@
 	}
 
 	function handleClientManagementClick() {
-		// TODO: Implement in US-2.4 - Navigate to Client Management
+		showClientManagement = true;
 	}
 
 	function handleLockIn() {
@@ -256,7 +258,13 @@
 					testWsError = connected ? null : (errorMsg || 'Connection lost');
 				},
 				setError: (errorMsg: string | null) => (error = errorMsg),
-				setLoading: (isLoading: boolean) => (loading = isLoading)
+				setLoading: (isLoading: boolean) => (loading = isLoading),
+				// US-2.4: Client Management Modal
+				openClientManagement: () => (showClientManagement = true),
+				closeClientManagement: () => (showClientManagement = false),
+				get isClientManagementOpen() {
+					return showClientManagement;
+				}
 			};
 		}
 	});
@@ -408,5 +416,15 @@
 		currentCredits={credits}
 		{currentRound}
 		onUpgradePurchased={handleUpgradePurchased}
+	/>
+
+	<!-- Client Management Modal -->
+	<ClientManagementModal
+		bind:show={showClientManagement}
+		onClose={() => (showClientManagement = false)}
+		{roomCode}
+		{teamName}
+		currentCredits={credits}
+		{currentRound}
 	/>
 </div>

@@ -60,17 +60,28 @@ export function acquireClient(team: ESPTeam, clientId: string): ClientAcquisitio
 	const client = team.available_clients[clientIndex];
 
 	// Create new team state (immutable update)
-	const newAvailableClients = [...team.available_clients];
-	newAvailableClients.splice(clientIndex, 1);
-
+	// NOTE: We keep all clients in available_clients (don't remove when acquired)
+	// This allows the portfolio endpoint to get full client data for active clients
 	const newActiveClients = [...team.active_clients, client.id];
 	const newCredits = team.credits - client.cost;
+
+	// Initialize client state (US-2.4: Client Basic Management)
+	const newClientStates = {
+		...team.client_states,
+		[client.id]: {
+			status: 'Active' as const,
+			has_warmup: false,
+			has_list_hygiene: false,
+			first_active_round: null // New client - not yet activated in a round
+		}
+	};
 
 	const updatedTeam: ESPTeam = {
 		...team,
 		credits: newCredits,
-		available_clients: newAvailableClients,
-		active_clients: newActiveClients
+		// Keep available_clients unchanged - they serve as the source of client definitions
+		active_clients: newActiveClients,
+		client_states: newClientStates
 	};
 
 	return {

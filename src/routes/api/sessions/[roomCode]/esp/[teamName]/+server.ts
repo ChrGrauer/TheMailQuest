@@ -6,6 +6,7 @@ import { gameLogger } from '$lib/server/logger';
  * GET /api/sessions/[roomCode]/esp/[teamName]
  * Get ESP team dashboard data
  * US-2.1: ESP Team Dashboard
+ * US-2.4: Client Basic Management (added client_states)
  */
 export const GET: RequestHandler = async ({ params }) => {
 	const roomCode = params.roomCode;
@@ -68,9 +69,11 @@ export const GET: RequestHandler = async ({ params }) => {
 		timerRemaining = Math.max(0, session.timer.duration - elapsed);
 	}
 
-	// Filter available clients by current round
+	// Filter available clients by current round AND exclude already-acquired clients
 	const availableClients = team.available_clients.filter(
-		(client) => client.available_from_round <= session.current_round
+		(client) =>
+			client.available_from_round <= session.current_round &&
+			!team.active_clients.includes(client.id) // Exclude already-acquired clients
 	);
 
 	// Prepare dashboard data
@@ -83,6 +86,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			active_clients: team.active_clients,
 			available_clients_count: availableClients.length,
 			owned_tech_upgrades: team.owned_tech_upgrades, // US-2.3
+			client_states: team.client_states, // US-2.4
 			round_history: team.round_history
 		},
 		game: {

@@ -197,9 +197,11 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		round: currentRound
 	});
 
-	// Calculate available clients count (filtered by current round)
+	// Calculate available clients count (filtered by current round AND exclude acquired)
 	const availableClientsCount = acquisitionResult.team!.available_clients.filter(
-		(client) => client.available_from_round <= currentRound
+		(client) =>
+			client.available_from_round <= currentRound &&
+			!acquisitionResult.team!.active_clients.includes(client.id)
 	).length;
 
 	// Broadcast WebSocket update

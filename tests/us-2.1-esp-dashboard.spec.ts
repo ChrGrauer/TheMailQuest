@@ -786,7 +786,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// When: player "Alice" looks for ways to make decisions
 			// Then: there should be prominent quick action buttons
-			const marketplaceButton = alicePage.locator('[data-testid="quick-action-marketplace"]');
+			const marketplaceButton = alicePage.locator('[data-testid="quick-action-client-marketplace"]');
 			const techShopButton = alicePage.locator('[data-testid="quick-action-tech-shop"]');
 			const clientMgmtButton = alicePage.locator('[data-testid="quick-action-client-mgmt"]');
 
@@ -986,7 +986,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Then: focus should move logically and all interactive elements should be reachable
 
 			// Test 1: Quick action buttons should be focusable
-			const marketplaceButton = alicePage.locator('[data-testid="quick-action-marketplace"]');
+			const marketplaceButton = alicePage.locator('[data-testid="quick-action-client-marketplace"]');
 			await marketplaceButton.focus();
 			let isFocused = await marketplaceButton.evaluate((el) => document.activeElement === el);
 			expect(isFocused).toBe(true);

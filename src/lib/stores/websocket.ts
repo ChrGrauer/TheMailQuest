@@ -1,6 +1,7 @@
 /**
  * WebSocket Store
  * US-1.2: Join Game Session - Real-time lobby updates
+ * US-2.4: Client Basic Management - Client state updates
  * US-2.5: Destination Dashboard - Real-time destination updates
  *
  * Provides a reusable, reactive WebSocket connection with auto-reconnection
@@ -8,7 +9,7 @@
 
 import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import type { DestinationDashboardUpdate } from '$lib/server/game/types';
+import type { DestinationDashboardUpdate, ClientState } from '$lib/server/game/types';
 
 export interface LobbyUpdate {
 	espTeams: Array<{ name: string; players: string[] }>;
@@ -31,6 +32,7 @@ export interface GameStateUpdate {
 /**
  * US-2.1: ESP Dashboard Update
  * US-2.3: Technical Infrastructure Shop
+ * US-2.4: Client Basic Management
  * Real-time updates for ESP team dashboard
  */
 export interface ESPDashboardUpdate {
@@ -45,6 +47,9 @@ export interface ESPDashboardUpdate {
 	}>;
 	owned_tech_upgrades?: string[]; // Owned technical upgrade IDs
 	pending_costs?: number;
+	// US-2.4: Client portfolio management
+	client_states?: Record<string, ClientState>; // Per-client state (status, onboarding, first_active_round)
+	budget_forecast?: number; // Budget after current round lock-in (including revenue and costs)
 }
 
 export interface WebSocketStore {

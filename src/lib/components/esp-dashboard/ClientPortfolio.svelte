@@ -10,6 +10,8 @@
 	 * - Client count in header
 	 */
 
+	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
+
 	interface Client {
 		name: string;
 		status: 'Active' | 'Paused';

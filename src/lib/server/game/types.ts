@@ -4,6 +4,7 @@
  * US-1.3: Game Lobby Management (added facilitatorId)
  * US-1.4: Resources Allocation (added resources, timer, shared_pool, phase_start_time)
  * US-2.2: Client Marketplace (added Client, ClientType, ClientRequirements, available_clients)
+ * US-2.4: Client Basic Management (added ClientState, client_states, Suspended status)
  * US-2.5: Destination Dashboard (added destination fields, ESPDestinationStats, DestinationDashboardUpdate)
  */
 
@@ -21,6 +22,8 @@ export interface ESPTeam {
   round_history: any[];
   // US-2.2: Client marketplace fields
   available_clients: Client[]; // Marketplace stock (not yet acquired)
+  // US-2.4: Client portfolio management fields
+  client_states?: Record<string, ClientState>; // Per-client state (status, onboarding, first_active_round)
 }
 
 export interface Destination {
@@ -71,7 +74,18 @@ export interface Client {
   spam_rate: number; // Spam complaint rate percentage (e.g., 1.2 for 1.2%)
   available_from_round: number; // Round when this client becomes available (1, 2, or 3)
   requirements?: ClientRequirements; // Optional requirements (for Premium Brand clients)
-  status?: 'Active' | 'Paused'; // Status for acquired clients in portfolio (used in US-2.4.0)
+  status?: 'Active' | 'Paused' | 'Suspended'; // Status for acquired clients in portfolio (US-2.4.0)
+}
+
+/**
+ * US-2.4: Client State
+ * Per-team state for an acquired client (status, onboarding config, activation history)
+ */
+export interface ClientState {
+  status: 'Active' | 'Paused' | 'Suspended'; // Current status
+  has_warmup: boolean; // Whether warm-up was activated for this client
+  has_list_hygiene: boolean; // Whether list hygiene was activated for this client
+  first_active_round: number | null; // Round when client first became active (null if never activated)
 }
 
 export interface GameTimer {
