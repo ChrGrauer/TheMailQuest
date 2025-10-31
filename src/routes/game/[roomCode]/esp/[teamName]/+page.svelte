@@ -120,9 +120,38 @@
 	}
 
 	/**
+	 * Fetch portfolio data with full client objects
+	 * US-2.4: Portfolio needs complete client info for display
+	 */
+	async function fetchPortfolio() {
+		try {
+			const response = await fetch(`/api/sessions/${roomCode}/esp/${teamName}/portfolio`);
+
+			if (!response.ok) {
+				// Portfolio might not exist yet if no clients acquired
+				if (response.status === 404) {
+					clients = [];
+					return;
+				}
+				throw new Error('Failed to fetch portfolio');
+			}
+
+			const data = await response.json();
+
+			if (data.success && data.clients) {
+				// Replace string IDs with full client objects
+				clients = data.clients;
+			}
+		} catch (err) {
+			// Log error but don't block dashboard - portfolio might be empty
+			console.error('Portfolio fetch error:', err);
+		}
+	}
+
+	/**
 	 * Handle real-time dashboard updates from WebSocket
 	 */
-	function handleDashboardUpdate(update: ESPDashboardUpdate) {
+	async function handleDashboardUpdate(update: ESPDashboardUpdate) {
 		if (update.credits !== undefined) {
 			credits = update.credits;
 		}
@@ -132,7 +161,13 @@
 		}
 
 		if (update.clients) {
-			clients = update.clients;
+			// US-2.4: Fetch full client objects instead of just IDs
+			await fetchPortfolio();
+		}
+
+		if (update.client_states) {
+			// US-2.4: Refresh portfolio when client states change (status, onboarding)
+			await fetchPortfolio();
 		}
 
 		if (update.available_clients_count !== undefined) {
@@ -228,6 +263,9 @@
 	onMount(async () => {
 		// Fetch initial data
 		await fetchDashboardData();
+
+		// Fetch portfolio with full client objects (US-2.4)
+		await fetchPortfolio();
 
 		// Connect to WebSocket for real-time updates
 		websocketStore.connect(

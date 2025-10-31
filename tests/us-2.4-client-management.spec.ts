@@ -487,4 +487,133 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		// Then: Modal is hidden
 		await expect(alicePage.getByTestId('client-management-modal')).not.toBeVisible();
 	});
+
+	// ============================================================================
+	// SECTION 7: PORTFOLIO DISPLAY ON MAIN DASHBOARD
+	// ============================================================================
+
+	test('7.1: Acquired client displays on dashboard portfolio', async () => {
+		// Given: ESP team acquires a client
+		const availableClientIds = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
+		const firstClientId = availableClientIds[0];
+
+		// When: Acquiring a client from marketplace
+		await acquireClient(alicePage, roomCode, 'SendWave', firstClientId);
+
+		// Wait for WebSocket update and portfolio refresh
+		await alicePage.waitForTimeout(2000);
+
+		// Then: Active Portfolio shows client with full details
+		const portfolio = alicePage.locator('[data-testid="client-portfolio"]');
+
+		const clientCard = portfolio.locator('[data-testid="client-card-0"]');
+		await expect(clientCard).toBeVisible();
+
+		// And: Client displays name (check for any non-empty text that's not just whitespace)
+		const cardText = await clientCard.textContent();
+		expect(cardText).toBeTruthy();
+		expect(cardText?.length).toBeGreaterThan(10); // Has substantial content
+
+		// And: Client displays status badge
+		const statusBadge = clientCard.locator('[data-testid^="client-status-badge"]');
+		await expect(statusBadge).toBeVisible();
+		await expect(statusBadge).toContainText('Active');
+
+		// And: Client displays revenue
+		await expect(clientCard).toContainText(/\d+.*credits.*round/i);
+
+		// And: Client displays volume
+		await expect(clientCard).toContainText(/\d+.*emails.*round/i);
+
+		// And: Client displays risk level
+		await expect(clientCard).toContainText(/(Low|Medium|High)/);
+
+		// And: Portfolio header shows count
+		const header = alicePage.locator('[data-testid="portfolio-header"]');
+		await expect(header).toContainText('1 active client');
+	});
+
+	test('7.2: Multiple clients display correctly', async () => {
+		// Given: ESP team acquires 2 clients
+		const availableClientIds = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
+		await acquireClient(alicePage, roomCode, 'SendWave', availableClientIds[0]);
+		await alicePage.waitForTimeout(1500);
+		await acquireClient(alicePage, roomCode, 'SendWave', availableClientIds[1]);
+
+		// Wait for WebSocket updates
+		await alicePage.waitForTimeout(2000);
+
+		// When: Viewing dashboard portfolio
+		const portfolio = alicePage.locator('[data-testid="client-portfolio"]');
+
+		// Then: Both clients are visible
+		const clientCards = portfolio.locator('[data-testid^="client-card-"]');
+		await expect(clientCards).toHaveCount(2);
+
+		// And: Each client has status badge
+		await expect(clientCards.first().locator('[data-testid^="client-status-badge"]')).toBeVisible();
+		await expect(clientCards.nth(1).locator('[data-testid^="client-status-badge"]')).toBeVisible();
+
+		// And: Portfolio header shows correct count
+		const header = alicePage.locator('[data-testid="portfolio-header"]');
+		await expect(header).toContainText('2 active clients');
+	});
+
+	test('7.3: Portfolio updates in real-time after acquisition', async () => {
+		// Given: Viewing dashboard with empty portfolio
+		const portfolio = alicePage.locator('[data-testid="client-portfolio"]');
+		await expect(portfolio.getByTestId('portfolio-empty-state')).toBeVisible();
+
+		// When: Acquiring a client (triggers WebSocket update)
+		const availableClientIds = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
+		await acquireClient(alicePage, roomCode, 'SendWave', availableClientIds[0]);
+
+		// Wait for WebSocket update
+		await alicePage.waitForTimeout(1000);
+
+		// Then: Portfolio updates automatically without page refresh
+		await expect(portfolio.getByTestId('portfolio-empty-state')).not.toBeVisible();
+		const clientCard = portfolio.locator('[data-testid="client-card-0"]');
+		await expect(clientCard).toBeVisible();
+
+		// And: Client shows full details immediately
+		const cardText2 = await clientCard.textContent();
+		expect(cardText2).toBeTruthy();
+		expect(cardText2?.length).toBeGreaterThan(10);
+		await expect(clientCard.locator('[data-testid^="client-status-badge"]')).toContainText('Active');
+	});
+
+	test('7.4: Portfolio reflects status changes from management modal', async () => {
+		// Given: ESP has an active client
+		const availableClientIds = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
+		await acquireClient(alicePage, roomCode, 'SendWave', availableClientIds[0]);
+
+		// And: Client is Active in portfolio
+		const portfolio = alicePage.locator('[data-testid="client-portfolio"]');
+		const clientCard = portfolio.locator('[data-testid="client-card-0"]');
+		await expect(clientCard.locator('[data-testid^="client-status-badge"]')).toContainText('Active');
+
+		// When: Toggling status to Paused in ClientManagementModal
+		await openClientManagementModal(alicePage);
+
+		const modal = alicePage.getByTestId('client-management-modal');
+		const modalClientCard = modal.getByTestId('client-card-0');
+		const pauseButton = modalClientCard.getByTestId('toggle-paused-btn');
+		await pauseButton.click();
+
+		// Wait for API update
+		await alicePage.waitForTimeout(1000);
+
+		await closeClientManagementModal(alicePage);
+
+		// Wait for WebSocket update and portfolio refresh
+		await alicePage.waitForTimeout(2500);
+
+		// Then: Dashboard portfolio shows Paused status
+		await expect(clientCard.locator('[data-testid^="client-status-badge"]')).toContainText('Paused');
+
+		// And: Visual distinction is applied
+		const cardStatus = await clientCard.getAttribute('data-status');
+		expect(cardStatus).toBe('paused');
+	});
 });
