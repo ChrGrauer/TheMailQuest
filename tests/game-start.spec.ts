@@ -10,57 +10,12 @@
  * Uses Playwright for end-to-end testing
  */
 
-import { test, expect, type Page, type BrowserContext } from '@playwright/test';
-
-// ============================================================================
-// TEST HELPERS
-// ============================================================================
-
-/**
- * Create a game session as facilitator and return room code
- */
-async function createTestSession(page: Page): Promise<string> {
-	await page.goto('/');
-	await page.click('text=I\'m a facilitator');
-	await page.waitForURL('/create');
-	await page.click('text=Create a Session');
-	await page.waitForURL(/\/lobby\/.+/);
-	const url = page.url();
-	const roomCode = url.split('/lobby/')[1];
-	return roomCode;
-}
-
-/**
- * Add a player to a session
- */
-async function addPlayer(
-	context: BrowserContext,
-	roomCode: string,
-	displayName: string,
-	role: 'ESP' | 'Destination',
-	teamName: string
-): Promise<Page> {
-	const playerPage = await context.newPage();
-	await playerPage.goto(`/lobby/${roomCode}`);
-	await playerPage.click(`text=${teamName}`);
-	await playerPage.locator('input[name="displayName"]').fill(displayName);
-	await playerPage.click('button:has-text("Join Game")');
-	await expect(playerPage.locator(`text=${displayName}`)).toBeVisible();
-	return playerPage;
-}
-
-/**
- * Create a session with minimum players (1 ESP + 1 Destination)
- */
-async function createSessionWithMinimumPlayers(
-	facilitatorPage: Page,
-	context: BrowserContext
-): Promise<{ roomCode: string; alicePage: Page; bobPage: Page }> {
-	const roomCode = await createTestSession(facilitatorPage);
-	const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
-	const bobPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'Gmail');
-	return { roomCode, alicePage, bobPage };
-}
+import { test, expect } from '@playwright/test';
+import {
+	createTestSession,
+	addPlayer,
+	createSessionWithMinimumPlayers
+} from './helpers/game-setup';
 
 // ============================================================================
 // TESTS

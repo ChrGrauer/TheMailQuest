@@ -12,21 +12,10 @@
  * Uses Playwright for end-to-end testing
  */
 
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { createTestSession } from './helpers/game-setup';
 
 test.describe('Feature: Join Game Session - E2E', () => {
-
-  // Helper function to create a game session and return room code
-  async function createTestSession(page: Page): Promise<string> {
-    await page.goto('/');
-    await page.click('text=I\'m a facilitator');
-    await page.waitForURL('/create');
-    await page.click('text=Create a Session');
-    await page.waitForURL(/\/lobby\/.+/);
-    const url = page.url();
-    const roomCode = url.split('/lobby/')[1];
-    return roomCode;
-  }
 
   // ============================================================================
   // ROOM CODE ENTRY AND VALIDATION

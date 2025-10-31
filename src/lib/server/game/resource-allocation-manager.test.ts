@@ -136,7 +136,7 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			const sendWave = updatedSession!.esp_teams.find((t) => t.name === 'SendWave');
 
 			expect(sendWave?.active_clients).toEqual([]);
-			expect(sendWave?.technical_auth).toEqual([]);
+			expect(sendWave?.owned_tech_upgrades).toEqual([]); // US-2.3
 			expect(sendWave?.round_history).toEqual([]);
 		});
 	});

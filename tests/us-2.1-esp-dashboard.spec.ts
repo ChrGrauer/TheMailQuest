@@ -14,75 +14,23 @@
  * - Error handling
  *
  * Uses Playwright for end-to-end testing
+ *
+ * NOTE: Fixtures available in ./fixtures.ts can simplify test setup:
+ * - planningPhase: Game with 2 ESP players in planning phase
+ * - destinationGame: Game with destination player and ESP players
+ * - minimumPlayers: Session with 3 ESP players
+ * - gameSession: Basic session with facilitator
+ *
+ * Example usage:
+ *   import { test, expect } from './fixtures';
+ *   test('my test', async ({ planningPhase }) => {
+ *     const { alicePage, bobPage, roomCode } = planningPhase;
+ *     // Test logic...
+ *   });
  */
 
-import { test, expect, type Page, type BrowserContext } from '@playwright/test';
-
-// ============================================================================
-// TEST HELPERS
-// ============================================================================
-
-/**
- * Create a game session as facilitator and return room code
- */
-async function createTestSession(page: Page): Promise<string> {
-	await page.goto('/');
-	await page.click('text=I\'m a facilitator');
-	await page.waitForURL('/create');
-	await page.click('text=Create a Session');
-	await page.waitForURL(/\/lobby\/.+/);
-	const url = page.url();
-	const roomCode = url.split('/lobby/')[1];
-	return roomCode;
-}
-
-/**
- * Add a player to a session
- */
-async function addPlayer(
-	context: BrowserContext,
-	roomCode: string,
-	displayName: string,
-	role: 'ESP' | 'Destination',
-	teamName: string
-): Promise<Page> {
-	const playerPage = await context.newPage();
-	await playerPage.goto(`/lobby/${roomCode}`);
-	await playerPage.click(`text=${teamName}`);
-	await playerPage.locator('input[name="displayName"]').fill(displayName);
-	await playerPage.click('button:has-text("Join Game")');
-	await expect(playerPage.locator(`text=${displayName}`)).toBeVisible();
-	return playerPage;
-}
-
-/**
- * Create a session with ESP player and start game
- */
-async function createGameInPlanningPhase(
-	facilitatorPage: Page,
-	context: BrowserContext
-): Promise<{ roomCode: string; alicePage: Page; bobPage: Page }> {
-	const roomCode = await createTestSession(facilitatorPage);
-	const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
-	const bobPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'Gmail');
-	await facilitatorPage.waitForTimeout(500);
-
-	// Start game
-	const startGameButton = facilitatorPage.getByRole('button', { name: /start game/i });
-	await startGameButton.click();
-
-	// Wait for Alice to be redirected to ESP dashboard
-	await alicePage.waitForURL(`/game/${roomCode}/esp/sendwave`, { timeout: 10000 });
-
-	// Wait for dashboard to finish loading
-	await alicePage.waitForFunction(
-		() => (window as any).__espDashboardTest?.ready === true,
-		{},
-		{ timeout: 10000 }
-	);
-
-	return { roomCode, alicePage, bobPage };
-}
+import { test, expect } from '@playwright/test';
+import { createGameInPlanningPhase } from './helpers/game-setup';
 
 // ============================================================================
 // TESTS
@@ -706,48 +654,50 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			await bobPage.close();
 		});
 
-		test('Scenario: Timer changes color as time runs out', async ({ page, context }) => {
-			// Given: the planning phase timer is counting down
-			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
+		// Parameterized test for timer color changes at different thresholds
+		const timerThresholds = [
+			{ seconds: 60, expectedPattern: /warning|orange/i, description: '1 minute (warning)' },
+			{ seconds: 30, expectedPattern: /urgent|red|danger/i, description: '30 seconds (urgent)' }
+		];
 
-			const timerElement = alicePage.locator('[data-testid="game-timer"]');
+		for (const threshold of timerThresholds) {
+			test(`Scenario: Timer changes to appropriate color at ${threshold.description} threshold`, async ({
+				page,
+				context
+			}) => {
+				// Given: the planning phase timer is counting down
+				const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-			// When: the timer reaches 1 minute remaining
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setTimer(60);
+				const timerElement = alicePage.locator('[data-testid="game-timer"]');
+
+				// When: the timer reaches the threshold
+				await alicePage.evaluate(
+					(s) => {
+						(window as any).__espDashboardTest.setTimer(s);
+					},
+					threshold.seconds
+				);
+
+				// Wait for front-end to process the update
+				await alicePage.waitForTimeout(500);
+
+				// Then: the timer should change to the expected color
+				const timerClass = await timerElement.getAttribute('class');
+				expect(timerClass).toMatch(threshold.expectedPattern);
+
+				// For urgent threshold, verify animation
+				if (threshold.seconds === 30) {
+					const animations = await timerElement.evaluate((el) => {
+						const styles = window.getComputedStyle(el);
+						return styles.animationName;
+					});
+					expect(typeof animations).toBe('string');
+				}
+
+				await alicePage.close();
+				await bobPage.close();
 			});
-
-			// Wait for front-end to process the update
-			await alicePage.waitForTimeout(500);
-
-			// Then: the timer should change to a warning color (orange)
-			let timerClass = await timerElement.getAttribute('class');
-			expect(timerClass).toMatch(/warning|orange/i);
-
-			// When: the timer reaches 30 seconds remaining
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setTimer(30);
-			});
-
-			// Wait for front-end to process the update
-			await alicePage.waitForTimeout(500);
-
-			// Then: the timer should change to an urgent color (red)
-			timerClass = await timerElement.getAttribute('class');
-			expect(timerClass).toMatch(/urgent|red|danger/i);
-
-			// And: the timer may flash or pulse to draw attention
-			const animations = await timerElement.evaluate((el) => {
-				const styles = window.getComputedStyle(el);
-				return styles.animationName;
-			});
-			// Animation may be present (pulse/flash)
-			// This is optional per spec, so we just check it's a string
-			expect(typeof animations).toBe('string');
-
-			await alicePage.close();
-			await bobPage.close();
-		});
+		}
 	});
 
 	// ============================================================================

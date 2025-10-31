@@ -30,6 +30,7 @@ export interface GameStateUpdate {
 
 /**
  * US-2.1: ESP Dashboard Update
+ * US-2.3: Technical Infrastructure Shop
  * Real-time updates for ESP team dashboard
  */
 export interface ESPDashboardUpdate {
@@ -42,7 +43,7 @@ export interface ESPDashboardUpdate {
 		volume?: string;
 		risk?: 'Low' | 'Medium' | 'High';
 	}>;
-	technical_auth?: string[];
+	owned_tech_upgrades?: string[]; // Owned technical upgrade IDs
 	pending_costs?: number;
 }
 

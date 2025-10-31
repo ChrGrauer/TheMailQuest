@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { fly, scale, fade } from 'svelte/transition';
-	import { quintOut } from 'svelte/easing';
+	import { fly, fade } from 'svelte/transition';
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { websocketStore, type LobbyUpdate, type GameStateUpdate } from '$lib/stores/websocket';
+	import TeamSlotSelector from '$lib/components/lobby/TeamSlotSelector.svelte';
+	import JoinGameModal from '$lib/components/lobby/JoinGameModal.svelte';
+	import GameStartControls from '$lib/components/lobby/GameStartControls.svelte';
 
 	export let data: PageData;
 
@@ -23,7 +25,6 @@
 	let isJoining = false;
 	let hasJoined = false;
 	let currentPlayerId: string | null = null;
-	let displayNameInput: HTMLInputElement;
 
 	// US-1.3: Game start state
 	let isStartingGame = false;
@@ -39,7 +40,6 @@
 	let destinations = session.destinations;
 	let espTeamCount = 0;
 	let destinationCount = 0;
-	// playerNames initialized from server data above
 
 	$: totalPlayers = espTeamCount + destinationCount;
 	$: isSessionFull = totalPlayers >= 8; // 5 ESP + 3 Destinations = 8 total slots
@@ -51,11 +51,6 @@
 			? 'At least 1 ESP team is required'
 			: 'At least 1 Destination is required'
 		: '';
-
-	// Focus the display name input when modal opens
-	$: if (showRoleModal && displayNameInput) {
-		setTimeout(() => displayNameInput.focus(), 100);
-	}
 
 	onMount(() => {
 		mounted = true;
@@ -72,8 +67,8 @@
 	});
 
 	function updateSlotCounts() {
-		espTeamCount = espTeams.filter(t => t.players.length > 0).length;
-		destinationCount = destinations.filter(d => d.players.length > 0).length;
+		espTeamCount = espTeams.filter((t) => t.players.length > 0).length;
+		destinationCount = destinations.filter((d) => d.players.length > 0).length;
 	}
 
 	function handleLobbyUpdate(data: LobbyUpdate) {
@@ -124,9 +119,10 @@
 
 	function openRoleSelection(teamName: string, role: 'ESP' | 'Destination') {
 		// Check if slot is occupied
-		const isOccupied = role === 'ESP'
-			? (espTeams.find(t => t.name === teamName)?.players.length ?? 0) > 0
-			: (destinations.find(d => d.name === teamName)?.players.length ?? 0) > 0;
+		const isOccupied =
+			role === 'ESP'
+				? (espTeams.find((t) => t.name === teamName)?.players.length ?? 0) > 0
+				: (destinations.find((d) => d.name === teamName)?.players.length ?? 0) > 0;
 
 		if (isOccupied) {
 			joinError = 'This role is already taken';
@@ -206,12 +202,12 @@
 
 			// Update local state
 			if (selectedRole === 'ESP') {
-				const team = espTeams.find(t => t.name === selectedTeam);
+				const team = espTeams.find((t) => t.name === selectedTeam);
 				if (team) {
 					team.players = [...team.players, result.playerId];
 				}
 			} else {
-				const dest = destinations.find(d => d.name === selectedTeam);
+				const dest = destinations.find((d) => d.name === selectedTeam);
 				if (dest) {
 					dest.players = [...dest.players, result.playerId];
 				}
@@ -223,14 +219,6 @@
 			joinError = 'An error occurred. Please try again.';
 		} finally {
 			isJoining = false;
-		}
-	}
-
-	function isSlotOccupied(teamName: string, role: 'ESP' | 'Destination'): boolean {
-		if (role === 'ESP') {
-			return (espTeams.find(t => t.name === teamName)?.players.length ?? 0) > 0;
-		} else {
-			return (destinations.find(d => d.name === teamName)?.players.length ?? 0) > 0;
 		}
 	}
 
@@ -354,209 +342,33 @@
 			</div>
 		{/if}
 
-		<div class="grid gap-8 lg:grid-cols-2">
-			<!-- ESP Teams Section -->
-			<div class="rounded-xl bg-white p-8 shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
-				{#if mounted}
-					<div
-						class="mb-6 flex items-center gap-4 border-b-2 border-[#E5E7EB] pb-4"
-						in:fly={{ y: -20, duration: 500, easing: quintOut }}
-					>
-						<div
-							class="flex h-12 w-12 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#D1FAE5] to-[#A7F3D0] text-2xl"
-						>
-							📧
-						</div>
-						<h2 class="text-2xl font-bold text-[#0B5540]">ESP Teams</h2>
-						<span
-							class="ml-auto rounded-full bg-[#F3F4F6] px-4 py-2 text-sm font-semibold text-[#6B7280]"
-						>
-							ESP Teams: {espTeamCount}/{espTeams.length}
-						</span>
-					</div>
-				{/if}
+		<div class="space-y-8">
+			<!-- Team Slot Selector -->
+			<TeamSlotSelector
+				{espTeams}
+				{destinations}
+				{playerNames}
+				{mounted}
+				onSlotClick={openRoleSelection}
+			/>
 
-				<div class="grid gap-4">
-					{#each espTeams as team, index}
-						{@const occupied = isSlotOccupied(team.name, 'ESP')}
-						{#if mounted}
-							<button
-								data-testid="esp-team-slot"
-								data-team={team.name}
-								data-occupied={occupied}
-								aria-label="{team.name} slot {occupied ? 'occupied' : 'available'}"
-								aria-disabled={occupied}
-								disabled={occupied}
-								on:click={() => openRoleSelection(team.name, 'ESP')}
-								class="flex items-center gap-4 rounded-lg border-2 p-5 text-left transition-all duration-300 {occupied
-									? 'border-[#E5E7EB] bg-[#F9FAFB] cursor-not-allowed'
-									: 'border-[#D1FAE5] bg-white hover:border-[#10B981] hover:shadow-lg cursor-pointer'}"
-								in:fly={{ x: -50, duration: 500, delay: index * 50, easing: quintOut }}
-							>
-								<div
-									class="flex h-12 w-12 items-center justify-center rounded-lg text-xl font-bold {occupied
-										? 'bg-[#E5E7EB] text-[#9CA3AF]'
-										: 'bg-[#D1FAE5] text-[#0B5540]'}"
-								>
-									{team.name.slice(0, 2).toUpperCase()}
-								</div>
-								<div class="flex-1">
-									<div class="mb-1 font-semibold {occupied ? 'text-[#9CA3AF]' : 'text-[#0B5540]'}">
-										{team.name}
-									</div>
-									<div class="text-sm text-[#6B7280]">
-										{#if occupied && team.players.length > 0}
-											{playerNames[team.players[0]] || 'Player joined'}
-										{:else if occupied}
-											Occupied
-										{:else}
-											Click to join
-										{/if}
-									</div>
-								</div>
-								<span
-									class="rounded-md px-[0.875rem] py-[0.375rem] text-xs font-semibold {occupied
-										? 'bg-[#F3F4F6] text-[#6B7280]'
-										: 'bg-[#D1FAE5] text-[#0B5540]'}"
-								>
-									{occupied ? 'Occupied' : 'Available'}
-								</span>
-							</button>
-						{/if}
-					{/each}
-				</div>
-			</div>
-
-			<!-- Destinations Section -->
-			<div class="rounded-xl bg-white p-8 shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
-				{#if mounted}
-					<div
-						class="mb-6 flex items-center gap-4 border-b-2 border-[#E5E7EB] pb-4"
-						in:fly={{ y: -20, duration: 500, delay: 100, easing: quintOut }}
-					>
-						<div
-							class="flex h-12 w-12 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#D1FAE5] to-[#A7F3D0] text-2xl"
-						>
-							📮
-						</div>
-						<h2 class="text-2xl font-bold text-[#0B5540]">Destinations</h2>
-						<span
-							class="ml-auto rounded-full bg-[#F3F4F6] px-4 py-2 text-sm font-semibold text-[#6B7280]"
-						>
-							Destinations: {destinationCount}/{destinations.length}
-						</span>
-					</div>
-				{/if}
-
-				<div class="grid gap-4">
-					{#each destinations as destination, index}
-						{@const occupied = isSlotOccupied(destination.name, 'Destination')}
-						{#if mounted}
-							<button
-								data-testid="destination-slot"
-								data-team={destination.name}
-								data-occupied={occupied}
-								aria-label="{destination.name} slot {occupied ? 'occupied' : 'available'}"
-								aria-disabled={occupied}
-								disabled={occupied}
-								on:click={() => openRoleSelection(destination.name, 'Destination')}
-								class="flex items-center gap-4 rounded-lg border-2 p-5 text-left transition-all duration-300 {occupied
-									? 'border-[#E5E7EB] bg-[#F9FAFB] cursor-not-allowed'
-									: 'border-[#D1FAE5] bg-white hover:border-[#10B981] hover:shadow-lg cursor-pointer'}"
-								in:fly={{ x: 50, duration: 500, delay: 100 + index * 50, easing: quintOut }}
-							>
-								<div
-									class="flex h-12 w-12 items-center justify-center rounded-lg text-2xl {occupied
-										? 'bg-[#E5E7EB]'
-										: 'bg-[#D1FAE5]'}"
-								>
-									📧
-								</div>
-								<div class="flex-1">
-									<div class="mb-1 font-semibold {occupied ? 'text-[#9CA3AF]' : 'text-[#0B5540]'}">
-										{destination.name}
-									</div>
-									<div class="text-sm text-[#6B7280]">
-										{#if occupied && destination.players.length > 0}
-											{playerNames[destination.players[0]] || 'Player joined'}
-										{:else if occupied}
-											Occupied
-										{:else}
-											Click to join
-										{/if}
-									</div>
-								</div>
-								<span
-									class="rounded-md px-[0.875rem] py-[0.375rem] text-xs font-semibold {occupied
-										? 'bg-[#F3F4F6] text-[#6B7280]'
-										: 'bg-[#D1FAE5] text-[#0B5540]'}"
-								>
-									{occupied ? 'Occupied' : 'Available'}
-								</span>
-							</button>
-						{/if}
-					{/each}
-				</div>
-			</div>
-
-			<!-- Game Status -->
-			<div class="rounded-xl bg-white p-8 shadow-[0_4px_12px_rgba(0,0,0,0.06)] lg:col-span-2">
-				{#if mounted}
-					<div
-						class="flex flex-wrap items-center justify-between gap-8"
-						in:scale={{ duration: 500, delay: 300, easing: quintOut }}
-					>
-						<div class="flex-1">
-							<div class="mb-2 text-xl text-[#4B5563]">Waiting for players to join...</div>
-							<div class="flex items-center gap-2 text-[#6B7280]">
-								<div class="h-2 w-2 animate-pulse rounded-full bg-[#10B981]"></div>
-								<span>{totalPlayers} players ready</span>
-							</div>
-							{#if isFacilitator && !canStartGame}
-								<div class="mt-2 text-sm text-amber-600">
-									⚠️ {startGameTooltip}
-								</div>
-							{/if}
-							{#if startGameError}
-								<div class="mt-2 text-sm text-red-600">
-									{startGameError}
-								</div>
-							{/if}
-						</div>
-
-						{#if isFacilitator && !gameStarted}
-							<div class="flex gap-4">
-								<button
-									disabled
-									class="cursor-not-allowed rounded-lg border-2 border-[#E5E7EB] bg-white px-8 py-4 font-semibold text-[#6B7280] opacity-50 transition-all hover:bg-[#F9FAFB] active:scale-95"
-								>
-									Settings
-								</button>
-								<button
-									on:click={handleStartGame}
-									disabled={!canStartGame || isStartingGame}
-									class="rounded-lg bg-gradient-to-r from-[#0B5540] to-[#10B981] px-8 py-4 font-semibold text-white shadow-lg transition-all hover:shadow-xl active:scale-95 {!canStartGame || isStartingGame
-										? 'cursor-not-allowed opacity-50'
-										: ''}"
-									aria-label="Start game"
-									title={startGameTooltip}
-								>
-									{#if isStartingGame}
-										Starting...
-									{:else}
-										Start Game
-									{/if}
-								</button>
-							</div>
-						{/if}
-					</div>
-				{/if}
-			</div>
+			<!-- Game Status and Start Controls -->
+			<GameStartControls
+				{mounted}
+				{isFacilitator}
+				{totalPlayers}
+				{canStartGame}
+				{startGameTooltip}
+				{startGameError}
+				{gameStarted}
+				{isStartingGame}
+				onStartGame={handleStartGame}
+			/>
 
 			<!-- Instructions -->
 			{#if mounted}
 				<div
-					class="rounded-xl border-2 border-[#FCD34D] bg-gradient-to-br from-[#FEF3C7] to-[#FEF9E7] p-6 lg:col-span-2"
+					class="rounded-xl border-2 border-[#FCD34D] bg-gradient-to-br from-[#FEF3C7] to-[#FEF9E7] p-6"
 					in:fade={{ duration: 500, delay: 400 }}
 				>
 					<div class="mb-4 flex items-center gap-3 text-lg font-semibold text-[#92400E]">
@@ -584,81 +396,13 @@
 </div>
 
 <!-- Role Selection Modal -->
-{#if showRoleModal}
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-		on:click={closeRoleModal}
-		on:keydown={(e) => e.key === 'Escape' && closeRoleModal()}
-		role="dialog"
-		aria-modal="true"
-		tabindex="-1"
-		transition:fade={{ duration: 200 }}
-	>
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div
-			class="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full"
-			on:click|stopPropagation
-			transition:scale={{ duration: 300, easing: quintOut }}
-		>
-			<h3 class="text-2xl font-bold text-[#0B5540] mb-2">
-				Join as {selectedTeam}
-			</h3>
-			<p class="text-[#0B5540]/70 mb-6">
-				Role: {selectedRole}
-			</p>
-
-			<form on:submit|preventDefault={handleJoinGame} novalidate>
-				<div class="mb-6">
-					<label for="displayName" class="block text-sm font-semibold text-[#0B5540] mb-2">
-						Your Name
-					</label>
-					<input
-						type="text"
-						id="displayName"
-						name="displayName"
-						bind:this={displayNameInput}
-						bind:value={displayName}
-						placeholder="Enter your name"
-						class="w-full px-4 py-3 rounded-xl border-2 border-[#D1FAE5] focus:border-[#10B981] focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 transition-all"
-						disabled={isJoining}
-						required
-					/>
-				</div>
-
-				{#if joinError}
-					<div
-						role="alert"
-						class="mb-6 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm"
-					>
-						{joinError}
-					</div>
-				{/if}
-
-				<div class="flex gap-3">
-					<button
-						type="button"
-						on:click={closeRoleModal}
-						disabled={isJoining}
-						class="flex-1 px-6 py-3 rounded-xl border-2 border-[#E5E7EB] text-[#0B5540] font-semibold hover:bg-[#F9FAFB] transition-all disabled:opacity-50"
-					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						disabled={isJoining}
-						class="flex-1 px-6 py-3 rounded-xl bg-[#10B981] hover:bg-[#0B5540] text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						{#if isJoining}
-							Joining...
-						{:else}
-							Join Game
-						{/if}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}
+<JoinGameModal
+	show={showRoleModal}
+	{selectedTeam}
+	{selectedRole}
+	bind:displayName
+	{joinError}
+	{isJoining}
+	onClose={closeRoleModal}
+	onSubmit={handleJoinGame}
+/>

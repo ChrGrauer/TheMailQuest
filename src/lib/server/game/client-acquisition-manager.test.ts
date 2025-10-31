@@ -27,7 +27,7 @@ describe('Feature: Client Marketplace - Acquisition Manager', () => {
 			credits: 1000,
 			reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
 			active_clients: [],
-			technical_auth: ['spf', 'dkim', 'dmarc'],
+			owned_tech_upgrades: ['spf', 'dkim', 'dmarc'],
 			round_history: [],
 			available_clients: [],
 			...overrides

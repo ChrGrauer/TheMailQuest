@@ -196,7 +196,7 @@ export function allocateResources(request: ResourceAllocationRequest): ResourceA
 
 				// Ensure state arrays are initialized
 				team.active_clients = team.active_clients || [];
-				team.technical_auth = team.technical_auth || [];
+				team.owned_tech_upgrades = team.owned_tech_upgrades || []; // US-2.3
 				team.round_history = team.round_history || [];
 
 				// US-2.2: Generate 13 clients for marketplace
@@ -307,7 +307,7 @@ export function rollbackAllocation(request: RollbackRequest): RollbackResult {
 			team.credits = 0;
 			team.reputation = {};
 			team.active_clients = [];
-			team.technical_auth = [];
+			team.owned_tech_upgrades = []; // US-2.3
 			team.round_history = [];
 		}
 

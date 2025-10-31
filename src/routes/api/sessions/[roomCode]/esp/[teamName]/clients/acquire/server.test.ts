@@ -158,7 +158,7 @@ describe('POST /api/sessions/[roomCode]/esp/[teamName]/clients/acquire', () => {
 			// Set high credits and reputation but missing tech
 			team!.credits = 5000;
 			team!.reputation = { Gmail: 90, Outlook: 90, Yahoo: 90 };
-			team!.technical_auth = ['spf', 'dkim']; // Missing DMARC
+			team!.owned_tech_upgrades = ['spf', 'dkim']; // Missing DMARC
 
 			// When
 			const request = createRequestContext(session.roomCode, 'SendWave', {
@@ -206,7 +206,7 @@ describe('POST /api/sessions/[roomCode]/esp/[teamName]/clients/acquire', () => {
 
 			// Set high credits and all tech but low reputation
 			team!.credits = 5000;
-			team!.technical_auth = ['spf', 'dkim', 'dmarc'];
+			team!.owned_tech_upgrades = ['spf', 'dkim', 'dmarc'];
 			team!.reputation = { Gmail: 82, Outlook: 78, Yahoo: 76 }; // Overall = 80
 
 			// When

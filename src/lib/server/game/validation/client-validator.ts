@@ -115,7 +115,7 @@ export function validateClientAcquisition(
 	// Priority 4: Check tech requirements (for Premium clients)
 	if (client.requirements?.tech) {
 		const missingTech = client.requirements.tech.filter(
-			(requiredTech) => !team.technical_auth.includes(requiredTech)
+			(requiredTech) => !team.owned_tech_upgrades.includes(requiredTech) // US-2.3
 		);
 
 		if (missingTech.length > 0) {

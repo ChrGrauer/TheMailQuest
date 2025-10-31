@@ -44,6 +44,7 @@ function generateRoomCode(): string {
 /**
  * Create initial ESP teams with predefined names
  * US-1.4: Added resource allocation fields
+ * US-2.3: Renamed technical_auth to owned_tech_upgrades
  */
 function createInitialESPTeams(): ESPTeam[] {
   const teamNames = ['SendWave', 'MailMonkey', 'BluePost', 'SendBolt', 'RocketMail'];
@@ -58,8 +59,10 @@ function createInitialESPTeams(): ESPTeam[] {
     credits: 0,
     reputation: {},
     active_clients: [],
-    technical_auth: [],
-    round_history: []
+    owned_tech_upgrades: [], // US-2.3: Owned technical upgrade IDs
+    round_history: [],
+    // US-2.2: Initialize marketplace
+    available_clients: []
   }));
 }
 

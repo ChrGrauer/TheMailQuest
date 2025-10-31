@@ -23,6 +23,7 @@
 	import QuickActions from '$lib/components/esp-dashboard/QuickActions.svelte';
 	import LockInButton from '$lib/components/esp-dashboard/LockInButton.svelte';
 	import ClientMarketplaceModal from '$lib/components/esp-dashboard/ClientMarketplaceModal.svelte';
+	import TechnicalShopModal from '$lib/components/esp-dashboard/TechnicalShopModal.svelte';
 
 	// Get params from page store
 	let roomCode = $derived($page.params.roomCode || '');
@@ -63,6 +64,7 @@
 
 	// UI state
 	let showMarketplace = $state(false);
+	let showTechShop = $state(false);
 
 	// Test state for WebSocket status (used by E2E tests)
 	let testWsConnected = $state<boolean | null>(null);
@@ -92,7 +94,7 @@
 			reputation = data.team.reputation || { Gmail: 70, Outlook: 70, Yahoo: 70 };
 			clients = data.team.active_clients || [];
 			availableClientsCount = data.team.available_clients_count || 0;
-			ownedTech = data.team.technical_auth || [];
+			ownedTech = data.team.owned_tech_upgrades || []; // US-2.3
 
 			// Update game state
 			currentRound = data.game.current_round || 1;
@@ -135,8 +137,8 @@
 			availableClientsCount = update.available_clients_count;
 		}
 
-		if (update.technical_auth) {
-			ownedTech = update.technical_auth;
+		if (update.owned_tech_upgrades) {
+			ownedTech = update.owned_tech_upgrades; // US-2.3
 		}
 
 		if (update.pending_costs !== undefined) {
@@ -189,7 +191,7 @@
 	}
 
 	function handleTechShopClick() {
-		// TODO: Implement in US-2.3 - Navigate to Technical Shop
+		showTechShop = true;
 	}
 
 	function handleClientManagementClick() {
@@ -206,6 +208,15 @@
 	 */
 	function handleClientAcquired(clientId: string, cost: number) {
 		// Credits will be updated by WebSocket esp_dashboard_update message
+		// No action needed here - just for future extensibility
+	}
+
+	/**
+	 * Handle successful tech upgrade purchase
+	 * Credits and ownedTech will update automatically via WebSocket
+	 */
+	function handleUpgradePurchased(upgradeId: string, cost: number) {
+		// Credits and ownedTech will be updated by WebSocket esp_dashboard_update message
 		// No action needed here - just for future extensibility
 	}
 
@@ -340,7 +351,7 @@
 			<div class="mb-8">
 				<QuickActions
 					activeClientsCount={clients.length}
-					missingMandatoryTech={currentRound >= 2 && !ownedTech.includes('DMARC')}
+					missingMandatoryTech={currentRound >= 2 && !ownedTech.includes('dmarc')}
 					availableClientsCount={availableClientsCount}
 					onMarketplaceClick={handleMarketplaceClick}
 					onTechShopClick={handleTechShopClick}
@@ -386,5 +397,16 @@
 		{ownedTech}
 		overallReputation={calculateOverallReputation(reputation, destinations)}
 		onClientAcquired={handleClientAcquired}
+	/>
+
+	<!-- Technical Shop Modal -->
+	<TechnicalShopModal
+		show={showTechShop}
+		onClose={() => (showTechShop = false)}
+		{roomCode}
+		{teamName}
+		currentCredits={credits}
+		{currentRound}
+		onUpgradePurchased={handleUpgradePurchased}
 	/>
 </div>

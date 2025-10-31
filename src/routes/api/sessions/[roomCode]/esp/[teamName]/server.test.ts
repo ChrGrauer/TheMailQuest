@@ -28,7 +28,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 				credits: 0,
 				reputation: {},
 				active_clients: [],
-				technical_auth: [],
+				owned_tech_upgrades: [],
 				round_history: []
 			},
 			{
@@ -40,7 +40,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 				credits: 0,
 				reputation: {},
 				active_clients: [],
-				technical_auth: [],
+				owned_tech_upgrades: [],
 				round_history: []
 			}
 		];
@@ -113,7 +113,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 			Yahoo: 70
 		});
 		expect(data.team.active_clients).toEqual([]);
-		expect(data.team.technical_auth).toEqual([]);
+		expect(data.team.owned_tech_upgrades).toEqual([]);
 	});
 
 	it('should return game state information', async () => {
@@ -248,7 +248,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 
 		// Then: should return empty arrays
 		expect(data.team.active_clients).toEqual([]);
-		expect(data.team.technical_auth).toEqual([]);
+		expect(data.team.owned_tech_upgrades).toEqual([]);
 		expect(data.team.round_history).toEqual([]);
 	});
 });

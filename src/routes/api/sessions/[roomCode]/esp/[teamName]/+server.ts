@@ -82,7 +82,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			reputation: team.reputation,
 			active_clients: team.active_clients,
 			available_clients_count: availableClients.length,
-			technical_auth: team.technical_auth,
+			owned_tech_upgrades: team.owned_tech_upgrades, // US-2.3
 			round_history: team.round_history
 		},
 		game: {

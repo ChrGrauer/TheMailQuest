@@ -32,7 +32,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			credits: 1000,
 			reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
 			active_clients: [],
-			technical_auth: ['spf', 'dkim'],
+			owned_tech_upgrades: ['spf', 'dkim'],
 			round_history: [],
 			available_clients: [],
 			...overrides
@@ -162,7 +162,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			// Given
 			const team = createTestTeam({
 				credits: 500,
-				technical_auth: ['spf', 'dkim', 'dmarc'],
+				owned_tech_upgrades: ['spf', 'dkim', 'dmarc'],
 				reputation: { Gmail: 90, Outlook: 85, Yahoo: 85 } // Overall = 87.5 → 88
 			});
 			const premiumClient = createTestClient({
@@ -191,7 +191,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			// Given
 			const team = createTestTeam({
 				credits: 500,
-				technical_auth: ['spf', 'dkim'], // Missing DMARC
+				owned_tech_upgrades: ['spf', 'dkim'], // Missing DMARC
 				reputation: { Gmail: 90, Outlook: 85, Yahoo: 85 }
 			});
 			const premiumClient = createTestClient({
@@ -220,7 +220,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			// Given
 			const team = createTestTeam({
 				credits: 500,
-				technical_auth: [], // No tech
+				owned_tech_upgrades: [], // No tech
 				reputation: { Gmail: 90, Outlook: 85, Yahoo: 85 }
 			});
 			const premiumClient = createTestClient({
@@ -249,7 +249,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			// Given
 			const team = createTestTeam({
 				credits: 500,
-				technical_auth: ['spf', 'dkim', 'dmarc'],
+				owned_tech_upgrades: ['spf', 'dkim', 'dmarc'],
 				reputation: { Gmail: 82, Outlook: 78, Yahoo: 76 } // Overall = 80
 			});
 			const premiumClient = createTestClient({
@@ -277,7 +277,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			// Given - Calculate exact 85: Gmail=85, Outlook=85, Yahoo=85
 			const team = createTestTeam({
 				credits: 500,
-				technical_auth: ['spf', 'dkim', 'dmarc'],
+				owned_tech_upgrades: ['spf', 'dkim', 'dmarc'],
 				reputation: { Gmail: 85, Outlook: 85, Yahoo: 85 } // Overall = 85
 			});
 			const premiumClient = createTestClient({
@@ -354,7 +354,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			// Given
 			const team = createTestTeam({
 				credits: 500,
-				technical_auth: ['spf'], // Missing DKIM and DMARC
+				owned_tech_upgrades: ['spf'], // Missing DKIM and DMARC
 				reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 } // Overall = 70 (insufficient)
 			});
 			const premiumClient = createTestClient({
@@ -382,7 +382,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			// Given
 			const team = createTestTeam({
 				credits: 500,
-				technical_auth: [], // No tech
+				owned_tech_upgrades: [], // No tech
 				reputation: { Gmail: 50, Outlook: 50, Yahoo: 50 } // Low reputation
 			});
 			const growingStartupClient = createTestClient({

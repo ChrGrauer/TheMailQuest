@@ -13,76 +13,27 @@
  * - Error handling
  *
  * Uses Playwright for end-to-end testing
+ *
+ * NOTE: Fixtures available in ./fixtures.ts can simplify test setup:
+ * - destinationGame: Game with destination player and ESP players
+ * - planningPhase: Game with 2 ESP players in planning phase
+ * - minimumPlayers: Session with 3 ESP players
+ * - gameSession: Basic session with facilitator
+ *
+ * Example usage:
+ *   import { test, expect } from './fixtures';
+ *   test('my test', async ({ destinationGame }) => {
+ *     const { gmailPage, alicePage, bobPage, roomCode } = destinationGame;
+ *     // Test logic...
+ *   });
  */
 
-import { test, expect, type Page, type BrowserContext } from '@playwright/test';
-
-// ============================================================================
-// TEST HELPERS (Reused from US-2.1)
-// ============================================================================
-
-/**
- * Create a game session as facilitator and return room code
- */
-async function createTestSession(page: Page): Promise<string> {
-	await page.goto('/');
-	await page.click('text=I\'m a facilitator');
-	await page.waitForURL('/create');
-	await page.click('text=Create a Session');
-	await page.waitForURL(/\/lobby\/.+/);
-	const url = page.url();
-	const roomCode = url.split('/lobby/')[1];
-	return roomCode;
-}
-
-/**
- * Add a player to a session
- */
-async function addPlayer(
-	context: BrowserContext,
-	roomCode: string,
-	displayName: string,
-	role: 'ESP' | 'Destination',
-	teamName: string
-): Promise<Page> {
-	const playerPage = await context.newPage();
-	await playerPage.goto(`/lobby/${roomCode}`);
-	await playerPage.click(`text=${teamName}`);
-	await playerPage.locator('input[name="displayName"]').fill(displayName);
-	await playerPage.click('button:has-text("Join Game")');
-	await expect(playerPage.locator(`text=${displayName}`)).toBeVisible();
-	return playerPage;
-}
-
-/**
- * Create a session with destination player and start game
- */
-async function createGameWithDestinationPlayer(
-	facilitatorPage: Page,
-	context: BrowserContext
-): Promise<{ roomCode: string; alicePage: Page; bobPage: Page; gmailPage: Page }> {
-	const roomCode = await createTestSession(facilitatorPage);
-	const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
-	const bobPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
-	const gmailPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'Gmail');
-	await facilitatorPage.waitForTimeout(500);
-
-	// Start game
-	const startGameButton = facilitatorPage.getByRole('button', { name: /start game/i });
-	await startGameButton.click();
-
-	// Wait for Gmail to be redirected to destination dashboard
-	await gmailPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });
-
-	// Wait for dashboard to finish loading
-	await gmailPage.waitForFunction(
-		() => (window as any).__destinationDashboardTest?.ready === true,
-		{},
-		{ timeout: 10000 }
-	);
-
-	return { roomCode, alicePage, bobPage, gmailPage };
-}
+import { test, expect } from '@playwright/test';
+import {
+	createTestSession,
+	addPlayer,
+	createGameWithDestinationPlayer
+} from './helpers/game-setup';
 
 // ============================================================================
 // TESTS
@@ -275,111 +226,67 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 	// ============================================================================
 
 	test.describe('Reputation & Metrics Color Coding', () => {
-		test('Scenario: Reputation scores display with correct color coding', async ({
-			page,
-			context
-		}) => {
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+		// Parameterized test for reputation color coding thresholds
+		const reputationThresholds = [
+			{ value: 95, expectedStatus: 'excellent', description: 'excellent (≥90)' },
+			{ value: 78, expectedStatus: 'good', description: 'good (70-89)' },
+			{ value: 58, expectedStatus: 'warning', description: 'warning (50-69)' },
+			{ value: 45, expectedStatus: 'poor', description: 'poor (<50)' }
+		];
+
+		for (const threshold of reputationThresholds) {
+			test(`Scenario: Reputation scores display ${threshold.description} color coding`, async ({
 				page,
 				context
-			);
+			}) => {
+				const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+					page,
+					context
+				);
 
-			// Test excellent reputation (≥90)
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setESPStats([
-					{
-						espName: 'SendWave',
-						teamCode: 'SW',
-						activeClientsCount: 4,
-						volume: '185K',
-						volumeRaw: 185000,
-						reputation: 95,
-						userSatisfaction: 95,
-						spamComplaintRate: 0.01
-					}
-				]);
+				// When: ESP has reputation at threshold value
+				await gmailPage.evaluate(
+					(rep) => {
+						(window as any).__destinationDashboardTest.setESPStats([
+							{
+								espName: 'SendWave',
+								teamCode: 'SW',
+								activeClientsCount: 4,
+								volume: '185K',
+								volumeRaw: 185000,
+								reputation: rep,
+								userSatisfaction: rep,
+								spamComplaintRate: rep >= 90 ? 0.01 : rep >= 70 ? 0.04 : rep >= 50 ? 0.08 : 0.2
+							}
+						]);
+					},
+					threshold.value
+				);
+
+				await gmailPage.waitForTimeout(500);
+
+				// Then: reputation should display correct status
+				const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
+				const reputation = espCard.locator('[data-testid="esp-reputation"]');
+				const repStatus = await reputation.getAttribute('data-status');
+				expect(repStatus).toBe(threshold.expectedStatus);
+
+				// Verify color styling is applied (for excellent status)
+				if (threshold.expectedStatus === 'excellent') {
+					const repStyles = await reputation.evaluate((el) => {
+						const styles = window.getComputedStyle(el);
+						return styles.color;
+					});
+					// Tailwind v4 uses oklch format, just verify color is set (not default black)
+					expect(repStyles).not.toBe('rgb(0, 0, 0)');
+					expect(repStyles).not.toBe('rgba(0, 0, 0, 1)');
+				}
+
+				await gmailPage.close();
+				await alicePage.close();
+				await bobPage.close();
 			});
-
-			await gmailPage.waitForTimeout(500);
-
-			const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
-			const reputation = espCard.locator('[data-testid="esp-reputation"]');
-			const repStatus = await reputation.getAttribute('data-status');
-			expect(repStatus).toBe('excellent');
-
-			// Check that color styling is applied (Tailwind v4 uses oklch, so just check it's not default)
-			const repStyles = await reputation.evaluate((el) => {
-				const styles = window.getComputedStyle(el);
-				return styles.color;
-			});
-			// Tailwind v4 uses oklch format, just verify color is set (not default black)
-			expect(repStyles).not.toBe('rgb(0, 0, 0)');
-			expect(repStyles).not.toBe('rgba(0, 0, 0, 1)');
-
-			// Test good reputation (70-89)
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setESPStats([
-					{
-						espName: 'SendWave',
-						teamCode: 'SW',
-						activeClientsCount: 4,
-						volume: '185K',
-						volumeRaw: 185000,
-						reputation: 78,
-						userSatisfaction: 78,
-						spamComplaintRate: 0.04
-					}
-				]);
-			});
-
-			await gmailPage.waitForTimeout(500);
-			const repStatus2 = await reputation.getAttribute('data-status');
-			expect(repStatus2).toBe('good');
-
-			// Test warning reputation (50-69)
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setESPStats([
-					{
-						espName: 'SendWave',
-						teamCode: 'SW',
-						activeClientsCount: 4,
-						volume: '185K',
-						volumeRaw: 185000,
-						reputation: 58,
-						userSatisfaction: 58,
-						spamComplaintRate: 0.08
-					}
-				]);
-			});
-
-			await gmailPage.waitForTimeout(500);
-			const repStatus3 = await reputation.getAttribute('data-status');
-			expect(repStatus3).toBe('warning');
-
-			// Test poor reputation (<50)
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setESPStats([
-					{
-						espName: 'SendWave',
-						teamCode: 'SW',
-						activeClientsCount: 4,
-						volume: '185K',
-						volumeRaw: 185000,
-						reputation: 45,
-						userSatisfaction: 45,
-						spamComplaintRate: 0.2
-					}
-				]);
-			});
-
-			await gmailPage.waitForTimeout(500);
-			const repStatus4 = await reputation.getAttribute('data-status');
-			expect(repStatus4).toBe('poor');
-
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
-		});
+		}
 
 		test('Scenario: Spam complaint rates display with correct color coding', async ({
 			page,

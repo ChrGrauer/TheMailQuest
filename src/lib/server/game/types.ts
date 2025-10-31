@@ -17,7 +17,7 @@ export interface ESPTeam {
   credits: number;
   reputation: Record<string, number>; // per destination: { Gmail: 70, Outlook: 70, ... }
   active_clients: string[];
-  technical_auth: string[];
+  owned_tech_upgrades: string[]; // US-2.3: Owned technical upgrade IDs (e.g., ['spf', 'dkim'])
   round_history: any[];
   // US-2.2: Client marketplace fields
   available_clients: Client[]; // Marketplace stock (not yet acquired)
