@@ -175,6 +175,8 @@ export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
 			'Deploy network of spam traps for single round. Triples spam trap hit probability. Can announce deployment as deterrent or keep secret for surprise.',
 		scope: 'ALL_ESPS',
 		permanent: false, // Must repurchase each round
+		// TODO (Round Transition): When transitioning to next round, remove 'spam_trap_network' from destination.owned_tools
+		// and reset destination.spam_trap_active to undefined. This ensures players must repurchase each round.
 		effects: {
 			trap_multiplier: 3
 		},

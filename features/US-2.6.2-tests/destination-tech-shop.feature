@@ -1,5 +1,5 @@
 # US-2.6.2: Destination Tech Shop
-# Epic 2: Player Interfaces
+# Epic 2: Destination Interfaces
 
 Feature: Destination Tech Shop
   As a Destination player
