@@ -1,131 +1,84 @@
 /**
  * Destination Technical Upgrades Configuration
- * US-2.5: Destination Kingdom Dashboard
+ * US-2.6.2: Destination Tech Shop
  *
- * Defines all available technical upgrades for Destination players
+ * Defines all available tools for Destination players
+ * with kingdom-specific pricing and availability
  */
 
-export interface DestinationTechnicalUpgrade {
+export interface DestinationTool {
 	id: string;
 	name: string;
+	category: string;
 	description: string;
-	cost?: number;
-	category?: 'authentication' | 'filtering' | 'security' | 'monitoring';
+	scope: 'ALL_ESPS';
+	permanent: boolean;
+	authentication_level?: number; // 1, 2, or 3 for Auth Validators
+	requires?: string | string[]; // Prerequisite tool IDs
+	effects: {
+		spam_detection_boost?: number; // percentage
+		false_positive_impact?: number; // percentage (negative = reduction)
+		trap_multiplier?: number; // For Spam Trap Network
+	};
+	pricing: {
+		Gmail: number | null;
+		Outlook: number | null;
+		Yahoo: number | null;
+	};
+	availability: {
+		Gmail: boolean;
+		Outlook: boolean;
+		Yahoo: boolean;
+	};
+	unavailable_reason?: {
+		Gmail?: string;
+		Outlook?: string;
+		Yahoo?: string;
+	};
 }
 
 /**
- * All available destination technical upgrades
+ * All available destination tools
+ * Placeholder - will be populated in GREEN phase
  */
-export const DESTINATION_TECHNICAL_UPGRADES: DestinationTechnicalUpgrade[] = [
-	// Authentication Checks
-	{
-		id: 'spf-check',
-		name: 'SPF Authentication Check',
-		description: 'Verify sender SPF records for incoming emails',
-		cost: 100,
-		category: 'authentication'
-	},
-	{
-		id: 'dkim-check',
-		name: 'DKIM Signature Check',
-		description: 'Validate DKIM signatures on incoming emails',
-		cost: 150,
-		category: 'authentication'
-	},
-	{
-		id: 'dmarc-check',
-		name: 'DMARC Check',
-		description: 'Enforce DMARC policies for email authentication',
-		cost: 200,
-		category: 'authentication'
-	},
-
-	// Filtering
-	{
-		id: 'advanced-spam-filter',
-		name: 'Advanced Spam Filter',
-		description: 'Machine learning-based spam detection and filtering',
-		cost: 250,
-		category: 'filtering'
-	},
-	{
-		id: 'content-analysis',
-		name: 'Content Analysis Engine',
-		description: 'Deep content inspection for malicious patterns',
-		cost: 200,
-		category: 'filtering'
-	},
-	{
-		id: 'attachment-scanner',
-		name: 'Attachment Scanner',
-		description: 'Scan attachments for malware and threats',
-		cost: 180,
-		category: 'filtering'
-	},
-
-	// Security
-	{
-		id: 'email-encryption-check',
-		name: 'Email Encryption Check',
-		description: 'Verify TLS encryption for incoming connections',
-		cost: 120,
-		category: 'security'
-	},
-	{
-		id: 'threat-intelligence',
-		name: 'Threat Intelligence Feed',
-		description: 'Real-time threat intelligence for known bad actors',
-		cost: 220,
-		category: 'security'
-	},
-
-	// Monitoring
-	{
-		id: 'reputation-monitoring',
-		name: 'Reputation Monitoring',
-		description: 'Track sender reputation across all ESPs',
-		cost: 130,
-		category: 'monitoring'
-	},
-	{
-		id: 'analytics-dashboard',
-		name: 'Analytics Dashboard',
-		description: 'Detailed email traffic and filtering analytics',
-		cost: 100,
-		category: 'monitoring'
-	},
-	{
-		id: 'user-feedback-system',
-		name: 'User Feedback System',
-		description: 'Collect user feedback on spam and legitimate emails',
-		cost: 150,
-		category: 'monitoring'
-	}
-];
+export const DESTINATION_TOOLS: Record<string, DestinationTool> = {};
 
 /**
- * Get destination technical upgrade by ID
+ * Get destination tool by ID
  */
-export function getDestinationTechnicalUpgrade(
-	id: string
-): DestinationTechnicalUpgrade | undefined {
-	return DESTINATION_TECHNICAL_UPGRADES.find((tech) => tech.id === id);
+export function getDestinationTool(id: string): DestinationTool | undefined {
+	return DESTINATION_TOOLS[id];
 }
 
 /**
- * Get destination technical upgrade by name
+ * Get tool price for specific kingdom
  */
-export function getDestinationTechnicalUpgradeByName(
-	name: string
-): DestinationTechnicalUpgrade | undefined {
-	return DESTINATION_TECHNICAL_UPGRADES.find((tech) => tech.name === name);
+export function getToolPrice(toolId: string, kingdom: string): number | null {
+	const tool = DESTINATION_TOOLS[toolId];
+	if (!tool) return null;
+
+	const kingdomKey = kingdom as keyof typeof tool.pricing;
+	return tool.pricing[kingdomKey] || null;
 }
 
 /**
- * Get destination technical upgrades by category
+ * Check tool availability for kingdom
  */
-export function getDestinationTechByCategory(
-	category: 'authentication' | 'filtering' | 'security' | 'monitoring'
-): DestinationTechnicalUpgrade[] {
-	return DESTINATION_TECHNICAL_UPGRADES.filter((tech) => tech.category === category);
+export function isToolAvailable(toolId: string, kingdom: string): boolean {
+	const tool = DESTINATION_TOOLS[toolId];
+	if (!tool) return false;
+
+	const kingdomKey = kingdom as keyof typeof tool.availability;
+	return tool.availability[kingdomKey] === true;
+}
+
+/**
+ * Get unavailability reason for kingdom
+ */
+export function getUnavailableReason(toolId: string, kingdom: string): string | null {
+	const tool = DESTINATION_TOOLS[toolId];
+	if (!tool || !tool.unavailable_reason) return null;
+
+	const kingdomKey = kingdom as keyof typeof tool.unavailable_reason;
+	return tool.unavailable_reason[kingdomKey] || null;
 }

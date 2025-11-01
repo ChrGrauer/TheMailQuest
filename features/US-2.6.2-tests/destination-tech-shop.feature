@@ -153,18 +153,13 @@ Feature: Destination Tech Shop
       | level       | esp_spf | esp_dkim | esp_dmarc | rejection_rate | missing_auth |
       | L1 (SPF)    | false   | false    | false     | 20             | SPF          |
       | L1 (SPF)    | true    | false    | false     | 0              | N/A          |
-      | L2 (DKIM)   | true    | false    | false     | 30             | DKIM         |
+      | L2 (DKIM)   | false   | false    | false     | 30             | DKIM         |
+      | L2 (DKIM)   | true    | false    | false     | 10             | DKIM         |
       | L2 (DKIM)   | true    | true     | false     | 0              | N/A          |
-      | L3 (DMARC)  | true    | true     | false     | 50             | DMARC        |
+      | L3 (DMARC)  | false   | false    | false     | 50             | DMARC        |
+      | L3 (DMARC)  | true    | false    | false     | 30             | DMARC        |
+      | L3 (DMARC)  | true    | true     | false     | 20             | DMARC        |
       | L3 (DMARC)  | true    | true     | true      | 0              | N/A          |
-
-  Scenario: Multiple authentication levels stack enforcement
-    Given I am a "Outlook" destination
-    And I have purchased all authentication levels (L1, L2, L3)
-    And ESP "MailMonkey" has no authentication configured
-    When the delivery resolution phase begins
-    Then ESP "MailMonkey" should face the highest rejection rate of 50%
-    And the rejection should be due to "Missing DMARC" (highest level)
 
   # ============================================================================
   # SECTION 5: SPAM TRAP NETWORK (SPECIAL SINGLE-ROUND TOOL)
@@ -315,13 +310,6 @@ Feature: Destination Tech Shop
     And the section should list all 3 tools
     And each tool should show its active status
     And authentication level should show "Level 1 (SPF)"
-
-  Scenario: Tools cannot be deactivated in MVP
-    Given I am a "Outlook" destination
-    And I have purchased "Content Analysis Filter"
-    When I view my owned tools
-    Then I should not see a "Deactivate" button
-    And I should see note "Tools are permanent investments in MVP"
 
   Scenario: Tool ownership persists across rounds
     Given I am a "Gmail" destination

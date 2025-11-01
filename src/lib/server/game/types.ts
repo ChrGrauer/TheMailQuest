@@ -6,6 +6,7 @@
  * US-2.2: Client Marketplace (added Client, ClientType, ClientRequirements, available_clients)
  * US-2.4: Client Basic Management (added ClientState, client_states, Suspended status)
  * US-2.5: Destination Dashboard (added destination fields, ESPDestinationStats, DestinationDashboardUpdate)
+ * US-2.6.2: Destination Tech Shop (added kingdom, owned_tools, authentication_level, spam_trap_active, esp_metrics)
  */
 
 export interface ESPTeam {
@@ -28,15 +29,26 @@ export interface ESPTeam {
 
 export interface Destination {
   name: string;
+  kingdom?: 'Gmail' | 'Outlook' | 'Yahoo'; // US-2.6.2: Kingdom for pricing
   players: string[];
   budget: number;
   // US-1.4: Resource allocation fields
   filtering_policies: Record<string, any>;
   esp_reputation: Record<string, number>; // per ESP: { SendWave: 70, MailMonkey: 70, ... }
-  user_satisfaction: number;
   // US-2.5: Destination dashboard fields
-  technical_stack?: string[]; // Owned destination technologies
-  spam_level?: number; // Current spam level percentage (0-100)
+  technical_stack?: string[]; // Owned destination technologies (deprecated, use owned_tools)
+  // US-2.6.2: Per-ESP metrics (for delivery resolution)
+  esp_metrics?: Record<string, {
+    user_satisfaction: number; // 0-100
+    spam_level: number; // 0-100
+  }>;
+  // US-2.6.2: Tool ownership
+  owned_tools?: string[]; // Tool IDs like ['content_analysis_filter', 'auth_validator_l1']
+  authentication_level?: number; // 0-3 for Auth Validator progression
+  spam_trap_active?: {
+    round: number;
+    announced: boolean;
+  }; // Single-round tool tracking
 }
 
 /**
@@ -152,4 +164,17 @@ export interface DestinationDashboardUpdate {
 	spam_level?: number;
 	technical_stack?: string[];
 	collaborations_count?: number;
+	// US-2.6.2: Tool ownership updates
+	owned_tools?: string[];
+	authentication_level?: number;
+}
+
+/**
+ * US-2.6.2: Destination Tool Purchase Result
+ * Result of a tool purchase attempt
+ */
+export interface DestinationToolPurchaseResult {
+	success: boolean;
+	error?: string;
+	updatedDestination?: Destination;
 }

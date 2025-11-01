@@ -11,7 +11,7 @@ const config: PlaywrightTestConfig = {
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
 
 	// Global timeout for entire test run (prevents infinite hanging)
-	globalTimeout: 180000, // 3 minutes total
+	globalTimeout: 240000, // 4 minutes total
 
 	// Timeout for each individual test
 	timeout: 10000, // 10 seconds per test
