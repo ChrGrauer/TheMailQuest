@@ -24,6 +24,7 @@
 	import CoordinationStatus from '$lib/components/destination-dashboard/CoordinationStatus.svelte';
 	import DestinationQuickActions from '$lib/components/destination-dashboard/DestinationQuickActions.svelte';
 	import TechnicalInfrastructure from '$lib/components/destination-dashboard/TechnicalInfrastructure.svelte';
+	import TechnicalShopModal from '$lib/components/destination-dashboard/TechnicalShopModal.svelte';
 
 	// Get params
 	const roomCode = $page.params.roomCode;
@@ -45,6 +46,12 @@
 	let collaborationsCount = $state(0);
 	let ownedTech = $state<string[]>([]);
 	let spamLevel = $state(0);
+
+	// Tech Shop state (US-2.6.2)
+	let showTechShop = $state(false);
+	let kingdom = $state<'Gmail' | 'Outlook' | 'Yahoo'>('Gmail');
+	let authenticationLevel = $state(0);
+	let ownedTools = $state<string[]>([]);
 
 	// Test state variables (for E2E testing) - null means use real value
 	let testWsConnected = $state<boolean | null>(null);
@@ -79,6 +86,11 @@
 			budget = data.destination.budget;
 			ownedTech = data.destination.technical_stack || [];
 			spamLevel = data.destination.spam_level || 0;
+
+			// Tech Shop state (US-2.6.2)
+			kingdom = data.destination.kingdom || 'Gmail';
+			authenticationLevel = data.destination.authentication_level || 0;
+			ownedTools = data.destination.owned_tools || [];
 
 			currentRound = data.game.current_round;
 			currentPhase = data.game.current_phase;
@@ -118,6 +130,10 @@
 		if (update.technical_stack !== undefined) ownedTech = update.technical_stack;
 		if (update.collaborations_count !== undefined)
 			collaborationsCount = update.collaborations_count;
+
+		// Tech Shop updates (US-2.6.2)
+		if (update.owned_tools !== undefined) ownedTools = update.owned_tools;
+		if (update.authentication_level !== undefined) authenticationLevel = update.authentication_level;
 	}
 
 	// Timer countdown (client-side)
@@ -139,6 +155,11 @@
 	// Handle coordination panel click (placeholder for US-2.7)
 	function handleCoordinationClick() {
 		// TODO: Open coordination panel modal (US-2.7)
+	}
+
+	// Handle tech shop click (US-2.6.2)
+	function handleTechShopClick() {
+		showTechShop = true;
 	}
 
 	// Handle lock-in click
@@ -182,7 +203,18 @@
 					testWsError = connected ? null : errorMsg || 'Connection lost';
 				},
 				setError: (errorMsg: string | null) => (error = errorMsg),
-				setLoading: (isLoading: boolean) => (loading = isLoading)
+				setLoading: (isLoading: boolean) => (loading = isLoading),
+
+				// Tech Shop test API (US-2.6.2)
+				openTechShop: () => (showTechShop = true),
+				closeTechShop: () => (showTechShop = false),
+				getTechShopOpen: () => showTechShop,
+				getOwnedTools: () => ownedTools,
+				setOwnedTools: (value: string[]) => (ownedTools = value),
+				getAuthLevel: () => authenticationLevel,
+				setAuthLevel: (value: number) => (authenticationLevel = value),
+				getKingdom: () => kingdom,
+				setKingdom: (value: 'Gmail' | 'Outlook' | 'Yahoo') => (kingdom = value)
 			};
 		}
 	});
@@ -263,6 +295,7 @@
 			<DestinationQuickActions
 				{collaborationsCount}
 				onCoordinationClick={handleCoordinationClick}
+				onTechShopClick={handleTechShopClick}
 			/>
 
 			<!-- Dashboard Grid -->
@@ -274,7 +307,7 @@
 
 				<!-- Technical Infrastructure -->
 				<div>
-					<TechnicalInfrastructure {ownedTech} />
+					<TechnicalInfrastructure {ownedTools} {kingdom} />
 				</div>
 
 				<!-- Coordination Status -->
@@ -292,3 +325,14 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Tech Shop Modal (US-2.6.2) -->
+<TechnicalShopModal
+	bind:show={showTechShop}
+	{roomCode}
+	{destName}
+	{kingdom}
+	currentBudget={budget}
+	currentAuthLevel={authenticationLevel}
+	currentOwnedTools={ownedTools}
+/>

@@ -88,7 +88,11 @@ export const GET: RequestHandler = async ({ params }) => {
 			budget: destination.budget,
 			technical_stack: destination.technical_stack || [],
 			spam_level: destination.spam_level || 0,
-			user_satisfaction: destination.user_satisfaction
+			user_satisfaction: destination.user_satisfaction,
+			// US-2.6.2: Tech Shop fields
+			kingdom: destination.kingdom || 'Gmail',
+			owned_tools: destination.owned_tools || [],
+			authentication_level: destination.authentication_level || 0
 		},
 		game: {
 			roomCode: session.roomCode,
