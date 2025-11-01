@@ -13,12 +13,13 @@
 		collaborationsCount?: number;
 		onCoordinationClick?: () => void;
 		onTechShopClick?: () => void; // US-2.6.2
+		onFilteringClick?: () => void; // US-2.6 (coming soon)
 	}
 
-	let { collaborationsCount = 0, onCoordinationClick, onTechShopClick }: Props = $props();
+	let { collaborationsCount = 0, onCoordinationClick, onTechShopClick, onFilteringClick }: Props = $props();
 </script>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
 	<!-- Coordination Panel Button -->
 	<button
 		onclick={onCoordinationClick}
@@ -72,6 +73,32 @@
 		<!-- Arrow -->
 		<div class="text-blue-600 text-xl group-hover:translate-x-1 transition-transform duration-300">
 			→
+		</div>
+	</button>
+
+	<!-- Filtering Controls Button (placeholder for US-2.6) -->
+	<button
+		disabled
+		class="group flex items-center gap-4 p-4 bg-white border-2 border-gray-200 rounded-xl opacity-50 cursor-not-allowed"
+		data-testid="filtering-controls-button"
+		title="Available in US-2.6: Filtering Controls"
+	>
+		<!-- Icon -->
+		<div
+			class="w-14 h-14 rounded-lg flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0"
+		>
+			<span class="text-2xl">🛡️</span>
+		</div>
+
+		<!-- Content -->
+		<div class="flex-1 text-left">
+			<div class="font-bold text-gray-800 text-base mb-1">Filtering Controls</div>
+			<div class="text-xs text-gray-500">Manage ESP filtering (Coming Soon)</div>
+		</div>
+
+		<!-- Badge -->
+		<div class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">
+			Soon
 		</div>
 	</button>
 </div>
