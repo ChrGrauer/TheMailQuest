@@ -39,9 +39,181 @@ export interface DestinationTool {
 
 /**
  * All available destination tools
- * Placeholder - will be populated in GREEN phase
  */
-export const DESTINATION_TOOLS: Record<string, DestinationTool> = {};
+export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
+	content_analysis_filter: {
+		id: 'content_analysis_filter',
+		name: 'Content Analysis Filter',
+		category: 'Content Analysis',
+		description:
+			'Analyzes message content for promotional language, urgency tactics, and spam triggers',
+		scope: 'ALL_ESPS',
+		permanent: true,
+		effects: {
+			spam_detection_boost: 15,
+			false_positive_impact: -2
+		},
+		pricing: {
+			Gmail: 300,
+			Outlook: 240,
+			Yahoo: 160
+		},
+		availability: {
+			Gmail: true,
+			Outlook: true,
+			Yahoo: true
+		}
+	},
+
+	auth_validator_l1: {
+		id: 'auth_validator_l1',
+		name: 'Authentication Validator - Level 1 (SPF)',
+		category: 'Authentication',
+		description: 'Validates SPF authentication records, requires ESPs to implement SPF',
+		scope: 'ALL_ESPS',
+		permanent: true,
+		authentication_level: 1,
+		effects: {
+			spam_detection_boost: 5,
+			false_positive_impact: 0
+		},
+		pricing: {
+			Gmail: 50,
+			Outlook: 50,
+			Yahoo: 50
+		},
+		availability: {
+			Gmail: true,
+			Outlook: true,
+			Yahoo: true
+		}
+	},
+
+	auth_validator_l2: {
+		id: 'auth_validator_l2',
+		name: 'Authentication Validator - Level 2 (DKIM)',
+		category: 'Authentication',
+		description: 'Validates DKIM signatures, requires ESPs to implement DKIM',
+		scope: 'ALL_ESPS',
+		permanent: true,
+		authentication_level: 2,
+		requires: 'auth_validator_l1',
+		effects: {
+			spam_detection_boost: 8,
+			false_positive_impact: 0
+		},
+		pricing: {
+			Gmail: 50,
+			Outlook: 50,
+			Yahoo: 50
+		},
+		availability: {
+			Gmail: true,
+			Outlook: true,
+			Yahoo: true
+		}
+	},
+
+	auth_validator_l3: {
+		id: 'auth_validator_l3',
+		name: 'Authentication Validator - Level 3 (DMARC)',
+		category: 'Authentication',
+		description:
+			'Validates DMARC policy, requires ESPs to implement full authentication stack',
+		scope: 'ALL_ESPS',
+		permanent: true,
+		authentication_level: 3,
+		requires: ['auth_validator_l1', 'auth_validator_l2'],
+		effects: {
+			spam_detection_boost: 12,
+			false_positive_impact: 0
+		},
+		pricing: {
+			Gmail: 50,
+			Outlook: 50,
+			Yahoo: 50
+		},
+		availability: {
+			Gmail: true,
+			Outlook: true,
+			Yahoo: true
+		}
+	},
+
+	ml_system: {
+		id: 'ml_system',
+		name: 'Machine Learning System',
+		category: 'Intelligence',
+		description:
+			'Advanced AI-powered detection with contextual understanding. Learns from user feedback throughout game, improves over rounds.',
+		scope: 'ALL_ESPS',
+		permanent: true,
+		effects: {
+			spam_detection_boost: 25,
+			false_positive_impact: -3
+		},
+		pricing: {
+			Gmail: 500,
+			Outlook: 400,
+			Yahoo: null
+		},
+		availability: {
+			Gmail: true,
+			Outlook: true,
+			Yahoo: false
+		},
+		unavailable_reason: {
+			Yahoo: 'Insufficient computational resources'
+		}
+	},
+
+	spam_trap_network: {
+		id: 'spam_trap_network',
+		name: 'Spam Trap Network',
+		category: 'Tactical',
+		description:
+			'Deploy network of spam traps for single round. Triples spam trap hit probability. Can announce deployment as deterrent or keep secret for surprise.',
+		scope: 'ALL_ESPS',
+		permanent: false, // Must repurchase each round
+		effects: {
+			trap_multiplier: 3
+		},
+		pricing: {
+			Gmail: 250,
+			Outlook: 200,
+			Yahoo: 150
+		},
+		availability: {
+			Gmail: true,
+			Outlook: true,
+			Yahoo: true
+		}
+	},
+
+	volume_throttling: {
+		id: 'volume_throttling',
+		name: 'Volume Throttling System',
+		category: 'Volume Control',
+		description:
+			'Automatically delays suspicious volume spikes, forcing gradual sending when sudden increase detected. Protection against spam campaigns and botnet attacks.',
+		scope: 'ALL_ESPS',
+		permanent: true,
+		effects: {
+			spam_detection_boost: 5,
+			false_positive_impact: -1
+		},
+		pricing: {
+			Gmail: 200,
+			Outlook: 150,
+			Yahoo: 100
+		},
+		availability: {
+			Gmail: true,
+			Outlook: true,
+			Yahoo: true
+		}
+	}
+};
 
 /**
  * Get destination tool by ID

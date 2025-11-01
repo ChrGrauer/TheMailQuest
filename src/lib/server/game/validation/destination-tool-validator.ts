@@ -1,6 +1,5 @@
 /**
  * US-2.6.2: Destination Tool Validator
- * STUB - Will be implemented in GREEN phase
  *
  * Validates tool purchase attempts for destinations
  */
@@ -18,21 +17,77 @@ export interface DestinationToolValidation {
 
 /**
  * Validate tool purchase attempt
- * STUB - will fail tests in RED phase
+ *
+ * Checks:
+ * 1. Kingdom availability (e.g., ML System unavailable for Yahoo)
+ * 2. Already owned (unless single-round tool like Spam Trap)
+ * 3. Prerequisites met (Auth Validator L1 → L2 → L3)
+ * 4. Sufficient budget
  */
 export function validateToolPurchase(
 	destination: Destination,
 	tool: DestinationTool
 ): DestinationToolValidation {
-	// Stub implementation
-	throw new Error('Not implemented - RED phase');
+	// Check kingdom availability
+	const kingdom = destination.kingdom || 'Gmail';
+	if (!tool.availability[kingdom]) {
+		return {
+			canPurchase: false,
+			reason: 'tool_unavailable_for_kingdom'
+		};
+	}
+
+	// Check if already owned (permanent tools only)
+	const ownedTools = destination.owned_tools || [];
+	if (tool.permanent && ownedTools.includes(tool.id)) {
+		return {
+			canPurchase: false,
+			reason: 'already_owned'
+		};
+	}
+
+	// Check dependencies (Auth Validator progression)
+	if (tool.requires) {
+		const requirements = Array.isArray(tool.requires) ? tool.requires : [tool.requires];
+		const missing = requirements.filter((reqId) => !ownedTools.includes(reqId));
+		if (missing.length > 0) {
+			return {
+				canPurchase: false,
+				reason: 'missing_dependencies',
+				missingDependencies: missing
+			};
+		}
+	}
+
+	// Check budget
+	const cost = tool.pricing[kingdom];
+	if (cost !== null && destination.budget < cost) {
+		return {
+			canPurchase: false,
+			reason: 'insufficient_budget',
+			requiredCredits: cost,
+			availableCredits: destination.budget
+		};
+	}
+
+	// All validations passed
+	return { canPurchase: true };
 }
 
 /**
  * Get human-readable validation error message
- * STUB - will fail tests in RED phase
  */
 export function getValidationErrorMessage(validation: DestinationToolValidation): string {
-	// Stub implementation
-	throw new Error('Not implemented - RED phase');
+	switch (validation.reason) {
+		case 'tool_unavailable_for_kingdom':
+			return 'This tool is not available for your kingdom';
+		case 'already_owned':
+			return 'You already own this tool';
+		case 'missing_dependencies':
+			return `Missing required tools: ${validation.missingDependencies?.join(', ')}`;
+		case 'insufficient_budget':
+			return 'Insufficient budget';
+		default:
+			return 'Purchase failed';
+	}
 }
