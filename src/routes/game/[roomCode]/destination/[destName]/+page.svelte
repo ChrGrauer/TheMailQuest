@@ -162,6 +162,19 @@
 		showTechShop = true;
 	}
 
+	// Handle tool purchase (US-2.6.2)
+	function handleToolPurchase(toolId: string, cost: number) {
+		// Budget updates will come via WebSocket, but we can optimistically update
+		// Note: The WebSocket handler will override these if they differ
+		budget -= cost;
+		ownedTools = [...ownedTools, toolId];
+
+		// Update authentication level if Auth Validator
+		if (toolId === 'auth_validator_l1') authenticationLevel = 1;
+		else if (toolId === 'auth_validator_l2') authenticationLevel = 2;
+		else if (toolId === 'auth_validator_l3') authenticationLevel = 3;
+	}
+
 	// Handle lock-in click
 	function handleLockIn() {
 		// TODO: Implement lock-in logic (US-2.8)
@@ -333,6 +346,6 @@
 	{destName}
 	{kingdom}
 	currentBudget={budget}
-	currentAuthLevel={authenticationLevel}
-	currentOwnedTools={ownedTools}
+	authLevel={authenticationLevel}
+	onToolPurchased={handleToolPurchase}
 />
