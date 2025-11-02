@@ -152,6 +152,11 @@
 	 * Handle real-time dashboard updates from WebSocket
 	 */
 	async function handleDashboardUpdate(update: ESPDashboardUpdate) {
+		// Only apply updates for this ESP team (filter out updates for other teams)
+		if (update.teamName && update.teamName !== teamName) {
+			return;
+		}
+
 		if (update.credits !== undefined) {
 			credits = update.credits;
 		}

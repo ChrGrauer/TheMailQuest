@@ -134,6 +134,75 @@ export async function createGameWithDestinationPlayer(
 }
 
 /**
+ * Create a session with Yahoo destination player and start game
+ * For testing Yahoo-specific tech shop features
+ */
+export async function createGameWithYahooDestination(
+	facilitatorPage: Page,
+	context: BrowserContext
+): Promise<{ roomCode: string; alicePage: Page; bobPage: Page; yahooPage: Page }> {
+	const roomCode = await createTestSession(facilitatorPage);
+	const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+	const bobPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
+	const yahooPage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'Yahoo');
+	await facilitatorPage.waitForTimeout(500);
+
+	// Start game
+	const startGameButton = facilitatorPage.getByRole('button', { name: /start game/i });
+	await startGameButton.click();
+
+	// Wait for Yahoo to be redirected to destination dashboard
+	await yahooPage.waitForURL(`/game/${roomCode}/destination/yahoo`, { timeout: 10000 });
+
+	// Wait for dashboard to finish loading
+	await yahooPage.waitForFunction(
+		() => (window as any).__destinationDashboardTest?.ready === true,
+		{},
+		{ timeout: 10000 }
+	);
+
+	return { roomCode, alicePage, bobPage, yahooPage };
+}
+
+/**
+ * Create a session with a specified destination player and start game
+ * Generic helper that allows choosing any destination
+ *
+ * @param facilitatorPage - Page for the facilitator
+ * @param context - Browser context for creating new pages
+ * @param destination - Destination name: 'Gmail', 'Outlook', or 'Yahoo'
+ * @returns Object with roomCode and pages (alicePage, bobPage, destinationPage)
+ */
+export async function createGameWithDestination(
+	facilitatorPage: Page,
+	context: BrowserContext,
+	destination: 'Gmail' | 'Outlook' | 'Yahoo'
+): Promise<{ roomCode: string; alicePage: Page; bobPage: Page; destinationPage: Page }> {
+	const roomCode = await createTestSession(facilitatorPage);
+	const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+	const bobPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
+	const destinationPage = await addPlayer(context, roomCode, 'Carol', 'Destination', destination);
+	await facilitatorPage.waitForTimeout(500);
+
+	// Start game
+	const startGameButton = facilitatorPage.getByRole('button', { name: /start game/i });
+	await startGameButton.click();
+
+	// Wait for destination to be redirected to dashboard
+	const destLower = destination.toLowerCase();
+	await destinationPage.waitForURL(`/game/${roomCode}/destination/${destLower}`, { timeout: 10000 });
+
+	// Wait for dashboard to finish loading
+	await destinationPage.waitForFunction(
+		() => (window as any).__destinationDashboardTest?.ready === true,
+		{},
+		{ timeout: 10000 }
+	);
+
+	return { roomCode, alicePage, bobPage, destinationPage };
+}
+
+/**
  * Create a game with 2 ESP teams in planning phase
  * Alice on SendWave, Bob on MailMonkey, with one destination
  */

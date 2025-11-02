@@ -82,6 +82,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'esp_dashboard_update',
 		data: {
+			teamName: teamName, // Include team name to filter updates on client side
 			client_states: result.team.client_states
 		}
 	});

@@ -36,6 +36,7 @@ export interface GameStateUpdate {
  * Real-time updates for ESP team dashboard
  */
 export interface ESPDashboardUpdate {
+	teamName?: string; // Team name to filter updates (only apply if matches)
 	credits?: number;
 	reputation?: Record<string, number>;
 	clients?: Array<{

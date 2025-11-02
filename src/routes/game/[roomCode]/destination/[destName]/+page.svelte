@@ -124,6 +124,11 @@
 
 	// Handle destination dashboard updates from WebSocket
 	function handleDestinationDashboardUpdate(update: any) {
+		// Only apply updates for this destination (filter out updates for other destinations)
+		if (update.destinationName && update.destinationName !== destName) {
+			return;
+		}
+
 		if (update.budget !== undefined) budget = update.budget;
 		if (update.esp_stats !== undefined) espStats = update.esp_stats;
 		if (update.spam_level !== undefined) spamLevel = update.spam_level;
@@ -164,15 +169,9 @@
 
 	// Handle tool purchase (US-2.6.2)
 	function handleToolPurchase(toolId: string, cost: number) {
-		// Budget updates will come via WebSocket, but we can optimistically update
-		// Note: The WebSocket handler will override these if they differ
-		budget -= cost;
-		ownedTools = [...ownedTools, toolId];
-
-		// Update authentication level if Auth Validator
-		if (toolId === 'auth_validator_l1') authenticationLevel = 1;
-		else if (toolId === 'auth_validator_l2') authenticationLevel = 2;
-		else if (toolId === 'auth_validator_l3') authenticationLevel = 3;
+		// All updates (budget, owned_tools, authentication_level) come via WebSocket
+		// No optimistic updates needed - WebSocket broadcast is immediate after purchase
+		// (Removed optimistic updates to fix double deduction bug)
 	}
 
 	// Handle lock-in click

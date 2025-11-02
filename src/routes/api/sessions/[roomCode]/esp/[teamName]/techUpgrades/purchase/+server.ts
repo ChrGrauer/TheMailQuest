@@ -72,6 +72,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'esp_dashboard_update',
 			data: {
+				teamName: teamName, // Include team name to filter updates on client side
 				credits: result.updatedTeam.credits,
 				owned_tech_upgrades: result.updatedTeam.owned_tech_upgrades
 			}

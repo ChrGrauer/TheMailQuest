@@ -71,10 +71,11 @@ function createInitialESPTeams(): ESPTeam[] {
  * US-1.4: Added resource allocation fields
  */
 function createInitialDestinations(): Destination[] {
-  const destinationNames = ['Gmail', 'Outlook', 'Yahoo'];
+  const destinationNames: Array<'Gmail' | 'Outlook' | 'Yahoo'> = ['Gmail', 'Outlook', 'Yahoo'];
 
   return destinationNames.map(name => ({
     name,
+    kingdom: name, // US-2.6.2: Set kingdom for pricing
     players: [],
     budget: 0,
     // US-1.4: Initialize resource allocation fields
