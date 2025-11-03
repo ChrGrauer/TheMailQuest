@@ -238,3 +238,79 @@ export async function createGameWith2ESPTeams(
 
 	return { roomCode, alicePage, bobPage, destinationPage };
 }
+
+/**
+ * Create a session with 5 ESP teams and destination player (for filtering controls tests)
+ * Alice=SendWave, Bob=MailMonkey, Charlie=BluePost, David=SendBolt, Eve=RocketMail, Gmail=Destination
+ */
+export async function createGameWith5ESPTeams(
+	facilitatorPage: Page,
+	context: BrowserContext
+): Promise<{
+	roomCode: string;
+	sendWavePage: Page;
+	mailMonkeyPage: Page;
+	bluePostPage: Page;
+	sendBoltPage: Page;
+	rocketMailPage: Page;
+	gmailPage: Page;
+}> {
+	const roomCode = await createTestSession(facilitatorPage);
+	const sendWavePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+	const mailMonkeyPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
+	const bluePostPage = await addPlayer(context, roomCode, 'Charlie', 'ESP', 'BluePost');
+	const sendBoltPage = await addPlayer(context, roomCode, 'David', 'ESP', 'SendBolt');
+	const rocketMailPage = await addPlayer(context, roomCode, 'Eve', 'ESP', 'RocketMail');
+	const gmailPage = await addPlayer(context, roomCode, 'Frank', 'Destination', 'Gmail');
+	await facilitatorPage.waitForTimeout(500);
+
+	// Start game
+	const startGameButton = facilitatorPage.getByRole('button', { name: /start game/i });
+	await startGameButton.click();
+
+	// Wait for Gmail to be redirected to destination dashboard
+	await gmailPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });
+	await gmailPage.waitForFunction(
+		() => (window as any).__destinationDashboardTest?.ready === true,
+		{},
+		{ timeout: 10000 }
+	);
+
+	return { roomCode, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage };
+}
+
+/**
+ * Create a game with 3 ESP teams and destination player
+ * Alice=SendWave, Bob=MailMonkey, Charlie=BluePost, Gmail=Destination
+ */
+export async function createGameWith3ESPTeams(
+	facilitatorPage: Page,
+	context: BrowserContext
+): Promise<{
+	roomCode: string;
+	sendWavePage: Page;
+	mailMonkeyPage: Page;
+	bluePostPage: Page;
+	gmailPage: Page;
+}> {
+	const roomCode = await createTestSession(facilitatorPage);
+	const sendWavePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+	const mailMonkeyPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
+	const bluePostPage = await addPlayer(context, roomCode, 'Charlie', 'ESP', 'BluePost');
+	const gmailPage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'Gmail');
+	await facilitatorPage.waitForTimeout(500);
+
+	// Start game
+	const startGameButton = facilitatorPage.getByRole('button', { name: /start game/i });
+	await startGameButton.click();
+
+	// Wait for Gmail to be redirected to destination dashboard
+	await gmailPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });
+	await gmailPage.waitForFunction(
+		() => (window as any).__destinationDashboardTest?.ready === true,
+		{},
+		{ timeout: 10000 }
+	);
+
+	return { roomCode, sendWavePage, mailMonkeyPage, bluePostPage, gmailPage };
+}
