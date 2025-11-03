@@ -55,15 +55,33 @@ async function getLogger() {
 }
 ```
 
-**Message Types**: `lobby_update`, `game_state_update`, `esp_dashboard_update`
+**Message Types**: `lobby_update`, `game_state_update`, `esp_dashboard_update`, `destination_dashboard_update`
 
-**Broadcasting Tip**: Include computed/derived values in broadcasts to avoid client-side recomputation
+**Broadcasting Patterns**:
+- Include computed/derived values in broadcasts to avoid client-side recomputation
+- Filter updates by recipient: check `destinationName` field before applying destination updates
+- Broadcast immediately after state changes for real-time sync
+```typescript
+// Filter destination-specific updates
+if (update.destinationName && update.destinationName !== destName) {
+  return; // Ignore updates for other destinations
+}
+```
 
 ## Testing Patterns
 
 ### Reusable Test Helpers
 Create helpers in `tests/helpers/` (game-setup.ts, assertions.ts, fixtures.ts) to avoid duplication:
 - **Benefits**: DRY principle, easy updates, clearer test intent
+- **Best Practice**: Use simple timeouts instead of complex selectors when waiting for async operations
+```typescript
+// ✅ Simple and reliable
+await playerPage.click('button:has-text("Join Game")');
+await playerPage.waitForTimeout(500);
+
+// ❌ Fragile - can match multiple elements
+await expect(playerPage.locator(`text=${displayName}`)).toBeVisible();
+```
 
 ### Test API Pattern
 Expose test API via `window.__testName` for E2E state manipulation:
@@ -75,6 +93,16 @@ Expose test API via `window.__testName` for E2E state manipulation:
 };
 ```
 **Principles**: Use reactive getters, local state for WebSocket testing, wait for `ready` flag
+
+### Data Attributes for Testing
+Add `data-*` attributes for test-specific needs beyond testid:
+```svelte
+<!-- For visual/behavioral testing -->
+<div data-testid="level-display" data-level-color={getLevelColor(level)}>
+  {levelName}
+</div>
+```
+**Use Cases**: Color assertions, state verification, dynamic test conditions
 
 ### Game Configuration
 Externalize game rules to config files (`src/lib/config/`) for easy balancing:
@@ -88,12 +116,63 @@ export const TECHNICAL_UPGRADES: TechnicalUpgrade[] = [
 - **Focus indicators**: All interactive elements need `focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2`
 - **Color-blind friendly**: Use icons + text labels alongside colors (✓/⚠/✗)
 - **ARIA attributes**: Add `aria-label`, `role`, `aria-live` for screen readers
-- **Modals**: Include `role="dialog"`, `aria-modal="true"`, focus management, Escape key support
+- **Modals**: Include `role="dialog"`, `aria-modal="true"`, `tabindex="-1"` on backdrop, Escape key support, click-outside to close
 
 ## Error Handling
 - **Error Banner** (non-blocking): Fixed top banner for recoverable errors (network, sync)
 - **Error Page** (blocking): Full page replacement for critical errors (auth, fatal)
 - Use `role="alert"` and `aria-live="assertive"` for error messages
+
+### Modal Error Pattern
+Modals that display server data should handle two error types:
+```typescript
+interface ModalProps {
+  dashboardError?: string | null;  // Parent's data loading error
+  onRetry?: () => void;             // Callback to retry parent data fetch
+}
+
+// Internal error for modal operations
+let error = $state<string | null>(null);
+```
+**Benefits**: Separate concerns, clear error ownership, proper retry mechanism
+
+## API Endpoint Patterns
+
+### RESTful Structure
+Organize endpoints by resource hierarchy:
+```
+/api/sessions/[roomCode]/destination/[destName]/filtering   # Filtering operations
+/api/sessions/[roomCode]/destination/[destName]             # Destination data
+```
+
+### Endpoint Response Pattern
+```typescript
+// Success response
+return json({
+  success: true,
+  filtering_policies: updatedPolicies,  // Updated state
+  // Include related data that changed
+});
+
+// Error response
+return json(
+  { success: false, error: 'User-friendly message' },
+  { status: 400 }
+);
+```
+
+### WebSocket After Mutations
+Always broadcast after successful mutations:
+```typescript
+const result = updateFilteringPolicy(session, destName, espName, level);
+if (result.success) {
+  gameWss.broadcastToRoom(roomCode, {
+    type: 'destination_dashboard_update',
+    destinationName: destName,
+    filtering_policies: result.policies
+  });
+}
+```
 
 ## TypeScript Safety
 - **Optional chaining**: Always use `?.` for optional fields (`client.status?.toLowerCase() || 'default'`)
@@ -128,8 +207,32 @@ Use `$bindable()` and `bind:` prefix:
 // Parent: <Modal bind:show={showModal} />  <!-- bind: prefix required -->
 ```
 
-## Shared Components Pattern
+## Component Organization
+
+### Shared Components Pattern
 Extract reusable UI patterns into `src/lib/components/shared/`:
 - **When**: Component used in 2+ places with identical/similar styling
 - **Benefits**: DRY principle, consistent appearance, easy updates
-- **Example**: StatusBadge with `role="status"` and `aria-label`
+- **Example**: StatusBadge with `role="status"` and `aria-label`, FilteringSliderItem for reusable controls
+
+### Utility Functions
+Create utility functions in `src/lib/utils/` for business logic calculations:
+```typescript
+// src/lib/utils/filtering.ts
+export function calculateImpactValues(level: FilteringLevel) {
+  const impacts = {
+    permissive: { spamReduction: 0, falsePositives: 0 },
+    moderate: { spamReduction: 50, falsePositives: 5 },
+    // ...
+  };
+  return impacts[level];
+}
+```
+**Benefits**: Testable, reusable, separates logic from UI, easy to adjust game balance
+
+### Manager Pattern
+Organize server-side business logic in `src/lib/server/game/`:
+- **Managers**: Handle single responsibility (e.g., `filtering-policy-manager.ts`)
+- **Include**: CRUD operations, validation, state transitions
+- **Test file**: Co-locate tests as `<manager-name>.test.ts`
+- **Export**: Clear interfaces and result types
