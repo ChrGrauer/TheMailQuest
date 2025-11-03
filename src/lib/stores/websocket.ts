@@ -51,6 +51,7 @@ export interface ESPDashboardUpdate {
 	// US-2.4: Client portfolio management
 	client_states?: Record<string, ClientState>; // Per-client state (status, onboarding, first_active_round)
 	budget_forecast?: number; // Budget after current round lock-in (including revenue and costs)
+	available_clients_count?: number; // Count of clients available in marketplace
 }
 
 export interface WebSocketStore {

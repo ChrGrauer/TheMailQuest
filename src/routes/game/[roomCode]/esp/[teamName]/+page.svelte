@@ -153,7 +153,8 @@
 	 */
 	async function handleDashboardUpdate(update: ESPDashboardUpdate) {
 		// Only apply updates for this ESP team (filter out updates for other teams)
-		if (update.teamName && update.teamName !== teamName) {
+		// Use case-insensitive comparison since URL params are lowercase but API may use original case
+		if (update.teamName && update.teamName.toLowerCase() !== teamName.toLowerCase()) {
 			return;
 		}
 

@@ -144,7 +144,8 @@
 	// Handle destination dashboard updates from WebSocket
 	function handleDestinationDashboardUpdate(update: any) {
 		// Only apply updates for this destination (filter out updates for other destinations)
-		if (update.destinationName && update.destinationName !== destName) {
+		// Use case-insensitive comparison since URL params are lowercase but API may use original case
+		if (update.destinationName && update.destinationName.toLowerCase() !== destName.toLowerCase()) {
 			return;
 		}
 
