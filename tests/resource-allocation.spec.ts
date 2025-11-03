@@ -223,8 +223,8 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 
 			await bobPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });
 
-			// Then - Bob (Gmail) should see budget of 500
-			await expect(bobPage.locator('text=/500.*credits/i')).toBeVisible({ timeout: 5000 });
+			// Then - Bob (Gmail) should see budget of 500 (use specific test ID to avoid ambiguity)
+			await expect(bobPage.locator('[data-testid="budget-current"]')).toContainText('500');
 
 			await alicePage.close();
 			await bobPage.close();

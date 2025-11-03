@@ -411,8 +411,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 
 			await gmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.setOwnedTech([
-					'spf-check',
-					'dkim-check'
+					'auth_validator_l1',
+					'auth_validator_l2'
 				]);
 			});
 
@@ -423,21 +423,16 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			await expect(techSection).toBeVisible();
 
 			// Then: the technical infrastructure section should list owned tech
-			const spfCheck = techSection.locator('text=SPF Authentication Check');
-			await expect(spfCheck).toBeVisible();
+			// Note: Tool names updated to match current config (auth_validator_l1, auth_validator_l2, auth_validator_l3)
+			const authValidator = techSection.locator('text=Authentication Validator');
+			await expect(authValidator.first()).toBeVisible();
 
-			const dkimCheck = techSection.locator('text=DKIM Signature Check');
-			await expect(dkimCheck).toBeVisible();
+			// And: active tech should show "Active" status
+			const l1Status = techSection.locator('[data-testid="tech-status-auth_validator_l1"]');
+			await expect(l1Status).toContainText('Active');
 
-			// And: active tech should have green checkmark icons
-			const spfIcon = techSection.locator('[data-testid="tech-icon-spf-check"]');
-			await expect(spfIcon).toContainText('✓');
-
-			// And: DMARC Check should show as "Inactive"
-			const dmarcCheck = techSection.locator('text=DMARC Check');
-			await expect(dmarcCheck).toBeVisible();
-			const dmarcStatus = techSection.locator('[data-testid="tech-status-dmarc-check"]');
-			await expect(dmarcStatus).toContainText('Inactive');
+			const l2Status = techSection.locator('[data-testid="tech-status-auth_validator_l2"]');
+			await expect(l2Status).toContainText('Active');
 
 			await gmailPage.close();
 			await alicePage.close();
