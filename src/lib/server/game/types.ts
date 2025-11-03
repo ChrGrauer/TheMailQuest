@@ -6,6 +6,7 @@
  * US-2.2: Client Marketplace (added Client, ClientType, ClientRequirements, available_clients)
  * US-2.4: Client Basic Management (added ClientState, client_states, Suspended status)
  * US-2.5: Destination Dashboard (added destination fields, ESPDestinationStats, DestinationDashboardUpdate)
+ * US-2.6.1: Destination Filtering Controls (added FilteringLevel, FilteringPolicy, FilteringPolicyUpdateResult)
  * US-2.6.2: Destination Tech Shop (added kingdom, owned_tools, authentication_level, spam_trap_active, esp_metrics)
  */
 
@@ -33,7 +34,7 @@ export interface Destination {
   players: string[];
   budget: number;
   // US-1.4: Resource allocation fields
-  filtering_policies: Record<string, any>;
+  filtering_policies: Record<string, FilteringPolicy>; // US-2.6.1: Filtering policies per ESP (key = espName)
   esp_reputation: Record<string, number>; // per ESP: { SendWave: 70, MailMonkey: 70, ... }
   // US-2.5: Destination dashboard fields
   technical_stack?: string[]; // Owned destination technologies (deprecated, use owned_tools)
@@ -100,6 +101,33 @@ export interface ClientState {
   first_active_round: number | null; // Round when client first became active (null if never activated)
 }
 
+/**
+ * US-2.6.1: Filtering Level
+ * Spam filtering levels that destinations can apply to ESPs
+ */
+export type FilteringLevel = 'permissive' | 'moderate' | 'strict' | 'maximum';
+
+/**
+ * US-2.6.1: Filtering Policy
+ * Represents a destination's filtering configuration for a specific ESP
+ */
+export interface FilteringPolicy {
+  espName: string; // ESP team name
+  level: FilteringLevel; // Filtering level applied
+  spamReduction: number; // Percentage of spam blocked: 0, 35, 65, 85
+  falsePositives: number; // Percentage of legitimate emails blocked: 0, 3, 8, 15
+}
+
+/**
+ * US-2.6.1: Filtering Policy Update Result
+ * Result of updating a filtering policy
+ */
+export interface FilteringPolicyUpdateResult {
+  success: boolean;
+  error?: string;
+  filtering_policies?: Record<string, FilteringPolicy>; // Updated policies (key = espName)
+}
+
 export interface GameTimer {
   duration: number; // Total duration in seconds
   remaining: number; // Remaining time in seconds
@@ -164,6 +192,8 @@ export interface DestinationDashboardUpdate {
 	spam_level?: number;
 	technical_stack?: string[];
 	collaborations_count?: number;
+	// US-2.6.1: Filtering policy updates
+	filtering_policies?: Record<string, FilteringPolicy>;
 	// US-2.6.2: Tool ownership updates
 	owned_tools?: string[];
 	authentication_level?: number;
