@@ -440,6 +440,53 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 		});
 	});
 
+	test.describe('Section: Regression Tests', () => {
+		test('Budget deducted exactly once (not twice) - Fix for double deduction bug', async ({ page, context }) => {
+			// Bug description: Previously, budget was deducted twice:
+			// 1. Optimistically on client-side in handleToolPurchase callback
+			// 2. Again when WebSocket update arrived with server-calculated budget
+			// Fix: Removed optimistic update, rely solely on WebSocket for authoritative state
+
+			// Create game session with Gmail (500 budget)
+			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(page, context, 'Gmail');
+
+			// Verify initial budget is 500 (uses budget-current test ID from DashboardHeader)
+			await expect(destinationPage.locator('[data-testid="budget-current"]')).toContainText('500');
+
+			// Open tech shop and purchase Authentication Validator L1 (cost: 50)
+			await destinationPage.click('[data-testid="tech-shop-button"]');
+			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
+			await destinationPage.click('[data-tool-id="auth_validator_l1"] [data-testid="purchase-button"]');
+
+			// Wait for success message to ensure WebSocket update completed
+			await destinationPage.waitForSelector('[data-testid="success-message"]', { timeout: 5000 });
+
+			// Close modal to see dashboard budget (uses close-tech-shop test ID)
+			await destinationPage.click('[data-testid="close-tech-shop"]');
+
+			// CRITICAL: Verify budget is 450 (500 - 50), NOT 400 (500 - 50 - 50)
+			// If bug were present, budget would be deducted twice and show 400
+			await expect(destinationPage.locator('[data-testid="budget-current"]')).toContainText('450');
+
+			// Make another purchase to further verify correct behavior
+			// Purchase Volume Throttling (cost: 200, Gmail price)
+			await destinationPage.click('[data-testid="tech-shop-button"]');
+			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
+			await destinationPage.click('[data-tool-id="volume_throttling"] [data-testid="purchase-button"]');
+			await destinationPage.waitForSelector('[data-testid="success-message"]', { timeout: 5000 });
+			await destinationPage.click('[data-testid="close-tech-shop"]');
+
+			// Verify budget is now 250 (450 - 200), NOT 50 (450 - 200 - 200)
+			// If double deduction occurred, budget would be 50 instead of 250
+			await expect(destinationPage.locator('[data-testid="budget-current"]')).toContainText('250');
+
+			// Cleanup
+			await destinationPage.close();
+			await alicePage.close();
+			await bobPage.close();
+		});
+	});
+
 	test.describe('Section 10: Logging', () => {
 		test('Tool purchase logging', async ({ page, context }) => {
 			// Create game session with Gmail (500 budget)
