@@ -16,6 +16,7 @@ import { validateRoomCode } from './validation/room-validator';
 import type { GameConfiguration } from './types';
 import { gameLogger } from '../logger';
 import { generateClientStockForTeam } from './client-generator';
+import { initializeFilteringPolicies } from './filtering-policy-manager';
 
 // ============================================================================
 // DEFAULT CONFIGURATION
@@ -213,6 +214,8 @@ export function allocateResources(request: ResourceAllocationRequest): ResourceA
 		}
 
 		// Allocate resources to destinations
+		const activeESPTeams = session.esp_teams.filter((t) => t.players.length > 0);
+
 		for (const destination of session.destinations) {
 			if (destination.players.length > 0) {
 				// Allocate budget based on configuration
@@ -223,6 +226,9 @@ export function allocateResources(request: ResourceAllocationRequest): ResourceA
 				destination.esp_reputation = destination.esp_reputation || {};
 				destination.user_satisfaction =
 					destination.user_satisfaction !== undefined ? destination.user_satisfaction : 100;
+
+				// US-2.6.1: Initialize filtering policies for all ESPs (set to permissive)
+				initializeFilteringPolicies(destination, activeESPTeams);
 
 				gameLogger.event('destination_resources_allocated', {
 					roomCode,

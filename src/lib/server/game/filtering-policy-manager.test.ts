@@ -10,16 +10,26 @@
  * Following ATDD methodology - these tests are written BEFORE implementation (RED phase)
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
 	calculateImpactValues,
 	validateFilteringLevel,
 	initializeFilteringPolicies,
 	updateFilteringPolicy
 } from './filtering-policy-manager';
-import type { Destination, ESPTeam, FilteringLevel, FilteringPolicy } from './types';
+import { createGameSession, deleteSession } from './session-manager';
+import type { Destination, ESPTeam, FilteringLevel, FilteringPolicy, GameSession } from './types';
+
+// Mock logger
+vi.mock('../logger', () => ({
+	gameLogger: {
+		event: vi.fn()
+	}
+}));
 
 describe('US-2.6.1: Filtering Policy Manager', () => {
+	let session: GameSession;
+	let roomCode: string;
 	// ============================================================================
 	// calculateImpactValues() Tests
 	// ============================================================================
@@ -177,12 +187,28 @@ describe('US-2.6.1: Filtering Policy Manager', () => {
 	// ============================================================================
 
 	describe('updateFilteringPolicy()', () => {
-		const roomCode = 'TEST123';
+		let roomCode: string;
 		const destName = 'Gmail';
 		const espName = 'SendWave';
 
-		beforeEach(() => {
-			// Mock will be set up in each test
+		beforeEach(async () => {
+			// Create a test game session with ESP teams and destination
+			const session = await createGameSession({
+				maxPlayers: 6,
+				espTeams: [
+					{ name: 'SendWave', displayName: 'Alice' },
+					{ name: 'MailMonkey', displayName: 'Bob' }
+				],
+				destinations: [{ name: 'Gmail', displayName: 'Carol' }]
+			});
+			roomCode = session.roomCode;
+		});
+
+		afterEach(() => {
+			// Clean up test session
+			if (roomCode) {
+				deleteSession(roomCode);
+			}
 		});
 
 		it('Updates filtering policy for valid destination and ESP', async () => {

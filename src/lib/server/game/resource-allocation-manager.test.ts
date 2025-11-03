@@ -223,7 +223,15 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			const updatedSession = getSession(session.roomCode);
 			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
 
-			expect(gmail?.filtering_policies).toEqual({});
+			// US-2.6.1: Filtering policies should be initialized for all ESPs
+			expect(gmail?.filtering_policies).toEqual({
+				SendWave: {
+					espName: 'SendWave',
+					level: 'permissive',
+					spamReduction: 0,
+					falsePositives: 0
+				}
+			});
 			expect(gmail?.esp_reputation).toEqual({});
 			expect(gmail?.user_satisfaction).toBe(100);
 		});

@@ -15,7 +15,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 	import { websocketStore } from '$lib/stores/websocket';
-	import type { ESPDestinationStats } from '$lib/server/game/types';
+	import type { ESPDestinationStats, FilteringPolicy } from '$lib/server/game/types';
 
 	// Components
 	import DashboardHeader from '$lib/components/shared/DashboardHeader.svelte';
@@ -25,6 +25,7 @@
 	import DestinationQuickActions from '$lib/components/destination-dashboard/DestinationQuickActions.svelte';
 	import TechnicalInfrastructure from '$lib/components/destination-dashboard/TechnicalInfrastructure.svelte';
 	import TechnicalShopModal from '$lib/components/destination-dashboard/TechnicalShopModal.svelte';
+	import FilteringControlsModal from '$lib/components/destination-dashboard/FilteringControlsModal.svelte';
 
 	// Get params
 	const roomCode = $page.params.roomCode;
@@ -53,6 +54,10 @@
 	let authenticationLevel = $state(0);
 	let ownedTools = $state<string[]>([]);
 
+	// Filtering Controls state (US-2.6.1)
+	let showFilteringControls = $state(false);
+	let filteringPolicies = $state<Record<string, FilteringPolicy>>({});
+
 	// Test state variables (for E2E testing) - null means use real value
 	let testWsConnected = $state<boolean | null>(null);
 	let testWsError = $state<string | null>(null);
@@ -66,6 +71,17 @@
 	// Timer display
 	let timerDisplay = $derived(
 		`${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`
+	);
+
+	// ESP teams data for Filtering Controls modal (US-2.6.1)
+	let espTeamsForFiltering = $derived(
+		espStats.map((esp) => ({
+			espName: esp.espName,
+			volume: esp.volumeRaw,
+			reputation: esp.reputation,
+			satisfaction: esp.userSatisfaction,
+			spamRate: esp.spamComplaintRate
+		}))
 	);
 
 	// Fetch dashboard data from API
@@ -91,6 +107,9 @@
 			kingdom = data.destination.kingdom || 'Gmail';
 			authenticationLevel = data.destination.authentication_level || 0;
 			ownedTools = data.destination.owned_tools || [];
+
+			// Filtering Controls state (US-2.6.1)
+			filteringPolicies = data.destination.filtering_policies || {};
 
 			currentRound = data.game.current_round;
 			currentPhase = data.game.current_phase;
@@ -139,6 +158,9 @@
 		// Tech Shop updates (US-2.6.2)
 		if (update.owned_tools !== undefined) ownedTools = update.owned_tools;
 		if (update.authentication_level !== undefined) authenticationLevel = update.authentication_level;
+
+		// Filtering Controls updates (US-2.6.1)
+		if (update.filtering_policies !== undefined) filteringPolicies = update.filtering_policies;
 	}
 
 	// Timer countdown (client-side)
@@ -172,6 +194,16 @@
 		// All updates (budget, owned_tools, authentication_level) come via WebSocket
 		// No optimistic updates needed - WebSocket broadcast is immediate after purchase
 		// (Removed optimistic updates to fix double deduction bug)
+	}
+
+	// Handle filtering controls click (US-2.6.1)
+	function handleFilteringControlsClick() {
+		showFilteringControls = true;
+	}
+
+	// Handle retry after error (US-2.6.1)
+	function handleRetry() {
+		fetchDashboardData();
 	}
 
 	// Handle lock-in click
@@ -226,7 +258,14 @@
 				getAuthLevel: () => authenticationLevel,
 				setAuthLevel: (value: number) => (authenticationLevel = value),
 				getKingdom: () => kingdom,
-				setKingdom: (value: 'Gmail' | 'Outlook' | 'Yahoo') => (kingdom = value)
+				setKingdom: (value: 'Gmail' | 'Outlook' | 'Yahoo') => (kingdom = value),
+
+				// Filtering Controls test API (US-2.6.1)
+				openFilteringControls: () => (showFilteringControls = true),
+				closeFilteringControls: () => (showFilteringControls = false),
+				getFilteringControlsOpen: () => showFilteringControls,
+				getFilteringPolicies: () => filteringPolicies,
+				setFilteringPolicies: (value: Record<string, FilteringPolicy>) => (filteringPolicies = value)
 			};
 		}
 	});
@@ -308,6 +347,7 @@
 				{collaborationsCount}
 				onCoordinationClick={handleCoordinationClick}
 				onTechShopClick={handleTechShopClick}
+				onFilteringClick={handleFilteringControlsClick}
 			/>
 
 			<!-- Dashboard Grid -->
@@ -347,4 +387,15 @@
 	currentBudget={budget}
 	authLevel={authenticationLevel}
 	onToolPurchased={handleToolPurchase}
+/>
+
+<!-- Filtering Controls Modal (US-2.6.1) -->
+<FilteringControlsModal
+	bind:show={showFilteringControls}
+	{roomCode}
+	{destName}
+	espTeams={espTeamsForFiltering}
+	{filteringPolicies}
+	dashboardError={error}
+	onRetry={handleRetry}
 />

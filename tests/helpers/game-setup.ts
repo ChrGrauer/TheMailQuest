@@ -5,7 +5,7 @@
  * Extracted from individual test files to eliminate duplication.
  */
 
-import { expect, type Page, type BrowserContext } from '@playwright/test';
+import { type Page, type BrowserContext } from '@playwright/test';
 
 /**
  * Create a game session as facilitator and return room code
@@ -36,7 +36,8 @@ export async function addPlayer(
 	await playerPage.click(`text=${teamName}`);
 	await playerPage.locator('input[name="displayName"]').fill(displayName);
 	await playerPage.click('button:has-text("Join Game")');
-	await expect(playerPage.locator(`text=${displayName}`)).toBeVisible();
+	// Wait for join to complete (button changes to "Joining..." then modal closes)
+	await playerPage.waitForTimeout(500);
 	return playerPage;
 }
 

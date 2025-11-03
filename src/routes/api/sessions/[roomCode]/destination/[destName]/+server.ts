@@ -92,7 +92,9 @@ export const GET: RequestHandler = async ({ params }) => {
 			// US-2.6.2: Tech Shop fields
 			kingdom: destination.kingdom || 'Gmail',
 			owned_tools: destination.owned_tools || [],
-			authentication_level: destination.authentication_level || 0
+			authentication_level: destination.authentication_level || 0,
+			// US-2.6.1: Filtering Controls
+			filtering_policies: destination.filtering_policies || {}
 		},
 		game: {
 			roomCode: session.roomCode,
