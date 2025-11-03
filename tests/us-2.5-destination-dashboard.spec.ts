@@ -410,7 +410,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			);
 
 			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setOwnedTech([
+				(window as any).__destinationDashboardTest.setOwnedTools([
 					'auth_validator_l1',
 					'auth_validator_l2'
 				]);
