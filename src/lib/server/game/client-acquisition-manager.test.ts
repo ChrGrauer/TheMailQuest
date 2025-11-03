@@ -68,7 +68,7 @@ describe('Feature: Client Marketplace - Acquisition Manager', () => {
 			expect(result.team!.credits).toBe(350);
 		});
 
-		test('Given client in available_clients, When acquiring, Then client is removed from marketplace', () => {
+		test('Given client in available_clients, When acquiring, Then client remains in available_clients (immutable source)', () => {
 			// Given
 			const client1 = createTestClient({ id: 'client-1', name: 'Client 1' });
 			const client2 = createTestClient({ id: 'client-2', name: 'Client 2' });
@@ -82,8 +82,10 @@ describe('Feature: Client Marketplace - Acquisition Manager', () => {
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(result.team!.available_clients).toHaveLength(1);
-			expect(result.team!.available_clients[0].id).toBe('client-2');
+			// available_clients remains unchanged per Resource Tracking Pattern
+			expect(result.team!.available_clients).toHaveLength(2);
+			expect(result.team!.available_clients[0].id).toBe('client-1');
+			expect(result.team!.available_clients[1].id).toBe('client-2');
 		});
 
 		test('Given client acquired, When checking active_clients, Then client ID is added', () => {
@@ -186,7 +188,8 @@ describe('Feature: Client Marketplace - Acquisition Manager', () => {
 
 			// But result has updated values
 			expect(result.team!.credits).toBe(350);
-			expect(result.team!.available_clients.length).toBe(0);
+			// available_clients remains unchanged (immutable source per Resource Tracking Pattern)
+			expect(result.team!.available_clients.length).toBe(1);
 			expect(result.team!.active_clients.length).toBe(1);
 		});
 	});
@@ -232,7 +235,7 @@ describe('Feature: Client Marketplace - Acquisition Manager', () => {
 			expect(result.team!.credits).toBe(0);
 		});
 
-		test('Given last available client, When acquiring, Then available_clients becomes empty array', () => {
+		test('Given last available client, When acquiring, Then available_clients remains unchanged', () => {
 			// Given
 			const client = createTestClient();
 			const team = createTestTeam({
@@ -245,7 +248,9 @@ describe('Feature: Client Marketplace - Acquisition Manager', () => {
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(result.team!.available_clients).toEqual([]);
+			// available_clients remains unchanged (immutable source per Resource Tracking Pattern)
+			expect(result.team!.available_clients).toHaveLength(1);
+			expect(result.team!.available_clients[0].id).toBe(client.id);
 		});
 
 		test('Given multiple clients with same name but different IDs, When acquiring by ID, Then correct client is acquired', () => {
@@ -271,8 +276,12 @@ describe('Feature: Client Marketplace - Acquisition Manager', () => {
 			// Then
 			expect(result.success).toBe(true);
 			expect(result.team!.credits).toBe(350); // 500 - 150
-			expect(result.team!.available_clients).toHaveLength(1);
-			expect(result.team!.available_clients[0].id).toBe('client-002');
+			// available_clients remains unchanged (immutable source per Resource Tracking Pattern)
+			expect(result.team!.available_clients).toHaveLength(2);
+			expect(result.team!.available_clients[0].id).toBe('client-001');
+			expect(result.team!.available_clients[1].id).toBe('client-002');
+			// Only active_clients tracks ownership
+			expect(result.team!.active_clients).toContain('client-001');
 		});
 	});
 
