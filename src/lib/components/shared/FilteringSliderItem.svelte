@@ -9,10 +9,11 @@
 		satisfaction: number; // User satisfaction percentage (0-100)
 		spamRate: number; // Spam rate percentage (0-100)
 		currentPolicy: FilteringPolicy;
+		isLockedIn?: boolean;
 		onFilterChange: (espName: string, level: FilteringLevel) => void;
 	}
 
-	let { espName, volume, reputation, satisfaction, spamRate, currentPolicy, onFilterChange }: Props =
+	let { espName, volume, reputation, satisfaction, spamRate, currentPolicy, isLockedIn = false, onFilterChange }: Props =
 		$props();
 
 	// Map slider position (0-3) to filtering level
@@ -118,9 +119,11 @@
 				max="3"
 				value={sliderValue}
 				class="filter-slider"
+				class:disabled={isLockedIn}
 				data-testid="filtering-slider"
 				onchange={handleSliderChange}
 				oninput={handleSliderChange}
+				disabled={isLockedIn}
 				aria-label="Filtering level for {espName}"
 			/>
 			<div class="filter-level-labels">
@@ -251,6 +254,11 @@
 		-webkit-appearance: none;
 		appearance: none;
 		cursor: pointer;
+	}
+
+	.filter-slider.disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.filter-slider::-webkit-slider-thumb {

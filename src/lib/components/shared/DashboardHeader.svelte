@@ -176,4 +176,15 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- 15-second warning banner (US-3.2) -->
+	{#if timerSeconds > 0 && timerSeconds <= 15}
+		<div
+			data-testid="timer-warning"
+			role="alert"
+			class="mt-2 px-4 py-2 bg-red-50 border-l-4 border-red-500 text-red-800 text-sm font-semibold animate-pulse"
+		>
+			⚠️ Time almost up! Decisions will be locked automatically in {timerSeconds} second{timerSeconds !== 1 ? 's' : ''}
+		</div>
+	{/if}
 </header>

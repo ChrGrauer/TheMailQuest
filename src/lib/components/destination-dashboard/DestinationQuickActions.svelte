@@ -2,18 +2,22 @@
 	/**
 	 * DestinationQuickActions Component
 	 * US-2.5: Destination Kingdom Dashboard
+	 * US-3.2: Decision Lock-In (read-only state)
 	 *
 	 * Displays:
 	 * - Quick action buttons for destination-specific features
 	 * - Coordination Panel (primary action)
 	 * - Different from ESP quick actions (no client marketplace)
+	 *
+	 * Buttons remain enabled when locked in (to view decisions)
+	 * Modals show in read-only mode
 	 */
 
 	interface Props {
 		collaborationsCount?: number;
 		onCoordinationClick?: () => void;
 		onTechShopClick?: () => void; // US-2.6.2
-		onFilteringClick?: () => void; // US-2.6 (coming soon)
+		onFilteringClick?: () => void; // US-2.6.1
 	}
 
 	let { collaborationsCount = 0, onCoordinationClick, onTechShopClick, onFilteringClick }: Props = $props();

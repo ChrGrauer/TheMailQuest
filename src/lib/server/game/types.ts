@@ -8,6 +8,7 @@
  * US-2.5: Destination Dashboard (added destination fields, ESPDestinationStats, DestinationDashboardUpdate)
  * US-2.6.1: Destination Filtering Controls (added FilteringLevel, FilteringPolicy, FilteringPolicyUpdateResult)
  * US-2.6.2: Destination Tech Shop (added kingdom, owned_tools, authentication_level, spam_trap_active, esp_metrics)
+ * US-3.2: Decision Lock-In (added locked_in, locked_in_at, pending_onboarding_decisions, lock-in interfaces)
  */
 
 export interface ESPTeam {
@@ -26,6 +27,10 @@ export interface ESPTeam {
   available_clients: Client[]; // Marketplace stock (not yet acquired)
   // US-2.4: Client portfolio management fields
   client_states?: Record<string, ClientState>; // Per-client state (status, onboarding, first_active_round)
+  // US-3.2: Decision lock-in fields
+  locked_in?: boolean; // Whether team has locked in their decisions for this round
+  locked_in_at?: Date; // Timestamp when team locked in
+  pending_onboarding_decisions?: Record<string, OnboardingOptions>; // Uncommitted onboarding options (key = clientId)
 }
 
 export interface Destination {
@@ -50,6 +55,9 @@ export interface Destination {
     round: number;
     announced: boolean;
   }; // Single-round tool tracking
+  // US-3.2: Decision lock-in fields
+  locked_in?: boolean; // Whether destination has locked in their decisions for this round
+  locked_in_at?: Date; // Timestamp when destination locked in
 }
 
 /**
@@ -164,8 +172,9 @@ export interface GameConfiguration {
 
 /**
  * US-1.4: Game Phase Type
+ * US-3.2: Removed 'action' phase - planning transitions directly to resolution after lock-in
  */
-export type GamePhase = 'lobby' | 'resource_allocation' | 'planning' | 'action' | 'resolution' | 'finished';
+export type GamePhase = 'lobby' | 'resource_allocation' | 'planning' | 'resolution' | 'finished';
 
 /**
  * US-2.5: ESP Destination Statistics
@@ -207,4 +216,50 @@ export interface DestinationToolPurchaseResult {
 	success: boolean;
 	error?: string;
 	updatedDestination?: Destination;
+}
+
+/**
+ * US-3.2: Onboarding Options
+ * Represents pending onboarding options for a client (not yet committed)
+ */
+export interface OnboardingOptions {
+	warmUp: boolean; // Warm-up option (150 credits)
+	listHygiene: boolean; // List hygiene option (80 credits)
+}
+
+/**
+ * US-3.2: Lock-In Validation Result
+ * Result of validating whether a player can lock in their decisions
+ */
+export interface LockInValidation {
+	isValid: boolean; // Whether lock-in is allowed
+	error?: string; // Error message if invalid
+	pendingCosts?: number; // Total cost of pending onboarding options
+	budgetExceeded?: boolean; // Whether budget would be exceeded
+	excessAmount?: number; // Amount over budget (if exceeded)
+}
+
+/**
+ * US-3.2: Lock-In Result
+ * Result of a lock-in operation
+ */
+export interface LockInResult {
+	success: boolean;
+	error?: string;
+	locked_in?: boolean; // Whether player is now locked in
+	locked_in_at?: Date; // Timestamp of lock-in
+	remaining_players?: number; // Number of players still not locked in
+	all_locked?: boolean; // Whether all players are now locked in
+	corrections?: AutoCorrectionLog[]; // Auto-corrections made (if any)
+}
+
+/**
+ * US-3.2: Auto-Correction Log Entry
+ * Tracks a single auto-correction made during auto-lock
+ */
+export interface AutoCorrectionLog {
+	clientId: string; // Client ID
+	clientName: string; // Client name for logging
+	optionType: 'warmUp' | 'listHygiene'; // Type of option removed
+	costSaved: number; // Credits saved (150 for warm-up, 80 for list hygiene)
 }

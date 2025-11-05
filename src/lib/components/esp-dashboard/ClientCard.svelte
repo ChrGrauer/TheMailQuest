@@ -7,14 +7,18 @@
 		credits: number;
 		ownedTech: string[];
 		overallReputation: number;
+		isLockedIn?: boolean;
 		onAcquire: (clientId: string) => void;
 		delay?: number;
 	}
 
-	let { client, credits, ownedTech, overallReputation, onAcquire, delay = 0 }: Props = $props();
+	let { client, credits, ownedTech, overallReputation, isLockedIn = false, onAcquire, delay = 0 }: Props = $props();
 
 	// Check if can acquire
 	let canAcquire = $derived.by(() => {
+		// Check if locked in
+		if (isLockedIn) return { can: false, reason: 'Decisions locked' };
+
 		// Check credits
 		if (credits < client.cost) return { can: false, reason: 'Insufficient credits' };
 

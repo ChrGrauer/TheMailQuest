@@ -37,18 +37,20 @@
 	interface Props {
 		tool: Tool;
 		currentBudget: number;
+		isLockedIn?: boolean;
 		onPurchase: (toolId: string) => void;
 		delay?: number;
 	}
 
-	let { tool, currentBudget, onPurchase, delay = 0 }: Props = $props();
+	let { tool, currentBudget, isLockedIn = false, onPurchase, delay = 0 }: Props = $props();
 
 	// Determine if tool is affordable
 	let canAfford = $derived(tool.cost !== null && currentBudget >= tool.cost);
 
 	// Determine if purchase button should be disabled
 	let isPurchaseDisabled = $derived(
-		tool.status === 'Locked' ||
+		isLockedIn ||
+			tool.status === 'Locked' ||
 			tool.status === 'Owned' ||
 			tool.status === 'Unavailable' ||
 			!canAfford

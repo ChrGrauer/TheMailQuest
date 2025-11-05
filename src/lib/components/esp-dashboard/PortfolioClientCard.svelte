@@ -2,6 +2,7 @@
 	/**
 	 * Portfolio Client Card Component
 	 * US-2.4: Client Basic Management
+	 * US-3.2: Decision Lock-In (view-only mode)
 	 *
 	 * Displays a single client in the portfolio with:
 	 * - Client details (name, type, revenue, volume, risk)
@@ -9,6 +10,8 @@
 	 * - Onboarding options for new clients (first_active_round = null)
 	 * - Permanent attributes for existing clients
 	 * - Locked state for suspended clients
+	 *
+	 * When isLockedIn is true, all interactive elements are disabled
 	 */
 
 	import type { Client, ClientState } from '$lib/server/game/types';
@@ -19,6 +22,7 @@
 		client: Client & ClientState;
 		currentRound: number;
 		index: number;
+		isLockedIn?: boolean;
 		onStatusToggle: (clientId: string, newStatus: 'Active' | 'Paused') => Promise<void>;
 		onOnboardingChange?: (clientId: string, warmup: boolean, listHygiene: boolean) => void;
 	}
@@ -27,6 +31,7 @@
 		client,
 		currentRound,
 		index,
+		isLockedIn = false,
 		onStatusToggle,
 		onOnboardingChange
 	}: Props = $props();
@@ -138,8 +143,8 @@
 				<button
 					data-testid="toggle-active-btn"
 					onclick={() => handleToggle('Active')}
-					disabled={client.status === 'Active'}
-					class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
+					disabled={client.status === 'Active' || isLockedIn}
+					class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed
 						{client.status === 'Active'
 							? 'bg-emerald-500 text-white'
 							: 'bg-white text-gray-600 border-2 border-gray-300 hover:border-emerald-500'}"
@@ -149,8 +154,8 @@
 				<button
 					data-testid="toggle-paused-btn"
 					onclick={() => handleToggle('Paused')}
-					disabled={client.status === 'Paused'}
-					class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2
+					disabled={client.status === 'Paused' || isLockedIn}
+					class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed
 						{client.status === 'Paused'
 							? 'bg-orange-500 text-white'
 							: 'bg-white text-gray-600 border-2 border-gray-300 hover:border-orange-500'}"
@@ -179,14 +184,15 @@
 			<div class="grid grid-cols-2 gap-3">
 				<!-- Warm-up Option -->
 				<label
-					class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+					class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg transition-colors {isLockedIn ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-gray-100'}"
 				>
 					<input
-						data-testid="onboarding-warmup-checkbox"
+						data-testid="warm-up-checkbox"
 						type="checkbox"
 						bind:checked={warmupSelected}
 						onchange={handleOnboardingChange}
-						class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
+						disabled={isLockedIn}
+						class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 {isLockedIn ? 'cursor-not-allowed' : 'cursor-pointer'}"
 					/>
 					<span class="flex-1 text-sm text-gray-700">Activate Warm-up</span>
 					<span class="text-xs font-bold text-emerald-700">{WARMUP_COST} cr</span>
@@ -194,14 +200,15 @@
 
 				<!-- List Hygiene Option -->
 				<label
-					class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+					class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg transition-colors {isLockedIn ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-gray-100'}"
 				>
 					<input
-						data-testid="onboarding-list-hygiene-checkbox"
+						data-testid="list-hygiene-checkbox"
 						type="checkbox"
 						bind:checked={listHygieneSelected}
 						onchange={handleOnboardingChange}
-						class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
+						disabled={isLockedIn}
+						class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 {isLockedIn ? 'cursor-not-allowed' : 'cursor-pointer'}"
 					/>
 					<span class="flex-1 text-sm text-gray-700">Activate List Hygiene</span>
 					<span class="text-xs font-bold text-emerald-700">{LIST_HYGIENE_COST} cr</span>

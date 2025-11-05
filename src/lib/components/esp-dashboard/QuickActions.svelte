@@ -2,11 +2,15 @@
 	/**
 	 * QuickActions Component
 	 * US-2.1: ESP Team Dashboard
+	 * US-3.2: Decision Lock-In (read-only state)
 	 *
 	 * Displays quick action buttons for:
 	 * - Client Marketplace
 	 * - Technical Shop
 	 * - Client Management
+	 *
+	 * Buttons remain enabled when locked in (to view decisions)
+	 * Modals show in read-only mode
 	 */
 
 	interface Props {
@@ -31,7 +35,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 	<!-- Client Marketplace -->
 	<button
-		data-testid="quick-action-client-marketplace"
+		data-testid="open-client-marketplace"
 		onclick={onMarketplaceClick}
 		class="bg-white hover:bg-gray-50 border-2 border-emerald-200 rounded-xl p-6 transition-all hover:shadow-lg hover:-translate-y-1 text-left group focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
 	>
@@ -54,7 +58,7 @@
 
 	<!-- Technical Shop -->
 	<button
-		data-testid="quick-action-tech-shop"
+		data-testid="open-tech-shop"
 		onclick={onTechShopClick}
 		class="bg-white hover:bg-gray-50 border-2 border-blue-200 rounded-xl p-6 transition-all hover:shadow-lg hover:-translate-y-1 text-left group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
 	>
@@ -77,7 +81,7 @@
 
 	<!-- Client Management -->
 	<button
-		data-testid="quick-action-client-mgmt"
+		data-testid="open-portfolio"
 		onclick={onClientManagementClick}
 		class="bg-white hover:bg-gray-50 border-2 border-purple-200 rounded-xl p-6 transition-all hover:shadow-lg hover:-translate-y-1 text-left group focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
 	>

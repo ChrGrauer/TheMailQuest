@@ -6,6 +6,7 @@
 
 	interface Props {
 		show: boolean;
+		isLockedIn?: boolean;
 		onClose: () => void;
 		roomCode: string;
 		teamName: string;
@@ -18,6 +19,7 @@
 
 	let {
 		show,
+		isLockedIn = false,
 		onClose,
 		roomCode,
 		teamName,
@@ -188,6 +190,21 @@
 				</button>
 			</div>
 
+			<!-- View Only Banner (US-3.2) -->
+			{#if isLockedIn}
+				<div
+					data-testid="view-only-banner"
+					class="px-6 py-3 bg-orange-50 border-b border-orange-200 flex items-center gap-3"
+					role="alert"
+				>
+					<span class="text-2xl" aria-hidden="true">🔒</span>
+					<div class="flex-1">
+						<p class="font-bold text-orange-900">Locked In - View Only</p>
+						<p class="text-sm text-orange-700">Your decisions are locked. You cannot acquire new clients until the next round.</p>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Success Message -->
 			{#if successMessage}
 				<div
@@ -263,6 +280,7 @@
 									credits={currentCredits}
 									{ownedTech}
 									{overallReputation}
+									{isLockedIn}
 									onAcquire={handleAcquire}
 									delay={i * 50}
 								/>

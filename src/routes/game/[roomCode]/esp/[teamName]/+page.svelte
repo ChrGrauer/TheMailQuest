@@ -2,6 +2,7 @@
 	/**
 	 * ESP Team Dashboard Page
 	 * US-2.1: ESP Team Dashboard
+	 * US-3.2: Decision Lock-In
 	 *
 	 * Main dashboard for ESP teams showing:
 	 * - Budget (current + forecast)
@@ -25,6 +26,8 @@
 	import ClientMarketplaceModal from '$lib/components/esp-dashboard/ClientMarketplaceModal.svelte';
 	import TechnicalShopModal from '$lib/components/esp-dashboard/TechnicalShopModal.svelte';
 	import ClientManagementModal from '$lib/components/esp-dashboard/ClientManagementModal.svelte';
+	import { calculateOnboardingCost } from '$lib/config/client-onboarding';
+	import type { OnboardingOptions } from '$lib/server/game/types';
 
 	// Get params from page store
 	let roomCode = $derived($page.params.roomCode || '');
@@ -56,6 +59,14 @@
 	let currentPhase = $state('planning');
 	let timerSeconds = $state(300);
 
+	// Lock-in state (US-3.2)
+	let isLockedIn = $state(false);
+	let lockedInAt = $state<Date | null>(null);
+	let remainingPlayers = $state(0);
+	let autoLockMessage = $state<string | null>(null);
+	let phaseTransitionMessage = $state<string | null>(null);
+	let pendingOnboardingDecisions = $state<Record<string, OnboardingOptions>>({});
+
 	// Destinations with weights
 	let destinations = $state([
 		{ name: 'Gmail', weight: 50 },
@@ -75,6 +86,43 @@
 	// WebSocket connection status (use test values if set)
 	let wsConnected = $derived(testWsConnected !== null ? testWsConnected : $websocketStore.connected);
 	let wsError = $derived(testWsError !== null ? testWsError : $websocketStore.error);
+
+	/**
+	 * Calculate total pending onboarding costs
+	 * US-3.2: Sum up all pending onboarding options across clients
+	 */
+	function calculatePendingOnboardingCosts(): number {
+		let total = 0;
+		for (const clientId in pendingOnboardingDecisions) {
+			const options = pendingOnboardingDecisions[clientId];
+			total += calculateOnboardingCost(options.warmUp, options.listHygiene);
+		}
+		return total;
+	}
+
+	/**
+	 * Calculate number of pending onboarding decisions
+	 * US-3.2: Count clients with pending onboarding options
+	 */
+	let pendingDecisionsCount = $derived(Object.keys(pendingOnboardingDecisions).length);
+
+	/**
+	 * Calculate total pending costs (onboarding only - clients/tech committed immediately)
+	 * US-3.2: Pending costs = pending onboarding options
+	 */
+	let totalPendingCosts = $derived(calculatePendingOnboardingCosts());
+
+	/**
+	 * Check if budget is exceeded
+	 * US-3.2: Budget exceeded if total pending costs exceed remaining budget
+	 */
+	let budgetExceeded = $derived(totalPendingCosts > credits);
+
+	/**
+	 * Calculate excess amount
+	 * US-3.2: How much over budget we are
+	 */
+	let excessAmount = $derived(Math.max(0, totalPendingCosts - credits));
 
 	/**
 	 * Fetch initial dashboard data from API
@@ -97,6 +145,11 @@
 			clients = data.team.active_clients || [];
 			availableClientsCount = data.team.available_clients_count || 0;
 			ownedTech = data.team.owned_tech_upgrades || []; // US-2.3
+
+			// Update lock-in state (US-3.2)
+			isLockedIn = data.team.locked_in || false;
+			lockedInAt = data.team.locked_in_at ? new Date(data.team.locked_in_at) : null;
+			pendingOnboardingDecisions = data.team.pending_onboarding_decisions || {};
 
 			// Update game state
 			currentRound = data.game.current_round || 1;
@@ -187,6 +240,19 @@
 		if (update.pending_costs !== undefined) {
 			pendingCosts = update.pending_costs;
 		}
+
+		// US-3.2: Lock-in updates
+		if (update.locked_in !== undefined) {
+			isLockedIn = update.locked_in;
+		}
+
+		if (update.locked_in_at) {
+			lockedInAt = new Date(update.locked_in_at);
+		}
+
+		if (update.pending_onboarding_decisions) {
+			pendingOnboardingDecisions = update.pending_onboarding_decisions;
+		}
 	}
 
 	/**
@@ -203,6 +269,82 @@
 
 		if (data.timer_remaining !== undefined) {
 			timerSeconds = data.timer_remaining;
+		}
+
+		// US-3.2: Handle WebSocket lock-in events
+		const messageType = data.type;
+
+		if (messageType === 'lock_in_confirmed') {
+			// Only process if this message is for THIS ESP team
+			const isForThisTeam =
+				data.data?.role === 'ESP' &&
+				data.data?.teamName?.toLowerCase() === teamName.toLowerCase();
+
+			if (isForThisTeam) {
+				// This team has successfully locked in
+				if (data.data?.locked_in !== undefined) {
+					isLockedIn = data.data.locked_in;
+				}
+				if (data.data?.locked_in_at) {
+					lockedInAt = new Date(data.data.locked_in_at);
+				}
+			}
+		}
+
+		if (messageType === 'player_locked_in') {
+			// Any player locked in - update remaining count
+			if (data.data?.remaining_players !== undefined) {
+				remainingPlayers = data.data.remaining_players;
+			}
+		}
+
+		if (messageType === 'auto_lock_warning') {
+			// 15-second warning before auto-lock
+			if (data.data?.message) {
+				autoLockMessage = data.data.message;
+			}
+		}
+
+		if (messageType === 'auto_lock_corrections') {
+			// Auto-correction feedback when onboarding options removed
+			// Only process if this message is for THIS ESP team
+			const isForThisTeam =
+				data.data?.teamName?.toLowerCase() === teamName.toLowerCase();
+
+			if (isForThisTeam && data.data?.corrections) {
+				// Format corrections into user-friendly message
+				const corrections = data.data.corrections;
+				const details = corrections.map((c: any) => {
+					const optionName = c.optionType === 'warmUp' ? 'warm-up' : 'list hygiene';
+					return `• Removed ${optionName} from ${c.clientName} (-${c.costSaved}cr)`;
+				}).join('\n');
+
+				autoLockMessage =
+					"Time's up! Some onboarding options were removed to fit your budget:\n" +
+					details;
+			}
+		}
+
+		if (messageType === 'phase_transition') {
+			// Phase transition (e.g., to resolution)
+			if (data.data?.phase) {
+				currentPhase = data.data.phase;
+			}
+			if (data.data?.round !== undefined) {
+				currentRound = data.data.round;
+			}
+			// Show transition message
+			if (data.data?.message) {
+				phaseTransitionMessage = data.data.message;
+				// Clear transition message after 5 seconds
+				setTimeout(() => {
+					phaseTransitionMessage = null;
+				}, 5000);
+			}
+			// Clear auto-lock warning message when phase changes (keep correction messages)
+			if (autoLockMessage && !autoLockMessage.includes('removed')) {
+				autoLockMessage = null;
+			}
 		}
 	}
 
@@ -241,8 +383,31 @@
 		showClientManagement = true;
 	}
 
-	function handleLockIn() {
-		// TODO: Implement in US-3.1 - Lock in decisions
+	/**
+	 * Handle lock-in button click
+	 * US-3.2: Lock in decisions for this ESP team
+	 */
+	async function handleLockIn() {
+		try {
+			const response = await fetch(`/api/sessions/${roomCode}/esp/${teamName}/lock-in`, {
+				method: 'POST'
+			});
+
+			const data = await response.json();
+
+			if (!data.success) {
+				// Show error if lock-in failed
+				error = data.error || 'Failed to lock in decisions';
+				return;
+			}
+
+			// Update local state (WebSocket will also send updates)
+			isLockedIn = true;
+			lockedInAt = new Date();
+			remainingPlayers = data.remaining_players || 0;
+		} catch (err) {
+			error = (err as Error).message;
+		}
 	}
 
 	/**
@@ -296,6 +461,25 @@
 				setRound: (value: number) => (currentRound = value),
 				setPhase: (value: string) => (currentPhase = value),
 				setTimer: (value: number) => (timerSeconds = value),
+				setTimerSeconds: (value: number) => (timerSeconds = value), // Alias for setTimer (US-3.2)
+				triggerAutoLock: async () => {
+					// US-3.2: Simulate auto-lock at timer expiry
+					try {
+						const response = await fetch(`/api/sessions/${roomCode}/auto-lock`, {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' }
+						});
+						if (response.ok) {
+							const data = await response.json();
+							isLockedIn = true;
+							lockedInAt = new Date(data.locked_in_at);
+							remainingPlayers = data.remaining_players || 0;
+							// autoLockMessage will be set via WebSocket (auto_lock_corrections or generic message)
+						}
+					} catch (err) {
+						console.error('Auto-lock failed:', err);
+					}
+				},
 				setWsStatus: (connected: boolean, errorMsg?: string) => {
 					// For testing WebSocket connection states - use local test variables
 					testWsConnected = connected;
@@ -308,7 +492,31 @@
 				closeClientManagement: () => (showClientManagement = false),
 				get isClientManagementOpen() {
 					return showClientManagement;
-				}
+				},
+				// US-3.2: Lock-in test API
+				setSpentCredits: (value: number) => {
+					// For budget testing: spent credits are deducted from total
+					credits = Math.max(0, credits - value);
+				},
+				setCommittedCosts: (value: number) => {
+					// Alias for setSpentCredits - deduct committed costs from budget
+					credits = Math.max(0, credits - value);
+				},
+				setPendingOnboarding: (value: Record<string, OnboardingOptions>) => {
+					pendingOnboardingDecisions = value;
+				},
+				setPendingOnboardingCosts: (value: number) => {
+					// Alias for setPendingCosts - sets pending onboarding costs
+					pendingCosts = value;
+				},
+				setLockedIn: (locked: boolean) => {
+					isLockedIn = locked;
+					lockedInAt = locked ? new Date() : null;
+				},
+				setRemainingPlayers: (count: number) => (remainingPlayers = count),
+				setAutoLockMessage: (msg: string | null) => (autoLockMessage = msg),
+				getCurrentPhase: () => currentPhase,
+				openPortfolioModal: () => (showClientManagement = true)
 			};
 		}
 	});
@@ -432,15 +640,32 @@
 			<!-- Lock In Button -->
 			<LockInButton
 				phase={currentPhase}
-				pendingDecisions={pendingCosts > 0 ? 1 : 0}
+				pendingDecisions={pendingDecisionsCount}
+				budgetExceeded={budgetExceeded}
+				excessAmount={excessAmount}
+				isLockedIn={isLockedIn}
+				remainingPlayers={remainingPlayers}
+				autoLockMessage={autoLockMessage}
 				onLockIn={handleLockIn}
 			/>
+
+			<!-- Phase Transition Message (US-3.2) -->
+			{#if phaseTransitionMessage}
+				<div
+					data-testid="phase-transition-message"
+					role="alert"
+					class="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 text-sm font-semibold"
+				>
+					{phaseTransitionMessage}
+				</div>
+			{/if}
 		</div>
 	{/if}
 
 	<!-- Client Marketplace Modal -->
 	<ClientMarketplaceModal
 		show={showMarketplace}
+		{isLockedIn}
 		onClose={() => (showMarketplace = false)}
 		{roomCode}
 		{teamName}
@@ -454,6 +679,7 @@
 	<!-- Technical Shop Modal -->
 	<TechnicalShopModal
 		show={showTechShop}
+		{isLockedIn}
 		onClose={() => (showTechShop = false)}
 		{roomCode}
 		{teamName}
@@ -465,6 +691,7 @@
 	<!-- Client Management Modal -->
 	<ClientManagementModal
 		bind:show={showClientManagement}
+		isLockedIn={isLockedIn}
 		onClose={() => (showClientManagement = false)}
 		{roomCode}
 		{teamName}

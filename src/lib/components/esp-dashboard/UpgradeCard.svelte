@@ -32,18 +32,19 @@
 		upgrade: Upgrade;
 		credits: number;
 		currentRound: number;
+		isLockedIn?: boolean;
 		onPurchase: (upgradeId: string) => void;
 		delay?: number;
 	}
 
-	let { upgrade, credits, currentRound, onPurchase, delay = 0 }: Props = $props();
+	let { upgrade, credits, currentRound, isLockedIn = false, onPurchase, delay = 0 }: Props = $props();
 
 	// Determine if upgrade is affordable
 	let canAfford = $derived(credits >= upgrade.cost);
 
 	// Determine if purchase button should be disabled
 	let isPurchaseDisabled = $derived(
-		upgrade.status === 'Locked' || upgrade.status === 'Owned' || !canAfford
+		isLockedIn || upgrade.status === 'Locked' || upgrade.status === 'Owned' || !canAfford
 	);
 
 	// Check if DMARC is mandatory soon (current round or next)

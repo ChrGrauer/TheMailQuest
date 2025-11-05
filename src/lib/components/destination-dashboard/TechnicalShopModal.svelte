@@ -30,6 +30,7 @@
 
 	interface Props {
 		show: boolean;
+		isLockedIn?: boolean;
 		roomCode: string;
 		destName: string;
 		kingdom: string;
@@ -38,7 +39,7 @@
 		onToolPurchased: (toolId: string, cost: number) => void;
 	}
 
-	let { show = $bindable(), roomCode, destName, kingdom, currentBudget, authLevel, onToolPurchased }: Props =
+	let { show = $bindable(), isLockedIn = false, roomCode, destName, kingdom, currentBudget, authLevel, onToolPurchased }: Props =
 		$props();
 
 	let tools: Tool[] = $state([]);
@@ -274,6 +275,21 @@
 				</button>
 			</div>
 
+			<!-- View Only Banner (US-3.2) -->
+			{#if isLockedIn}
+				<div
+					data-testid="view-only-banner"
+					class="px-6 py-3 bg-orange-50 border-b border-orange-200 flex items-center gap-3"
+					role="alert"
+				>
+					<span class="text-2xl" aria-hidden="true">🔒</span>
+					<div class="flex-1">
+						<p class="font-bold text-orange-900">Locked In - View Only</p>
+						<p class="text-sm text-orange-700">Your decisions are locked. You cannot purchase tools until the next round.</p>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Success Message -->
 			{#if successMessage}
 				<div
@@ -337,6 +353,7 @@
 										<DestinationToolCard
 											{tool}
 											{currentBudget}
+											{isLockedIn}
 											onPurchase={handlePurchaseClick}
 											delay={i * 50}
 										/>

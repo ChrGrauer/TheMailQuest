@@ -2,6 +2,7 @@
 	/**
 	 * Client Management Modal
 	 * US-2.4: Client Basic Management
+	 * US-3.2: Decision Lock-In (view-only mode)
 	 *
 	 * Modal for managing ESP client portfolio:
 	 * - View all acquired clients with their states
@@ -9,6 +10,8 @@
 	 * - Configure onboarding options for new clients
 	 * - Preview budget and revenue impacts
 	 * - Lock in decisions
+	 *
+	 * When isLockedIn is true, all actions are disabled (view-only mode)
 	 */
 
 	import { onMount } from 'svelte';
@@ -19,6 +22,7 @@
 
 	interface Props {
 		show: boolean;
+		isLockedIn?: boolean;
 		onClose: () => void;
 		roomCode: string;
 		teamName: string;
@@ -28,6 +32,7 @@
 
 	let {
 		show = $bindable(),
+		isLockedIn = false,
 		onClose,
 		roomCode,
 		teamName,
@@ -233,6 +238,21 @@
 				Manage your client portfolio: toggle client status between Active and Paused, configure onboarding options for new clients, and preview budget impacts.
 			</div>
 
+			<!-- View Only Banner (US-3.2) -->
+			{#if isLockedIn}
+				<div
+					data-testid="view-only-banner"
+					class="px-6 py-3 bg-orange-50 border-b border-orange-200 flex items-center gap-3"
+					role="alert"
+				>
+					<span class="text-2xl" aria-hidden="true">🔒</span>
+					<div class="flex-1">
+						<p class="font-bold text-orange-900">Locked In - View Only</p>
+						<p class="text-sm text-orange-700">Your decisions are locked. Changes cannot be made until the next round.</p>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Budget Banner -->
 			<div
 				data-testid="budget-banner"
@@ -340,6 +360,7 @@
 									{client}
 									{currentRound}
 									{index}
+									{isLockedIn}
 									onStatusToggle={handleStatusToggle}
 									onOnboardingChange={handleOnboardingChange}
 								/>

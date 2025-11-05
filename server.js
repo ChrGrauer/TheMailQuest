@@ -1,6 +1,7 @@
 /**
  * Custom production server with WebSocket support
  * Wraps SvelteKit's adapter-node build with WebSocket server
+ * US-3.2: Timer countdown with auto-lock support
  */
 
 import { createServer } from 'http';
@@ -129,3 +130,33 @@ server.listen(PORT, () => {
 	console.log(`Server running on http://localhost:${PORT}`);
 	console.log('[WebSocket] Server initialized on /ws');
 });
+
+// ============================================================================
+// TIMER COUNTDOWN MECHANISM (US-3.2)
+// ============================================================================
+
+/**
+ * Timer countdown interval
+ * Runs every second to trigger timer updates via API endpoint
+ * The API endpoint handles:
+ * - 15-second warning broadcast
+ * - Auto-lock at timer expiry
+ * - Phase transition to resolution
+ */
+setInterval(async () => {
+	try {
+		// Call the timer update API endpoint for each room
+		// The endpoint will handle getting sessions, updating timers, and broadcasting
+		// Note: This approach avoids import issues with build hashing
+		const response = await fetch(`http://localhost:${PORT}/api/timer/update`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' }
+		});
+
+		if (!response.ok) {
+			console.error('[Timer] Failed to update timers:', response.statusText);
+		}
+	} catch (error) {
+		console.error('[Timer] Error updating timers:', error);
+	}
+}, 1000); // Run every second

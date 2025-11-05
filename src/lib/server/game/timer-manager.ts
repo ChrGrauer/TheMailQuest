@@ -1,18 +1,23 @@
 /**
  * Timer Manager
  * US-1.4: Resources Allocation
+ * US-3.2: Decision Lock-In (auto-lock at timer expiry)
  *
  * Manages phase timers
  * - Initialize timer with duration
  * - Track remaining time
  * - Start/stop timer
  * - Get timer state
+ * - Auto-lock players when planning phase timer expires
+ * - Broadcast 15-second warning before auto-lock
  */
 
 import { getSession, updateActivity } from './session-manager';
 import { validateRoomCode } from './validation/room-validator';
 import type { GameTimer } from './types';
 import { gameLogger } from '../logger';
+import { autoLockAllPlayers } from './lock-in-manager';
+import { transitionPhase } from './phase-manager';
 
 // ============================================================================
 // TYPES
@@ -49,6 +54,24 @@ export interface TimerConfig {
 
 // Export types
 export type { GameTimer };
+
+// ============================================================================
+// AUTO-LOCK WARNING TRACKING
+// ============================================================================
+
+// Track which rooms have received the 15-second warning (to avoid duplicate warnings)
+const warningsSent = new Set<string>();
+
+// Track which rooms have been auto-locked (to avoid duplicate auto-locks)
+const autoLockedRooms = new Set<string>();
+
+/**
+ * Reset warning and auto-lock tracking for a room (when phase changes)
+ */
+export function resetTimerTracking(roomCode: string): void {
+	warningsSent.delete(roomCode);
+	autoLockedRooms.delete(roomCode);
+}
 
 // ============================================================================
 // TIMER INITIALIZATION
@@ -93,6 +116,9 @@ export function initializeTimer(request: TimerInitializeRequest): TimerInitializ
 	const session = roomValidation.session!;
 
 	try {
+		// Reset auto-lock tracking for new phase
+		resetTimerTracking(roomCode);
+
 		// Create timer
 		const timer: GameTimer = {
 			duration,
@@ -241,11 +267,21 @@ export function stopTimer(request: TimerStopRequest): TimerStopResult {
 /**
  * Update timer remaining time
  * Used by WebSocket broadcast interval to sync remaining time
+ *
+ * US-3.2: Handles auto-lock warnings and execution:
+ * - At 15 seconds: broadcasts auto_lock_warning message
+ * - At 0 seconds: auto-locks all players and transitions to resolution
+ *
  * @param roomCode The room code
  * @param remaining Remaining time in seconds
+ * @param broadcastWarning Optional callback to broadcast warning (for WebSocket integration)
  * @returns Success boolean
  */
-export function updateTimerRemaining(roomCode: string, remaining: number): boolean {
+export function updateTimerRemaining(
+	roomCode: string,
+	remaining: number,
+	broadcastWarning?: (roomCode: string, message: any) => void
+): boolean {
 	const roomValidation = validateRoomCode(roomCode);
 	if (!roomValidation.isValidFormat || !roomValidation.exists) {
 		return false;
@@ -259,13 +295,74 @@ export function updateTimerRemaining(roomCode: string, remaining: number): boole
 
 	session.timer.remaining = Math.max(0, remaining);
 
-	// Auto-stop timer if remaining reaches 0
-	if (session.timer.remaining === 0) {
+	// US-3.2: Broadcast 15-second warning (only once per phase)
+	if (
+		session.current_phase === 'planning' &&
+		session.timer.remaining <= 15 &&
+		session.timer.remaining > 0 &&
+		!warningsSent.has(roomCode)
+	) {
+		warningsSent.add(roomCode);
+
+		gameLogger.event('auto_lock_warning_sent', {
+			roomCode,
+			remainingTime: session.timer.remaining
+		});
+
+		// Broadcast warning if callback provided
+		if (broadcastWarning) {
+			broadcastWarning(roomCode, {
+				type: 'auto_lock_warning',
+				data: {
+					remainingSeconds: session.timer.remaining,
+					message: 'Decisions will be automatically locked in 15 seconds'
+				}
+			});
+		}
+	}
+
+	// US-3.2: Auto-lock at timer expiry (only once per phase)
+	if (session.timer.remaining === 0 && !autoLockedRooms.has(roomCode)) {
+		autoLockedRooms.add(roomCode);
 		session.timer.isRunning = false;
+
 		gameLogger.event('timer_expired', {
 			roomCode,
 			phase: session.current_phase
 		});
+
+		// Auto-lock all players if in planning phase
+		if (session.current_phase === 'planning') {
+			gameLogger.info('Timer expired - triggering auto-lock', { roomCode });
+
+			// Auto-lock all unlocked players
+			autoLockAllPlayers(roomCode);
+
+			// Transition to resolution phase
+			const transitionResult = transitionPhase({
+				roomCode,
+				toPhase: 'resolution'
+			});
+
+			if (transitionResult.success) {
+				gameLogger.info('Phase transitioned to resolution after timer expiry', { roomCode });
+
+				// Broadcast phase transition if callback provided
+				if (broadcastWarning) {
+					broadcastWarning(roomCode, {
+						type: 'phase_transition',
+						data: {
+							phase: 'resolution',
+							round: transitionResult.round,
+							message: "Time's up! All decisions locked - Starting Resolution"
+						}
+					});
+				}
+			}
+
+			// Reset tracking for next phase
+			resetTimerTracking(roomCode);
+		}
 	}
 
 	return true;

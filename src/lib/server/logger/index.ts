@@ -33,6 +33,10 @@ export const logger = pino(
 
 // Helper functions for common log patterns
 export const gameLogger = {
+	info: (message: string, data?: object) => {
+		logger.info({ ...data }, message);
+	},
+
 	event: (event: string, data?: object) => {
 		logger.info({ event, ...data }, `Game event: ${event}`);
 	},

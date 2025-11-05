@@ -172,6 +172,17 @@ function createWebSocketStore() {
 								}
 								break;
 
+							case 'lock_in_confirmed':
+							case 'player_locked_in':
+							case 'auto_lock_warning':
+							case 'phase_transition':
+								// US-3.2: Decision Lock-In events
+								// Pass the entire message to gameStateUpdateCallback
+								if (gameStateUpdateCallback) {
+									gameStateUpdateCallback(message as any);
+								}
+								break;
+
 							default:
 								// Handle other message types
 								break;

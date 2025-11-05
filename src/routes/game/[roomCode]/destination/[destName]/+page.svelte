@@ -2,6 +2,7 @@
 	/**
 	 * Destination Kingdom Dashboard Page
 	 * US-2.5: Destination Dashboard
+	 * US-3.2: Decision Lock-In
 	 *
 	 * Main dashboard page for Destination players showing:
 	 * - Destination-specific branding (blue theme)
@@ -10,6 +11,7 @@
 	 * - Coordination status
 	 * - Game state (round, phase, timer)
 	 * - Real-time WebSocket updates
+	 * - Lock-in functionality
 	 */
 
 	import { onMount, onDestroy } from 'svelte';
@@ -57,6 +59,13 @@
 	// Filtering Controls state (US-2.6.1)
 	let showFilteringControls = $state(false);
 	let filteringPolicies = $state<Record<string, FilteringPolicy>>({});
+
+	// Lock-in state (US-3.2)
+	let isLockedIn = $state(false);
+	let lockedInAt = $state<Date | null>(null);
+	let remainingPlayers = $state(0);
+	let autoLockMessage = $state<string | null>(null);
+	let phaseTransitionMessage = $state<string | null>(null);
 
 	// Test state variables (for E2E testing) - null means use real value
 	let testWsConnected = $state<boolean | null>(null);
@@ -111,6 +120,10 @@
 			// Filtering Controls state (US-2.6.1)
 			filteringPolicies = data.destination.filtering_policies || {};
 
+			// Lock-in state (US-3.2)
+			isLockedIn = data.destination.locked_in || false;
+			lockedInAt = data.destination.locked_in_at ? new Date(data.destination.locked_in_at) : null;
+
 			currentRound = data.game.current_round;
 			currentPhase = data.game.current_phase;
 
@@ -139,6 +152,60 @@
 			timerRemaining = update.timer.remaining;
 			timerRunning = update.timer.isRunning;
 		}
+
+		// US-3.2: Handle WebSocket lock-in events
+		const messageType = update.type;
+
+		if (messageType === 'lock_in_confirmed') {
+			// Only process if this message is for THIS destination
+			const isForThisDestination =
+				update.data?.role === 'Destination' &&
+				update.data?.destinationName?.toLowerCase() === destName.toLowerCase();
+
+			if (isForThisDestination) {
+				// This destination has successfully locked in
+				if (update.data?.locked_in !== undefined) {
+					isLockedIn = update.data.locked_in;
+				}
+				if (update.data?.locked_in_at) {
+					lockedInAt = new Date(update.data.locked_in_at);
+				}
+			}
+		}
+
+		if (messageType === 'player_locked_in') {
+			// Any player locked in - update remaining count
+			if (update.data?.remaining_players !== undefined) {
+				remainingPlayers = update.data.remaining_players;
+			}
+		}
+
+		if (messageType === 'auto_lock_warning') {
+			// 15-second warning before auto-lock
+			if (update.data?.message) {
+				autoLockMessage = update.data.message;
+			}
+		}
+
+		if (messageType === 'phase_transition') {
+			// Phase transition (e.g., to resolution)
+			if (update.data?.phase) {
+				currentPhase = update.data.phase;
+			}
+			if (update.data?.round !== undefined) {
+				currentRound = update.data.round;
+			}
+			// Show transition message
+			if (update.data?.message) {
+				phaseTransitionMessage = update.data.message;
+				// Clear transition message after 5 seconds
+				setTimeout(() => {
+					phaseTransitionMessage = null;
+				}, 5000);
+			}
+			// Clear auto-lock message when phase changes
+			autoLockMessage = null;
+		}
 	}
 
 	// Handle destination dashboard updates from WebSocket
@@ -162,6 +229,10 @@
 
 		// Filtering Controls updates (US-2.6.1)
 		if (update.filtering_policies !== undefined) filteringPolicies = update.filtering_policies;
+
+		// Lock-in updates (US-3.2)
+		if (update.locked_in !== undefined) isLockedIn = update.locked_in;
+		if (update.locked_in_at) lockedInAt = new Date(update.locked_in_at);
 	}
 
 	// Timer countdown (client-side)
@@ -207,9 +278,31 @@
 		fetchDashboardData();
 	}
 
-	// Handle lock-in click
-	function handleLockIn() {
-		// TODO: Implement lock-in logic (US-2.8)
+	/**
+	 * Handle lock-in click
+	 * US-3.2: Lock in decisions for this destination
+	 */
+	async function handleLockIn() {
+		try {
+			const response = await fetch(`/api/sessions/${roomCode}/destination/${destName}/lock-in`, {
+				method: 'POST'
+			});
+
+			const data = await response.json();
+
+			if (!data.success) {
+				// Show error if lock-in failed
+				error = data.error || 'Failed to lock in decisions';
+				return;
+			}
+
+			// Update local state (WebSocket will also send updates)
+			isLockedIn = true;
+			lockedInAt = new Date();
+			remainingPlayers = data.remaining_players || 0;
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to lock in decisions';
+		}
 	}
 
 	// Mount lifecycle
@@ -237,6 +330,7 @@
 					return !loading && !error;
 				},
 				setBudget: (value: number) => (budget = value),
+				setCredits: (value: number) => (budget = value), // Alias for setBudget (US-3.2)
 				setESPStats: (value: ESPDestinationStats[]) => (espStats = value),
 				setCoordinationCount: (count: number) => (collaborationsCount = count),
 				setOwnedTech: (value: string[]) => (ownedTech = value),
@@ -266,7 +360,16 @@
 				closeFilteringControls: () => (showFilteringControls = false),
 				getFilteringControlsOpen: () => showFilteringControls,
 				getFilteringPolicies: () => filteringPolicies,
-				setFilteringPolicies: (value: Record<string, FilteringPolicy>) => (filteringPolicies = value)
+				setFilteringPolicies: (value: Record<string, FilteringPolicy>) => (filteringPolicies = value),
+
+				// Lock-in test API (US-3.2)
+				setLockedIn: (locked: boolean) => {
+					isLockedIn = locked;
+					lockedInAt = locked ? new Date() : null;
+				},
+				setRemainingPlayers: (count: number) => (remainingPlayers = count),
+				setAutoLockMessage: (msg: string | null) => (autoLockMessage = msg),
+				getCurrentPhase: () => currentPhase
 			};
 		}
 	});
@@ -372,9 +475,22 @@
 			<!-- Lock In Button -->
 			<LockInButton
 				phase={currentPhase}
-				disabled={currentPhase !== 'planning'}
-				onclick={handleLockIn}
+				isLockedIn={isLockedIn}
+				remainingPlayers={remainingPlayers}
+				autoLockMessage={autoLockMessage}
+				onLockIn={handleLockIn}
 			/>
+
+			<!-- Phase Transition Message (US-3.2) -->
+			{#if phaseTransitionMessage}
+				<div
+					data-testid="phase-transition-message"
+					role="alert"
+					class="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 text-sm font-semibold"
+				>
+					{phaseTransitionMessage}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -382,6 +498,7 @@
 <!-- Tech Shop Modal (US-2.6.2) -->
 <TechnicalShopModal
 	bind:show={showTechShop}
+	{isLockedIn}
 	{roomCode}
 	{destName}
 	{kingdom}
@@ -393,6 +510,7 @@
 <!-- Filtering Controls Modal (US-2.6.1) -->
 <FilteringControlsModal
 	bind:show={showFilteringControls}
+	isLockedIn={isLockedIn}
 	{roomCode}
 	{destName}
 	espTeams={espTeamsForFiltering}

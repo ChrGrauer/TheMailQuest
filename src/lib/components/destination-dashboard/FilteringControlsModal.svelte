@@ -20,6 +20,7 @@
 
 	interface Props {
 		show: boolean;
+		isLockedIn?: boolean;
 		roomCode: string;
 		destName: string;
 		espTeams: ESPData[];
@@ -30,6 +31,7 @@
 
 	let {
 		show = $bindable(),
+		isLockedIn = false,
 		roomCode,
 		destName,
 		espTeams,
@@ -143,6 +145,21 @@
 				</div>
 			</div>
 
+			<!-- View Only Banner (US-3.2) -->
+			{#if isLockedIn}
+				<div
+					data-testid="view-only-banner"
+					class="px-6 py-3 bg-orange-50 border-b border-orange-200 flex items-center gap-3"
+					role="alert"
+				>
+					<span class="text-2xl" aria-hidden="true">🔒</span>
+					<div class="flex-1">
+						<p class="font-bold text-orange-900">Locked In - View Only</p>
+						<p class="text-sm text-orange-700">Your decisions are locked. You cannot modify filtering policies until the next round.</p>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Error Banner -->
 			{#if error}
 				<div
@@ -216,6 +233,7 @@
 									satisfaction={esp.satisfaction}
 									spamRate={esp.spamRate}
 									currentPolicy={policy}
+									isLockedIn={isLockedIn}
 									onFilterChange={handleFilterChange}
 								/>
 							{/if}
