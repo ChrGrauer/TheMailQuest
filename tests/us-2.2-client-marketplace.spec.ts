@@ -91,8 +91,14 @@ test.describe('US-2.2: Client Marketplace', () => {
 
 		// Wait for either success or error (with longer timeout for API call)
 		const successOrError = await Promise.race([
-			alicePage.getByTestId('success-message').waitFor({ state: 'visible', timeout: 15000 }).then(() => 'success'),
-			alicePage.getByTestId('error-banner').waitFor({ state: 'visible', timeout: 15000 }).then(() => 'error'),
+			alicePage
+				.getByTestId('success-message')
+				.waitFor({ state: 'visible', timeout: 15000 })
+				.then(() => 'success'),
+			alicePage
+				.getByTestId('error-banner')
+				.waitFor({ state: 'visible', timeout: 15000 })
+				.then(() => 'error'),
 			alicePage.waitForTimeout(15000).then(() => 'timeout')
 		]);
 
@@ -103,7 +109,10 @@ test.describe('US-2.2: Client Marketplace', () => {
 		}
 		if (successOrError === 'timeout') {
 			// Check if still loading
-			const isLoading = await alicePage.getByTestId('loading-spinner').isVisible().catch(() => false);
+			const isLoading = await alicePage
+				.getByTestId('loading-spinner')
+				.isVisible()
+				.catch(() => false);
 			throw new Error(`Acquisition timed out. Still loading: ${isLoading}`);
 		}
 
@@ -181,8 +190,14 @@ test.describe('US-2.2: Client Marketplace', () => {
 
 		// Wait for either success or error
 		const successOrError = await Promise.race([
-			alicePage.getByTestId('success-message').waitFor({ state: 'visible', timeout: 15000 }).then(() => 'success'),
-			alicePage.getByTestId('error-banner').waitFor({ state: 'visible', timeout: 15000 }).then(() => 'error'),
+			alicePage
+				.getByTestId('success-message')
+				.waitFor({ state: 'visible', timeout: 15000 })
+				.then(() => 'success'),
+			alicePage
+				.getByTestId('error-banner')
+				.waitFor({ state: 'visible', timeout: 15000 })
+				.then(() => 'error'),
 			alicePage.waitForTimeout(15000).then(() => 'timeout')
 		]);
 
@@ -191,7 +206,10 @@ test.describe('US-2.2: Client Marketplace', () => {
 			throw new Error(`Acquisition failed with error: ${errorText}`);
 		}
 		if (successOrError === 'timeout') {
-			const isLoading = await alicePage.getByTestId('loading-spinner').isVisible().catch(() => false);
+			const isLoading = await alicePage
+				.getByTestId('loading-spinner')
+				.isVisible()
+				.catch(() => false);
 			throw new Error(`Acquisition timed out. Still loading: ${isLoading}`);
 		}
 
@@ -230,8 +248,14 @@ test.describe('US-2.2: Client Marketplace', () => {
 
 		// Wait for success or error
 		const result = await Promise.race([
-			alicePage.getByTestId('success-message').waitFor({ state: 'visible', timeout: 15000 }).then(() => 'success'),
-			alicePage.getByTestId('error-banner').waitFor({ state: 'visible', timeout: 15000 }).then(() => 'error'),
+			alicePage
+				.getByTestId('success-message')
+				.waitFor({ state: 'visible', timeout: 15000 })
+				.then(() => 'success'),
+			alicePage
+				.getByTestId('error-banner')
+				.waitFor({ state: 'visible', timeout: 15000 })
+				.then(() => 'error'),
 			alicePage.waitForTimeout(15000).then(() => 'timeout')
 		]);
 

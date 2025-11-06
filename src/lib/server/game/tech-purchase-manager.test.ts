@@ -12,10 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import {
-	purchaseTechUpgrade,
-	type TechPurchaseResult
-} from './tech-purchase-manager';
+import { purchaseTechUpgrade, type TechPurchaseResult } from './tech-purchase-manager';
 import { createGameSession, deleteSession, getSession, getAllSessions } from './session-manager';
 import { joinGame, clearPlayers } from './player-manager';
 import { startGame } from './game-start-manager';

@@ -9,12 +9,13 @@
 	 * - Toggle client status (Active/Paused)
 	 * - Configure onboarding options for new clients
 	 * - Preview budget and revenue impacts
-	 * - Lock in decisions
+	 *
+	 * Onboarding selections are saved immediately as pending decisions.
+	 * Lock-in happens via main dashboard button only.
 	 *
 	 * When isLockedIn is true, all actions are disabled (view-only mode)
 	 */
 
-	import { onMount } from 'svelte';
 	import { fly, scale } from 'svelte/transition';
 	import PortfolioClientCard from './PortfolioClientCard.svelte';
 	import type { Client, ClientState } from '$lib/server/game/types';
@@ -60,9 +61,6 @@
 	// Calculate budget after onboarding costs
 	let budgetAfterCosts = $derived(currentCredits - totalOnboardingCost);
 
-	// Check if over budget
-	let isOverBudget = $derived(budgetAfterCosts < 0);
-
 	// Fetch portfolio data
 	async function fetchPortfolio() {
 		loading = true;
@@ -80,13 +78,22 @@
 			revenuePreview = data.revenue_preview || 0;
 			budgetForecast = data.budget_forecast || currentCredits;
 
-			// Initialize onboarding selections for new clients
+			// Initialize onboarding selections from pending decisions (server state)
+			const pendingDecisions = data.pending_onboarding_decisions || {};
 			clients.forEach((client) => {
 				if (client.first_active_round === null) {
-					onboardingSelections[client.id] = {
-						warmup: client.has_warmup,
-						listHygiene: client.has_list_hygiene
-					};
+					// Load from pending decisions if exists, otherwise from client state
+					if (pendingDecisions[client.id]) {
+						onboardingSelections[client.id] = {
+							warmup: pendingDecisions[client.id].warmUp,
+							listHygiene: pendingDecisions[client.id].listHygiene
+						};
+					} else {
+						onboardingSelections[client.id] = {
+							warmup: client.has_warmup || false,
+							listHygiene: client.has_list_hygiene || false
+						};
+					}
 				}
 			});
 		} catch (err) {
@@ -126,43 +133,28 @@
 		}
 	}
 
-	// Handle onboarding change
-	function handleOnboardingChange(clientId: string, warmup: boolean, listHygiene: boolean) {
+	// Handle onboarding change - save immediately to pending decisions
+	async function handleOnboardingChange(clientId: string, warmup: boolean, listHygiene: boolean) {
+		// Update local state
 		onboardingSelections[clientId] = { warmup, listHygiene };
-	}
 
-	// Lock in decisions
-	async function handleLockIn() {
-		if (isOverBudget) return;
-
-		loading = true;
-		error = null;
-
+		// Save to server immediately (pending, not committed)
 		try {
-			// Submit all onboarding configurations
-			for (const [clientId, options] of Object.entries(onboardingSelections)) {
-				const response = await fetch(
-					`/api/sessions/${roomCode}/esp/${teamName}/clients/${clientId}/onboarding`,
-					{
-						method: 'PATCH',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ warmup: options.warmup, list_hygiene: options.listHygiene })
-					}
-				);
+			const response = await fetch(`/api/sessions/${roomCode}/esp/${teamName}/pending-onboarding`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ clientId, warmup, list_hygiene: listHygiene })
+			});
 
-				if (!response.ok) {
-					const errorData = await response.json();
-					throw new Error(errorData.error || 'Failed to configure onboarding');
-				}
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to save onboarding selection');
 			}
 
-			// Success - refresh and close
-			await fetchPortfolio();
-			onClose();
+			// Clear any previous errors
+			error = null;
 		} catch (err) {
 			error = (err as Error).message;
-		} finally {
-			loading = false;
 		}
 	}
 
@@ -235,7 +227,9 @@
 
 			<!-- Screen reader description -->
 			<div id="modal-description" class="sr-only">
-				Manage your client portfolio: toggle client status between Active and Paused, configure onboarding options for new clients, and preview budget impacts.
+				Manage your client portfolio: toggle client status between Active and Paused, configure
+				onboarding options for new clients, and preview budget impacts. Lock in your decisions using
+				the main dashboard button.
 			</div>
 
 			<!-- View Only Banner (US-3.2) -->
@@ -248,7 +242,9 @@
 					<span class="text-2xl" aria-hidden="true">🔒</span>
 					<div class="flex-1">
 						<p class="font-bold text-orange-900">Locked In - View Only</p>
-						<p class="text-sm text-orange-700">Your decisions are locked. Changes cannot be made until the next round.</p>
+						<p class="text-sm text-orange-700">
+							Your decisions are locked. Changes cannot be made until the next round.
+						</p>
 					</div>
 				</div>
 			{/if}
@@ -274,7 +270,7 @@
 						{#if totalOnboardingCost > 0}
 							<div class="text-2xl text-gray-400">→</div>
 							<div>
-								<div class="text-xs text-gray-600 font-semibold mb-1">Onboarding Costs</div>
+								<div class="text-xs text-gray-600 font-semibold mb-1">Pending Costs</div>
 								<div data-testid="onboarding-costs" class="text-xl font-bold text-orange-600">
 									-{totalOnboardingCost.toLocaleString()}
 									<span class="text-sm font-normal text-gray-500">credits</span>
@@ -282,11 +278,8 @@
 							</div>
 							<div class="text-2xl text-gray-400">=</div>
 							<div>
-								<div class="text-xs text-gray-600 font-semibold mb-1">After Lock-in</div>
-								<div
-									data-testid="budget-forecast"
-									class="text-2xl font-bold {isOverBudget ? 'text-red-600' : 'text-blue-700'}"
-								>
+								<div class="text-xs text-gray-600 font-semibold mb-1">Available</div>
+								<div data-testid="budget-forecast" class="text-2xl font-bold text-blue-700">
 									{budgetAfterCosts.toLocaleString()}
 									<span class="text-sm font-normal text-gray-500">credits</span>
 								</div>
@@ -303,25 +296,14 @@
 						<div class="text-xs text-gray-500 mt-1">(if 100% delivery)</div>
 					</div>
 				</div>
-
-				<!-- Over Budget Warning -->
-				{#if isOverBudget}
-					<div
-						data-testid="over-budget-message"
-						role="alert"
-						aria-live="assertive"
-						class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
-					>
-						<strong>Cannot lock in: over budget by {Math.abs(budgetAfterCosts).toLocaleString()} credits</strong>
-					</div>
-				{/if}
 			</div>
 
 			<!-- Error Banner -->
 			{#if error && !loading}
 				<div class="px-6 py-3 bg-red-50 border-b border-red-200" role="alert" aria-live="assertive">
 					<div data-testid="error-banner" class="text-sm text-red-700">
-						<strong>Error:</strong> {error}
+						<strong>Error:</strong>
+						{error}
 						<button
 							onclick={() => (error = null)}
 							aria-label="Dismiss error message"
@@ -347,7 +329,9 @@
 					<div class="text-center">
 						<div class="text-6xl mb-4">📭</div>
 						<div class="text-xl font-semibold text-gray-700 mb-2">No clients yet</div>
-						<div class="text-gray-600">Visit the Client Marketplace to acquire your first client.</div>
+						<div class="text-gray-600">
+							Visit the Client Marketplace to acquire your first client.
+						</div>
 					</div>
 				</div>
 			{:else}
@@ -361,34 +345,14 @@
 									{currentRound}
 									{index}
 									{isLockedIn}
+									initialWarmupSelected={onboardingSelections[client.id]?.warmup}
+									initialListHygieneSelected={onboardingSelections[client.id]?.listHygiene}
 									onStatusToggle={handleStatusToggle}
 									onOnboardingChange={handleOnboardingChange}
 								/>
 							</div>
 						{/each}
 					</div>
-				</div>
-
-				<!-- Footer: Lock-in Button -->
-				<div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-					<button
-						data-testid="lock-in-btn"
-						onclick={handleLockIn}
-						disabled={isOverBudget || loading}
-						aria-label={isOverBudget ? 'Cannot lock in decisions: over budget' : loading ? 'Saving client configurations' : 'Lock in client management decisions'}
-						class="w-full py-3 rounded-lg font-bold text-lg transition-all focus:outline-none focus:ring-4 focus:ring-emerald-300
-							{isOverBudget || loading
-								? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-								: 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-700 hover:to-emerald-600 shadow-lg hover:shadow-xl'}"
-					>
-						{#if loading}
-							<span aria-hidden="true">🔄</span> Saving...
-						{:else if isOverBudget}
-							<span aria-hidden="true">🔒</span> Cannot Lock In (Over Budget)
-						{:else}
-							<span aria-hidden="true">🔒</span> Lock In Decisions
-						{/if}
-					</button>
 				</div>
 			{/if}
 		</div>

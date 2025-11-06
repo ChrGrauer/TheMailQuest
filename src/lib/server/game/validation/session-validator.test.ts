@@ -12,12 +12,7 @@ import {
 	hasGameStarted,
 	isSessionExpired
 } from './session-validator';
-import {
-	createGameSession,
-	deleteSession,
-	getAllSessions,
-	getSession
-} from '../session-manager';
+import { createGameSession, deleteSession, getAllSessions, getSession } from '../session-manager';
 import { joinGame, clearPlayers } from '../player-manager';
 
 describe('Session Validator', () => {

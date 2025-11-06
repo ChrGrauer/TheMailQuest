@@ -52,7 +52,7 @@ class GameWebSocketServer {
 
 			ws.on('close', () => {
 				this.clients.delete(clientId);
-			this.unsubscribeFromRoom(clientId);
+				this.unsubscribeFromRoom(clientId);
 				getLogger().then((logger) =>
 					logger.websocket('client_disconnected', {
 						clientId,

@@ -32,58 +32,54 @@
 
 	<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 		<!-- Active Collaborations -->
-		<div class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-l-4 border-blue-500">
+		<div
+			class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-l-4 border-blue-500"
+		>
 			<div class="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">
 				Active Collaborations
 			</div>
-			<div
-				data-testid="collaborations-count"
-				class="text-3xl font-bold text-blue-800"
-			>
+			<div data-testid="collaborations-count" class="text-3xl font-bold text-blue-800">
 				{collaborationsCount}
 			</div>
 			{#if collaborationsCount > 0}
-				<div class="text-xs text-blue-600 mt-2">
-					Inter-destination intelligence sharing
-				</div>
+				<div class="text-xs text-blue-600 mt-2">Inter-destination intelligence sharing</div>
 			{:else}
-				<div class="text-xs text-gray-500 mt-2">
-					No active collaborations
-				</div>
+				<div class="text-xs text-gray-500 mt-2">No active collaborations</div>
 			{/if}
 		</div>
 
 		<!-- Shared Budget Pool (placeholder) -->
-		<div class="p-4 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border-l-4 border-amber-500">
+		<div
+			class="p-4 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border-l-4 border-amber-500"
+		>
 			<div class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">
 				Shared Budget Pool
 			</div>
 			<div class="text-3xl font-bold text-amber-800">
 				{collaborationsCount > 0 ? '450' : '0'}
 			</div>
-			<div class="text-xs text-amber-600 mt-2">
-				Combined credits
-			</div>
+			<div class="text-xs text-amber-600 mt-2">Combined credits</div>
 		</div>
 
 		<!-- Intelligence Level (placeholder) -->
-		<div class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-l-4 border-purple-500">
+		<div
+			class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-l-4 border-purple-500"
+		>
 			<div class="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-2">
 				Intelligence Level
 			</div>
 			<div class="text-xl font-bold text-purple-800">
 				{collaborationsCount > 0 ? 'Medium' : 'None'}
 			</div>
-			<div class="text-xs text-purple-600 mt-2">
-				ESP behavior insights
-			</div>
+			<div class="text-xs text-purple-600 mt-2">ESP behavior insights</div>
 		</div>
 	</div>
 
 	{#if collaborationsCount === 0}
 		<div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
 			<p class="text-sm text-gray-600 text-center">
-				💡 <span class="font-semibold">Tip:</span> Collaborate with other destinations to share intelligence and resources.
+				💡 <span class="font-semibold">Tip:</span> Collaborate with other destinations to share intelligence
+				and resources.
 			</p>
 		</div>
 	{/if}

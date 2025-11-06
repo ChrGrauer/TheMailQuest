@@ -10,6 +10,7 @@
  */
 
 import { getSession, updateActivity } from './session-manager';
+import { gameWss } from '$lib/server/websocket';
 import type {
 	ESPTeam,
 	Destination,
@@ -73,11 +74,14 @@ export function lockInESPTeam(roomCode: string, teamName: string): LockInResult 
 		return { success: false, error: validation.error };
 	}
 
-	// 6. Lock in
+	// 6. Commit pending onboarding decisions
+	commitPendingOnboardingDecisions(team);
+
+	// 7. Lock in
 	team.locked_in = true;
 	team.locked_in_at = new Date();
 
-	// 7. Update activity
+	// 8. Update activity
 	updateActivity(roomCode);
 
 	// 8. Check if all players locked
@@ -220,6 +224,60 @@ export function calculatePendingOnboardingCosts(team: ESPTeam): number {
 	return totalCost;
 }
 
+/**
+ * Commit pending onboarding decisions to client_states
+ * Deducts credits and applies onboarding options
+ * Clears pending_onboarding_decisions
+ */
+export function commitPendingOnboardingDecisions(team: ESPTeam): void {
+	if (!team.pending_onboarding_decisions || !team.client_states) {
+		return;
+	}
+
+	let totalCost = 0;
+
+	// Apply each pending decision to client_states
+	for (const clientId in team.pending_onboarding_decisions) {
+		const options = team.pending_onboarding_decisions[clientId];
+		const clientState = team.client_states[clientId];
+
+		if (!clientState) {
+			continue; // Skip if client not found
+		}
+
+		// Only apply to new clients (not yet activated)
+		if (clientState.first_active_round !== null) {
+			continue;
+		}
+
+		// Apply onboarding options
+		clientState.has_warmup = options.warmUp;
+		clientState.has_list_hygiene = options.listHygiene;
+
+		// Calculate cost
+		if (options.warmUp) {
+			totalCost += WARMUP_COST;
+		}
+		if (options.listHygiene) {
+			totalCost += LIST_HYGIENE_COST;
+		}
+	}
+
+	// Deduct credits
+	team.credits -= totalCost;
+
+	// Clear pending decisions
+	team.pending_onboarding_decisions = {};
+
+	// Log commitment
+	getLogger().then((logger) => {
+		logger.info(`Committed pending onboarding decisions for ${team.name}`, {
+			totalCost,
+			remainingCredits: team.credits
+		});
+	});
+}
+
 // ============================================================================
 // AUTO-CORRECTION
 // ============================================================================
@@ -340,9 +398,35 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 				}
 			}
 
+			// Commit pending onboarding decisions
+			commitPendingOnboardingDecisions(team);
+
 			// Lock in
 			team.locked_in = true;
 			team.locked_in_at = new Date();
+
+			// Broadcast lock-in confirmation to client
+			const remainingPlayers = getRemainingPlayersCount(session);
+			gameWss.broadcastToRoom(roomCode, {
+				type: 'lock_in_confirmed',
+				data: {
+					teamName: team.name,
+					role: 'ESP',
+					locked_in: true,
+					locked_in_at: team.locked_in_at.toISOString(),
+					remaining_players: remainingPlayers
+				}
+			});
+
+			// Broadcast remaining players count to all
+			gameWss.broadcastToRoom(roomCode, {
+				type: 'player_locked_in',
+				data: {
+					teamName: team.name,
+					role: 'ESP',
+					remaining_players: remainingPlayers
+				}
+			});
 
 			// Log
 			getLogger().then((logger) => {
@@ -383,6 +467,29 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 			destination.locked_in = true;
 			destination.locked_in_at = new Date();
 
+			// Broadcast lock-in confirmation to client
+			const remainingPlayers = getRemainingPlayersCount(session);
+			gameWss.broadcastToRoom(roomCode, {
+				type: 'lock_in_confirmed',
+				data: {
+					destinationName: destination.name,
+					role: 'Destination',
+					locked_in: true,
+					locked_in_at: destination.locked_in_at.toISOString(),
+					remaining_players: remainingPlayers
+				}
+			});
+
+			// Broadcast remaining players count to all
+			gameWss.broadcastToRoom(roomCode, {
+				type: 'player_locked_in',
+				data: {
+					destinationName: destination.name,
+					role: 'Destination',
+					remaining_players: remainingPlayers
+				}
+			});
+
 			getLogger().then((logger) => {
 				logger.info(`Auto-locked player: ${destination.name} (valid)`, {
 					roomCode,
@@ -404,18 +511,19 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 
 /**
  * Check if all players in the session have locked in
+ * Only checks teams/destinations that have players
  */
 export function checkAllPlayersLockedIn(session: GameSession): boolean {
-	// Check all ESP teams
+	// Check all ESP teams that have players
 	for (const team of session.esp_teams) {
-		if (!team.locked_in) {
+		if (team.players.length > 0 && !team.locked_in) {
 			return false;
 		}
 	}
 
-	// Check all destinations
+	// Check all destinations that have players
 	for (const destination of session.destinations) {
-		if (!destination.locked_in) {
+		if (destination.players.length > 0 && !destination.locked_in) {
 			return false;
 		}
 	}
@@ -425,20 +533,21 @@ export function checkAllPlayersLockedIn(session: GameSession): boolean {
 
 /**
  * Get count of players who haven't locked in yet
+ * Only counts teams/destinations that have players
  */
 export function getRemainingPlayersCount(session: GameSession): number {
 	let remaining = 0;
 
-	// Count unlocked ESP teams
+	// Count unlocked ESP teams that have players
 	for (const team of session.esp_teams) {
-		if (!team.locked_in) {
+		if (team.players.length > 0 && !team.locked_in) {
 			remaining++;
 		}
 	}
 
-	// Count unlocked destinations
+	// Count unlocked destinations that have players
 	for (const destination of session.destinations) {
-		if (!destination.locked_in) {
+		if (destination.players.length > 0 && !destination.locked_in) {
 			remaining++;
 		}
 	}

@@ -132,7 +132,7 @@ test.describe('Feature: Decision Lock-In', () => {
 
 			// Then: "SendWave" should see "Lock In" button as disabled on main dashboard
 			const lockInButton = alicePage.locator('[data-testid="lock-in-button"]');
-		await expect(lockInButton).toBeDisabled();
+			await expect(lockInButton).toBeDisabled();
 
 			// And: "SendWave" should see budget warning showing 160cr over budget
 			const budgetWarning = alicePage.locator('[data-testid="budget-warning"]');
@@ -150,7 +150,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await alicePage.waitForTimeout(500);
 
 			// Then: total becomes 1460 credits (still over by 10)
-		await expect(lockInButton).toBeDisabled();
+			await expect(lockInButton).toBeDisabled();
 			await expect(budgetWarning).toContainText('10'); // Now shows 10cr over
 
 			// When: "SendWave" removes list hygiene from Client B (80 credits)
@@ -200,9 +200,15 @@ test.describe('Feature: Decision Lock-In', () => {
 
 	test.describe('Section 3: Early Lock-In Waiting', () => {
 		test('Scenario: First player to lock in sees waiting state', async ({ page, context }) => {
-			// Given: Game with 5 ESP teams and 1 destination (8 total players)
-			const { sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage } =
-				await createGameWith5ESPTeams(page, context);
+			// Given: Game with 5 ESP teams and 1 destination (6 total players)
+			const {
+				sendWavePage,
+				mailMonkeyPage,
+				bluePostPage,
+				sendBoltPage,
+				rocketMailPage,
+				gmailPage
+			} = await createGameWith5ESPTeams(page, context);
 
 			// When: "SendWave" locks in their decisions
 			const lockInButton = sendWavePage.locator('[data-testid="lock-in-button"]');
@@ -214,13 +220,13 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(waitingMessage).toBeVisible();
 			await expect(waitingMessage).toContainText('Waiting for others');
 
-			// And: "SendWave" should see "7 players remaining"
+			// And: "SendWave" should see "5 players remaining"
 			const remainingCount = sendWavePage.locator('[data-testid="remaining-players-count"]');
 			await expect(remainingCount).toBeVisible();
-			await expect(remainingCount).toContainText('7');
+			await expect(remainingCount).toContainText('5');
 
 			// And: "SendWave" dashboard should remain read-only
-				const confirmation = sendWavePage.locator('[data-testid="lock-in-confirmation"]');
+			const confirmation = sendWavePage.locator('[data-testid="lock-in-confirmation"]');
 			await expect(confirmation).toBeVisible();
 			await expect(lockInButton).not.toBeVisible();
 
@@ -234,32 +240,38 @@ test.describe('Feature: Decision Lock-In', () => {
 
 		test('Scenario: Waiting count updates as more players lock in', async ({ page, context }) => {
 			// Given: Game with 5 ESP teams and 1 destination
-			const { sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage } =
-				await createGameWith5ESPTeams(page, context);
+			const {
+				sendWavePage,
+				mailMonkeyPage,
+				bluePostPage,
+				sendBoltPage,
+				rocketMailPage,
+				gmailPage
+			} = await createGameWith5ESPTeams(page, context);
 
-			// And: "SendWave" has locked in and sees "7 players remaining"
+			// And: "SendWave" has locked in and sees "5 players remaining"
 			const sendWaveLockInButton = sendWavePage.locator('[data-testid="lock-in-button"]');
 			await sendWaveLockInButton.click();
 			await sendWavePage.waitForTimeout(500);
 
 			const remainingCount = sendWavePage.locator('[data-testid="remaining-players-count"]');
-			await expect(remainingCount).toContainText('7');
+			await expect(remainingCount).toContainText('5');
 
 			// When: "BluePost" locks in their decisions
 			const bluePostLockInButton = bluePostPage.locator('[data-testid="lock-in-button"]');
 			await bluePostLockInButton.click();
 			await bluePostPage.waitForTimeout(500);
 
-			// Then: "SendWave" should see "6 players remaining"
-			await expect(remainingCount).toContainText('6', { timeout: 2000 });
+			// Then: "SendWave" should see "4 players remaining"
+			await expect(remainingCount).toContainText('4', { timeout: 2000 });
 
 			// When: "Gmail" locks in their decisions
 			const gmailLockInButton = gmailPage.locator('[data-testid="lock-in-button"]');
 			await gmailLockInButton.click();
 			await gmailPage.waitForTimeout(500);
 
-			// Then: "SendWave" should see "5 players remaining"
-			await expect(remainingCount).toContainText('5', { timeout: 2000 });
+			// Then: "SendWave" should see "3 players remaining"
+			await expect(remainingCount).toContainText('3', { timeout: 2000 });
 
 			await sendWavePage.close();
 			await mailMonkeyPage.close();
@@ -289,7 +301,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			// Then: all players should see warning message
 			const warningMessage = alicePage.locator('[data-testid="timer-warning"]');
 			await expect(warningMessage).toBeVisible();
-			await expect(warningMessage).toContainText('Decisions will be automatically locked');
+			await expect(warningMessage).toContainText('Decisions will be locked automatically');
 			await expect(warningMessage).toContainText('15');
 
 			// And: warning should persist until timer expires
@@ -314,10 +326,14 @@ test.describe('Feature: Decision Lock-In', () => {
 			});
 			await alicePage.waitForTimeout(500);
 
-			// When: timer expires (simulate via test API)
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.triggerAutoLock();
+			// When: timer expires - trigger auto-lock directly
+			const roomCode = await alicePage.evaluate(() => {
+				const url = window.location.pathname;
+				return url.split('/')[2];
 			});
+			await alicePage.evaluate(async ({ rc }) => {
+				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+			}, { rc: roomCode });
 			await alicePage.waitForTimeout(1000);
 
 			// Then: "SendWave" decisions should be auto-locked as-is
@@ -342,22 +358,37 @@ test.describe('Feature: Decision Lock-In', () => {
 			// And: "SendWave" has budget of 1000 credits, already spent 690 (310 remaining)
 			// And: pending onboarding costs total 610 credits (3 warm-ups + 2 list hygiene)
 			// Total would be 690 + 610 = 1300 credits (exceeding budget by 300)
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setCredits(1000); // Total budget
-				(window as any).__espDashboardTest.setSpentCredits(690); // Already committed
-				// Pending onboarding: 3 warm-ups (450cr) + 2 list hygiene (160cr) = 610cr
-				(window as any).__espDashboardTest.setPendingOnboarding({
-					'client-premium': { warmUp: true, listHygiene: true }, // 230cr
-					'client-startup': { warmUp: true, listHygiene: true }, // 230cr
-					'client-c': { warmUp: true, listHygiene: false } // 150cr
-				}); // Total 610cr, only 310cr remaining → over by 300cr
+
+			// Get room code for API calls
+			const roomCode = await alicePage.evaluate(() => {
+				const url = window.location.pathname;
+				return url.split('/')[2]; // Extract from /game/[roomCode]/esp/sendwave
 			});
+
+			// Set up test state via test API
+			await alicePage.evaluate(async ({ rc }) => {
+				await fetch(`/api/test/set-team-state`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						roomCode: rc,
+						teamName: 'SendWave',
+						credits: 1000,
+						budget: 690, // Already committed costs
+						pending_onboarding_decisions: {
+							'client-premium': { warmUp: true, listHygiene: true }, // 230cr
+							'client-startup': { warmUp: true, listHygiene: true }, // 230cr
+							'client-c': { warmUp: true, listHygiene: false } // 150cr
+						} // Total: 690 + 610 = 1300 > 1000 (exceeds by 300cr)
+					})
+				});
+			}, { rc: roomCode });
 			await alicePage.waitForTimeout(500);
 
-			// When: timer expires
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.triggerAutoLock();
-			});
+			// When: timer expires - trigger auto-lock directly
+			await alicePage.evaluate(async ({ rc }) => {
+				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+			}, { rc: roomCode });
 			await alicePage.waitForTimeout(1000);
 
 			// Then: system should auto-correct "SendWave" onboarding options to fit budget
@@ -386,10 +417,14 @@ test.describe('Feature: Decision Lock-In', () => {
 			});
 			await alicePage.waitForTimeout(500);
 
-			// When: timer expires
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.triggerAutoLock();
+			// When: timer expires - trigger auto-lock directly
+			const roomCode = await alicePage.evaluate(() => {
+				const url = window.location.pathname;
+				return url.split('/')[2];
 			});
+			await alicePage.evaluate(async ({ rc }) => {
+				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+			}, { rc: roomCode });
 			await alicePage.waitForTimeout(1000);
 
 			// Then: "SendWave" should be auto-locked with empty decisions
@@ -413,8 +448,14 @@ test.describe('Feature: Decision Lock-In', () => {
 			context
 		}) => {
 			// Given: there are 6 total players (5 ESP + 1 Destination)
-			const { sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage } =
-				await createGameWith5ESPTeams(page, context);
+			const {
+				sendWavePage,
+				mailMonkeyPage,
+				bluePostPage,
+				sendBoltPage,
+				rocketMailPage,
+				gmailPage
+			} = await createGameWith5ESPTeams(page, context);
 
 			// And: Planning Phase timer shows 2:30 remaining (timer still running)
 
@@ -475,10 +516,13 @@ test.describe('Feature: Decision Lock-In', () => {
 
 			// When: timer expires and auto-locks remaining players
 			// Trigger auto-lock via server-side call (simulating timer expiry)
-			await alicePage.evaluate(async ({ rc }) => {
-				// Call auto-lock endpoint
-				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
-			}, { rc: roomCode });
+			await alicePage.evaluate(
+				async ({ rc }) => {
+					// Call auto-lock endpoint
+					await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+				},
+				{ rc: roomCode }
+			);
 			await alicePage.waitForTimeout(1000);
 
 			// Then: Planning Phase should end
@@ -528,7 +572,9 @@ test.describe('Feature: Decision Lock-In', () => {
 			);
 
 			// Then: "SendWave" should still see their locked state
-			const reconnectedConfirmation = reconnectedPage.locator('[data-testid="lock-in-confirmation"]');
+			const reconnectedConfirmation = reconnectedPage.locator(
+				'[data-testid="lock-in-confirmation"]'
+			);
 			await expect(reconnectedConfirmation).toBeVisible();
 
 			// And: "SendWave" dashboard should remain read-only
@@ -573,9 +619,28 @@ test.describe('Feature: Decision Lock-In', () => {
 		});
 
 		test('Scenario: ESP dashboard becomes read-only after lock-in', async ({ page, context }) => {
-			// Given: "SendWave" has locked in their decisions
+			// Given: "SendWave" has acquired at least one client
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
+			// First, acquire a client from the marketplace
+			const marketplaceButton = alicePage.locator('[data-testid="open-client-marketplace"]');
+			await marketplaceButton.click();
+
+			// Wait for modal to fully open and animations to complete
+			await alicePage.waitForSelector('[data-testid="marketplace-modal"]', { state: 'visible' });
+			await alicePage.waitForTimeout(500);
+
+			// Acquire the first available client
+			const acquireButton = alicePage.locator('button:has-text("Acquire Client")').first();
+			await acquireButton.click();
+			await alicePage.waitForTimeout(500);
+
+			// Close marketplace modal
+			const closeButton = alicePage.locator('[data-testid="close-modal"]').first();
+			await closeButton.click();
+			await alicePage.waitForTimeout(300);
+
+			// And: "SendWave" has locked in their decisions
 			await alicePage.locator('[data-testid="lock-in-button"]').click();
 			await alicePage.waitForTimeout(500);
 
@@ -601,7 +666,9 @@ test.describe('Feature: Decision Lock-In', () => {
 			const warmUpCheckbox = alicePage.locator('[data-testid="warm-up-checkbox"]').first();
 			await expect(warmUpCheckbox).toBeDisabled();
 
-			const listHygieneCheckbox = alicePage.locator('[data-testid="list-hygiene-checkbox"]').first();
+			const listHygieneCheckbox = alicePage
+				.locator('[data-testid="list-hygiene-checkbox"]')
+				.first();
 			await expect(listHygieneCheckbox).toBeDisabled();
 
 			// And: Status change buttons should be disabled
@@ -628,9 +695,9 @@ test.describe('Feature: Decision Lock-In', () => {
 			// When: "Gmail" views their Destination dashboard
 
 			// But: Modals can still be opened for viewing (if clicked programmatically)
-		// But: Modals can still be opened for viewing (buttons remain enabled)
-		// Click filtering controls button
-		await gmailPage.click('[data-testid="filtering-controls-button"]');
+			// But: Modals can still be opened for viewing (buttons remain enabled)
+			// Click filtering controls button
+			await gmailPage.click('[data-testid="filtering-controls-button"]');
 			await gmailPage.waitForTimeout(300);
 
 			// Then: Modal should open with "View Only" banner
@@ -678,10 +745,14 @@ test.describe('Feature: Decision Lock-In', () => {
 			// Given: Planning Phase timer expires
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-			// When: auto-lock occurs
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.triggerAutoLock();
+			// When: auto-lock occurs - trigger auto-lock directly
+			const roomCode = await alicePage.evaluate(() => {
+				const url = window.location.pathname;
+				return url.split('/')[2];
 			});
+			await alicePage.evaluate(async ({ rc }) => {
+				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+			}, { rc: roomCode });
 			await alicePage.waitForTimeout(1000);
 
 			// Then: system should log auto-lock events
@@ -698,17 +769,37 @@ test.describe('Feature: Decision Lock-In', () => {
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 			// And: "SendWave" has invalid decisions (budget exceeded by pending onboarding options)
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setCredits(1000);
-				(window as any).__espDashboardTest.setCommittedCosts(690);
-				(window as any).__espDashboardTest.setPendingOnboardingCosts(610);
+
+			// Get room code for API calls
+			const roomCode = await alicePage.evaluate(() => {
+				const url = window.location.pathname;
+				return url.split('/')[2]; // Extract from /game/[roomCode]/esp/sendwave
 			});
+
+			// Set up test state via test API
+			await alicePage.evaluate(async ({ rc }) => {
+				await fetch(`/api/test/set-team-state`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						roomCode: rc,
+						teamName: 'SendWave',
+						credits: 1000,
+						budget: 690, // Already committed costs
+						pending_onboarding_decisions: {
+							'client-premium': { warmUp: true, listHygiene: true }, // 230cr
+							'client-startup': { warmUp: true, listHygiene: true }, // 230cr
+							'client-c': { warmUp: true, listHygiene: false } // 150cr
+						} // Total: 690 + 610 = 1300 > 1000 (exceeds by 300cr)
+					})
+				});
+			}, { rc: roomCode });
 			await alicePage.waitForTimeout(500);
 
-			// When: auto-lock corrects decisions
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.triggerAutoLock();
-			});
+			// When: auto-lock corrects decisions - trigger auto-lock directly
+			await alicePage.evaluate(async ({ rc }) => {
+				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+			}, { rc: roomCode });
 			await alicePage.waitForTimeout(1000);
 
 			// Then: system should log auto-correction with details

@@ -41,7 +41,12 @@
 	{#if mounted}
 		<div
 			class="mb-6 flex items-center gap-4 border-b-2 border-[#E5E7EB] pb-4"
-			in:fly={{ y: -20, duration: 500, delay: slotType === 'Destination' ? 100 : 0, easing: quintOut }}
+			in:fly={{
+				y: -20,
+				duration: 500,
+				delay: slotType === 'Destination' ? 100 : 0,
+				easing: quintOut
+			}}
 		>
 			<div
 				class="flex h-12 w-12 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#D1FAE5] to-[#A7F3D0] text-2xl"

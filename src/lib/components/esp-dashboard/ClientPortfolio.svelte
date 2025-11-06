@@ -22,10 +22,11 @@
 
 	interface Props {
 		clients?: Client[];
+		pendingDecisions?: number;
 		onMarketplaceClick?: () => void;
 	}
 
-	let { clients = [], onMarketplaceClick }: Props = $props();
+	let { clients = [], pendingDecisions = 0, onMarketplaceClick }: Props = $props();
 
 	// Count active clients
 	let activeClientCount = $derived(clients.filter((c) => c.status === 'Active').length);
@@ -47,11 +48,22 @@
 
 <div class="bg-white rounded-xl shadow-md p-6">
 	<!-- Header with Client Count -->
-	<div
-		data-testid="portfolio-header"
-		class="flex items-center justify-between mb-4"
-	>
-		<h2 class="text-lg font-bold text-gray-800">Active Portfolio</h2>
+	<div data-testid="portfolio-header" class="flex items-center justify-between mb-4">
+		<div class="flex items-center gap-3">
+			<h2 class="text-lg font-bold text-gray-800">Active Portfolio</h2>
+			{#if pendingDecisions > 0}
+				<span
+					data-testid="pending-decisions-badge"
+					class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-300"
+					title="{pendingDecisions} client{pendingDecisions === 1
+						? ''
+						: 's'} with pending onboarding options"
+				>
+					<span class="mr-1">⏳</span>
+					{pendingDecisions} pending
+				</span>
+			{/if}
+		</div>
 		<span class="text-sm text-gray-600">
 			{activeClientCount} active {activeClientCount === 1 ? 'client' : 'clients'}
 		</span>
@@ -92,8 +104,7 @@
 									<h3 class="font-semibold text-gray-800">{client.name}</h3>
 									<span
 										data-testid="client-status-badge-{index}"
-										class="px-2 py-1 rounded-full text-xs font-medium {client.status ===
-										'Active'
+										class="px-2 py-1 rounded-full text-xs font-medium {client.status === 'Active'
 											? 'bg-green-100 text-green-700'
 											: 'bg-orange-100 text-orange-700'}"
 									>

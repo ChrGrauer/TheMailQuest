@@ -1,5 +1,6 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { getSession } from '$lib/server/game/session-manager';
+import { getRemainingPlayersCount } from '$lib/server/game/lock-in-manager';
 import { gameLogger } from '$lib/server/logger';
 
 /**
@@ -43,9 +44,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	}
 
 	// Find the ESP team (case-insensitive)
-	const team = session.esp_teams.find(
-		(t) => t.name.toLowerCase() === teamName.toLowerCase()
-	);
+	const team = session.esp_teams.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
 
 	if (!team) {
 		gameLogger.event('esp_dashboard_fetch_failed', {
@@ -76,6 +75,9 @@ export const GET: RequestHandler = async ({ params }) => {
 			!team.active_clients.includes(client.id) // Exclude already-acquired clients
 	);
 
+	// Calculate remaining players count (US-3.2)
+	const remainingPlayersCount = getRemainingPlayersCount(session);
+
 	// Prepare dashboard data
 	const dashboardData = {
 		success: true,
@@ -87,12 +89,16 @@ export const GET: RequestHandler = async ({ params }) => {
 			available_clients_count: availableClients.length,
 			owned_tech_upgrades: team.owned_tech_upgrades, // US-2.3
 			client_states: team.client_states, // US-2.4
-			round_history: team.round_history
+			round_history: team.round_history,
+			locked_in: team.locked_in || false, // US-3.2
+			locked_in_at: team.locked_in_at || null, // US-3.2
+			pending_onboarding_decisions: team.pending_onboarding_decisions || {} // US-3.2
 		},
 		game: {
 			roomCode: session.roomCode,
 			current_round: session.current_round,
 			current_phase: session.current_phase,
+			remaining_players: remainingPlayersCount, // US-3.2
 			timer: session.timer
 				? {
 						duration: session.timer.duration,

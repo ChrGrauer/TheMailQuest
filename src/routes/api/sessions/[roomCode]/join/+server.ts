@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { joinGame, type JoinGameRequest } from '$lib/server/game/player-manager';
 import { getSession } from '$lib/server/game/session-manager';
 import { gameWss } from '$lib/server/websocket';
-import type { RequestHandler} from './$types';
+import type { RequestHandler } from './$types';
 
 /**
  * POST /api/sessions/[roomCode]/join

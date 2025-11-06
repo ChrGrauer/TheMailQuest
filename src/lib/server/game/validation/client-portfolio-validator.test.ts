@@ -212,7 +212,10 @@ describe('Client Portfolio Validator', () => {
 				}
 			};
 
-			const result = validateOnboardingConfig(team, 'client-001', { warmup: true, listHygiene: false });
+			const result = validateOnboardingConfig(team, 'client-001', {
+				warmup: true,
+				listHygiene: false
+			});
 
 			expect(result.canConfigure).toBe(true);
 			expect(result.reason).toBeUndefined();
@@ -241,7 +244,10 @@ describe('Client Portfolio Validator', () => {
 				}
 			};
 
-			const result = validateOnboardingConfig(team, 'client-001', { warmup: true, listHygiene: false });
+			const result = validateOnboardingConfig(team, 'client-001', {
+				warmup: true,
+				listHygiene: false
+			});
 
 			expect(result.canConfigure).toBe(false);
 			expect(result.reason).toContain('already been activated');
@@ -270,7 +276,10 @@ describe('Client Portfolio Validator', () => {
 				}
 			};
 
-			const result = validateOnboardingConfig(team, 'client-001', { warmup: true, listHygiene: true });
+			const result = validateOnboardingConfig(team, 'client-001', {
+				warmup: true,
+				listHygiene: true
+			});
 
 			expect(result.canConfigure).toBe(true);
 		});
@@ -298,7 +307,10 @@ describe('Client Portfolio Validator', () => {
 				}
 			};
 
-			const result = validateOnboardingConfig(team, 'client-001', { warmup: true, listHygiene: true });
+			const result = validateOnboardingConfig(team, 'client-001', {
+				warmup: true,
+				listHygiene: true
+			});
 
 			expect(result.canConfigure).toBe(false);
 			expect(result.reason).toContain('Insufficient credits');
@@ -329,7 +341,10 @@ describe('Client Portfolio Validator', () => {
 				}
 			};
 
-			const result = validateOnboardingConfig(team, 'client-001', { warmup: true, listHygiene: false });
+			const result = validateOnboardingConfig(team, 'client-001', {
+				warmup: true,
+				listHygiene: false
+			});
 
 			expect(result.canConfigure).toBe(true);
 		});
@@ -357,7 +372,10 @@ describe('Client Portfolio Validator', () => {
 				}
 			};
 
-			const result = validateOnboardingConfig(team, 'client-001', { warmup: false, listHygiene: true });
+			const result = validateOnboardingConfig(team, 'client-001', {
+				warmup: false,
+				listHygiene: true
+			});
 
 			expect(result.canConfigure).toBe(true);
 		});
@@ -385,7 +403,10 @@ describe('Client Portfolio Validator', () => {
 				}
 			};
 
-			const result = validateOnboardingConfig(team, 'client-001', { warmup: false, listHygiene: false });
+			const result = validateOnboardingConfig(team, 'client-001', {
+				warmup: false,
+				listHygiene: false
+			});
 
 			expect(result.canConfigure).toBe(true); // No cost, so allowed
 		});
@@ -406,7 +427,10 @@ describe('Client Portfolio Validator', () => {
 				client_states: {}
 			};
 
-			const result = validateOnboardingConfig(team, 'non-existent', { warmup: true, listHygiene: false });
+			const result = validateOnboardingConfig(team, 'non-existent', {
+				warmup: true,
+				listHygiene: false
+			});
 
 			expect(result.canConfigure).toBe(false);
 			expect(result.reason).toContain('not found');

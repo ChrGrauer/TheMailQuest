@@ -86,10 +86,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 	// SECTION 2: PURCHASE VALIDATION - DEPENDENCY ENFORCEMENT
 	// ============================================================================
 
-	test('Scenario: Enforce purchase order for authentication stack', async ({
-		page,
-		context
-	}) => {
+	test('Scenario: Enforce purchase order for authentication stack', async ({ page, context }) => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
@@ -218,10 +215,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 	// SECTION 4: OWNED UPGRADES STATE
 	// ============================================================================
 
-	test('Scenario: Display owned upgrades with distinct visual style', async ({
-		page,
-		context
-	}) => {
+	test('Scenario: Display owned upgrades with distinct visual style', async ({ page, context }) => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
@@ -353,9 +347,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 
 		// Purchase it without any dependencies
 		await contentFilteringCard.getByTestId('purchase-button').click();
-		await alicePage
-			.getByTestId('success-message')
-			.waitFor({ state: 'visible', timeout: 15000 });
+		await alicePage.getByTestId('success-message').waitFor({ state: 'visible', timeout: 15000 });
 
 		// Should now be owned
 		await expect(contentFilteringCard.getByTestId('upgrade-status')).toHaveText(/Active|Owned/i);

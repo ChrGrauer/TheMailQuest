@@ -1,6 +1,9 @@
 import { json } from '@sveltejs/kit';
 import { startGame } from '$lib/server/game/game-start-manager';
-import { allocateResources, rollbackAllocation } from '$lib/server/game/resource-allocation-manager';
+import {
+	allocateResources,
+	rollbackAllocation
+} from '$lib/server/game/resource-allocation-manager';
 import { transitionPhase } from '$lib/server/game/phase-manager';
 import { initializeTimer, calculateRemainingTime } from '$lib/server/game/timer-manager';
 import { getSession } from '$lib/server/game/session-manager';

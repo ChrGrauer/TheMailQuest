@@ -84,6 +84,14 @@ export const POST: RequestHandler = async ({ params }) => {
 			}
 		}
 
+		// Broadcast auto-lock completion to ALL players (for those without corrections)
+		gameWss.broadcastToRoom(roomCode, {
+			type: 'auto_lock_complete',
+			data: {
+				message: "Time's up! Decisions locked automatically"
+			}
+		});
+
 		gameLogger.info('Auto-lock completed - transitioning to resolution', { roomCode });
 
 		// Transition to resolution phase

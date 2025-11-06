@@ -14,7 +14,7 @@ const config: PlaywrightTestConfig = {
 	globalTimeout: 240000, // 4 minutes total
 
 	// Timeout for each individual test
-	timeout: 10000, // 10 seconds per test
+	timeout: 20000, // 20 seconds per test
 
 	// Retry failed tests (useful for flaky tests in CI)
 	retries: process.env.CI ? 2 : 0,

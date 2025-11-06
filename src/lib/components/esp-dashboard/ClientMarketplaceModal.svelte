@@ -175,7 +175,10 @@
 			<div
 				class="flex items-center justify-between px-6 py-4 border-b-2 border-gray-200 bg-white sticky top-0 z-10"
 			>
-				<h2 id="marketplace-title" class="text-2xl font-bold text-emerald-900 flex items-center gap-3">
+				<h2
+					id="marketplace-title"
+					class="text-2xl font-bold text-emerald-900 flex items-center gap-3"
+				>
 					<span>🛒</span>
 					<span>Client Marketplace</span>
 					<span class="text-sm font-normal text-gray-600">Round {currentRound}</span>
@@ -200,7 +203,9 @@
 					<span class="text-2xl" aria-hidden="true">🔒</span>
 					<div class="flex-1">
 						<p class="font-bold text-orange-900">Locked In - View Only</p>
-						<p class="text-sm text-orange-700">Your decisions are locked. You cannot acquire new clients until the next round.</p>
+						<p class="text-sm text-orange-700">
+							Your decisions are locked. You cannot acquire new clients until the next round.
+						</p>
 					</div>
 				</div>
 			{/if}
@@ -208,7 +213,7 @@
 			<!-- Success Message -->
 			{#if successMessage}
 				<div
-				data-testid="success-message"
+					data-testid="success-message"
 					class="mx-6 mt-4 p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg flex items-center gap-2"
 					transition:fly={{ y: -10, duration: 200 }}
 					role="alert"
@@ -221,7 +226,7 @@
 			<!-- Error Message -->
 			{#if error && !loading}
 				<div
-				data-testid="error-banner"
+					data-testid="error-banner"
 					class="mx-6 mt-4 p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg flex items-center justify-between"
 					transition:fly={{ y: -10, duration: 200 }}
 					role="alert"

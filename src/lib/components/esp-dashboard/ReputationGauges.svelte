@@ -115,7 +115,15 @@
 					<!-- Score Display -->
 					<div class="flex items-center gap-2">
 						<span
-							data-testid="status-icon-{status.status === 'excellent' ? 'checkmark' : status.status === 'good' ? 'thumbup' : status.status === 'warning' ? 'warning' : status.status === 'poor' ? 'exclamation' : 'prohibition'}"
+							data-testid="status-icon-{status.status === 'excellent'
+								? 'checkmark'
+								: status.status === 'good'
+									? 'thumbup'
+									: status.status === 'warning'
+										? 'warning'
+										: status.status === 'poor'
+											? 'exclamation'
+											: 'prohibition'}"
 							class="text-xl"
 							aria-hidden="true"
 						>

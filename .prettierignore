@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+
+# Build outputs
+.svelte-kit
+build
+dist
+.output
+
+# Coverage
+coverage
+.nyc_output
+
+# Logs
+*.log
+logs
+
+# OS
+.DS_Store
+
+# IDE
+.vscode
+.idea
+
+# Other
+*.md
+
+# Design mockups with mixed code
+features/designs/

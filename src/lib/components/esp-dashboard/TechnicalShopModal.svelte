@@ -33,8 +33,16 @@
 		onUpgradePurchased: (upgradeId: string, cost: number) => void;
 	}
 
-	let { show, isLockedIn = false, onClose, roomCode, teamName, currentCredits, currentRound, onUpgradePurchased }: Props =
-		$props();
+	let {
+		show,
+		isLockedIn = false,
+		onClose,
+		roomCode,
+		teamName,
+		currentCredits,
+		currentRound,
+		onUpgradePurchased
+	}: Props = $props();
 
 	let upgrades: Upgrade[] = $state([]);
 	let loading = $state(false);
@@ -116,9 +124,12 @@
 
 				// Check if purchasing this upgrade unlocks others
 				upgrades.forEach((u, idx) => {
-					if (u.status === 'Locked' && u.dependencies.every((dep) =>
-						upgrades.find((up) => up.id === dep && up.status === 'Owned')
-					)) {
+					if (
+						u.status === 'Locked' &&
+						u.dependencies.every((dep) =>
+							upgrades.find((up) => up.id === dep && up.status === 'Owned')
+						)
+					) {
 						upgrades[idx].status = 'Available';
 					}
 				});
@@ -204,10 +215,7 @@
 			<div
 				class="flex items-center justify-between px-6 py-4 border-b-2 border-gray-200 bg-white sticky top-0 z-10"
 			>
-				<h2
-					id="tech-shop-title"
-					class="text-2xl font-bold text-blue-900 flex items-center gap-3"
-				>
+				<h2 id="tech-shop-title" class="text-2xl font-bold text-blue-900 flex items-center gap-3">
 					<span>⚙️</span>
 					<span>Technical Infrastructure Shop</span>
 					<span class="text-sm font-normal text-gray-600">Round {currentRound}</span>
@@ -232,7 +240,9 @@
 					<span class="text-2xl" aria-hidden="true">🔒</span>
 					<div class="flex-1">
 						<p class="font-bold text-orange-900">Locked In - View Only</p>
-						<p class="text-sm text-orange-700">Your decisions are locked. You cannot purchase upgrades until the next round.</p>
+						<p class="text-sm text-orange-700">
+							Your decisions are locked. You cannot purchase upgrades until the next round.
+						</p>
 					</div>
 				</div>
 			{/if}

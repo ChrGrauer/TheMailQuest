@@ -245,23 +245,20 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 				);
 
 				// When: ESP has reputation at threshold value
-				await gmailPage.evaluate(
-					(rep) => {
-						(window as any).__destinationDashboardTest.setESPStats([
-							{
-								espName: 'SendWave',
-								teamCode: 'SW',
-								activeClientsCount: 4,
-								volume: '185K',
-								volumeRaw: 185000,
-								reputation: rep,
-								userSatisfaction: rep,
-								spamComplaintRate: rep >= 90 ? 0.01 : rep >= 70 ? 0.04 : rep >= 50 ? 0.08 : 0.2
-							}
-						]);
-					},
-					threshold.value
-				);
+				await gmailPage.evaluate((rep) => {
+					(window as any).__destinationDashboardTest.setESPStats([
+						{
+							espName: 'SendWave',
+							teamCode: 'SW',
+							activeClientsCount: 4,
+							volume: '185K',
+							volumeRaw: 185000,
+							reputation: rep,
+							userSatisfaction: rep,
+							spamComplaintRate: rep >= 90 ? 0.01 : rep >= 70 ? 0.04 : rep >= 50 ? 0.08 : 0.2
+						}
+					]);
+				}, threshold.value);
 
 				await gmailPage.waitForTimeout(500);
 
@@ -489,9 +486,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			await expect(outlookName).toHaveText('Outlook');
 
 			// Budgets should be different (per game configuration)
-			const gmailBudget = await gmailPage
-				.locator('[data-testid="budget-current"]')
-				.textContent();
+			const gmailBudget = await gmailPage.locator('[data-testid="budget-current"]').textContent();
 			const outlookBudget = await outlookPage
 				.locator('[data-testid="budget-current"]')
 				.textContent();
@@ -620,8 +615,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// Should have either outline or ring (box-shadow)
 			if (focusedElement) {
 				const hasOutline = focusedElement.outlineWidth !== '0px';
-				const hasRing =
-					focusedElement.boxShadow !== 'none' && focusedElement.boxShadow.length > 0;
+				const hasRing = focusedElement.boxShadow !== 'none' && focusedElement.boxShadow.length > 0;
 				expect(hasOutline || hasRing).toBeTruthy();
 			}
 
@@ -630,10 +624,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			await bobPage.close();
 		});
 
-		test('Scenario: Color-coding is accessible to color-blind users', async ({
-			page,
-			context
-		}) => {
+		test('Scenario: Color-coding is accessible to color-blind users', async ({ page, context }) => {
 			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
@@ -678,10 +669,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 	// ============================================================================
 
 	test.describe('Error Handling', () => {
-		test('Scenario: Dashboard handles errors gracefully with banner', async ({
-			page,
-			context
-		}) => {
+		test('Scenario: Dashboard handles errors gracefully with banner', async ({ page, context }) => {
 			// Given: I am viewing the Destination dashboard
 			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,

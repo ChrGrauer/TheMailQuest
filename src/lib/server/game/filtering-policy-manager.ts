@@ -43,10 +43,7 @@ export function validateFilteringLevel(level: string): level is FilteringLevel {
  * @param destination - Destination to initialize
  * @param espTeams - List of ESP teams in the game
  */
-export function initializeFilteringPolicies(
-	destination: Destination,
-	espTeams: ESPTeam[]
-): void {
+export function initializeFilteringPolicies(destination: Destination, espTeams: ESPTeam[]): void {
 	// Initialize filtering_policies object if not exists
 	if (!destination.filtering_policies) {
 		destination.filtering_policies = {};
@@ -174,8 +171,8 @@ export async function updateFilteringPolicy(
 
 	// Get the correct ESP name (with original casing from session)
 	const actualESPName =
-		session.esp_teams.find((team) => team.name.toLowerCase() === espName.toLowerCase())
-			?.name || espName;
+		session.esp_teams.find((team) => team.name.toLowerCase() === espName.toLowerCase())?.name ||
+		espName;
 
 	// Update filtering policy
 	destination.filtering_policies[actualESPName] = {

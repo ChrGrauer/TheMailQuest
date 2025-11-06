@@ -20,7 +20,12 @@
 		onFilteringClick?: () => void; // US-2.6.1
 	}
 
-	let { collaborationsCount = 0, onCoordinationClick, onTechShopClick, onFilteringClick }: Props = $props();
+	let {
+		collaborationsCount = 0,
+		onCoordinationClick,
+		onTechShopClick,
+		onFilteringClick
+	}: Props = $props();
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">

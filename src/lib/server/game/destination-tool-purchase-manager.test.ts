@@ -131,12 +131,7 @@ describe('Destination Tool Purchase Manager', () => {
 
 	describe('Spam Trap Network Special Handling', () => {
 		it('should set spam_trap_active with announcement option', () => {
-			const result = purchaseDestinationTool(
-				roomCode,
-				'Gmail',
-				'spam_trap_network',
-				'announce'
-			);
+			const result = purchaseDestinationTool(roomCode, 'Gmail', 'spam_trap_network', 'announce');
 
 			expect(result.success).toBe(true);
 			expect(result.updatedDestination?.spam_trap_active).toEqual({

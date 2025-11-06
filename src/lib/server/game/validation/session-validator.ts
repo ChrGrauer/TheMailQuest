@@ -49,8 +49,9 @@ export function canJoinSession(roomCode: string): SessionJoinValidation {
 
 	// Check if session is full (5 ESP teams + 3 destinations = 8 total slots)
 	const occupiedESPTeams = session.esp_teams.filter((team) => team.players.length > 0).length;
-	const occupiedDestinations = session.destinations.filter((dest) => dest.players.length > 0)
-		.length;
+	const occupiedDestinations = session.destinations.filter(
+		(dest) => dest.players.length > 0
+	).length;
 	const totalOccupied = occupiedESPTeams + occupiedDestinations;
 
 	if (totalOccupied >= 8) {
@@ -83,8 +84,9 @@ export function isSessionExpired(session: GameSession): boolean {
  */
 export function isSessionFull(session: GameSession): boolean {
 	const occupiedESPTeams = session.esp_teams.filter((team) => team.players.length > 0).length;
-	const occupiedDestinations = session.destinations.filter((dest) => dest.players.length > 0)
-		.length;
+	const occupiedDestinations = session.destinations.filter(
+		(dest) => dest.players.length > 0
+	).length;
 	const totalOccupied = occupiedESPTeams + occupiedDestinations;
 	return totalOccupied >= 8;
 }

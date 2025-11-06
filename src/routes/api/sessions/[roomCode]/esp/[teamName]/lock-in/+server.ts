@@ -100,6 +100,16 @@ export const POST: RequestHandler = async ({ params }) => {
 		}
 	});
 
+	// Broadcast updated credits and cleared pending decisions
+	gameWss.broadcastToRoom(roomCode, {
+		type: 'esp_dashboard_update',
+		data: {
+			teamName,
+			credits: team.credits,
+			pending_onboarding_decisions: {}
+		}
+	});
+
 	// Broadcast player_locked_in to all players in room
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'player_locked_in',

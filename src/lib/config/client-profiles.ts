@@ -158,9 +158,7 @@ export function validateClientDistribution(): boolean {
 export function validateClientNames(): boolean {
 	const expected = 13;
 	if (CLIENT_NAMES.length !== expected) {
-		throw new Error(
-			`Invalid client names: expected ${expected} names, got ${CLIENT_NAMES.length}`
-		);
+		throw new Error(`Invalid client names: expected ${expected} names, got ${CLIENT_NAMES.length}`);
 	}
 	return true;
 }

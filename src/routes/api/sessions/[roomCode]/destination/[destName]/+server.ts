@@ -1,5 +1,6 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { getSession } from '$lib/server/game/session-manager';
+import { getRemainingPlayersCount } from '$lib/server/game/lock-in-manager';
 import { gameLogger } from '$lib/server/logger';
 import type { ESPDestinationStats } from '$lib/server/game/types';
 import { formatVolume } from '$lib/config/metrics-thresholds';
@@ -80,6 +81,9 @@ export const GET: RequestHandler = async ({ params }) => {
 	// Count active collaborations (placeholder for now - will be implemented in US-2.7)
 	const collaborationsCount = 0;
 
+	// Calculate remaining players count (US-3.2)
+	const remainingPlayersCount = getRemainingPlayersCount(session);
+
 	// Prepare dashboard data
 	const dashboardData = {
 		success: true,
@@ -94,12 +98,16 @@ export const GET: RequestHandler = async ({ params }) => {
 			owned_tools: destination.owned_tools || [],
 			authentication_level: destination.authentication_level || 0,
 			// US-2.6.1: Filtering Controls
-			filtering_policies: destination.filtering_policies || {}
+			filtering_policies: destination.filtering_policies || {},
+			// US-3.2: Lock-in state
+			locked_in: destination.locked_in || false,
+			locked_in_at: destination.locked_in_at || null
 		},
 		game: {
 			roomCode: session.roomCode,
 			current_round: session.current_round,
 			current_phase: session.current_phase,
+			remaining_players: remainingPlayersCount, // US-3.2
 			timer: session.timer
 				? {
 						duration: session.timer.duration,

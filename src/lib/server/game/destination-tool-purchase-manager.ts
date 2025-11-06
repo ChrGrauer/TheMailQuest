@@ -10,7 +10,10 @@
  */
 
 import { getSession, updateActivity } from './session-manager';
-import { validateToolPurchase, getValidationErrorMessage } from './validation/destination-tool-validator';
+import {
+	validateToolPurchase,
+	getValidationErrorMessage
+} from './validation/destination-tool-validator';
 import { getDestinationTool } from '$lib/config/destination-technical-upgrades';
 import type { DestinationToolPurchaseResult } from './types';
 import { gameLogger } from '../logger';

@@ -123,9 +123,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// And: the forecast should be visually distinct from current budget
 			const currentBudget = alicePage.locator('[data-testid="budget-current"]');
-			const forecastStyles = await forecastElement.evaluate((el) =>
-				window.getComputedStyle(el)
-			);
+			const forecastStyles = await forecastElement.evaluate((el) => window.getComputedStyle(el));
 			const currentStyles = await currentBudget.evaluate((el) => window.getComputedStyle(el));
 
 			// Forecast should have different styling (opacity, color, etc.)
@@ -295,10 +293,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			await bobPage.close();
 		});
 
-		test('Scenario: Destination weight is displayed with reputation', async ({
-			page,
-			context
-		}) => {
+		test('Scenario: Destination weight is displayed with reputation', async ({ page, context }) => {
 			// Given: ESP team "SendWave" is viewing reputation gauges
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
@@ -403,9 +398,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Then: the portfolio section should display a message
 			const emptyMessage = alicePage.locator('[data-testid="portfolio-empty-state"]');
 			await expect(emptyMessage).toBeVisible();
-			await expect(emptyMessage).toContainText(
-				/No clients yet.*Visit the Client Marketplace/i
-			);
+			await expect(emptyMessage).toContainText(/No clients yet.*Visit the Client Marketplace/i);
 
 			// And: there should be a clear call-to-action to access the marketplace
 			const ctaButton = alicePage.locator('[data-testid="cta-marketplace"]');
@@ -671,12 +664,9 @@ test.describe('Feature: ESP Team Dashboard', () => {
 				const timerElement = alicePage.locator('[data-testid="game-timer"]');
 
 				// When: the timer reaches the threshold
-				await alicePage.evaluate(
-					(s) => {
-						(window as any).__espDashboardTest.setTimer(s);
-					},
-					threshold.seconds
-				);
+				await alicePage.evaluate((s) => {
+					(window as any).__espDashboardTest.setTimer(s);
+				}, threshold.seconds);
 
 				// Wait for front-end to process the update
 				await alicePage.waitForTimeout(500);
@@ -786,7 +776,9 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// When: player "Alice" looks for ways to make decisions
 			// Then: there should be prominent quick action buttons
-			const marketplaceButton = alicePage.locator('[data-testid="quick-action-client-marketplace"]');
+			const marketplaceButton = alicePage.locator(
+				'[data-testid="quick-action-client-marketplace"]'
+			);
 			const techShopButton = alicePage.locator('[data-testid="quick-action-tech-shop"]');
 			const clientMgmtButton = alicePage.locator('[data-testid="quick-action-client-mgmt"]');
 
@@ -807,10 +799,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			await bobPage.close();
 		});
 
-		test('Scenario: Lock-in button is visible during planning phase', async ({
-			page,
-			context
-		}) => {
+		test('Scenario: Lock-in button is visible during planning phase', async ({ page, context }) => {
 			// Given: the game is in "planning" phase
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
@@ -933,10 +922,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 	// ============================================================================
 
 	test.describe('Accessibility', () => {
-		test('Scenario: Color-coding is accessible to color-blind users', async ({
-			page,
-			context
-		}) => {
+		test('Scenario: Color-coding is accessible to color-blind users', async ({ page, context }) => {
 			// Given: player "Alice" has color vision deficiency
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
@@ -986,7 +972,9 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Then: focus should move logically and all interactive elements should be reachable
 
 			// Test 1: Quick action buttons should be focusable
-			const marketplaceButton = alicePage.locator('[data-testid="quick-action-client-marketplace"]');
+			const marketplaceButton = alicePage.locator(
+				'[data-testid="quick-action-client-marketplace"]'
+			);
 			await marketplaceButton.focus();
 			let isFocused = await marketplaceButton.evaluate((el) => document.activeElement === el);
 			expect(isFocused).toBe(true);
@@ -1087,7 +1075,9 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// When: the game state becomes corrupted or invalid
 			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setError('Game state sync error. Please refresh the page.');
+				(window as any).__espDashboardTest.setError(
+					'Game state sync error. Please refresh the page.'
+				);
 			});
 
 			// Wait for front-end to process the error

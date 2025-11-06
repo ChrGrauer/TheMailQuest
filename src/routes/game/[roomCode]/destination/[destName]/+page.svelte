@@ -126,6 +126,7 @@
 
 			currentRound = data.game.current_round;
 			currentPhase = data.game.current_phase;
+			remainingPlayers = data.game.remaining_players || 0; // US-3.2
 
 			if (data.game.timer) {
 				timerDuration = data.game.timer.duration;
@@ -187,6 +188,11 @@
 			}
 		}
 
+		if (messageType === 'auto_lock_complete') {
+			// Auto-lock completed
+			autoLockMessage = update.data?.message || "Time's up! Decisions locked automatically";
+		}
+
 		if (messageType === 'phase_transition') {
 			// Phase transition (e.g., to resolution)
 			if (update.data?.phase) {
@@ -203,8 +209,6 @@
 					phaseTransitionMessage = null;
 				}, 5000);
 			}
-			// Clear auto-lock message when phase changes
-			autoLockMessage = null;
 		}
 	}
 
@@ -225,7 +229,8 @@
 
 		// Tech Shop updates (US-2.6.2)
 		if (update.owned_tools !== undefined) ownedTools = update.owned_tools;
-		if (update.authentication_level !== undefined) authenticationLevel = update.authentication_level;
+		if (update.authentication_level !== undefined)
+			authenticationLevel = update.authentication_level;
 
 		// Filtering Controls updates (US-2.6.1)
 		if (update.filtering_policies !== undefined) filteringPolicies = update.filtering_policies;
@@ -360,7 +365,8 @@
 				closeFilteringControls: () => (showFilteringControls = false),
 				getFilteringControlsOpen: () => showFilteringControls,
 				getFilteringPolicies: () => filteringPolicies,
-				setFilteringPolicies: (value: Record<string, FilteringPolicy>) => (filteringPolicies = value),
+				setFilteringPolicies: (value: Record<string, FilteringPolicy>) =>
+					(filteringPolicies = value),
 
 				// Lock-in test API (US-3.2)
 				setLockedIn: (locked: boolean) => {
@@ -437,7 +443,7 @@
 		<DashboardHeader
 			entityName={destinationName}
 			currentBudget={budget}
-			currentRound={currentRound}
+			{currentRound}
 			totalRounds={4}
 			timerSeconds={timerRemaining}
 			theme="blue"
@@ -445,7 +451,6 @@
 
 		<!-- Dashboard Content -->
 		<div class="container mx-auto px-4 py-6 max-w-7xl">
-
 			<!-- Quick Actions -->
 			<DestinationQuickActions
 				{collaborationsCount}
@@ -475,9 +480,9 @@
 			<!-- Lock In Button -->
 			<LockInButton
 				phase={currentPhase}
-				isLockedIn={isLockedIn}
-				remainingPlayers={remainingPlayers}
-				autoLockMessage={autoLockMessage}
+				{isLockedIn}
+				{remainingPlayers}
+				{autoLockMessage}
 				onLockIn={handleLockIn}
 			/>
 
@@ -510,7 +515,7 @@
 <!-- Filtering Controls Modal (US-2.6.1) -->
 <FilteringControlsModal
 	bind:show={showFilteringControls}
-	isLockedIn={isLockedIn}
+	{isLockedIn}
 	{roomCode}
 	{destName}
 	espTeams={espTeamsForFiltering}

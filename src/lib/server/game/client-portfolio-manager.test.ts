@@ -164,7 +164,9 @@ describe('Client Portfolio Manager', () => {
 			// Should return new team object
 			expect(result.team).not.toBe(team);
 			expect(result.team?.client_states).not.toBe(team.client_states);
-			expect(result.team?.client_states?.['client-001']).not.toBe(team.client_states?.['client-001']);
+			expect(result.team?.client_states?.['client-001']).not.toBe(
+				team.client_states?.['client-001']
+			);
 		});
 	});
 
@@ -408,16 +410,61 @@ describe('Client Portfolio Manager', () => {
 				round_history: [],
 				available_clients: [],
 				client_states: {
-					'client-001': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: 1 },
-					'client-002': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: 1 },
-					'client-003': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: 1 }
+					'client-001': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					},
+					'client-002': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					},
+					'client-003': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					}
 				}
 			};
 
 			const clients: Client[] = [
-				{ id: 'client-001', name: 'Client 1', type: 'growing_startup', cost: 150, revenue: 200, volume: 50000, risk: 'Medium', spam_rate: 1.2, available_from_round: 1 },
-				{ id: 'client-002', name: 'Client 2', type: 'growing_startup', cost: 150, revenue: 180, volume: 40000, risk: 'Medium', spam_rate: 1.2, available_from_round: 1 },
-				{ id: 'client-003', name: 'Client 3', type: 'premium_brand', cost: 300, revenue: 150, volume: 30000, risk: 'Low', spam_rate: 0.5, available_from_round: 1 }
+				{
+					id: 'client-001',
+					name: 'Client 1',
+					type: 'growing_startup',
+					cost: 150,
+					revenue: 200,
+					volume: 50000,
+					risk: 'Medium',
+					spam_rate: 1.2,
+					available_from_round: 1
+				},
+				{
+					id: 'client-002',
+					name: 'Client 2',
+					type: 'growing_startup',
+					cost: 150,
+					revenue: 180,
+					volume: 40000,
+					risk: 'Medium',
+					spam_rate: 1.2,
+					available_from_round: 1
+				},
+				{
+					id: 'client-003',
+					name: 'Client 3',
+					type: 'premium_brand',
+					cost: 300,
+					revenue: 150,
+					volume: 30000,
+					risk: 'Low',
+					spam_rate: 0.5,
+					available_from_round: 1
+				}
 			];
 
 			const revenue = calculateRevenuePreview(team, clients);
@@ -439,16 +486,61 @@ describe('Client Portfolio Manager', () => {
 				round_history: [],
 				available_clients: [],
 				client_states: {
-					'client-001': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: 1 },
-					'client-002': { status: 'Paused', has_warmup: false, has_list_hygiene: false, first_active_round: 1 },
-					'client-003': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: 1 }
+					'client-001': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					},
+					'client-002': {
+						status: 'Paused',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					},
+					'client-003': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					}
 				}
 			};
 
 			const clients: Client[] = [
-				{ id: 'client-001', name: 'Client 1', type: 'growing_startup', cost: 150, revenue: 200, volume: 50000, risk: 'Medium', spam_rate: 1.2, available_from_round: 1 },
-				{ id: 'client-002', name: 'Client 2', type: 'growing_startup', cost: 150, revenue: 180, volume: 40000, risk: 'Medium', spam_rate: 1.2, available_from_round: 1 },
-				{ id: 'client-003', name: 'Client 3', type: 'premium_brand', cost: 300, revenue: 150, volume: 30000, risk: 'Low', spam_rate: 0.5, available_from_round: 1 }
+				{
+					id: 'client-001',
+					name: 'Client 1',
+					type: 'growing_startup',
+					cost: 150,
+					revenue: 200,
+					volume: 50000,
+					risk: 'Medium',
+					spam_rate: 1.2,
+					available_from_round: 1
+				},
+				{
+					id: 'client-002',
+					name: 'Client 2',
+					type: 'growing_startup',
+					cost: 150,
+					revenue: 180,
+					volume: 40000,
+					risk: 'Medium',
+					spam_rate: 1.2,
+					available_from_round: 1
+				},
+				{
+					id: 'client-003',
+					name: 'Client 3',
+					type: 'premium_brand',
+					cost: 300,
+					revenue: 150,
+					volume: 30000,
+					risk: 'Low',
+					spam_rate: 0.5,
+					available_from_round: 1
+				}
 			];
 
 			const revenue = calculateRevenuePreview(team, clients);
@@ -470,14 +562,44 @@ describe('Client Portfolio Manager', () => {
 				round_history: [],
 				available_clients: [],
 				client_states: {
-					'client-001': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: 1 },
-					'client-002': { status: 'Suspended', has_warmup: false, has_list_hygiene: false, first_active_round: 1 }
+					'client-001': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					},
+					'client-002': {
+						status: 'Suspended',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					}
 				}
 			};
 
 			const clients: Client[] = [
-				{ id: 'client-001', name: 'Client 1', type: 'growing_startup', cost: 150, revenue: 200, volume: 50000, risk: 'Medium', spam_rate: 1.2, available_from_round: 1 },
-				{ id: 'client-002', name: 'Client 2', type: 'growing_startup', cost: 150, revenue: 180, volume: 40000, risk: 'Medium', spam_rate: 1.2, available_from_round: 1 }
+				{
+					id: 'client-001',
+					name: 'Client 1',
+					type: 'growing_startup',
+					cost: 150,
+					revenue: 200,
+					volume: 50000,
+					risk: 'Medium',
+					spam_rate: 1.2,
+					available_from_round: 1
+				},
+				{
+					id: 'client-002',
+					name: 'Client 2',
+					type: 'growing_startup',
+					cost: 150,
+					revenue: 180,
+					volume: 40000,
+					risk: 'Medium',
+					spam_rate: 1.2,
+					available_from_round: 1
+				}
 			];
 
 			const revenue = calculateRevenuePreview(team, clients);
@@ -499,12 +621,27 @@ describe('Client Portfolio Manager', () => {
 				round_history: [],
 				available_clients: [],
 				client_states: {
-					'client-001': { status: 'Paused', has_warmup: false, has_list_hygiene: false, first_active_round: 1 }
+					'client-001': {
+						status: 'Paused',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					}
 				}
 			};
 
 			const clients: Client[] = [
-				{ id: 'client-001', name: 'Client 1', type: 'growing_startup', cost: 150, revenue: 200, volume: 50000, risk: 'Medium', spam_rate: 1.2, available_from_round: 1 }
+				{
+					id: 'client-001',
+					name: 'Client 1',
+					type: 'growing_startup',
+					cost: 150,
+					revenue: 200,
+					volume: 50000,
+					risk: 'Medium',
+					spam_rate: 1.2,
+					available_from_round: 1
+				}
 			];
 
 			const revenue = calculateRevenuePreview(team, clients);
@@ -532,7 +669,12 @@ describe('Client Portfolio Manager', () => {
 				round_history: [],
 				available_clients: [],
 				client_states: {
-					'client-001': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: null }
+					'client-001': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
 				}
 			};
 
@@ -556,12 +698,20 @@ describe('Client Portfolio Manager', () => {
 				round_history: [],
 				available_clients: [],
 				client_states: {
-					'client-001': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: null }
+					'client-001': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
 				}
 			};
 
 			// Configure onboarding first (deducts 230 credits)
-			const configured = configureOnboarding(team, 'client-001', { warmup: true, listHygiene: true });
+			const configured = configureOnboarding(team, 'client-001', {
+				warmup: true,
+				listHygiene: true
+			});
 
 			// Calculate forecast
 			const forecast = calculateBudgetForecast(configured.team!);
@@ -584,12 +734,20 @@ describe('Client Portfolio Manager', () => {
 				round_history: [],
 				available_clients: [],
 				client_states: {
-					'client-001': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: null }
+					'client-001': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
 				}
 			};
 
 			// Configure expensive onboarding (230 cost)
-			const configured = configureOnboarding(team, 'client-001', { warmup: true, listHygiene: true });
+			const configured = configureOnboarding(team, 'client-001', {
+				warmup: true,
+				listHygiene: true
+			});
 
 			expect(configured.success).toBe(true);
 			const forecast = calculateBudgetForecast(configured.team!);
@@ -612,8 +770,18 @@ describe('Client Portfolio Manager', () => {
 				round_history: [],
 				available_clients: [],
 				client_states: {
-					'client-001': { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: 1 },
-					'client-002': { status: 'Paused', has_warmup: false, has_list_hygiene: false, first_active_round: 1 }
+					'client-001': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					},
+					'client-002': {
+						status: 'Paused',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: 1
+					}
 				}
 			};
 

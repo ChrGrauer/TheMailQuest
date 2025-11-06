@@ -140,7 +140,8 @@ export function initializeTimer(request: TimerInitializeRequest): TimerInitializ
 			phase: session.current_phase,
 			duration,
 			expectedEnd: expectedEnd.toISOString(),
-			clientsCount: session.esp_teams.filter((t) => t.players.length > 0).length +
+			clientsCount:
+				session.esp_teams.filter((t) => t.players.length > 0).length +
 				session.destinations.filter((d) => d.players.length > 0).length
 		});
 

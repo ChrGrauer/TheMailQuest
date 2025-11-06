@@ -161,9 +161,7 @@ export function getPurchaseSummary(
 	const session = getSession(roomCode);
 	if (!session) return null;
 
-	const team = session.esp_teams.find(
-		(t) => t.name.toLowerCase() === teamName.toLowerCase()
-	);
+	const team = session.esp_teams.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
 
 	if (!team) return null;
 

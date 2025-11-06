@@ -12,7 +12,11 @@
  */
 
 import type { ESPTeam, Client, ClientState } from './types';
-import { WARMUP_COST, LIST_HYGIENE_COST, calculateOnboardingCost } from '$lib/config/client-onboarding';
+import {
+	WARMUP_COST,
+	LIST_HYGIENE_COST,
+	calculateOnboardingCost
+} from '$lib/config/client-onboarding';
 
 /**
  * Result type for toggle status operation
@@ -130,7 +134,8 @@ export function configureOnboarding(
 	if (currentState.first_active_round !== null) {
 		return {
 			success: false,
-			error: 'Onboarding options only available for clients that have not been activated yet. This client has already been activated.'
+			error:
+				'Onboarding options only available for clients that have not been activated yet. This client has already been activated.'
 		};
 	}
 
@@ -178,7 +183,7 @@ export function configureOnboarding(
 export function getClientWithState(
 	team: ESPTeam,
 	client: Client
-): Client & ClientState | undefined {
+): (Client & ClientState) | undefined {
 	if (!team.client_states || !team.client_states[client.id]) {
 		return undefined;
 	}

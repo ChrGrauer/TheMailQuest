@@ -57,14 +57,11 @@
 		error = null;
 
 		try {
-			const response = await fetch(
-				`/api/sessions/${roomCode}/destination/${destName}/filtering`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ espName, level })
-				}
-			);
+			const response = await fetch(`/api/sessions/${roomCode}/destination/${destName}/filtering`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ espName, level })
+			});
 
 			const data = await response.json();
 
@@ -155,7 +152,9 @@
 					<span class="text-2xl" aria-hidden="true">🔒</span>
 					<div class="flex-1">
 						<p class="font-bold text-orange-900">Locked In - View Only</p>
-						<p class="text-sm text-orange-700">Your decisions are locked. You cannot modify filtering policies until the next round.</p>
+						<p class="text-sm text-orange-700">
+							Your decisions are locked. You cannot modify filtering policies until the next round.
+						</p>
 					</div>
 				</div>
 			{/if}
@@ -212,7 +211,10 @@
 				{#if loading && Object.keys(localPolicies).length === 0}
 					<div class="flex items-center justify-center py-12">
 						<div class="text-center">
-							<div class="inline-block w-12 h-12 border-4 border-gray-300 border-t-emerald-600 rounded-full animate-spin mb-4" aria-hidden="true"></div>
+							<div
+								class="inline-block w-12 h-12 border-4 border-gray-300 border-t-emerald-600 rounded-full animate-spin mb-4"
+								aria-hidden="true"
+							></div>
 							<p class="text-gray-600">Loading filtering controls...</p>
 						</div>
 					</div>
@@ -233,7 +235,7 @@
 									satisfaction={esp.satisfaction}
 									spamRate={esp.spamRate}
 									currentPolicy={policy}
-									isLockedIn={isLockedIn}
+									{isLockedIn}
 									onFilterChange={handleFilterChange}
 								/>
 							{/if}
@@ -244,9 +246,15 @@
 
 			<!-- Loading Overlay -->
 			{#if loading}
-				<div class="absolute inset-0 bg-white/50 flex items-center justify-center" transition:fade={{ duration: 150 }}>
+				<div
+					class="absolute inset-0 bg-white/50 flex items-center justify-center"
+					transition:fade={{ duration: 150 }}
+				>
 					<div class="bg-white rounded-lg shadow-lg p-6 flex items-center gap-4">
-						<div class="w-8 h-8 border-4 border-gray-300 border-t-emerald-600 rounded-full animate-spin" aria-hidden="true"></div>
+						<div
+							class="w-8 h-8 border-4 border-gray-300 border-t-emerald-600 rounded-full animate-spin"
+							aria-hidden="true"
+						></div>
 						<span class="text-gray-700 font-medium">Updating filtering policy...</span>
 					</div>
 				</div>

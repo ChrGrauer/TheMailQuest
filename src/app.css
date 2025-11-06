@@ -1,19 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Roboto', system-ui, sans-serif;
+	--font-sans: 'Roboto', system-ui, sans-serif;
 }
 
 @layer base {
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+	}
 
-  body {
-    font-family: var(--font-sans);
-    color: #1a1a1a;
-  }
+	body {
+		font-family: var(--font-sans);
+		color: #1a1a1a;
+	}
 }

@@ -37,7 +37,14 @@
 		delay?: number;
 	}
 
-	let { upgrade, credits, currentRound, isLockedIn = false, onPurchase, delay = 0 }: Props = $props();
+	let {
+		upgrade,
+		credits,
+		currentRound,
+		isLockedIn = false,
+		onPurchase,
+		delay = 0
+	}: Props = $props();
 
 	// Determine if upgrade is affordable
 	let canAfford = $derived(credits >= upgrade.cost);
@@ -127,7 +134,9 @@
 				</h3>
 				<span
 					data-testid="upgrade-category"
-					class="text-xs px-2 py-1 rounded {getCategoryColor(upgrade.category)} font-medium uppercase tracking-wide"
+					class="text-xs px-2 py-1 rounded {getCategoryColor(
+						upgrade.category
+					)} font-medium uppercase tracking-wide"
 				>
 					{upgrade.category}
 				</span>
@@ -161,7 +170,8 @@
 			<span class="text-gray-500">Requires:</span>
 			<span class="text-gray-700 font-medium">
 				{#each upgrade.dependencies as dep, i}
-					{#if i > 0}, {/if}
+					{#if i > 0},
+					{/if}
 					{dep === 'spf'
 						? 'SPF Authentication'
 						: dep === 'dkim'

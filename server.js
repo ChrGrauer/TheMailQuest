@@ -75,13 +75,16 @@ function broadcastToRoom(roomCode, message) {
 
 	room.forEach((clientId) => {
 		const client = clients.get(clientId);
-		if (client && client.ws.readyState === 1) { // WebSocket.OPEN = 1
+		if (client && client.ws.readyState === 1) {
+			// WebSocket.OPEN = 1
 			client.ws.send(data);
 			successCount++;
 		}
 	});
 
-	console.log(`[WebSocket] Broadcasted to ${successCount} clients in room ${roomCode}`);
+	console.log(
+		`[WebSocket] Broadcasted ${message.type || 'unknown'} to ${successCount} clients in room ${roomCode}`
+	);
 }
 
 // Make broadcastToRoom globally accessible for SvelteKit routes

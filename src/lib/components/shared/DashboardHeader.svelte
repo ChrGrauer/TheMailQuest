@@ -90,17 +90,12 @@
 
 	// Theme-specific colors
 	let avatarGradient = $derived(
-		theme === 'emerald'
-			? 'from-emerald-400 to-emerald-600'
-			: 'from-blue-500 to-blue-700'
+		theme === 'emerald' ? 'from-emerald-400 to-emerald-600' : 'from-blue-500 to-blue-700'
 	);
 	let budgetColor = $derived(theme === 'emerald' ? 'text-emerald-600' : 'text-blue-600');
 </script>
 
-<header
-	data-testid="game-header"
-	class="bg-white px-6 py-4 shadow-sm sticky top-0 z-10"
->
+<header data-testid="game-header" class="bg-white px-6 py-4 shadow-sm sticky top-0 z-10">
 	<div class="flex items-center justify-between">
 		<!-- Entity Info -->
 		<div class="flex items-center gap-3">
@@ -184,7 +179,10 @@
 			role="alert"
 			class="mt-2 px-4 py-2 bg-red-50 border-l-4 border-red-500 text-red-800 text-sm font-semibold animate-pulse"
 		>
-			⚠️ Time almost up! Decisions will be locked automatically in {timerSeconds} second{timerSeconds !== 1 ? 's' : ''}
+			⚠️ Time almost up! Decisions will be locked automatically in {timerSeconds} second{timerSeconds !==
+			1
+				? 's'
+				: ''}
 		</div>
 	{/if}
 </header>

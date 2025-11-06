@@ -27,9 +27,10 @@
 	let techStatus = $derived<TechStatus[]>(
 		TECHNICAL_UPGRADES.map((tech) => ({
 			...tech,
-			status: ownedTech.includes(tech.name) || ownedTech.includes(tech.id)
-				? ('Active' as const)
-				: ('Missing' as const)
+			status:
+				ownedTech.includes(tech.name) || ownedTech.includes(tech.id)
+					? ('Active' as const)
+					: ('Missing' as const)
 		}))
 	);
 
@@ -82,7 +83,9 @@
 						</div>
 					{/if}
 					<div class="flex-1">
-						<span class="font-medium {tech.status === 'Active' ? 'text-gray-800' : 'text-gray-500'}">
+						<span
+							class="font-medium {tech.status === 'Active' ? 'text-gray-800' : 'text-gray-500'}"
+						>
 							{tech.name}
 						</span>
 						{#if tech.category}

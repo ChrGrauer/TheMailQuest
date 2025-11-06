@@ -75,8 +75,9 @@
 				class="inline-flex items-center gap-3 rounded-lg bg-gradient-to-r from-[#0B5540] to-[#10B981] px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{#if isCreating}
-					<div class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent">
-					</div>
+					<div
+						class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"
+					></div>
 					Creating...
 				{:else}
 					<span class="text-2xl">🎮</span>
@@ -86,7 +87,9 @@
 		</div>
 
 		<!-- Instructions -->
-		<div class="mx-auto mt-16 max-w-2xl rounded-xl border-2 border-[#FCD34D] bg-gradient-to-br from-[#FEF3C7] to-[#FEF9E7] p-8">
+		<div
+			class="mx-auto mt-16 max-w-2xl rounded-xl border-2 border-[#FCD34D] bg-gradient-to-br from-[#FEF3C7] to-[#FEF9E7] p-8"
+		>
 			<div class="mb-4 flex items-center gap-3 text-xl font-semibold text-[#92400E]">
 				<span class="text-2xl">💡</span>
 				How it works

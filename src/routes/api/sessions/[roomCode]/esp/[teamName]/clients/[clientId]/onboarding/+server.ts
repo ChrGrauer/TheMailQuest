@@ -10,7 +10,10 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getSession, updateActivity } from '$lib/server/game/session-manager';
 import { validateOnboardingConfig } from '$lib/server/game/validation/client-portfolio-validator';
-import { configureOnboarding, type OnboardingOptions } from '$lib/server/game/client-portfolio-manager';
+import {
+	configureOnboarding,
+	type OnboardingOptions
+} from '$lib/server/game/client-portfolio-manager';
 import { gameWss } from '$lib/server/websocket';
 import { gameLogger } from '$lib/server/logger';
 
@@ -32,19 +35,37 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		return json({ error: 'Invalid request body', success: false }, { status: 400 });
 	}
 
-	gameLogger.event('client_onboarding_config_attempt', { roomCode, teamName, clientId, warmup, listHygiene });
+	gameLogger.event('client_onboarding_config_attempt', {
+		roomCode,
+		teamName,
+		clientId,
+		warmup,
+		listHygiene
+	});
 
 	const session = getSession(roomCode);
 
 	if (!session) {
-		gameLogger.event('client_onboarding_config_failed', { roomCode, teamName, clientId, reason: 'session_not_found' });
+		gameLogger.event('client_onboarding_config_failed', {
+			roomCode,
+			teamName,
+			clientId,
+			reason: 'session_not_found'
+		});
 		return json({ error: 'Session not found', success: false }, { status: 404 });
 	}
 
 	// Find ESP team (case-insensitive)
-	const teamIndex = session.esp_teams.findIndex((t) => t.name.toLowerCase() === teamName.toLowerCase());
+	const teamIndex = session.esp_teams.findIndex(
+		(t) => t.name.toLowerCase() === teamName.toLowerCase()
+	);
 	if (teamIndex === -1) {
-		gameLogger.event('client_onboarding_config_failed', { roomCode, teamName, clientId, reason: 'team_not_found' });
+		gameLogger.event('client_onboarding_config_failed', {
+			roomCode,
+			teamName,
+			clientId,
+			reason: 'team_not_found'
+		});
 		return json({ error: 'ESP team not found', success: false }, { status: 404 });
 	}
 
@@ -54,15 +75,31 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	// Validate onboarding configuration
 	const validation = validateOnboardingConfig(team, clientId, options);
 	if (!validation.canConfigure) {
-		gameLogger.event('client_onboarding_config_failed', { roomCode, teamName, clientId, reason: validation.reason });
-		return json({ error: validation.reason || 'Cannot configure onboarding', success: false }, { status: 400 });
+		gameLogger.event('client_onboarding_config_failed', {
+			roomCode,
+			teamName,
+			clientId,
+			reason: validation.reason
+		});
+		return json(
+			{ error: validation.reason || 'Cannot configure onboarding', success: false },
+			{ status: 400 }
+		);
 	}
 
 	// Configure onboarding
 	const result = configureOnboarding(team, clientId, options);
 	if (!result.success || !result.team) {
-		gameLogger.event('client_onboarding_config_failed', { roomCode, teamName, clientId, error: result.error });
-		return json({ error: result.error || 'Failed to configure onboarding', success: false }, { status: 500 });
+		gameLogger.event('client_onboarding_config_failed', {
+			roomCode,
+			teamName,
+			clientId,
+			error: result.error
+		});
+		return json(
+			{ error: result.error || 'Failed to configure onboarding', success: false },
+			{ status: 500 }
+		);
 	}
 
 	// Update session

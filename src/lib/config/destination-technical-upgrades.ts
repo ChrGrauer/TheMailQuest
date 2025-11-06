@@ -118,8 +118,7 @@ export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
 		id: 'auth_validator_l3',
 		name: 'Authentication Validator - Level 3 (DMARC)',
 		category: 'Authentication',
-		description:
-			'Validates DMARC policy, requires ESPs to implement full authentication stack',
+		description: 'Validates DMARC policy, requires ESPs to implement full authentication stack',
 		scope: 'ALL_ESPS',
 		permanent: true,
 		authentication_level: 3,

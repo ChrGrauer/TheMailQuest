@@ -70,7 +70,8 @@ export function validateStatusToggle(
 	if (currentState.status === 'Suspended') {
 		return {
 			canToggle: false,
-			reason: 'Cannot toggle suspended client. The client is locked due to severe reputation damage.'
+			reason:
+				'Cannot toggle suspended client. The client is locked due to severe reputation damage.'
 		};
 	}
 
@@ -119,7 +120,8 @@ export function validateOnboardingConfig(
 	if (currentState.first_active_round !== null) {
 		return {
 			canConfigure: false,
-			reason: 'Onboarding options are only available for clients that have not been activated yet. This client has already been activated in a previous round.'
+			reason:
+				'Onboarding options are only available for clients that have not been activated yet. This client has already been activated in a previous round.'
 		};
 	}
 

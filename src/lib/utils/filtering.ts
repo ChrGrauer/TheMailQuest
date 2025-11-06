@@ -22,10 +22,7 @@ export function calculateImpactValues(level: FilteringLevel): {
 	spamReduction: number;
 	falsePositives: number;
 } {
-	const impactMap: Record<
-		FilteringLevel,
-		{ spamReduction: number; falsePositives: number }
-	> = {
+	const impactMap: Record<FilteringLevel, { spamReduction: number; falsePositives: number }> = {
 		permissive: { spamReduction: 0, falsePositives: 0 },
 		moderate: { spamReduction: 35, falsePositives: 3 },
 		strict: { spamReduction: 65, falsePositives: 8 },

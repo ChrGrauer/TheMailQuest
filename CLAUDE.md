@@ -25,6 +25,17 @@
 - ✅ Log all important events with Pino
 - ✅ Only create documentation when explicitly requested
 
+## Format
+### Configuration Used
+- Indentation: Tabs (2 spaces wide)
+- Line width: 100 characters
+- Quotes: Single quotes
+- Trailing commas: None
+
+### How to Use Going Forward
+- Format all files: npm run format
+- Check if files need formatting (CI/pre-commit): npm run format:check
+
 ## Tailwind CSS v4
 **CRITICAL**: Uses v4.1.15 syntax (different from v3):
 - ✅ `@import "tailwindcss";` (not `@tailwind base/components/utilities;`)

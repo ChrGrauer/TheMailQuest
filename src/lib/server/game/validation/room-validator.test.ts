@@ -27,15 +27,7 @@ describe('Room Validator', () => {
 
 	describe('validateRoomCode() - Format Validation', () => {
 		test('should accept valid 6-character uppercase alphanumeric codes', () => {
-			const validCodes = [
-				'ABC123',
-				'XYZ789',
-				'AAAAAA',
-				'111111',
-				'A1B2C3',
-				'ZZZZ99',
-				'000000'
-			];
+			const validCodes = ['ABC123', 'XYZ789', 'AAAAAA', '111111', 'A1B2C3', 'ZZZZ99', '000000'];
 
 			validCodes.forEach((code) => {
 				const result = validateRoomCode(code);

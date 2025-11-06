@@ -12,7 +12,7 @@ import { type Page, type BrowserContext } from '@playwright/test';
  */
 export async function createTestSession(page: Page): Promise<string> {
 	await page.goto('/');
-	await page.click('text=I\'m a facilitator');
+	await page.click("text=I'm a facilitator");
 	await page.waitForURL('/create');
 	await page.click('text=Create a Session');
 	await page.waitForURL(/\/lobby\/.+/);
@@ -209,7 +209,9 @@ export async function createGameWithDestination(
 
 	// Wait for destination to be redirected to dashboard
 	const destLower = destination.toLowerCase();
-	await destinationPage.waitForURL(`/game/${roomCode}/destination/${destLower}`, { timeout: 10000 });
+	await destinationPage.waitForURL(`/game/${roomCode}/destination/${destLower}`, {
+		timeout: 10000
+	});
 
 	// Wait for dashboard to finish loading
 	await destinationPage.waitForFunction(
@@ -295,7 +297,15 @@ export async function createGameWith5ESPTeams(
 		{ timeout: 10000 }
 	);
 
-	return { roomCode, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage };
+	return {
+		roomCode,
+		sendWavePage,
+		mailMonkeyPage,
+		bluePostPage,
+		sendBoltPage,
+		rocketMailPage,
+		gmailPage
+	};
 }
 
 /**

@@ -35,10 +35,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			context
 		}) => {
 			// Given - Create session with minimum players
-			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(
-				page,
-				context
-			);
+			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
 			await page.waitForTimeout(500);
 
 			// When - Facilitator clicks Start Game
@@ -132,10 +129,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			context
 		}) => {
 			// Given
-			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(
-				page,
-				context
-			);
+			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
 			await page.waitForTimeout(500);
 
 			// When - Start game
@@ -172,10 +166,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			context
 		}) => {
 			// Given
-			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(
-				page,
-				context
-			);
+			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
 			await page.waitForTimeout(500);
 
 			// When - Start game
@@ -211,10 +202,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			context
 		}) => {
 			// Given
-			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(
-				page,
-				context
-			);
+			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
 			await page.waitForTimeout(500);
 
 			// When - Start game
@@ -285,10 +273,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			browser
 		}) => {
 			// Given - Create session and start game
-			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(
-				page,
-				context
-			);
+			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
 			await page.waitForTimeout(500);
 
 			const startGameButton = page.getByRole('button', { name: /start game/i });

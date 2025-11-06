@@ -136,7 +136,14 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		const creditsBefore = portfolioBefore.team.credits;
 
 		// When: Configure warm-up via API
-		const result = await configureOnboarding(alicePage, roomCode, 'SendWave', clientId, true, false);
+		const result = await configureOnboarding(
+			alicePage,
+			roomCode,
+			'SendWave',
+			clientId,
+			true,
+			false
+		);
 
 		// Then: Onboarding configuration succeeds
 		expect(result.success).toBe(true);
@@ -204,7 +211,9 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 
 		// Skip test if we couldn't get to <230 credits (rare edge case)
 		if (creditsRemaining >= 230) {
-			console.log(`Skipping test: Unable to reduce credits below 230 (remaining: ${creditsRemaining})`);
+			console.log(
+				`Skipping test: Unable to reduce credits below 230 (remaining: ${creditsRemaining})`
+			);
 			return;
 		}
 
@@ -580,7 +589,9 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		const cardText2 = await clientCard.textContent();
 		expect(cardText2).toBeTruthy();
 		expect(cardText2?.length).toBeGreaterThan(10);
-		await expect(clientCard.locator('[data-testid^="client-status-badge"]')).toContainText('Active');
+		await expect(clientCard.locator('[data-testid^="client-status-badge"]')).toContainText(
+			'Active'
+		);
 	});
 
 	test('7.4: Portfolio reflects status changes from management modal', async () => {
@@ -591,7 +602,9 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		// And: Client is Active in portfolio
 		const portfolio = alicePage.locator('[data-testid="client-portfolio"]');
 		const clientCard = portfolio.locator('[data-testid="client-card-0"]');
-		await expect(clientCard.locator('[data-testid^="client-status-badge"]')).toContainText('Active');
+		await expect(clientCard.locator('[data-testid^="client-status-badge"]')).toContainText(
+			'Active'
+		);
 
 		// When: Toggling status to Paused in ClientManagementModal
 		await openClientManagementModal(alicePage);
@@ -610,7 +623,9 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		await alicePage.waitForTimeout(2500);
 
 		// Then: Dashboard portfolio shows Paused status
-		await expect(clientCard.locator('[data-testid^="client-status-badge"]')).toContainText('Paused');
+		await expect(clientCard.locator('[data-testid^="client-status-badge"]')).toContainText(
+			'Paused'
+		);
 
 		// And: Visual distinction is applied
 		const cardStatus = await clientCard.getAttribute('data-status');

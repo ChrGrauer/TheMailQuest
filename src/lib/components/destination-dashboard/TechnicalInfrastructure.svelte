@@ -11,7 +11,10 @@
 	 * - Based on DESTINATION_TOOLS config (US-2.6.2)
 	 */
 
-	import { DESTINATION_TOOLS, type DestinationTool } from '$lib/config/destination-technical-upgrades';
+	import {
+		DESTINATION_TOOLS,
+		type DestinationTool
+	} from '$lib/config/destination-technical-upgrades';
 
 	interface Props {
 		ownedTools: string[]; // Array of owned tool IDs (US-2.6.2)
@@ -84,9 +87,7 @@
 							<!-- Info -->
 							<div class="flex-1 min-w-0">
 								<div class="flex items-center gap-2 mb-1">
-									<span
-										class="font-semibold text-gray-800 text-sm truncate"
-									>
+									<span class="font-semibold text-gray-800 text-sm truncate">
 										{tool.name}
 									</span>
 									<span
@@ -124,11 +125,10 @@
 			<div class="flex items-start gap-3">
 				<span class="text-2xl">⚠️</span>
 				<div>
-					<div class="font-semibold text-amber-800 mb-1">
-						No Tools Installed
-					</div>
+					<div class="font-semibold text-amber-800 mb-1">No Tools Installed</div>
 					<div class="text-sm text-amber-700">
-						Visit the Tech Shop to purchase authentication validators, content filters, and other anti-spam tools.
+						Visit the Tech Shop to purchase authentication validators, content filters, and other
+						anti-spam tools.
 					</div>
 				</div>
 			</div>

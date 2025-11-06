@@ -1,6 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { getSession } from '$lib/server/game/session-manager';
-import { validateRoomCode, canJoinSession, getAvailableSlots } from '$lib/server/game/player-manager';
+import {
+	validateRoomCode,
+	canJoinSession,
+	getAvailableSlots
+} from '$lib/server/game/player-manager';
 import type { RequestHandler } from './$types';
 
 /**

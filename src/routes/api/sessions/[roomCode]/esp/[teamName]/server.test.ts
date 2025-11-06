@@ -224,8 +224,18 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 		const params2 = { roomCode: testRoomCode, teamName: 'MailMonkey' };
 
 		// When: GET requests are made for different teams
-		const response1 = await GET({ request: request1, params: params1, locals: {}, url: new URL(request1.url) });
-		const response2 = await GET({ request: request2, params: params2, locals: {}, url: new URL(request2.url) });
+		const response1 = await GET({
+			request: request1,
+			params: params1,
+			locals: {},
+			url: new URL(request1.url)
+		});
+		const response2 = await GET({
+			request: request2,
+			params: params2,
+			locals: {},
+			url: new URL(request2.url)
+		});
 
 		const data1 = await response1.json();
 		const data2 = await response2.json();

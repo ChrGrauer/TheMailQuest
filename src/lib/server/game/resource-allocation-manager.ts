@@ -239,9 +239,7 @@ export function allocateResources(request: ResourceAllocationRequest): ResourceA
 		}
 
 		// Create shared pool if 2+ destinations
-		const activeDestinationCount = session.destinations.filter(
-			(d) => d.players.length > 0
-		).length;
+		const activeDestinationCount = session.destinations.filter((d) => d.players.length > 0).length;
 		if (activeDestinationCount >= 2) {
 			session.shared_pool = gameConfig.shared_pool_credits;
 

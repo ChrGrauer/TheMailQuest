@@ -54,16 +54,10 @@
 						</div>
 
 						<div class="flex-1">
-							<div
-								data-testid="esp-team-name"
-								class="font-bold text-gray-800 text-base"
-							>
+							<div data-testid="esp-team-name" class="font-bold text-gray-800 text-base">
 								{esp.espName}
 							</div>
-							<div
-								data-testid="esp-clients-count"
-								class="text-xs text-gray-500"
-							>
+							<div data-testid="esp-clients-count" class="text-xs text-gray-500">
 								{esp.activeClientsCount} active client{esp.activeClientsCount === 1 ? '' : 's'}
 							</div>
 						</div>
@@ -74,10 +68,7 @@
 						<!-- Volume -->
 						<div class="text-center p-2 bg-gray-50 rounded-lg">
 							<div class="text-xs text-gray-500 font-semibold mb-1">Volume</div>
-							<div
-								data-testid="esp-volume"
-								class="text-lg font-bold text-gray-800"
-							>
+							<div data-testid="esp-volume" class="text-lg font-bold text-gray-800">
 								{esp.volume}
 							</div>
 						</div>

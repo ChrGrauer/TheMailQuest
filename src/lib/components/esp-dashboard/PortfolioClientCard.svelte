@@ -23,6 +23,8 @@
 		currentRound: number;
 		index: number;
 		isLockedIn?: boolean;
+		initialWarmupSelected?: boolean;
+		initialListHygieneSelected?: boolean;
 		onStatusToggle: (clientId: string, newStatus: 'Active' | 'Paused') => Promise<void>;
 		onOnboardingChange?: (clientId: string, warmup: boolean, listHygiene: boolean) => void;
 	}
@@ -32,13 +34,16 @@
 		currentRound,
 		index,
 		isLockedIn = false,
+		initialWarmupSelected,
+		initialListHygieneSelected,
 		onStatusToggle,
 		onOnboardingChange
 	}: Props = $props();
 
 	// Local state for onboarding checkboxes
-	let warmupSelected = $state(client.has_warmup);
-	let listHygieneSelected = $state(client.has_list_hygiene);
+	// Use pending selections from parent if provided, otherwise use committed values
+	let warmupSelected = $state(initialWarmupSelected ?? client.has_warmup);
+	let listHygieneSelected = $state(initialListHygieneSelected ?? client.has_list_hygiene);
 
 	// Determine if client is "new" (not yet activated)
 	let isNewClient = $derived(client.first_active_round === null);
@@ -132,10 +137,7 @@
 		<!-- Toggle Buttons (or Locked Indicator) -->
 		<div class="flex gap-2 ml-4">
 			{#if isSuspended}
-				<div
-					data-testid="locked-indicator"
-					class="flex items-center gap-2 text-gray-500 text-sm"
-				>
+				<div data-testid="locked-indicator" class="flex items-center gap-2 text-gray-500 text-sm">
 					<span class="text-lg">🔒</span>
 					<span>Locked</span>
 				</div>
@@ -146,8 +148,8 @@
 					disabled={client.status === 'Active' || isLockedIn}
 					class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed
 						{client.status === 'Active'
-							? 'bg-emerald-500 text-white'
-							: 'bg-white text-gray-600 border-2 border-gray-300 hover:border-emerald-500'}"
+						? 'bg-emerald-500 text-white'
+						: 'bg-white text-gray-600 border-2 border-gray-300 hover:border-emerald-500'}"
 				>
 					✓ Active
 				</button>
@@ -157,8 +159,8 @@
 					disabled={client.status === 'Paused' || isLockedIn}
 					class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed
 						{client.status === 'Paused'
-							? 'bg-orange-500 text-white'
-							: 'bg-white text-gray-600 border-2 border-gray-300 hover:border-orange-500'}"
+						? 'bg-orange-500 text-white'
+						: 'bg-white text-gray-600 border-2 border-gray-300 hover:border-orange-500'}"
 				>
 					⏸ Pause
 				</button>
@@ -172,7 +174,8 @@
 			data-testid="suspension-message"
 			class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
 		>
-			<strong>Client suspended due to severe reputation damage.</strong> This client cannot be activated until reputation is restored.
+			<strong>Client suspended due to severe reputation damage.</strong> This client cannot be activated
+			until reputation is restored.
 		</div>
 	{/if}
 
@@ -184,7 +187,9 @@
 			<div class="grid grid-cols-2 gap-3">
 				<!-- Warm-up Option -->
 				<label
-					class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg transition-colors {isLockedIn ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-gray-100'}"
+					class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg transition-colors {isLockedIn
+						? 'cursor-not-allowed opacity-60'
+						: 'cursor-pointer hover:bg-gray-100'}"
 				>
 					<input
 						data-testid="warm-up-checkbox"
@@ -192,7 +197,9 @@
 						bind:checked={warmupSelected}
 						onchange={handleOnboardingChange}
 						disabled={isLockedIn}
-						class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 {isLockedIn ? 'cursor-not-allowed' : 'cursor-pointer'}"
+						class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 {isLockedIn
+							? 'cursor-not-allowed'
+							: 'cursor-pointer'}"
 					/>
 					<span class="flex-1 text-sm text-gray-700">Activate Warm-up</span>
 					<span class="text-xs font-bold text-emerald-700">{WARMUP_COST} cr</span>
@@ -200,7 +207,9 @@
 
 				<!-- List Hygiene Option -->
 				<label
-					class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg transition-colors {isLockedIn ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-gray-100'}"
+					class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg transition-colors {isLockedIn
+						? 'cursor-not-allowed opacity-60'
+						: 'cursor-pointer hover:bg-gray-100'}"
 				>
 					<input
 						data-testid="list-hygiene-checkbox"
@@ -208,7 +217,9 @@
 						bind:checked={listHygieneSelected}
 						onchange={handleOnboardingChange}
 						disabled={isLockedIn}
-						class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 {isLockedIn ? 'cursor-not-allowed' : 'cursor-pointer'}"
+						class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 {isLockedIn
+							? 'cursor-not-allowed'
+							: 'cursor-pointer'}"
 					/>
 					<span class="flex-1 text-sm text-gray-700">Activate List Hygiene</span>
 					<span class="text-xs font-bold text-emerald-700">{LIST_HYGIENE_COST} cr</span>
@@ -221,7 +232,8 @@
 					data-testid="risk-warning"
 					class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800"
 				>
-					⚠️ <strong>High-risk client without protections.</strong> Consider activating warm-up or list hygiene to reduce reputation risk.
+					⚠️ <strong>High-risk client without protections.</strong> Consider activating warm-up or list
+					hygiene to reduce reputation risk.
 				</div>
 			{/if}
 		</div>
@@ -240,7 +252,9 @@
 				</div>
 				<div class="flex items-center gap-2">
 					<span class="text-gray-600">Has List Hygiene:</span>
-					<span class="font-semibold {client.has_list_hygiene ? 'text-green-600' : 'text-gray-500'}">
+					<span
+						class="font-semibold {client.has_list_hygiene ? 'text-green-600' : 'text-gray-500'}"
+					>
 						{client.has_list_hygiene ? 'Yes' : 'No'}
 					</span>
 				</div>

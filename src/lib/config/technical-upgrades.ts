@@ -129,12 +129,7 @@ export function getMandatoryTechForRound(round: number): TechnicalUpgrade[] {
  */
 export function isTechMandatory(techId: string, currentRound: number): boolean {
 	const tech = getTechnicalUpgrade(techId);
-	return !!(
-		tech &&
-		tech.mandatory &&
-		tech.mandatoryFrom &&
-		currentRound >= tech.mandatoryFrom
-	);
+	return !!(tech && tech.mandatory && tech.mandatoryFrom && currentRound >= tech.mandatoryFrom);
 }
 
 /**

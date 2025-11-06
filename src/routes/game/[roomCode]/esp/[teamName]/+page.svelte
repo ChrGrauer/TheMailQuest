@@ -84,7 +84,9 @@
 	let testWsError = $state<string | null>(null);
 
 	// WebSocket connection status (use test values if set)
-	let wsConnected = $derived(testWsConnected !== null ? testWsConnected : $websocketStore.connected);
+	let wsConnected = $derived(
+		testWsConnected !== null ? testWsConnected : $websocketStore.connected
+	);
 	let wsError = $derived(testWsError !== null ? testWsError : $websocketStore.error);
 
 	/**
@@ -154,6 +156,7 @@
 			// Update game state
 			currentRound = data.game.current_round || 1;
 			currentPhase = data.game.current_phase || 'planning';
+			remainingPlayers = data.game.remaining_players || 0; // US-3.2
 
 			// Update timer
 			if (data.game.timer) {
@@ -277,8 +280,7 @@
 		if (messageType === 'lock_in_confirmed') {
 			// Only process if this message is for THIS ESP team
 			const isForThisTeam =
-				data.data?.role === 'ESP' &&
-				data.data?.teamName?.toLowerCase() === teamName.toLowerCase();
+				data.data?.role === 'ESP' && data.data?.teamName?.toLowerCase() === teamName.toLowerCase();
 
 			if (isForThisTeam) {
 				// This team has successfully locked in
@@ -308,20 +310,28 @@
 		if (messageType === 'auto_lock_corrections') {
 			// Auto-correction feedback when onboarding options removed
 			// Only process if this message is for THIS ESP team
-			const isForThisTeam =
-				data.data?.teamName?.toLowerCase() === teamName.toLowerCase();
+			const isForThisTeam = data.data?.teamName?.toLowerCase() === teamName.toLowerCase();
 
 			if (isForThisTeam && data.data?.corrections) {
 				// Format corrections into user-friendly message
 				const corrections = data.data.corrections;
-				const details = corrections.map((c: any) => {
-					const optionName = c.optionType === 'warmUp' ? 'warm-up' : 'list hygiene';
-					return `• Removed ${optionName} from ${c.clientName} (-${c.costSaved}cr)`;
-				}).join('\n');
+				const details = corrections
+					.map((c: any) => {
+						const optionName = c.optionType === 'warmUp' ? 'warm-up' : 'list hygiene';
+						return `• Removed ${optionName} from ${c.clientName} (-${c.costSaved}cr)`;
+					})
+					.join('\n');
 
 				autoLockMessage =
-					"Time's up! Some onboarding options were removed to fit your budget:\n" +
-					details;
+					"Time's up! Some onboarding options were removed to fit your budget:\n" + details;
+			}
+		}
+
+		if (messageType === 'auto_lock_complete') {
+			// Auto-lock completed (for players without corrections)
+			// Only set message if we don't already have a correction message
+			if (!autoLockMessage || !autoLockMessage.includes('removed')) {
+				autoLockMessage = data.data?.message || "Time's up! Decisions locked automatically";
 			}
 		}
 
@@ -341,8 +351,12 @@
 					phaseTransitionMessage = null;
 				}, 5000);
 			}
-			// Clear auto-lock warning message when phase changes (keep correction messages)
-			if (autoLockMessage && !autoLockMessage.includes('removed')) {
+			// Clear auto-lock warning message when phase changes (keep correction and completion messages)
+			if (
+				autoLockMessage &&
+				!autoLockMessage.includes('removed') &&
+				!autoLockMessage.includes("Time's up")
+			) {
 				autoLockMessage = null;
 			}
 		}
@@ -455,7 +469,8 @@
 				}, // Signal that initial fetch is complete
 				setCredits: (value: number) => (credits = value),
 				setPendingCosts: (value: number) => (pendingCosts = value),
-				setReputation: (value: Record<string, number>) => (reputation = { ...reputation, ...value }),
+				setReputation: (value: Record<string, number>) =>
+					(reputation = { ...reputation, ...value }),
 				setClients: (value: typeof clients) => (clients = value),
 				setOwnedTech: (value: string[]) => (ownedTech = value),
 				setRound: (value: number) => (currentRound = value),
@@ -474,7 +489,7 @@
 							isLockedIn = true;
 							lockedInAt = new Date(data.locked_in_at);
 							remainingPlayers = data.remaining_players || 0;
-							// autoLockMessage will be set via WebSocket (auto_lock_corrections or generic message)
+							// autoLockMessage will be set via WebSocket (auto_lock_corrections or auto_lock_complete)
 						}
 					} catch (err) {
 						console.error('Auto-lock failed:', err);
@@ -483,7 +498,7 @@
 				setWsStatus: (connected: boolean, errorMsg?: string) => {
 					// For testing WebSocket connection states - use local test variables
 					testWsConnected = connected;
-					testWsError = connected ? null : (errorMsg || 'Connection lost');
+					testWsError = connected ? null : errorMsg || 'Connection lost';
 				},
 				setError: (errorMsg: string | null) => (error = errorMsg),
 				setLoading: (isLoading: boolean) => (loading = isLoading),
@@ -561,20 +576,17 @@
 	<DashboardHeader
 		entityName={teamName}
 		currentBudget={credits}
-		pendingCosts={pendingCosts}
-		currentRound={currentRound}
-		totalRounds={totalRounds}
-		timerSeconds={timerSeconds}
+		pendingCosts={totalPendingCosts}
+		{currentRound}
+		{totalRounds}
+		{timerSeconds}
 		theme="emerald"
 	/>
 
 	<!-- Loading State -->
 	{#if loading}
 		<div class="max-w-7xl mx-auto px-4 py-8">
-			<div
-				data-testid="loading-reputation"
-				class="bg-white rounded-xl shadow-md p-12 text-center"
-			>
+			<div data-testid="loading-reputation" class="bg-white rounded-xl shadow-md p-12 text-center">
 				<div
 					class="animate-spin w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4"
 				></div>
@@ -612,7 +624,7 @@
 				<QuickActions
 					activeClientsCount={clients.length}
 					missingMandatoryTech={currentRound >= 2 && !ownedTech.includes('dmarc')}
-					availableClientsCount={availableClientsCount}
+					{availableClientsCount}
 					onMarketplaceClick={handleMarketplaceClick}
 					onTechShopClick={handleTechShopClick}
 					onClientManagementClick={handleClientManagementClick}
@@ -621,31 +633,31 @@
 
 			<!-- Reputation Gauges (Full Width) -->
 			<div class="mb-6">
-				<ReputationGauges reputation={reputation} destinations={destinations} />
+				<ReputationGauges {reputation} {destinations} />
 			</div>
 
 			<!-- Full-width Sections -->
 			<div class="space-y-6 mb-6">
 				<!-- Technical Infrastructure -->
-				<TechnicalInfrastructure
-					ownedTech={ownedTech}
-					currentRound={currentRound}
-					onTechShopClick={handleTechShopClick}
-				/>
+				<TechnicalInfrastructure {ownedTech} {currentRound} onTechShopClick={handleTechShopClick} />
 
 				<!-- Client Portfolio -->
-				<ClientPortfolio clients={clients} onMarketplaceClick={handleMarketplaceClick} />
+				<ClientPortfolio
+					{clients}
+					pendingDecisions={pendingDecisionsCount}
+					onMarketplaceClick={handleMarketplaceClick}
+				/>
 			</div>
 
 			<!-- Lock In Button -->
 			<LockInButton
 				phase={currentPhase}
 				pendingDecisions={pendingDecisionsCount}
-				budgetExceeded={budgetExceeded}
-				excessAmount={excessAmount}
-				isLockedIn={isLockedIn}
-				remainingPlayers={remainingPlayers}
-				autoLockMessage={autoLockMessage}
+				{budgetExceeded}
+				{excessAmount}
+				{isLockedIn}
+				{remainingPlayers}
+				{autoLockMessage}
 				onLockIn={handleLockIn}
 			/>
 
@@ -691,7 +703,7 @@
 	<!-- Client Management Modal -->
 	<ClientManagementModal
 		bind:show={showClientManagement}
-		isLockedIn={isLockedIn}
+		{isLockedIn}
 		onClose={() => (showClientManagement = false)}
 		{roomCode}
 		{teamName}

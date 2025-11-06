@@ -6,7 +6,12 @@
 
 import { describe, test, expect, beforeEach } from 'vitest';
 import { GET } from './+server';
-import { createGameSession, getSession, deleteSession, getAllSessions } from '$lib/server/game/session-manager';
+import {
+	createGameSession,
+	getSession,
+	deleteSession,
+	getAllSessions
+} from '$lib/server/game/session-manager';
 import { joinGame, clearPlayers } from '$lib/server/game/player-manager';
 import { startGame } from '$lib/server/game/game-start-manager';
 import { allocateResources } from '$lib/server/game/resource-allocation-manager';

@@ -12,7 +12,15 @@
 		delay?: number;
 	}
 
-	let { client, credits, ownedTech, overallReputation, isLockedIn = false, onAcquire, delay = 0 }: Props = $props();
+	let {
+		client,
+		credits,
+		ownedTech,
+		overallReputation,
+		isLockedIn = false,
+		onAcquire,
+		delay = 0
+	}: Props = $props();
 
 	// Check if can acquire
 	let canAcquire = $derived.by(() => {
@@ -139,7 +147,8 @@
 								? 'bg-green-100 text-green-700'
 								: 'bg-red-100 text-red-700'}"
 						>
-							{hasTech ? '✓' : '✗'} {tech.toUpperCase()}
+							{hasTech ? '✓' : '✗'}
+							{tech.toUpperCase()}
 						</span>
 					{/each}
 				</div>

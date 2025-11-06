@@ -73,7 +73,8 @@ function createWebSocketStore() {
 	let lobbyUpdateCallback: ((data: LobbyUpdate) => void) | null = null;
 	let gameStateUpdateCallback: ((data: GameStateUpdate) => void) | null = null;
 	let espDashboardUpdateCallback: ((data: ESPDashboardUpdate) => void) | null = null;
-	let destinationDashboardUpdateCallback: ((data: DestinationDashboardUpdate) => void) | null = null;
+	let destinationDashboardUpdateCallback: ((data: DestinationDashboardUpdate) => void) | null =
+		null;
 
 	function cleanup() {
 		if (reconnectTimer) {
@@ -175,6 +176,8 @@ function createWebSocketStore() {
 							case 'lock_in_confirmed':
 							case 'player_locked_in':
 							case 'auto_lock_warning':
+							case 'auto_lock_corrections':
+							case 'auto_lock_complete':
 							case 'phase_transition':
 								// US-3.2: Decision Lock-In events
 								// Pass the entire message to gameStateUpdateCallback

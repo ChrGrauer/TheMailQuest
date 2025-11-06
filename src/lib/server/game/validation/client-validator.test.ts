@@ -393,12 +393,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			const destinations = createTestDestinations();
 
 			// When
-			const validation = validateClientAcquisition(
-				team,
-				growingStartupClient,
-				1,
-				destinations
-			);
+			const validation = validateClientAcquisition(team, growingStartupClient, 1, destinations);
 
 			// Then
 			expect(validation.canAcquire).toBe(true);

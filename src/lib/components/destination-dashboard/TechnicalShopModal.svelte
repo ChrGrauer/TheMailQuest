@@ -39,8 +39,16 @@
 		onToolPurchased: (toolId: string, cost: number) => void;
 	}
 
-	let { show = $bindable(), isLockedIn = false, roomCode, destName, kingdom, currentBudget, authLevel, onToolPurchased }: Props =
-		$props();
+	let {
+		show = $bindable(),
+		isLockedIn = false,
+		roomCode,
+		destName,
+		kingdom,
+		currentBudget,
+		authLevel,
+		onToolPurchased
+	}: Props = $props();
 
 	let tools: Tool[] = $state([]);
 	let loading = $state(false);
@@ -285,7 +293,9 @@
 					<span class="text-2xl" aria-hidden="true">🔒</span>
 					<div class="flex-1">
 						<p class="font-bold text-orange-900">Locked In - View Only</p>
-						<p class="text-sm text-orange-700">Your decisions are locked. You cannot purchase tools until the next round.</p>
+						<p class="text-sm text-orange-700">
+							Your decisions are locked. You cannot purchase tools until the next round.
+						</p>
 					</div>
 				</div>
 			{/if}

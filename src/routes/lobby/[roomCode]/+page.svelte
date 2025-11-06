@@ -32,7 +32,9 @@
 	let gameStarted = false;
 
 	// US-1.4: Store player's role and team for redirect
-	let playerRole: 'ESP' | 'Destination' | 'Facilitator' | null = isFacilitator ? 'Facilitator' : null;
+	let playerRole: 'ESP' | 'Destination' | 'Facilitator' | null = isFacilitator
+		? 'Facilitator'
+		: null;
 	let playerTeamName: string | null = null;
 
 	// Slot state (will be updated via WebSocket)
@@ -317,7 +319,10 @@
 					<span class="text-2xl">⚠️</span>
 					<div>
 						<div class="font-bold text-lg">This session is full</div>
-						<div class="text-sm text-amber-700">All 8 player slots have been filled. Please wait for the game to start or join another session.</div>
+						<div class="text-sm text-amber-700">
+							All 8 player slots have been filled. Please wait for the game to start or join another
+							session.
+						</div>
 					</div>
 				</div>
 			</div>

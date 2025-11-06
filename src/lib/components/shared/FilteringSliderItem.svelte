@@ -13,8 +13,16 @@
 		onFilterChange: (espName: string, level: FilteringLevel) => void;
 	}
 
-	let { espName, volume, reputation, satisfaction, spamRate, currentPolicy, isLockedIn = false, onFilterChange }: Props =
-		$props();
+	let {
+		espName,
+		volume,
+		reputation,
+		satisfaction,
+		spamRate,
+		currentPolicy,
+		isLockedIn = false,
+		onFilterChange
+	}: Props = $props();
 
 	// Map slider position (0-3) to filtering level
 	const levelMap: FilteringLevel[] = ['permissive', 'moderate', 'strict', 'maximum'];
@@ -110,7 +118,11 @@
 		<!-- Filter Toggle -->
 		<div class="filter-toggle">
 			<div class="filter-level-label">Filtering Level</div>
-			<div class="filter-level-current {levelClass}" data-testid="filtering-current-level" data-level-color={getLevelColor(levelClass)}>
+			<div
+				class="filter-level-current {levelClass}"
+				data-testid="filtering-current-level"
+				data-level-color={getLevelColor(levelClass)}
+			>
 				{levelDisplayName}
 			</div>
 			<input

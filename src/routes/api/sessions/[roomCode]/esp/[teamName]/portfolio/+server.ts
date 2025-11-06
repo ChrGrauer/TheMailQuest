@@ -12,7 +12,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getSession } from '$lib/server/game/session-manager';
-import { calculateRevenuePreview, calculateBudgetForecast } from '$lib/server/game/client-portfolio-manager';
+import {
+	calculateRevenuePreview,
+	calculateBudgetForecast
+} from '$lib/server/game/client-portfolio-manager';
 import { gameLogger } from '$lib/server/logger';
 import type { Client } from '$lib/server/game/types';
 
@@ -44,7 +47,14 @@ export const GET: RequestHandler = async ({ params }) => {
 	const allClients = team.available_clients;
 
 	// Build enriched client list with states merged
-	const clients: Array<Client & { status: 'Active' | 'Paused' | 'Suspended'; has_warmup: boolean; has_list_hygiene: boolean; first_active_round: number | null }> = [];
+	const clients: Array<
+		Client & {
+			status: 'Active' | 'Paused' | 'Suspended';
+			has_warmup: boolean;
+			has_list_hygiene: boolean;
+			first_active_round: number | null;
+		}
+	> = [];
 
 	for (const clientId of team.active_clients) {
 		// Find the client in available_clients
@@ -81,6 +91,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		clients,
 		revenue_preview: revenuePreview,
 		budget_forecast: budgetForecast,
+		pending_onboarding_decisions: team.pending_onboarding_decisions || {},
 		team: {
 			name: team.name,
 			credits: team.credits,

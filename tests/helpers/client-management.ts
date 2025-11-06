@@ -111,11 +111,7 @@ export async function configureOnboarding(
  * @param teamName - ESP team name
  * @returns Portfolio data
  */
-export async function getPortfolio(
-	page: Page,
-	roomCode: string,
-	teamName: string
-): Promise<any> {
+export async function getPortfolio(page: Page, roomCode: string, teamName: string): Promise<any> {
 	return await page.evaluate(
 		async ({ roomCode, teamName }) => {
 			const response = await fetch(`/api/sessions/${roomCode}/esp/${teamName}/portfolio`);

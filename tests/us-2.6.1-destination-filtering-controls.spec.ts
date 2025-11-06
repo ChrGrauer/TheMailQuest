@@ -106,8 +106,14 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 		test('Scenario: View filtering controls with all active ESPs', async ({ page, context }) => {
 			// Given: I am a Destination player for "Gmail"
 			// And: all 5 ESP teams are active in the game
-			const { gmailPage, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage } =
-				await createGameWith5ESPTeams(page, context);
+			const {
+				gmailPage,
+				sendWavePage,
+				mailMonkeyPage,
+				bluePostPage,
+				sendBoltPage,
+				rocketMailPage
+			} = await createGameWith5ESPTeams(page, context);
 
 			// When: I open the Filtering Controls modal
 			await gmailPage.evaluate(() => {
@@ -222,9 +228,7 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			await gmailPage.waitForTimeout(300);
 
 			const gmailBluePost = gmailPage.locator('[data-testid="filtering-item-bluepost"]');
-			const gmailSatisfaction = gmailBluePost.locator(
-				'[data-testid="filtering-esp-satisfaction"]'
-			);
+			const gmailSatisfaction = gmailBluePost.locator('[data-testid="filtering-esp-satisfaction"]');
 			const gmailSpamRate = gmailBluePost.locator('[data-testid="filtering-esp-spam-rate"]');
 
 			// Then: I should see Satisfaction: 52% and Spam: 2.8%

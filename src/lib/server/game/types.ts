@@ -12,52 +12,55 @@
  */
 
 export interface ESPTeam {
-  name: string;
-  players: string[];
-  budget: number;
-  clients: string[];
-  technical_stack: string[];
-  // US-1.4: Resource allocation fields
-  credits: number;
-  reputation: Record<string, number>; // per destination: { Gmail: 70, Outlook: 70, ... }
-  active_clients: string[];
-  owned_tech_upgrades: string[]; // US-2.3: Owned technical upgrade IDs (e.g., ['spf', 'dkim'])
-  round_history: any[];
-  // US-2.2: Client marketplace fields
-  available_clients: Client[]; // Marketplace stock (not yet acquired)
-  // US-2.4: Client portfolio management fields
-  client_states?: Record<string, ClientState>; // Per-client state (status, onboarding, first_active_round)
-  // US-3.2: Decision lock-in fields
-  locked_in?: boolean; // Whether team has locked in their decisions for this round
-  locked_in_at?: Date; // Timestamp when team locked in
-  pending_onboarding_decisions?: Record<string, OnboardingOptions>; // Uncommitted onboarding options (key = clientId)
+	name: string;
+	players: string[];
+	budget: number;
+	clients: string[];
+	technical_stack: string[];
+	// US-1.4: Resource allocation fields
+	credits: number;
+	reputation: Record<string, number>; // per destination: { Gmail: 70, Outlook: 70, ... }
+	active_clients: string[];
+	owned_tech_upgrades: string[]; // US-2.3: Owned technical upgrade IDs (e.g., ['spf', 'dkim'])
+	round_history: any[];
+	// US-2.2: Client marketplace fields
+	available_clients: Client[]; // Marketplace stock (not yet acquired)
+	// US-2.4: Client portfolio management fields
+	client_states?: Record<string, ClientState>; // Per-client state (status, onboarding, first_active_round)
+	// US-3.2: Decision lock-in fields
+	locked_in?: boolean; // Whether team has locked in their decisions for this round
+	locked_in_at?: Date; // Timestamp when team locked in
+	pending_onboarding_decisions?: Record<string, OnboardingOptions>; // Uncommitted onboarding options (key = clientId)
 }
 
 export interface Destination {
-  name: string;
-  kingdom?: 'Gmail' | 'Outlook' | 'Yahoo'; // US-2.6.2: Kingdom for pricing
-  players: string[];
-  budget: number;
-  // US-1.4: Resource allocation fields
-  filtering_policies: Record<string, FilteringPolicy>; // US-2.6.1: Filtering policies per ESP (key = espName)
-  esp_reputation: Record<string, number>; // per ESP: { SendWave: 70, MailMonkey: 70, ... }
-  // US-2.5: Destination dashboard fields
-  technical_stack?: string[]; // Owned destination technologies (deprecated, use owned_tools)
-  // US-2.6.2: Per-ESP metrics (for delivery resolution)
-  esp_metrics?: Record<string, {
-    user_satisfaction: number; // 0-100
-    spam_level: number; // 0-100
-  }>;
-  // US-2.6.2: Tool ownership
-  owned_tools?: string[]; // Tool IDs like ['content_analysis_filter', 'auth_validator_l1']
-  authentication_level?: number; // 0-3 for Auth Validator progression
-  spam_trap_active?: {
-    round: number;
-    announced: boolean;
-  }; // Single-round tool tracking
-  // US-3.2: Decision lock-in fields
-  locked_in?: boolean; // Whether destination has locked in their decisions for this round
-  locked_in_at?: Date; // Timestamp when destination locked in
+	name: string;
+	kingdom?: 'Gmail' | 'Outlook' | 'Yahoo'; // US-2.6.2: Kingdom for pricing
+	players: string[];
+	budget: number;
+	// US-1.4: Resource allocation fields
+	filtering_policies: Record<string, FilteringPolicy>; // US-2.6.1: Filtering policies per ESP (key = espName)
+	esp_reputation: Record<string, number>; // per ESP: { SendWave: 70, MailMonkey: 70, ... }
+	// US-2.5: Destination dashboard fields
+	technical_stack?: string[]; // Owned destination technologies (deprecated, use owned_tools)
+	// US-2.6.2: Per-ESP metrics (for delivery resolution)
+	esp_metrics?: Record<
+		string,
+		{
+			user_satisfaction: number; // 0-100
+			spam_level: number; // 0-100
+		}
+	>;
+	// US-2.6.2: Tool ownership
+	owned_tools?: string[]; // Tool IDs like ['content_analysis_filter', 'auth_validator_l1']
+	authentication_level?: number; // 0-3 for Auth Validator progression
+	spam_trap_active?: {
+		round: number;
+		announced: boolean;
+	}; // Single-round tool tracking
+	// US-3.2: Decision lock-in fields
+	locked_in?: boolean; // Whether destination has locked in their decisions for this round
+	locked_in_at?: Date; // Timestamp when destination locked in
 }
 
 /**
@@ -65,19 +68,19 @@ export interface Destination {
  * Represents the different types of clients available in the marketplace
  */
 export type ClientType =
-  | 'premium_brand'
-  | 'growing_startup'
-  | 're_engagement'
-  | 'aggressive_marketer'
-  | 'event_seasonal';
+	| 'premium_brand'
+	| 'growing_startup'
+	| 're_engagement'
+	| 'aggressive_marketer'
+	| 'event_seasonal';
 
 /**
  * US-2.2: Client Requirements
  * Technical and reputation requirements for acquiring a client (mainly for Premium Brand)
  */
 export interface ClientRequirements {
-  tech: string[]; // Required tech IDs: ['spf', 'dkim', 'dmarc']
-  reputation: number; // Minimum overall reputation (weighted average)
+	tech: string[]; // Required tech IDs: ['spf', 'dkim', 'dmarc']
+	reputation: number; // Minimum overall reputation (weighted average)
 }
 
 /**
@@ -85,17 +88,17 @@ export interface ClientRequirements {
  * Represents an email client that can be acquired by ESP teams
  */
 export interface Client {
-  id: string; // Unique identifier (e.g., "client-sendwave-001")
-  name: string; // Display name (e.g., "Tech Innovators")
-  type: ClientType; // Client type category
-  cost: number; // Acquisition cost in credits
-  revenue: number; // Revenue per round
-  volume: number; // Email volume (numeric, format with formatVolume() for display)
-  risk: 'Low' | 'Medium' | 'High'; // Risk level
-  spam_rate: number; // Spam complaint rate percentage (e.g., 1.2 for 1.2%)
-  available_from_round: number; // Round when this client becomes available (1, 2, or 3)
-  requirements?: ClientRequirements; // Optional requirements (for Premium Brand clients)
-  status?: 'Active' | 'Paused' | 'Suspended'; // Status for acquired clients in portfolio (US-2.4.0)
+	id: string; // Unique identifier (e.g., "client-sendwave-001")
+	name: string; // Display name (e.g., "Tech Innovators")
+	type: ClientType; // Client type category
+	cost: number; // Acquisition cost in credits
+	revenue: number; // Revenue per round
+	volume: number; // Email volume (numeric, format with formatVolume() for display)
+	risk: 'Low' | 'Medium' | 'High'; // Risk level
+	spam_rate: number; // Spam complaint rate percentage (e.g., 1.2 for 1.2%)
+	available_from_round: number; // Round when this client becomes available (1, 2, or 3)
+	requirements?: ClientRequirements; // Optional requirements (for Premium Brand clients)
+	status?: 'Active' | 'Paused' | 'Suspended'; // Status for acquired clients in portfolio (US-2.4.0)
 }
 
 /**
@@ -103,10 +106,10 @@ export interface Client {
  * Per-team state for an acquired client (status, onboarding config, activation history)
  */
 export interface ClientState {
-  status: 'Active' | 'Paused' | 'Suspended'; // Current status
-  has_warmup: boolean; // Whether warm-up was activated for this client
-  has_list_hygiene: boolean; // Whether list hygiene was activated for this client
-  first_active_round: number | null; // Round when client first became active (null if never activated)
+	status: 'Active' | 'Paused' | 'Suspended'; // Current status
+	has_warmup: boolean; // Whether warm-up was activated for this client
+	has_list_hygiene: boolean; // Whether list hygiene was activated for this client
+	first_active_round: number | null; // Round when client first became active (null if never activated)
 }
 
 /**
@@ -120,10 +123,10 @@ export type FilteringLevel = 'permissive' | 'moderate' | 'strict' | 'maximum';
  * Represents a destination's filtering configuration for a specific ESP
  */
 export interface FilteringPolicy {
-  espName: string; // ESP team name
-  level: FilteringLevel; // Filtering level applied
-  spamReduction: number; // Percentage of spam blocked: 0, 35, 65, 85
-  falsePositives: number; // Percentage of legitimate emails blocked: 0, 3, 8, 15
+	espName: string; // ESP team name
+	level: FilteringLevel; // Filtering level applied
+	spamReduction: number; // Percentage of spam blocked: 0, 35, 65, 85
+	falsePositives: number; // Percentage of legitimate emails blocked: 0, 3, 8, 15
 }
 
 /**
@@ -131,31 +134,31 @@ export interface FilteringPolicy {
  * Result of updating a filtering policy
  */
 export interface FilteringPolicyUpdateResult {
-  success: boolean;
-  error?: string;
-  filtering_policies?: Record<string, FilteringPolicy>; // Updated policies (key = espName)
+	success: boolean;
+	error?: string;
+	filtering_policies?: Record<string, FilteringPolicy>; // Updated policies (key = espName)
 }
 
 export interface GameTimer {
-  duration: number; // Total duration in seconds
-  remaining: number; // Remaining time in seconds
-  startedAt: Date; // When the timer started
-  isRunning: boolean; // Whether timer is currently running
+	duration: number; // Total duration in seconds
+	remaining: number; // Remaining time in seconds
+	startedAt: Date; // When the timer started
+	isRunning: boolean; // Whether timer is currently running
 }
 
 export interface GameSession {
-  roomCode: string;
-  facilitatorId: string;
-  current_round: number;
-  current_phase: string;
-  esp_teams: ESPTeam[];
-  destinations: Destination[];
-  createdAt: Date;
-  lastActivity: Date;
-  // US-1.4: Resource allocation fields
-  shared_pool?: number; // Shared destination budget pool
-  phase_start_time?: Date; // When current phase started
-  timer?: GameTimer; // Phase timer
+	roomCode: string;
+	facilitatorId: string;
+	current_round: number;
+	current_phase: string;
+	esp_teams: ESPTeam[];
+	destinations: Destination[];
+	createdAt: Date;
+	lastActivity: Date;
+	// US-1.4: Resource allocation fields
+	shared_pool?: number; // Shared destination budget pool
+	phase_start_time?: Date; // When current phase started
+	timer?: GameTimer; // Phase timer
 }
 
 /**
@@ -163,11 +166,11 @@ export interface GameSession {
  * Defines starting resources and phase durations
  */
 export interface GameConfiguration {
-  esp_starting_credits: number;
-  esp_starting_reputation: number;
-  destination_budgets: Record<string, number>; // { Gmail: 500, Outlook: 350, Yahoo: 200 }
-  shared_pool_credits: number;
-  planning_phase_duration: number; // in seconds
+	esp_starting_credits: number;
+	esp_starting_reputation: number;
+	destination_budgets: Record<string, number>; // { Gmail: 500, Outlook: 350, Yahoo: 200 }
+	shared_pool_credits: number;
+	planning_phase_duration: number; // in seconds
 }
 
 /**

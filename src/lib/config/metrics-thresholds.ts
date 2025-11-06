@@ -134,12 +134,8 @@ export const SPAM_RATE_THRESHOLDS: SpamRateThreshold[] = [
 /**
  * Get reputation status for a given score (0-100)
  */
-export function getReputationStatus(
-	score: number
-): MetricThreshold {
-	const threshold = REPUTATION_THRESHOLDS.find(
-		(t) => score >= t.min && score <= t.max
-	);
+export function getReputationStatus(score: number): MetricThreshold {
+	const threshold = REPUTATION_THRESHOLDS.find((t) => score >= t.min && score <= t.max);
 	// Default to blacklist if somehow out of range
 	return threshold || REPUTATION_THRESHOLDS[4];
 }
@@ -147,21 +143,15 @@ export function getReputationStatus(
 /**
  * Get satisfaction status for a given score (0-100)
  */
-export function getSatisfactionStatus(
-	score: number
-): MetricThreshold {
+export function getSatisfactionStatus(score: number): MetricThreshold {
 	return getReputationStatus(score); // Same thresholds
 }
 
 /**
  * Get spam rate status for a given rate (percentage, e.g., 0.04 for 0.04%)
  */
-export function getSpamRateStatus(
-	rate: number
-): SpamRateThreshold {
-	const threshold = SPAM_RATE_THRESHOLDS.find(
-		(t) => rate >= t.min && rate < t.max
-	);
+export function getSpamRateStatus(rate: number): SpamRateThreshold {
+	const threshold = SPAM_RATE_THRESHOLDS.find((t) => rate >= t.min && rate < t.max);
 	// If exactly at upper bound or above, return high
 	if (rate >= 0.15) {
 		return SPAM_RATE_THRESHOLDS[2]; // High

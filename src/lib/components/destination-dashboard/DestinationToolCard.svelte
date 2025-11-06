@@ -171,7 +171,10 @@
 
 	<!-- Effects -->
 	{#if getEffectsText()}
-		<div class="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm" data-testid="tool-effect">
+		<div
+			class="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm"
+			data-testid="tool-effect"
+		>
 			<span class="font-semibold text-blue-900">Effect:</span>
 			<span class="text-blue-800">{getEffectsText()}</span>
 		</div>
@@ -179,7 +182,10 @@
 
 	<!-- Dependencies -->
 	{#if tool.status === 'Locked' && tool.requires}
-		<div class="mb-3 p-2 bg-gray-50 border border-gray-200 rounded text-sm" data-testid="requirement-message">
+		<div
+			class="mb-3 p-2 bg-gray-50 border border-gray-200 rounded text-sm"
+			data-testid="requirement-message"
+		>
 			<span class="text-gray-700">
 				<span class="font-semibold">Requires:</span>
 				{getRequirementsText()}

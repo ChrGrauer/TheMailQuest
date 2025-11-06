@@ -17,11 +17,7 @@ import { getTechnicalUpgrade } from '$lib/config/technical-upgrades';
  */
 export interface TechPurchaseValidation {
 	canPurchase: boolean;
-	reason?:
-		| 'insufficient_credits'
-		| 'unmet_dependencies'
-		| 'already_owned'
-		| 'upgrade_not_found';
+	reason?: 'insufficient_credits' | 'unmet_dependencies' | 'already_owned' | 'upgrade_not_found';
 	missingDependencies?: string[];
 	requiredCredits?: number;
 	availableCredits?: number;

@@ -28,7 +28,10 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		newStatus = body.status;
 
 		if (!newStatus || !['Active', 'Paused'].includes(newStatus)) {
-			return json({ error: 'Invalid status. Must be "Active" or "Paused"', success: false }, { status: 400 });
+			return json(
+				{ error: 'Invalid status. Must be "Active" or "Paused"', success: false },
+				{ status: 400 }
+			);
 		}
 	} catch (err) {
 		return json({ error: 'Invalid request body', success: false }, { status: 400 });
@@ -39,14 +42,26 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	const session = getSession(roomCode);
 
 	if (!session) {
-		gameLogger.event('client_status_toggle_failed', { roomCode, teamName, clientId, reason: 'session_not_found' });
+		gameLogger.event('client_status_toggle_failed', {
+			roomCode,
+			teamName,
+			clientId,
+			reason: 'session_not_found'
+		});
 		return json({ error: 'Session not found', success: false }, { status: 404 });
 	}
 
 	// Find ESP team (case-insensitive)
-	const teamIndex = session.esp_teams.findIndex((t) => t.name.toLowerCase() === teamName.toLowerCase());
+	const teamIndex = session.esp_teams.findIndex(
+		(t) => t.name.toLowerCase() === teamName.toLowerCase()
+	);
 	if (teamIndex === -1) {
-		gameLogger.event('client_status_toggle_failed', { roomCode, teamName, clientId, reason: 'team_not_found' });
+		gameLogger.event('client_status_toggle_failed', {
+			roomCode,
+			teamName,
+			clientId,
+			reason: 'team_not_found'
+		});
 		return json({ error: 'ESP team not found', success: false }, { status: 404 });
 	}
 
@@ -55,15 +70,31 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	// Validate status toggle
 	const validation = validateStatusToggle(team, clientId, newStatus);
 	if (!validation.canToggle) {
-		gameLogger.event('client_status_toggle_failed', { roomCode, teamName, clientId, reason: validation.reason });
-		return json({ error: validation.reason || 'Cannot toggle client status', success: false }, { status: 400 });
+		gameLogger.event('client_status_toggle_failed', {
+			roomCode,
+			teamName,
+			clientId,
+			reason: validation.reason
+		});
+		return json(
+			{ error: validation.reason || 'Cannot toggle client status', success: false },
+			{ status: 400 }
+		);
 	}
 
 	// Toggle status
 	const result = toggleClientStatus(team, clientId, newStatus);
 	if (!result.success || !result.team) {
-		gameLogger.event('client_status_toggle_failed', { roomCode, teamName, clientId, error: result.error });
-		return json({ error: result.error || 'Failed to toggle client status', success: false }, { status: 500 });
+		gameLogger.event('client_status_toggle_failed', {
+			roomCode,
+			teamName,
+			clientId,
+			error: result.error
+		});
+		return json(
+			{ error: result.error || 'Failed to toggle client status', success: false },
+			{ status: 500 }
+		);
 	}
 
 	// Update session

@@ -16,12 +16,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import {
-	createGameSession,
-	getSession,
-	getAllSessions,
-	deleteSession
-} from './session-manager';
+import { createGameSession, getSession, getAllSessions, deleteSession } from './session-manager';
 import { joinGame, clearPlayers } from './player-manager';
 import { startGame } from './game-start-manager';
 

@@ -24,8 +24,12 @@ export const GET: RequestHandler = async ({ params }) => {
 		roomCode: session.roomCode,
 		current_round: session.current_round,
 		current_phase: session.current_phase,
-		esp_teams: session.esp_teams.map(t => ({ name: t.name, players: t.players })),
-		destinations: session.destinations.map(d => ({ name: d.name, players: d.players, locked_in: d.locked_in })),
+		esp_teams: session.esp_teams.map((t) => ({ name: t.name, players: t.players })),
+		destinations: session.destinations.map((d) => ({
+			name: d.name,
+			players: d.players,
+			locked_in: d.locked_in
+		})),
 		timer: session.timer
 	});
 };

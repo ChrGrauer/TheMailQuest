@@ -1,8 +1,5 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import {
-	lockInDestination,
-	checkAllPlayersLockedIn
-} from '$lib/server/game/lock-in-manager';
+import { lockInDestination, checkAllPlayersLockedIn } from '$lib/server/game/lock-in-manager';
 import { getSession } from '$lib/server/game/session-manager';
 import { transitionPhase } from '$lib/server/game/phase-manager';
 import { gameLogger } from '$lib/server/logger';

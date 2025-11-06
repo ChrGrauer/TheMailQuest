@@ -29,10 +29,7 @@
 		<!-- Current Budget -->
 		<div>
 			<div class="text-sm text-gray-600 mb-1">Current</div>
-			<div
-				data-testid="budget-current"
-				class="text-4xl font-bold text-emerald-600"
-			>
+			<div data-testid="budget-current" class="text-4xl font-bold text-emerald-600">
 				{currentBudget.toLocaleString()}
 				<span class="text-lg text-gray-500 ml-2">credits</span>
 			</div>
@@ -42,10 +39,7 @@
 		{#if showForecast}
 			<div class="border-t border-gray-200 pt-4">
 				<div class="text-sm text-gray-600 mb-1">After Lock-in</div>
-				<div
-					data-testid="budget-forecast"
-					class="text-2xl font-semibold text-gray-500 opacity-75"
-				>
+				<div data-testid="budget-forecast" class="text-2xl font-semibold text-gray-500 opacity-75">
 					{forecastBudget.toLocaleString()}
 					<span class="text-base text-gray-400 ml-2">credits</span>
 				</div>

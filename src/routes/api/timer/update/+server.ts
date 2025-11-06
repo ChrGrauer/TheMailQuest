@@ -20,7 +20,9 @@ export const POST: RequestHandler = async () => {
 			// Only update timers that are running
 			if (session.timer && session.timer.isRunning && session.timer.remaining > 0) {
 				const now = new Date();
-				const elapsed = Math.floor((now.getTime() - new Date(session.timer.startedAt).getTime()) / 1000);
+				const elapsed = Math.floor(
+					(now.getTime() - new Date(session.timer.startedAt).getTime()) / 1000
+				);
 				const remaining = Math.max(0, session.timer.duration - elapsed);
 
 				// Update timer and handle auto-lock/warnings

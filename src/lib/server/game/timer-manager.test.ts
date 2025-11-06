@@ -12,12 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import {
-	createGameSession,
-	getSession,
-	getAllSessions,
-	deleteSession
-} from './session-manager';
+import { createGameSession, getSession, getAllSessions, deleteSession } from './session-manager';
 import { joinGame, clearPlayers } from './player-manager';
 import { startGame } from './game-start-manager';
 import { allocateResources } from './resource-allocation-manager';

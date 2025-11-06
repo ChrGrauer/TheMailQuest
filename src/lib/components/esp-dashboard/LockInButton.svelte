@@ -35,8 +35,10 @@
 		onLockIn
 	}: Props = $props();
 
-	// Button should be visible in planning phase
-	let isVisible = $derived(phase === 'planning');
+	// Button should be visible in planning phase OR if there's an auto-lock message to display
+	let isVisible = $derived(
+		phase === 'planning' || (autoLockMessage !== null && autoLockMessage !== '')
+	);
 
 	// Button is disabled if:
 	// - Not in planning phase
@@ -70,7 +72,8 @@
 						<p class="text-sm">Waiting for others to lock in...</p>
 						{#if remainingPlayers > 0}
 							<p data-testid="remaining-players-count" class="text-lg font-semibold mt-2">
-								{remainingPlayers} {remainingPlayers === 1 ? 'player' : 'players'} remaining
+								{remainingPlayers}
+								{remainingPlayers === 1 ? 'player' : 'players'} remaining
 							</p>
 						{/if}
 					</div>
@@ -105,9 +108,8 @@
 				<!-- Description -->
 				<p class="text-sm text-gray-600 mb-6">
 					{#if pendingDecisions > 0}
-						You have {pendingDecisions} pending {pendingDecisions === 1
-							? 'decision'
-							: 'decisions'}. Review carefully before locking in.
+						You have {pendingDecisions} pending {pendingDecisions === 1 ? 'decision' : 'decisions'}.
+						Review carefully before locking in.
 					{:else}
 						Lock in your decisions when you're ready to proceed to the next phase.
 					{/if}
