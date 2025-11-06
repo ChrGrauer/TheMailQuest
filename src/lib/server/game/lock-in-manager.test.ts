@@ -12,12 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import {
-	createGameSession,
-	getSession,
-	getAllSessions,
-	deleteSession
-} from './session-manager';
+import { createGameSession, getSession, getAllSessions, deleteSession } from './session-manager';
 import { joinGame, clearPlayers } from './player-manager';
 import { startGame } from './game-start-manager';
 import { allocateResources } from './resource-allocation-manager';
@@ -414,11 +409,10 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			// When - Auto-correct
 			const corrections = autoCorrectOnboardingOptions(team!);
 
-			// Then - 1 warm-up + 2 list hygiene removed
-			expect(corrections.length).toBe(3);
+			// Then - 1 warm-up + 1 list hygiene removed (total 230cr saved, 850+80=930 < 1000)
+			expect(corrections.length).toBe(2);
 			expect(corrections[0].optionType).toBe('warmUp');
 			expect(corrections[1].optionType).toBe('listHygiene');
-			expect(corrections[2].optionType).toBe('listHygiene');
 		});
 	});
 
@@ -725,7 +719,16 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				teamName: 'SendWave'
 			});
 
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Bob',
+				role: 'Destination',
+				teamName: 'Gmail'
+			});
+
 			startGame({ roomCode: session.roomCode, facilitatorId });
+			allocateResources({ roomCode: session.roomCode });
+			transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
 
 			// When
 			const result = lockInESPTeam(session.roomCode, 'NonExistentTeam');
