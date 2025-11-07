@@ -80,7 +80,8 @@ export const TECHNICAL_UPGRADES: TechnicalUpgrade[] = [
 		benefits: [
 			'Reduces spam complaint rate by 30%',
 			'Automatic content quality checks',
-			'Protects sender reputation'
+			'Protects sender reputation',
+			'Does NOT affect spam trap risk (use List Hygiene for that)'
 		]
 	},
 
@@ -176,3 +177,41 @@ export function getUpgradeStatus(
 	const { met } = areDependenciesMet(techId, ownedTechIds);
 	return met ? 'Available' : 'Locked';
 }
+
+/**
+ * Authentication delivery success bonuses
+ * US-3.3: Resolution Phase Automation - Iteration 3
+ */
+export const AUTHENTICATION_DELIVERY_BONUSES: Record<string, number> = {
+	spf: 0.05, // +5% delivery success
+	dkim: 0.08, // +8% delivery success
+	dmarc: 0.12 // +12% delivery success
+};
+
+/**
+ * Get cumulative authentication delivery bonus for owned tech stack
+ */
+export function getAuthenticationDeliveryBonus(ownedTechIds: string[]): number {
+	let bonus = 0;
+	if (ownedTechIds.includes('spf')) bonus += AUTHENTICATION_DELIVERY_BONUSES.spf;
+	if (ownedTechIds.includes('dkim')) bonus += AUTHENTICATION_DELIVERY_BONUSES.dkim;
+	if (ownedTechIds.includes('dmarc')) bonus += AUTHENTICATION_DELIVERY_BONUSES.dmarc;
+	return bonus;
+}
+
+/**
+ * Get cumulative authentication reputation bonus for owned tech stack
+ */
+export function getAuthenticationReputationBonus(ownedTechIds: string[]): number {
+	let bonus = 0;
+	if (ownedTechIds.includes('spf')) bonus += 2;
+	if (ownedTechIds.includes('dkim')) bonus += 3;
+	if (ownedTechIds.includes('dmarc')) bonus += 5;
+	return bonus;
+}
+
+/**
+ * DMARC enforcement penalty (Round 3+)
+ * US-3.3: Resolution Phase Automation - Iteration 3
+ */
+export const DMARC_MISSING_PENALTY = 0.20; // 80% rejection = only 20% gets through

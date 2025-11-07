@@ -182,3 +182,23 @@ export function formatVolume(volume: number): string {
 	}
 	return volume.toString();
 }
+
+/**
+ * Delivery success rates by reputation zone
+ * US-3.3: Resolution Phase Automation - Iteration 2
+ */
+export const REPUTATION_DELIVERY_SUCCESS: Record<MetricStatus, number> = {
+	excellent: 0.95, // 95% delivery success
+	good: 0.85, // 85% delivery success
+	warning: 0.70, // 70% delivery success
+	poor: 0.50, // 50% delivery success
+	blacklist: 0.05 // 5% delivery success (near-total block)
+};
+
+/**
+ * Get delivery success rate for a reputation score
+ */
+export function getDeliverySuccessRate(reputation: number): number {
+	const status = getReputationStatus(reputation);
+	return REPUTATION_DELIVERY_SUCCESS[status.status];
+}

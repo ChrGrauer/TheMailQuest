@@ -61,7 +61,7 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 	{
 		type: 're_engagement',
 		baseCost: 100,
-		baseRevenue: 120,
+		baseRevenue: 150,
 		baseVolume: 50000,
 		risk: 'High',
 		baseSpamRate: 2.5,
@@ -73,8 +73,8 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 	{
 		type: 'aggressive_marketer',
 		baseCost: 200,
-		baseRevenue: 250,
-		baseVolume: 60000,
+		baseRevenue: 350,
+		baseVolume: 80000,
 		risk: 'High',
 		baseSpamRate: 3.0,
 		availableFromRound: 2,
@@ -161,4 +161,21 @@ export function validateClientNames(): boolean {
 		throw new Error(`Invalid client names: expected ${expected} names, got ${CLIENT_NAMES.length}`);
 	}
 	return true;
+}
+
+/**
+ * Reputation impact per risk level (per round)
+ * US-3.3: Resolution Phase Automation - Iteration 4
+ */
+export const RISK_REPUTATION_IMPACT: Record<'Low' | 'Medium' | 'High', number> = {
+	Low: +2, // Low risk clients improve reputation
+	Medium: -1, // Medium risk clients slightly hurt reputation
+	High: -4 // High risk clients significantly hurt reputation
+};
+
+/**
+ * Get reputation impact for a client's risk level
+ */
+export function getReputationImpact(risk: 'Low' | 'Medium' | 'High'): number {
+	return RISK_REPUTATION_IMPACT[risk];
 }
