@@ -468,7 +468,6 @@
 					return !loading && !error;
 				}, // Signal that initial fetch is complete
 				setCredits: (value: number) => (credits = value),
-				setPendingCosts: (value: number) => (pendingCosts = value),
 				// Add pending onboarding decision for a client (US-2.1 test support)
 				addPendingOnboarding: (clientId: string, warmup: boolean, listHygiene: boolean) => {
 					pendingOnboardingDecisions = {
