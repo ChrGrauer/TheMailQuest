@@ -23,6 +23,7 @@ import {
 	initializeTimer,
 	getTimerState,
 	stopTimer,
+	calculateRemainingTime,
 	type TimerState,
 	type TimerConfig
 } from './timer-manager';
@@ -357,6 +358,96 @@ describe('Feature: Timer Management - Business Logic', () => {
 			expect(updatedSession?.timer).toBeDefined();
 			expect(updatedSession?.timer?.duration).toBe(300);
 			expect(updatedSession?.timer?.remaining).toBe(300);
+		});
+	});
+
+	// ============================================================================
+	// TIMER CALCULATION - SERVER AUTHORITY
+	// ============================================================================
+
+	describe('Scenario: Server timer calculation is authoritative', () => {
+		test('Given timer is initialized, When remaining field is corrupted, Then calculateRemainingTime uses startedAt as source of truth', () => {
+			// Given
+			const facilitatorId = 'facilitator_123';
+			const session = createGameSession(facilitatorId);
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Alice',
+				role: 'ESP',
+				teamName: 'SendWave'
+			});
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Bob',
+				role: 'Destination',
+				teamName: 'Gmail'
+			});
+
+			startGame({ roomCode: session.roomCode, facilitatorId });
+			allocateResources({ roomCode: session.roomCode });
+			transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
+
+			// Initialize timer with 300 seconds
+			initializeTimer({
+				roomCode: session.roomCode,
+				duration: 300
+			});
+
+			// When - Manually corrupt the remaining field (simulate client manipulation)
+			const updatedSession = getSession(session.roomCode);
+			updatedSession!.timer!.remaining = 999; // Wrong value
+
+			// Then - Calculate remaining time should ignore corrupted value
+			const remaining = calculateRemainingTime(session.roomCode);
+
+			// Should be ~300 (or slightly less due to test execution time), NOT 999
+			expect(remaining).not.toBe(999);
+			expect(remaining).toBeGreaterThan(290);
+			expect(remaining).toBeLessThanOrEqual(300);
+		});
+
+		test('Given timer has been running, When remaining field is set to 0, Then calculateRemainingTime still calculates from startedAt', () => {
+			// Given
+			const facilitatorId = 'facilitator_123';
+			const session = createGameSession(facilitatorId);
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Alice',
+				role: 'ESP',
+				teamName: 'SendWave'
+			});
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Bob',
+				role: 'Destination',
+				teamName: 'Gmail'
+			});
+
+			startGame({ roomCode: session.roomCode, facilitatorId });
+			allocateResources({ roomCode: session.roomCode });
+			transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
+
+			// Initialize timer with 300 seconds
+			initializeTimer({
+				roomCode: session.roomCode,
+				duration: 300
+			});
+
+			// When - Corrupt remaining to 0 (simulate malicious client trying to force timer expiry)
+			const updatedSession = getSession(session.roomCode);
+			updatedSession!.timer!.remaining = 0;
+
+			// Then - Calculate remaining time should still be ~300
+			const remaining = calculateRemainingTime(session.roomCode);
+
+			// Should be ~300, NOT 0
+			expect(remaining).not.toBe(0);
+			expect(remaining).toBeGreaterThan(290);
+			expect(remaining).toBeLessThanOrEqual(300);
 		});
 	});
 });

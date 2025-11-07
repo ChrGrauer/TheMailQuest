@@ -362,4 +362,113 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			await bobPage.close();
 		});
 	});
+
+	// ============================================================================
+	// TIMER SYNCHRONIZATION - SERVER AUTHORITY
+	// ============================================================================
+
+	test.describe('Scenario: Server timer overrides client-side drift', () => {
+		test('Given timer is running, When client timer is manipulated, Then server corrects it via WebSocket', async ({
+			page,
+			context
+		}) => {
+			// Given - Create game in planning phase
+			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
+			await page.waitForTimeout(500);
+
+			// Start game
+			const startGameButton = page.getByRole('button', { name: /start game/i });
+			await startGameButton.click();
+
+			// Wait for Alice to reach ESP dashboard
+			await alicePage.waitForURL(`/game/${roomCode}/esp/sendwave`, { timeout: 10000 });
+			await alicePage.waitForFunction(
+				() => (window as any).__espDashboardTest?.ready === true,
+				{},
+				{ timeout: 10000 }
+			);
+
+			// Verify timer is visible and running (should be ~300 seconds)
+			const timerElement = alicePage.locator('[data-testid="game-timer"]');
+			await expect(timerElement).toBeVisible({ timeout: 5000 });
+
+			// Get initial timer value (should be around 5:00)
+			const initialTimerText = await timerElement.textContent();
+			expect(initialTimerText).toMatch(/[4-5]:[0-9]{2}/); // Between 4:00 and 5:00
+
+			// When - Manipulate client-side timer to simulate drift (set to 100 seconds = 1:40)
+			await alicePage.evaluate(() => {
+				(window as any).__espDashboardTest?.setTimerSeconds(100);
+			});
+
+			// Verify manipulation took effect (timer should briefly show ~1:40)
+			await alicePage.waitForTimeout(100);
+			let manipulatedTimerText = await timerElement.textContent();
+			expect(manipulatedTimerText).toMatch(/1:[0-9]{2}/); // Should show 1:XX (around 1:40)
+
+			// Wait for WebSocket update from server (broadcasts every 1 second)
+			// Give it up to 3 seconds to receive update
+			await alicePage.waitForTimeout(3000);
+
+			// Then - Timer should be corrected by server to ~297-300 (around 4:57-5:00)
+			const correctedTimerText = await timerElement.textContent();
+
+			// Should NOT still be in 1:XX range (manipulated value)
+			expect(correctedTimerText).not.toMatch(/1:[0-9]{2}/);
+
+			// Should be back in 4:XX-5:XX range (server value)
+			expect(correctedTimerText).toMatch(/[4-5]:[0-9]{2}/);
+
+			await alicePage.close();
+			await bobPage.close();
+		});
+
+		test('Given timer is running, When client sets timer to 0, Then server corrects it', async ({
+			page,
+			context
+		}) => {
+			// Given - Create game in planning phase
+			const { roomCode, alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
+			await page.waitForTimeout(500);
+
+			// Start game
+			const startGameButton = page.getByRole('button', { name: /start game/i });
+			await startGameButton.click();
+
+			// Wait for Alice to reach ESP dashboard
+			await alicePage.waitForURL(`/game/${roomCode}/esp/sendwave`, { timeout: 10000 });
+			await alicePage.waitForFunction(
+				() => (window as any).__espDashboardTest?.ready === true,
+				{},
+				{ timeout: 10000 }
+			);
+
+			// Verify timer is visible
+			const timerElement = alicePage.locator('[data-testid="game-timer"]');
+			await expect(timerElement).toBeVisible({ timeout: 5000 });
+
+			// When - Try to manipulate timer to 0 (malicious attempt to force timer expiry)
+			await alicePage.evaluate(() => {
+				(window as any).__espDashboardTest?.setTimerSeconds(0);
+			});
+
+			// Verify manipulation took effect
+			await alicePage.waitForTimeout(100);
+			let manipulatedTimerText = await timerElement.textContent();
+			expect(manipulatedTimerText?.trim()).toBe('0:00');
+
+			// Wait for WebSocket update from server
+			await alicePage.waitForTimeout(3000);
+
+			// Then - Timer should be corrected by server (NOT 0:00)
+			const correctedTimerText = await timerElement.textContent();
+			expect(correctedTimerText).not.toBe('0:00');
+
+			// Should be around 4:57-5:00 (server's actual value)
+			expect(correctedTimerText).toMatch(/[4-5]:[0-9]{2}/);
+
+			await alicePage.close();
+			await bobPage.close();
+		});
+	});
 });

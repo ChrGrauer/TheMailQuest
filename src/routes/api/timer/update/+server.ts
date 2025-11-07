@@ -27,8 +27,15 @@ export const POST: RequestHandler = async () => {
 
 				// Update timer and handle auto-lock/warnings
 				// Pass the WebSocket broadcast function
-				updateTimerRemaining(session.room_code, remaining, (roomCode, message) => {
+				updateTimerRemaining(session.roomCode, remaining, (roomCode, message) => {
 					gameWss.broadcastToRoom(roomCode, message);
+				});
+
+				// Broadcast regular timer updates to keep clients synchronized
+				// This ensures server authority - clients can't drift without correction
+				gameWss.broadcastToRoom(session.roomCode, {
+					type: 'game_state_update',
+					timer_remaining: remaining
 				});
 			}
 		});
