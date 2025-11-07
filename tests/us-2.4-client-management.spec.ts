@@ -112,16 +112,16 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		await expect(clientCard.getByTestId('onboarding-section')).toBeVisible();
 
 		// And: Shows warm-up checkbox (150 credits)
-		await expect(clientCard.getByTestId('onboarding-warmup-checkbox')).toBeVisible();
+		await expect(clientCard.getByTestId('warm-up-checkbox')).toBeVisible();
 		await expect(clientCard.getByText('150 cr')).toBeVisible();
 
 		// And: Shows list hygiene checkbox (80 credits)
-		await expect(clientCard.getByTestId('onboarding-list-hygiene-checkbox')).toBeVisible();
+		await expect(clientCard.getByTestId('list-hygiene-checkbox')).toBeVisible();
 		await expect(clientCard.getByText('80 cr')).toBeVisible();
 
 		// And: Both are unchecked by default
-		await expect(clientCard.getByTestId('onboarding-warmup-checkbox')).not.toBeChecked();
-		await expect(clientCard.getByTestId('onboarding-list-hygiene-checkbox')).not.toBeChecked();
+		await expect(clientCard.getByTestId('warm-up-checkbox')).not.toBeChecked();
+		await expect(clientCard.getByTestId('list-hygiene-checkbox')).not.toBeChecked();
 	});
 
 	test('2.2: Configure onboarding warm-up for new client', async () => {

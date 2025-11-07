@@ -778,10 +778,10 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// When: player "Alice" looks for ways to make decisions
 			// Then: there should be prominent quick action buttons
 			const marketplaceButton = alicePage.locator(
-				'[data-testid="quick-action-client-marketplace"]'
+				'[data-testid="open-client-marketplace"]'
 			);
-			const techShopButton = alicePage.locator('[data-testid="quick-action-tech-shop"]');
-			const clientMgmtButton = alicePage.locator('[data-testid="quick-action-client-mgmt"]');
+			const techShopButton = alicePage.locator('[data-testid="open-tech-shop"]');
+			const clientMgmtButton = alicePage.locator('[data-testid="open-portfolio"]');
 
 			await expect(marketplaceButton).toBeVisible();
 			await expect(techShopButton).toBeVisible();
@@ -974,7 +974,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// Test 1: Quick action buttons should be focusable
 			const marketplaceButton = alicePage.locator(
-				'[data-testid="quick-action-client-marketplace"]'
+				'[data-testid="open-client-marketplace"]'
 			);
 			await marketplaceButton.focus();
 			let isFocused = await marketplaceButton.evaluate((el) => document.activeElement === el);
@@ -996,13 +996,13 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// Test 2: Tab to next button
 			await alicePage.keyboard.press('Tab');
-			const techShopButton = alicePage.locator('[data-testid="quick-action-tech-shop"]');
+			const techShopButton = alicePage.locator('[data-testid="open-tech-shop"]');
 			isFocused = await techShopButton.evaluate((el) => document.activeElement === el);
 			expect(isFocused).toBe(true);
 
 			// Test 3: Tab to client management button
 			await alicePage.keyboard.press('Tab');
-			const clientMgmtButton = alicePage.locator('[data-testid="quick-action-client-mgmt"]');
+			const clientMgmtButton = alicePage.locator('[data-testid="open-portfolio"]');
 			isFocused = await clientMgmtButton.evaluate((el) => document.activeElement === el);
 			expect(isFocused).toBe(true);
 

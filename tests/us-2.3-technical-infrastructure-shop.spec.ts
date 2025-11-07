@@ -15,7 +15,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Open tech shop
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 
 		// Wait for modal to appear
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
@@ -38,7 +38,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 	test('Scenario: Display purchase requirements for each upgrade', async ({ page, context }) => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		// SPF should show "No requirements"
@@ -71,7 +71,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 			(window as any).__espDashboardTest.setRound(2);
 		});
 
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		// DMARC should be visually highlighted
@@ -90,7 +90,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		// Try to purchase DKIM without SPF - should be locked
@@ -122,7 +122,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 	}) => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		// DKIM should show Locked status
@@ -163,7 +163,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 			(window as any).__espDashboardTest.setCredits(50);
 		});
 
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		// SPF purchase button should be disabled
@@ -186,7 +186,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const initialCreditsText = await alicePage.getByTestId('budget-current').textContent();
 		const initialCredits = parseInt(initialCreditsText?.replace(/[^0-9]/g, '') || '0');
 
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		// Get SPF cost
@@ -219,7 +219,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		// Purchase SPF
@@ -241,7 +241,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		// DKIM should be locked initially
@@ -279,7 +279,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Purchase SPF through shop
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		const spfCard = alicePage.getByTestId('upgrade-card-spf');
@@ -320,7 +320,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		});
 
 		// DMARC warning badge should appear on quick action button
-		const techShopButton = alicePage.getByTestId('quick-action-tech-shop');
+		const techShopButton = alicePage.getByTestId('open-tech-shop');
 		await expect(techShopButton.getByText(/DMARC needed/i)).toBeVisible();
 
 		await alicePage.close();
@@ -337,7 +337,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('quick-action-tech-shop').click();
+		await alicePage.getByTestId('open-tech-shop').click();
 		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
 
 		// Content Filtering should be available immediately

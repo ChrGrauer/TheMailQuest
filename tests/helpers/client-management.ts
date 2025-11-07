@@ -174,10 +174,10 @@ export async function waitForClientManagementModal(page: Page): Promise<void> {
  */
 export async function openClientManagementModal(page: Page): Promise<void> {
 	// Wait for dashboard to be fully loaded
-	await page.waitForSelector('[data-testid="quick-action-client-mgmt"]', { timeout: 15000 });
+	await page.waitForSelector('[data-testid="open-portfolio"]', { timeout: 15000 });
 
 	// Click the button
-	await page.getByTestId('quick-action-client-mgmt').click();
+	await page.getByTestId('open-portfolio').click();
 	await waitForClientManagementModal(page);
 }
 
