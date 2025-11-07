@@ -591,6 +591,7 @@
 		{totalRounds}
 		{timerSeconds}
 		theme="emerald"
+		{isLockedIn}
 	/>
 
 	<!-- Loading State -->

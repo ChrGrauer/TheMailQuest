@@ -447,6 +447,7 @@
 			totalRounds={4}
 			timerSeconds={timerRemaining}
 			theme="blue"
+			{isLockedIn}
 		/>
 
 		<!-- Dashboard Content -->

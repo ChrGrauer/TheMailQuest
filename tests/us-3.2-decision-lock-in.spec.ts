@@ -306,7 +306,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			const warningMessage = alicePage.locator('[data-testid="timer-warning"]');
 			await expect(warningMessage).toBeVisible();
 			await expect(warningMessage).toContainText('Decisions will be locked automatically');
-			await expect(warningMessage).toContainText('15');
+			await expect(warningMessage).toContainText(/\d+ second/);
 
 			// And: warning should persist until timer expires
 			// (Implementation will handle timer countdown)

@@ -27,6 +27,8 @@
 		onTimerUpdate?: (seconds: number) => void;
 		/** Theme color: 'emerald' for ESP, 'blue' for Destination */
 		theme?: 'emerald' | 'blue';
+		/** Whether decisions are locked in (US-3.2) */
+		isLockedIn?: boolean;
 	}
 
 	let {
@@ -37,7 +39,8 @@
 		totalRounds = 4,
 		timerSeconds = 0,
 		onTimerUpdate,
-		theme = 'emerald'
+		theme = 'emerald',
+		isLockedIn = false
 	}: Props = $props();
 
 	// Calculate forecast budget after lock-in
@@ -173,7 +176,7 @@
 	</div>
 
 	<!-- 15-second warning banner (US-3.2) -->
-	{#if timerSeconds > 0 && timerSeconds <= 15}
+	{#if timerSeconds > 0 && timerSeconds <= 15 && !isLockedIn}
 		<div
 			data-testid="timer-warning"
 			role="alert"
