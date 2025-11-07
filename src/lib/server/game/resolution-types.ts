@@ -55,15 +55,15 @@ export interface RevenueResult {
 
 /**
  * Reputation Calculator Types
- * US 3.3: Iteration 3
+ * US 3.3: Iteration 3, 4
  */
 export interface ReputationParams {
 	techStack: string[];
 	destinations: string[];
+	clients: Client[]; // Iteration 4: for client risk impact
+	clientStates: Record<string, ClientState>; // Iteration 4: for active client filtering
+	volumeData: VolumeResult; // Iteration 4: for volume-weighted calculations
 	// Future iterations will add:
-	// clients?: Client[];
-	// clientStates?: Record<string, ClientState>;
-	// volumeData?: VolumeResult;
 	// currentRound?: number;
 }
 
@@ -83,6 +83,28 @@ export interface DestinationReputationChange {
 export interface ReputationResult {
 	perDestination: Record<string, DestinationReputationChange>;
 	volumeWeightedClientImpact: number; // Iteration 4
+}
+
+/**
+ * Complaint Calculator Types
+ * US 3.3: Iteration 4
+ */
+export interface ComplaintParams {
+	clients: Client[];
+	volumeData: VolumeResult;
+	// Iteration 5 will add: clientStates, techStack
+}
+
+export interface ClientComplaintData {
+	clientId: string;
+	baseRate: number;
+	volume: number;
+}
+
+export interface ComplaintResult {
+	baseComplaintRate: number; // volume-weighted
+	perClient: ClientComplaintData[];
+	// Iteration 5 will add: adjustedComplaintRate, spamTrapRisk
 }
 
 /**
@@ -117,8 +139,7 @@ export interface ESPResolutionResult {
 	reputation: ReputationResult; // Iteration 3: added
 	delivery: DeliveryResult;
 	revenue: RevenueResult;
-	// Future iterations will add:
-	// complaints?: ComplaintResult;
+	complaints: ComplaintResult; // Iteration 4: added
 }
 
 export interface ResolutionResults {
