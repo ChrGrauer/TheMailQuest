@@ -4,8 +4,9 @@
 **The Mail Quest** is a multiplayer game built with SvelteKit where ESP teams compete to deliver emails.
 
 **Development Methodology**: ATDD (Acceptance Test-Driven Development)
-1. Read `.feature` files (Gherkin acceptance criteria)
-2. Write failing tests (Red phase)
+0. Read `.feature` files (Gherkin acceptance criteria)
+1. Write/update types
+2. Write failing tests (Red phase); IMPORTANT : check existing test ids in TEST-IDS-REFERENCE.md
 3. Implement code to pass tests (Green phase)
 4. Refactor while keeping tests green
 
@@ -16,6 +17,7 @@
 - **Testing**: Vitest (unit/integration) + Playwright (E2E)
 - **Logger**: Pino (server-side only)
 - **WebSocket**: ws library
+- cat -A doesn't work on macOS
 
 ## Critical Rules
 - ❌ **NEVER** use `console.log()` - use Pino logger (server-side)
@@ -32,7 +34,7 @@
 - Quotes: Single quotes
 - Trailing commas: None
 
-### How to Use Going Forward
+### How to Use
 - Format all files: npm run format
 - Check if files need formatting (CI/pre-commit): npm run format:check
 

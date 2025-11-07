@@ -25,7 +25,7 @@
 	// Check if can acquire
 	let canAcquire = $derived.by(() => {
 		// Check if locked in
-		if (isLockedIn) return { can: false, reason: 'Decisions locked' };
+		if (isLockedIn) return { can: false, reason: 'Locked' };
 
 		// Check credits
 		if (credits < client.cost) return { can: false, reason: 'Insufficient credits' };
