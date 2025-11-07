@@ -1,15 +1,17 @@
 /**
  * Resolution Manager
- * US 3.3: Resolution Phase Automation - Iteration 1
+ * US 3.3: Resolution Phase Automation - Iterations 1-2
  *
  * Orchestrates resolution phase calculations
  * Iteration 1: Basic volume and revenue calculation
- * Future iterations will add: reputation, delivery modifiers, complaints, incidents
+ * Iteration 2: Reputation-based delivery success rates
+ * Future iterations will add: auth bonuses, complaints, incidents
  */
 
 import type { GameSession } from './types';
 import type { ResolutionResults } from './resolution-types';
 import { calculateVolume } from './calculators/volume-calculator';
+import { calculateDeliverySuccess } from './calculators/delivery-calculator';
 import { calculateRevenue } from './calculators/revenue-calculator';
 
 /**
@@ -25,8 +27,32 @@ async function getLogger() {
 }
 
 /**
+ * Calculate weighted average reputation across destinations
+ * Uses market share as weights: Gmail 50%, Outlook 30%, Yahoo 20%
+ * US 3.3: Iteration 2
+ */
+function calculateWeightedReputation(reputation: Record<string, number>): number {
+	const weights: Record<string, number> = {
+		gmail: 0.5,
+		outlook: 0.3,
+		yahoo: 0.2
+	};
+
+	let weightedSum = 0;
+	let totalWeight = 0;
+
+	for (const [dest, rep] of Object.entries(reputation)) {
+		const weight = weights[dest.toLowerCase()] || 0;
+		weightedSum += rep * weight;
+		totalWeight += weight;
+	}
+
+	return totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 70;
+}
+
+/**
  * Execute resolution phase for all ESP teams
- * Iteration 1: Volume and revenue calculation only
+ * Iteration 2: Volume, delivery (reputation-based), and revenue calculation
  */
 export async function executeResolution(
 	session: GameSession,
@@ -57,12 +83,27 @@ export async function executeResolution(
 			totalVolume: volumeResult.totalVolume
 		});
 
-		// 2. Calculate revenue
-		// Iteration 1: deliveryRate = 1.0 (no modifiers yet)
+		// 2. Calculate weighted reputation
+		const avgReputation = calculateWeightedReputation(team.reputation);
+
+		// 3. Calculate delivery success (Iteration 2)
+		const deliveryResult = calculateDeliverySuccess({
+			reputation: avgReputation,
+			techStack: team.owned_tech_upgrades,
+			currentRound: session.current_round
+		});
+		logger.info('Delivery calculated', {
+			teamName: team.name,
+			reputation: avgReputation,
+			zone: deliveryResult.zone,
+			deliveryRate: deliveryResult.finalRate
+		});
+
+		// 4. Calculate revenue (with delivery rate)
 		const revenueResult = calculateRevenue({
 			clients: activeClients,
 			clientStates: team.client_states || {},
-			deliveryRate: 1.0
+			deliveryRate: deliveryResult.finalRate
 		});
 		logger.info('Revenue calculated', {
 			teamName: team.name,
@@ -73,6 +114,7 @@ export async function executeResolution(
 		// Store results for this team
 		results.espResults[team.name] = {
 			volume: volumeResult,
+			delivery: deliveryResult,
 			revenue: revenueResult
 		};
 	}
