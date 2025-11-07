@@ -54,19 +54,59 @@ export interface RevenueResult {
 }
 
 /**
+ * Reputation Calculator Types
+ * US 3.3: Iteration 3
+ */
+export interface ReputationParams {
+	techStack: string[];
+	destinations: string[];
+	// Future iterations will add:
+	// clients?: Client[];
+	// clientStates?: Record<string, ClientState>;
+	// volumeData?: VolumeResult;
+	// currentRound?: number;
+}
+
+export interface ReputationBreakdownItem {
+	source: string;
+	value: number;
+}
+
+export interface DestinationReputationChange {
+	techBonus: number;
+	clientImpact: number; // Iteration 4
+	warmupBonus: number; // Iteration 5
+	totalChange: number;
+	breakdown: ReputationBreakdownItem[];
+}
+
+export interface ReputationResult {
+	perDestination: Record<string, DestinationReputationChange>;
+	volumeWeightedClientImpact: number; // Iteration 4
+}
+
+/**
  * Delivery Calculator Types
- * US 3.3: Iteration 2
+ * US 3.3: Iteration 2, 3
  */
 export interface DeliveryParams {
 	reputation: number; // weighted average across destinations
-	techStack: string[]; // for future iterations (auth bonuses)
-	currentRound: number; // for future iterations (DMARC penalty)
+	techStack: string[];
+	currentRound: number;
+}
+
+export interface DeliveryBreakdownItem {
+	factor: string;
+	value: number;
 }
 
 export interface DeliveryResult {
 	baseRate: number; // from reputation zone
-	finalRate: number; // after all modifiers (same as baseRate in Iteration 2)
+	authBonus: number; // Iteration 3: authentication delivery bonus
+	dmarcPenalty?: number; // Iteration 3: DMARC missing penalty (Round 3+)
+	finalRate: number; // after all modifiers
 	zone: string; // reputation zone name (excellent/good/warning/poor/blacklist)
+	breakdown: DeliveryBreakdownItem[]; // Iteration 3: calculation breakdown
 }
 
 /**
@@ -74,10 +114,10 @@ export interface DeliveryResult {
  */
 export interface ESPResolutionResult {
 	volume: VolumeResult;
-	delivery: DeliveryResult; // Iteration 2: added
+	reputation: ReputationResult; // Iteration 3: added
+	delivery: DeliveryResult;
 	revenue: RevenueResult;
 	// Future iterations will add:
-	// reputation?: ReputationResult;
 	// complaints?: ComplaintResult;
 }
 
