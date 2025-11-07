@@ -104,22 +104,23 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Given: ESP team "SendWave" has 1000 credits
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-			// And: the team has made decisions that will cost 330 credits this round
-			// TODO: This will be fully testable once US-2.3 (Tech Shop) is implemented
-			// For now, we'll simulate pending decisions via test API
+			// And: the team has pending onboarding decisions that will cost 310 credits
+			// Client 1: warmup (150) + list hygiene (80) = 230
+			// Client 2: list hygiene (80) = 80
 			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setPendingCosts(330);
+				(window as any).__espDashboardTest.addPendingOnboarding('client-1', true, true);
+				(window as any).__espDashboardTest.addPendingOnboarding('client-2', false, true);
 			});
 
 			// Wait for front-end to process the update
 			await alicePage.waitForTimeout(500);
 
 			// When: player "Alice" views the dashboard
-			// Then: a budget forecast should show "670" as "After Lock-in" value
+			// Then: a budget forecast should show "690" (1000 - 310) as "After Lock-in" value
 			const forecastElement = alicePage.locator('[data-testid="budget-forecast"]');
 			await expect(forecastElement).toBeVisible();
 			let forecastText = await forecastElement.textContent();
-			expect(forecastText).toMatch(/670/);
+			expect(forecastText).toMatch(/690/);
 
 			// And: the forecast should be visually distinct from current budget
 			const currentBudget = alicePage.locator('[data-testid="budget-current"]');

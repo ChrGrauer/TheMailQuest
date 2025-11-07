@@ -32,10 +32,12 @@ test.describe('Feature: Decision Lock-In', () => {
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 			// And: "SendWave" has budget of 1450 credits
-			// And: "SendWave" decisions total 500 credits
+			// And: "SendWave" has pending onboarding decisions totaling 460 credits
+			// (2 clients: both with warmup+hygiene)
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setCredits(1450);
-				(window as any).__espDashboardTest.setPendingCosts(500);
+				(window as any).__espDashboardTest.addPendingOnboarding('lock-client-1', true, true);
+				(window as any).__espDashboardTest.addPendingOnboarding('lock-client-2', true, true);
 			});
 			await alicePage.waitForTimeout(500);
 
@@ -178,10 +180,12 @@ test.describe('Feature: Decision Lock-In', () => {
 			// Given: "SendWave" has budget of 1450 credits
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-			// And: "SendWave" has decisions totaling 500 credits
+			// And: "SendWave" has pending onboarding decisions totaling 460 credits
+			// (2 clients: both with warmup+hygiene)
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setCredits(1450);
-				(window as any).__espDashboardTest.setPendingCosts(500);
+				(window as any).__espDashboardTest.addPendingOnboarding('lock-client-1', true, true);
+				(window as any).__espDashboardTest.addPendingOnboarding('lock-client-2', true, true);
 			});
 			await alicePage.waitForTimeout(500);
 
@@ -319,10 +323,12 @@ test.describe('Feature: Decision Lock-In', () => {
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 			// And: "SendWave" has not locked in
-			// And: "SendWave" has valid decisions totaling 500 credits with budget 1450
+			// And: "SendWave" has pending onboarding decisions totaling 460 credits
+			// (2 clients: both with warmup+hygiene) with budget 1450
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setCredits(1450);
-				(window as any).__espDashboardTest.setPendingCosts(500);
+				(window as any).__espDashboardTest.addPendingOnboarding('auto-client-1', true, true);
+				(window as any).__espDashboardTest.addPendingOnboarding('auto-client-2', true, true);
 			});
 			await alicePage.waitForTimeout(500);
 
@@ -331,9 +337,12 @@ test.describe('Feature: Decision Lock-In', () => {
 				const url = window.location.pathname;
 				return url.split('/')[2];
 			});
-			await alicePage.evaluate(async ({ rc }) => {
-				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
-			}, { rc: roomCode });
+			await alicePage.evaluate(
+				async ({ rc }) => {
+					await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+				},
+				{ rc: roomCode }
+			);
 			await alicePage.waitForTimeout(1000);
 
 			// Then: "SendWave" decisions should be auto-locked as-is
@@ -366,29 +375,35 @@ test.describe('Feature: Decision Lock-In', () => {
 			});
 
 			// Set up test state via test API
-			await alicePage.evaluate(async ({ rc }) => {
-				await fetch(`/api/test/set-team-state`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						roomCode: rc,
-						teamName: 'SendWave',
-						credits: 1000,
-						budget: 690, // Already committed costs
-						pending_onboarding_decisions: {
-							'client-premium': { warmUp: true, listHygiene: true }, // 230cr
-							'client-startup': { warmUp: true, listHygiene: true }, // 230cr
-							'client-c': { warmUp: true, listHygiene: false } // 150cr
-						} // Total: 690 + 610 = 1300 > 1000 (exceeds by 300cr)
-					})
-				});
-			}, { rc: roomCode });
+			await alicePage.evaluate(
+				async ({ rc }) => {
+					await fetch(`/api/test/set-team-state`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							roomCode: rc,
+							teamName: 'SendWave',
+							credits: 1000,
+							budget: 690, // Already committed costs
+							pending_onboarding_decisions: {
+								'client-premium': { warmUp: true, listHygiene: true }, // 230cr
+								'client-startup': { warmUp: true, listHygiene: true }, // 230cr
+								'client-c': { warmUp: true, listHygiene: false } // 150cr
+							} // Total: 690 + 610 = 1300 > 1000 (exceeds by 300cr)
+						})
+					});
+				},
+				{ rc: roomCode }
+			);
 			await alicePage.waitForTimeout(500);
 
 			// When: timer expires - trigger auto-lock directly
-			await alicePage.evaluate(async ({ rc }) => {
-				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
-			}, { rc: roomCode });
+			await alicePage.evaluate(
+				async ({ rc }) => {
+					await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+				},
+				{ rc: roomCode }
+			);
 			await alicePage.waitForTimeout(1000);
 
 			// Then: system should auto-correct "SendWave" onboarding options to fit budget
@@ -413,7 +428,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			// And: "SendWave" has not locked in
 			// And: "SendWave" has made no decisions
 			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setPendingCosts(0);
+				(window as any).__espDashboardTest.clearPendingOnboarding();
 			});
 			await alicePage.waitForTimeout(500);
 
@@ -422,9 +437,12 @@ test.describe('Feature: Decision Lock-In', () => {
 				const url = window.location.pathname;
 				return url.split('/')[2];
 			});
-			await alicePage.evaluate(async ({ rc }) => {
-				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
-			}, { rc: roomCode });
+			await alicePage.evaluate(
+				async ({ rc }) => {
+					await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+				},
+				{ rc: roomCode }
+			);
 			await alicePage.waitForTimeout(1000);
 
 			// Then: "SendWave" should be auto-locked with empty decisions
@@ -750,9 +768,12 @@ test.describe('Feature: Decision Lock-In', () => {
 				const url = window.location.pathname;
 				return url.split('/')[2];
 			});
-			await alicePage.evaluate(async ({ rc }) => {
-				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
-			}, { rc: roomCode });
+			await alicePage.evaluate(
+				async ({ rc }) => {
+					await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+				},
+				{ rc: roomCode }
+			);
 			await alicePage.waitForTimeout(1000);
 
 			// Then: system should log auto-lock events
@@ -777,29 +798,35 @@ test.describe('Feature: Decision Lock-In', () => {
 			});
 
 			// Set up test state via test API
-			await alicePage.evaluate(async ({ rc }) => {
-				await fetch(`/api/test/set-team-state`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						roomCode: rc,
-						teamName: 'SendWave',
-						credits: 1000,
-						budget: 690, // Already committed costs
-						pending_onboarding_decisions: {
-							'client-premium': { warmUp: true, listHygiene: true }, // 230cr
-							'client-startup': { warmUp: true, listHygiene: true }, // 230cr
-							'client-c': { warmUp: true, listHygiene: false } // 150cr
-						} // Total: 690 + 610 = 1300 > 1000 (exceeds by 300cr)
-					})
-				});
-			}, { rc: roomCode });
+			await alicePage.evaluate(
+				async ({ rc }) => {
+					await fetch(`/api/test/set-team-state`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							roomCode: rc,
+							teamName: 'SendWave',
+							credits: 1000,
+							budget: 690, // Already committed costs
+							pending_onboarding_decisions: {
+								'client-premium': { warmUp: true, listHygiene: true }, // 230cr
+								'client-startup': { warmUp: true, listHygiene: true }, // 230cr
+								'client-c': { warmUp: true, listHygiene: false } // 150cr
+							} // Total: 690 + 610 = 1300 > 1000 (exceeds by 300cr)
+						})
+					});
+				},
+				{ rc: roomCode }
+			);
 			await alicePage.waitForTimeout(500);
 
 			// When: auto-lock corrects decisions - trigger auto-lock directly
-			await alicePage.evaluate(async ({ rc }) => {
-				await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
-			}, { rc: roomCode });
+			await alicePage.evaluate(
+				async ({ rc }) => {
+					await fetch(`/api/sessions/${rc}/auto-lock`, { method: 'POST' });
+				},
+				{ rc: roomCode }
+			);
 			await alicePage.waitForTimeout(1000);
 
 			// Then: system should log auto-correction with details

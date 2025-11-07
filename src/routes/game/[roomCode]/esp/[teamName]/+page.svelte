@@ -469,6 +469,17 @@
 				}, // Signal that initial fetch is complete
 				setCredits: (value: number) => (credits = value),
 				setPendingCosts: (value: number) => (pendingCosts = value),
+				// Add pending onboarding decision for a client (US-2.1 test support)
+				addPendingOnboarding: (clientId: string, warmup: boolean, listHygiene: boolean) => {
+					pendingOnboardingDecisions = {
+						...pendingOnboardingDecisions,
+						[clientId]: { warmUp: warmup, listHygiene: listHygiene }
+					};
+				},
+				// Clear all pending onboarding decisions (US-2.1 test support)
+				clearPendingOnboarding: () => {
+					pendingOnboardingDecisions = {};
+				},
 				setReputation: (value: Record<string, number>) =>
 					(reputation = { ...reputation, ...value }),
 				setClients: (value: typeof clients) => (clients = value),
