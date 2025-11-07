@@ -92,7 +92,7 @@ export const WARMUP_REPUTATION_BONUS = 2; // +2 reputation per destination
  * Warmup volume reduction (first round only)
  * US-3.3: Resolution Phase Automation - Iteration 5
  */
-export const WARMUP_VOLUME_REDUCTION = 0.50; // 50% volume reduction
+export const WARMUP_VOLUME_REDUCTION = 0.5; // 50% volume reduction
 
 /**
  * List Hygiene volume reduction by risk level
@@ -100,7 +100,7 @@ export const WARMUP_VOLUME_REDUCTION = 0.50; // 50% volume reduction
  */
 export const LIST_HYGIENE_VOLUME_REDUCTION: Record<'Low' | 'Medium' | 'High', number> = {
 	Low: 0.05, // 5% volume reduction for low risk clients
-	Medium: 0.10, // 10% volume reduction for medium risk clients
+	Medium: 0.1, // 10% volume reduction for medium risk clients
 	High: 0.15 // 15% volume reduction for high risk clients
 };
 
@@ -108,13 +108,13 @@ export const LIST_HYGIENE_VOLUME_REDUCTION: Record<'Low' | 'Medium' | 'High', nu
  * List Hygiene complaint rate reduction
  * US-3.3: Resolution Phase Automation - Iteration 5
  */
-export const LIST_HYGIENE_COMPLAINT_REDUCTION = 0.50; // 50% reduction
+export const LIST_HYGIENE_COMPLAINT_REDUCTION = 0.5; // 50% reduction
 
 /**
  * List Hygiene spam trap risk reduction
  * US-3.3: Resolution Phase Automation - Iteration 7
  */
-export const LIST_HYGIENE_SPAM_TRAP_REDUCTION = 0.40; // 40% reduction
+export const LIST_HYGIENE_SPAM_TRAP_REDUCTION = 0.4; // 40% reduction
 
 /**
  * Get volume reduction percentage for List Hygiene based on client risk

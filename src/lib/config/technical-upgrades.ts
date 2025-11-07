@@ -214,4 +214,4 @@ export function getAuthenticationReputationBonus(ownedTechIds: string[]): number
  * DMARC enforcement penalty (Round 3+)
  * US-3.3: Resolution Phase Automation - Iteration 3
  */
-export const DMARC_MISSING_PENALTY = 0.20; // 80% rejection = only 20% gets through
+export const DMARC_MISSING_PENALTY = 0.2; // 80% rejection = only 20% gets through

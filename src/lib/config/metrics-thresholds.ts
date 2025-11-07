@@ -190,8 +190,8 @@ export function formatVolume(volume: number): string {
 export const REPUTATION_DELIVERY_SUCCESS: Record<MetricStatus, number> = {
 	excellent: 0.95, // 95% delivery success
 	good: 0.85, // 85% delivery success
-	warning: 0.70, // 70% delivery success
-	poor: 0.50, // 50% delivery success
+	warning: 0.7, // 70% delivery success
+	poor: 0.5, // 50% delivery success
 	blacklist: 0.05 // 5% delivery success (near-total block)
 };
 
