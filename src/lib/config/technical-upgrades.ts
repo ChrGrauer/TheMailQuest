@@ -215,3 +215,9 @@ export function getAuthenticationReputationBonus(ownedTechIds: string[]): number
  * US-3.3: Resolution Phase Automation - Iteration 3
  */
 export const DMARC_MISSING_PENALTY = 0.2; // 80% rejection = only 20% gets through
+
+/**
+ * Content Filtering complaint reduction
+ * US-3.3: Resolution Phase Automation - Iteration 5
+ */
+export const CONTENT_FILTERING_COMPLAINT_REDUCTION = 0.3; // 30% reduction

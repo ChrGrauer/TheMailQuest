@@ -1,11 +1,11 @@
 /**
  * Reputation Calculator
- * US 3.3: Resolution Phase Automation - Iteration 3, 4
+ * US 3.3: Resolution Phase Automation - Iteration 3, 4, 5
  *
  * Calculates reputation changes based on tech stack and client risk
  * Iteration 3: Tech stack bonuses
  * Iteration 4: Client risk impact (volume-weighted)
- * Future iterations will add: warmup bonus (Iteration 5)
+ * Iteration 5: Warmup bonus
  */
 
 import type {
@@ -15,10 +15,11 @@ import type {
 } from '../resolution-types';
 import { getAuthenticationReputationBonus } from '$lib/config/technical-upgrades';
 import { getReputationImpact } from '$lib/config/client-profiles';
+import { WARMUP_REPUTATION_BONUS } from '$lib/config/client-onboarding';
 
 /**
  * Calculate reputation changes for an ESP
- * Iteration 4: Tech stack bonuses + volume-weighted client risk impact
+ * Iteration 5: Tech stack bonuses + volume-weighted client risk + warmup bonus
  */
 export function calculateReputationChanges(params: ReputationParams): ReputationResult {
 	// 1. Get tech bonus (same for all destinations)
@@ -54,25 +55,35 @@ export function calculateReputationChanges(params: ReputationParams): Reputation
 		clientImpact = totalWeightedImpact / params.volumeData.totalVolume;
 	}
 
-	// 3. Build per-destination results
+	// 3. Calculate warmup bonus (Iteration 5)
+	// Count active clients with warmup
+	const activeWarmedClients = params.clients.filter((client) => {
+		const state = params.clientStates[client.id];
+		return state?.status === 'Active' && state?.has_warmup;
+	});
+
+	const warmupBonus = activeWarmedClients.length * WARMUP_REPUTATION_BONUS;
+
+	// 4. Build per-destination results
 	const perDestination: Record<string, DestinationReputationChange> = {};
 
 	for (const dest of params.destinations) {
 		const breakdown = [
 			{ source: 'Authentication Tech', value: techBonus },
-			{ source: 'Client Risk', value: clientImpact }
+			{ source: 'Client Risk', value: clientImpact },
+			{ source: 'Warmup Bonus', value: warmupBonus }
 		];
 
 		perDestination[dest] = {
 			techBonus,
 			clientImpact,
-			warmupBonus: 0, // Iteration 5: will be calculated from warmed clients
-			totalChange: techBonus + clientImpact,
+			warmupBonus,
+			totalChange: techBonus + clientImpact + warmupBonus,
 			breakdown
 		};
 	}
 
-	// 4. Return result
+	// 5. Return result
 	return {
 		perDestination,
 		volumeWeightedClientImpact: clientImpact

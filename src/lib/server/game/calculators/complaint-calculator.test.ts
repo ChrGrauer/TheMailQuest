@@ -23,7 +23,16 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 
 			const result = calculateComplaints({
 				clients: [client],
-				volumeData
+				volumeData,
+				clientStates: {
+					[client.id]: {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
+				},
+				techStack: []
 			});
 
 			expect(result.baseComplaintRate).toBe(0.5);
@@ -43,7 +52,16 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 
 			const result = calculateComplaints({
 				clients: [client],
-				volumeData
+				volumeData,
+				clientStates: {
+					[client.id]: {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
+				},
+				techStack: []
 			});
 
 			expect(result.baseComplaintRate).toBe(3.0);
@@ -66,7 +84,22 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 
 			const result = calculateComplaints({
 				clients: [premium, aggressive],
-				volumeData
+				volumeData,
+				clientStates: {
+					'client-1': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					},
+					'client-2': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
+				},
+				techStack: []
 			});
 
 			// Calculation: (30K × 0.5% + 80K × 3%) / 110K = (150 + 2400) / 110000 = 2.318...
@@ -88,7 +121,22 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 
 			const result = calculateComplaints({
 				clients: [premium, reengagement],
-				volumeData
+				volumeData,
+				clientStates: {
+					'client-1': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					},
+					'client-2': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
+				},
+				techStack: []
 			});
 
 			// Calculation: (30K × 0.5 + 50K × 2.5) / 80K = (15000 + 125000) / 80000 = 1.75
@@ -112,18 +160,35 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 
 			const result = calculateComplaints({
 				clients: [client1, client2],
-				volumeData
+				volumeData,
+				clientStates: {
+					'client-1': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					},
+					'client-2': {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
+				},
+				techStack: []
 			});
 
 			expect(result.perClient).toHaveLength(2);
 			expect(result.perClient[0]).toEqual({
 				clientId: 'client-1',
 				baseRate: 0.5,
+				adjustedRate: 0.5,
 				volume: 30000
 			});
 			expect(result.perClient[1]).toEqual({
 				clientId: 'client-2',
 				baseRate: 1.2,
+				adjustedRate: 1.2,
 				volume: 35000
 			});
 		});
@@ -139,7 +204,9 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 
 			const result = calculateComplaints({
 				clients: [],
-				volumeData
+				volumeData,
+				clientStates: {},
+				techStack: []
 			});
 
 			expect(result.baseComplaintRate).toBe(0);
@@ -165,7 +232,16 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 
 			const result = calculateComplaints({
 				clients: [client],
-				volumeData
+				volumeData,
+				clientStates: {
+					[client.id]: {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
+				},
+				techStack: []
 			});
 
 			// Still 0.5% base rate

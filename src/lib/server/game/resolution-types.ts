@@ -55,7 +55,7 @@ export interface RevenueResult {
 
 /**
  * Reputation Calculator Types
- * US 3.3: Iteration 3, 4
+ * US 3.3: Iteration 3, 4, 5
  */
 export interface ReputationParams {
 	techStack: string[];
@@ -63,8 +63,7 @@ export interface ReputationParams {
 	clients: Client[]; // Iteration 4: for client risk impact
 	clientStates: Record<string, ClientState>; // Iteration 4: for active client filtering
 	volumeData: VolumeResult; // Iteration 4: for volume-weighted calculations
-	// Future iterations will add:
-	// currentRound?: number;
+	currentRound: number; // Iteration 5: for warmup bonus logic
 }
 
 export interface ReputationBreakdownItem {
@@ -87,24 +86,27 @@ export interface ReputationResult {
 
 /**
  * Complaint Calculator Types
- * US 3.3: Iteration 4
+ * US 3.3: Iteration 4, 5
  */
 export interface ComplaintParams {
 	clients: Client[];
 	volumeData: VolumeResult;
-	// Iteration 5 will add: clientStates, techStack
+	clientStates: Record<string, ClientState>; // Iteration 5: for list hygiene check
+	techStack: string[]; // Iteration 5: for content filtering check
 }
 
 export interface ClientComplaintData {
 	clientId: string;
 	baseRate: number;
+	adjustedRate: number; // Iteration 5: after list hygiene
 	volume: number;
 }
 
 export interface ComplaintResult {
-	baseComplaintRate: number; // volume-weighted
+	baseComplaintRate: number; // volume-weighted before reductions
+	adjustedComplaintRate: number; // Iteration 5: after list hygiene + content filtering
 	perClient: ClientComplaintData[];
-	// Iteration 5 will add: adjustedComplaintRate, spamTrapRisk
+	// Iteration 7 will add: spamTrapRisk
 }
 
 /**
