@@ -14,11 +14,11 @@
 export interface ESPTeam {
 	name: string;
 	players: string[];
-	budget: number;
+	budget: number; // DEPRECATED: Use 'credits' instead. Kept for backwards compatibility.
 	clients: string[];
 	technical_stack: string[];
 	// US-1.4: Resource allocation fields
-	credits: number;
+	credits: number; // PRIMARY FIELD: Current team budget. Updated by resolution phase with earned revenue.
 	reputation: Record<string, number>; // per destination: { Gmail: 70, Outlook: 70, ... }
 	active_clients: string[];
 	owned_tech_upgrades: string[]; // US-2.3: Owned technical upgrade IDs (e.g., ['spf', 'dkim'])

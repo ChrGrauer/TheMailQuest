@@ -10,11 +10,13 @@
  * Responsibilities:
  * 1. Execute resolution calculations in background
  * 2. Store results in game session
- * 3. Auto-transition to consequences phase
- * 4. Broadcast phase transition with resolution results
+ * 3. Apply results to game state (update credits, reputation)
+ * 4. Auto-transition to consequences phase
+ * 5. Broadcast phase transition with resolution results
  */
 
 import { executeResolution } from './resolution-manager';
+import { applyResolutionToGameState } from './resolution-application-manager';
 import { transitionPhase } from './phase-manager';
 import type { GameSession } from './types';
 import { gameLogger } from '../logger';
@@ -75,6 +77,24 @@ export function handleResolutionPhase(
 				espTeamsProcessed: Object.keys(resolutionResults.espResults).length,
 				historyLength: session.resolution_history.length
 			});
+
+			// Apply resolution results to game state (update credits, reputation)
+			const applicationResult = applyResolutionToGameState(session, resolutionResults);
+
+			if (!applicationResult.success) {
+				gameLogger.error(new Error('Failed to apply resolution results'), {
+					context: 'handleResolutionPhase',
+					roomCode,
+					error: applicationResult.error
+				});
+				// Continue anyway to show consequences, even if application failed
+			} else {
+				gameLogger.info('Resolution results applied to game state', {
+					roomCode,
+					teamsUpdated: applicationResult.updatedTeams?.length,
+					teams: applicationResult.updatedTeams
+				});
+			}
 
 			// Auto-transition to consequences phase after brief delay
 			setTimeout(() => {

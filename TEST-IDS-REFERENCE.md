@@ -375,6 +375,9 @@ This document catalogs all `data-testid` attributes used across the frontend for
 | Test ID | Element | Description |
 |---------|---------|-------------|
 | `game-timer` | `<div>` | Round timer display |
+| `current-phase` | Text | Current game phase display |
+| `start-next-round-button` | `<button>` | Button to start next round (consequences phase only, rounds 1-3) |
+| `error-message` | `<div>` | Error message display |
 
 ---
 
@@ -496,8 +499,8 @@ expect(getByTestId('budget-current')).toBeTruthy();
 
 ## Maintenance Notes
 
-- **Last Updated**: 2025-11-08
-- **Total Test IDs**: 185+
+- **Last Updated**: 2025-11-10
+- **Total Test IDs**: 188+
 - When adding new test IDs, follow the [Naming Conventions](#naming-conventions)
 - Update this document when adding/removing/renaming test IDs
 - Consider adding `data-*` attributes for additional test metadata (colors, states, etc.)
@@ -509,4 +512,4 @@ expect(getByTestId('budget-current')).toBeTruthy();
 - **Destination Dashboard**: 60+ test IDs (8 components)
 - **Consequences Phase**: 18 test IDs (US-3.5)
 - **Lobby**: 5 test IDs
-- **Facilitator**: 1 test ID
+- **Facilitator**: 4 test IDs

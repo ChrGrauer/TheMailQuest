@@ -1,11 +1,11 @@
 /**
  * Resolution Manager
- * US 3.3: Resolution Phase Automation - Iterations 1-2
+ * US 3.3: Resolution Phase Automation - Iterations 1-5
  *
  * Orchestrates resolution phase calculations
  * Iteration 1: Basic volume and revenue calculation
  * Iteration 2: Reputation-based delivery success rates
- * Future iterations will add: auth bonuses, complaints, incidents
+ * Iteration 3-5: Reputation changes and complaint calculations
  */
 
 import type { GameSession } from './types';
@@ -13,6 +13,8 @@ import type { ResolutionResults } from './resolution-types';
 import { calculateVolume } from './calculators/volume-calculator';
 import { calculateDeliverySuccess } from './calculators/delivery-calculator';
 import { calculateRevenue } from './calculators/revenue-calculator';
+import { calculateReputationChanges } from './calculators/reputation-calculator';
+import { calculateComplaints } from './calculators/complaint-calculator';
 
 /**
  * Lazy logger import to avoid $app/environment issues during Vite config
@@ -52,7 +54,7 @@ function calculateWeightedReputation(reputation: Record<string, number>): number
 
 /**
  * Execute resolution phase for all ESP teams
- * Iteration 2: Volume, delivery (reputation-based), and revenue calculation
+ * Iteration 5: Volume, delivery, revenue, reputation changes, and complaints
  */
 export async function executeResolution(
 	session: GameSession,
@@ -64,6 +66,9 @@ export async function executeResolution(
 	const results: ResolutionResults = {
 		espResults: {}
 	};
+
+	// Get destination names for reputation calculations
+	const destinations = session.destinations.map((d) => d.name);
 
 	// Process each ESP team
 	for (const team of session.esp_teams) {
@@ -111,11 +116,40 @@ export async function executeResolution(
 			actualRevenue: revenueResult.actualRevenue
 		});
 
+		// 5. Calculate reputation changes (Iteration 3-5)
+		const reputationResult = calculateReputationChanges({
+			techStack: team.owned_tech_upgrades,
+			destinations,
+			clients: activeClients,
+			clientStates: team.client_states || {},
+			volumeData: volumeResult,
+			currentRound: session.current_round
+		});
+		logger.info('Reputation changes calculated', {
+			teamName: team.name,
+			perDestination: Object.keys(reputationResult.perDestination).length
+		});
+
+		// 6. Calculate complaints (Iteration 4-5)
+		const complaintsResult = calculateComplaints({
+			clients: activeClients,
+			volumeData: volumeResult,
+			clientStates: team.client_states || {},
+			techStack: team.owned_tech_upgrades
+		});
+		logger.info('Complaints calculated', {
+			teamName: team.name,
+			baseComplaintRate: complaintsResult.baseComplaintRate,
+			adjustedComplaintRate: complaintsResult.adjustedComplaintRate
+		});
+
 		// Store results for this team
 		results.espResults[team.name] = {
 			volume: volumeResult,
 			delivery: deliveryResult,
-			revenue: revenueResult
+			revenue: revenueResult,
+			reputation: reputationResult,
+			complaints: complaintsResult
 		};
 	}
 

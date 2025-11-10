@@ -9,10 +9,17 @@
 	let phase = $state('planning');
 	let timerRemaining = $state(300);
 
+	// Start Next Round button state
+	let isStartingRound = $state(false);
+	let error = $state<string | null>(null);
+
 	// Format timer as M:SS
 	let timerDisplay = $derived(
 		`${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`
 	);
+
+	// Show "Start Next Round" button only during consequences phase of rounds 1-3
+	let showStartButton = $derived(phase === 'consequences' && round >= 1 && round <= 3);
 
 	// Handle game state updates from WebSocket
 	function handleGameStateUpdate(data: GameStateUpdate | any) {
@@ -20,9 +27,14 @@
 		if (data.type === 'phase_transition' && data.data) {
 			if (data.data.phase !== undefined) {
 				phase = data.data.phase;
+				// Reset loading state when phase changes
+				isStartingRound = false;
 			}
 			if (data.data.round !== undefined) {
 				round = data.data.round;
+			}
+			if (data.data.timer_remaining !== undefined) {
+				timerRemaining = data.data.timer_remaining;
 			}
 			return;
 		}
@@ -33,6 +45,8 @@
 		}
 		if (data.phase !== undefined) {
 			phase = data.phase;
+			// Reset loading state when phase changes
+			isStartingRound = false;
 		}
 		if (data.timer_remaining !== undefined) {
 			timerRemaining = data.timer_remaining;
@@ -51,6 +65,35 @@
 	onDestroy(() => {
 		websocketStore.disconnect();
 	});
+
+	/**
+	 * Handle Start Next Round button click
+	 * Calls API endpoint to increment round and transition to planning phase
+	 */
+	async function handleStartNextRound() {
+		isStartingRound = true;
+		error = null;
+
+		try {
+			const response = await fetch(`/api/sessions/${roomCode}/next-round`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' }
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				error = data.error || 'Failed to start next round';
+				isStartingRound = false;
+				return;
+			}
+
+			// Success - button will disappear when phase updates via WebSocket
+			// isStartingRound will be reset when phase changes
+		} catch (err) {
+			error = 'Network error. Please try again.';
+			isStartingRound = false;
+		}
+	}
 </script>
 
 <div class="container">
@@ -61,6 +104,24 @@
 	<div data-testid="game-timer" class="timer">
 		{timerDisplay}
 	</div>
+
+	{#if showStartButton}
+		<button
+			data-testid="start-next-round-button"
+			onclick={handleStartNextRound}
+			disabled={isStartingRound}
+			class="start-button"
+			class:loading={isStartingRound}
+		>
+			{isStartingRound ? 'Starting...' : 'Start Next Round'}
+		</button>
+	{/if}
+
+	{#if error}
+		<div data-testid="error-message" class="error-banner" role="alert">
+			{error}
+		</div>
+	{/if}
 
 	<p class="placeholder-notice">
 		This is a placeholder dashboard. Full implementation coming in future user stories.
@@ -78,6 +139,48 @@
 		font-size: 2rem;
 		font-weight: bold;
 		margin: 1rem 0;
+	}
+
+	.start-button {
+		padding: 0.75rem 1.5rem;
+		background-color: #10b981;
+		color: white;
+		font-weight: 600;
+		border: none;
+		border-radius: 0.5rem;
+		cursor: pointer;
+		font-size: 1rem;
+		margin: 1rem 0;
+		transition: all 0.2s;
+	}
+
+	.start-button:hover:not(:disabled) {
+		background-color: #059669;
+	}
+
+	.start-button:focus {
+		outline: none;
+		box-shadow:
+			0 0 0 2px white,
+			0 0 0 4px #10b981;
+	}
+
+	.start-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.start-button.loading {
+		opacity: 0.7;
+	}
+
+	.error-banner {
+		margin-top: 1rem;
+		padding: 1rem;
+		background-color: #fef2f2;
+		border: 1px solid #fecaca;
+		border-radius: 0.5rem;
+		color: #991b1b;
 	}
 
 	.placeholder-notice {
