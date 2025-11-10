@@ -26,8 +26,10 @@
 	import ClientMarketplaceModal from '$lib/components/esp-dashboard/ClientMarketplaceModal.svelte';
 	import TechnicalShopModal from '$lib/components/esp-dashboard/TechnicalShopModal.svelte';
 	import ClientManagementModal from '$lib/components/esp-dashboard/ClientManagementModal.svelte';
+	import ESPConsequences from '$lib/components/consequences/ESPConsequences.svelte';
 	import { calculateOnboardingCost } from '$lib/config/client-onboarding';
 	import type { OnboardingOptions } from '$lib/server/game/types';
+	import type { ESPResolutionResult } from '$lib/server/game/resolution-types';
 
 	// Get params from page store
 	let roomCode = $derived($page.params.roomCode || '');
@@ -58,6 +60,11 @@
 	let totalRounds = $state(4);
 	let currentPhase = $state('planning');
 	let timerSeconds = $state(300);
+
+	// US-3.5: Resolution results for consequences display
+	let resolutionResults = $state<ESPResolutionResult | undefined>();
+	// Actual team name with proper capitalization (from API, not URL param)
+	let actualTeamName = $state<string>(teamName);
 
 	// Lock-in state (US-3.2)
 	let isLockedIn = $state(false);
@@ -147,6 +154,7 @@
 			clients = data.team.active_clients || [];
 			availableClientsCount = data.team.available_clients_count || 0;
 			ownedTech = data.team.owned_tech_upgrades || []; // US-2.3
+			actualTeamName = data.team.name; // Store actual team name with proper capitalization
 
 			// Update lock-in state (US-3.2)
 			isLockedIn = data.team.locked_in || false;
@@ -342,6 +350,18 @@
 			}
 			if (data.data?.round !== undefined) {
 				currentRound = data.data.round;
+			}
+			// US-3.5: Capture resolution results for consequences display
+			if (data.data?.resolution_results?.espResults) {
+				// Extract this team's results from the full resolution results
+				// Use case-insensitive lookup since URL params are lowercase but team names may be capitalized
+				const espResults = data.data.resolution_results.espResults;
+				const matchingKey = Object.keys(espResults).find(
+					(key) => key.toLowerCase() === teamName.toLowerCase()
+				);
+				if (matchingKey) {
+					resolutionResults = espResults[matchingKey];
+				}
 			}
 			// Show transition message
 			if (data.data?.message) {
@@ -607,8 +627,30 @@
 				{/if}
 			</div>
 		</div>
+	{:else if currentPhase === 'consequences'}
+		<!-- US-3.5: Consequences Phase Display -->
+		<ESPConsequences
+			teamName={actualTeamName}
+			resolutionData={resolutionResults}
+			{currentRound}
+			currentCredits={credits}
+		/>
+	{:else if currentPhase === 'resolution'}
+		<!-- US-3.5: Resolution Loading Screen -->
+		<div class="max-w-7xl mx-auto px-4 py-8">
+			<div
+				data-testid="resolution-loading"
+				class="bg-white rounded-xl shadow-md p-12 text-center"
+			>
+				<div
+					class="animate-spin w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4"
+				></div>
+				<h2 class="text-2xl font-bold text-gray-900 mb-2">Calculating Round Results...</h2>
+				<p class="text-gray-600">Please wait while we process this round's data</p>
+			</div>
+		</div>
 	{:else}
-		<!-- Main Dashboard Content -->
+		<!-- Main Dashboard Content (Planning Phase) -->
 		<div class="max-w-7xl mx-auto px-4 py-8">
 			<!-- WebSocket Connection Status -->
 			<div data-testid="ws-status" class="mb-4 text-sm">

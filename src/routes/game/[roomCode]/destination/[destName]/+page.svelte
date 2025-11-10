@@ -28,6 +28,7 @@
 	import TechnicalInfrastructure from '$lib/components/destination-dashboard/TechnicalInfrastructure.svelte';
 	import TechnicalShopModal from '$lib/components/destination-dashboard/TechnicalShopModal.svelte';
 	import FilteringControlsModal from '$lib/components/destination-dashboard/FilteringControlsModal.svelte';
+	import DestinationConsequences from '$lib/components/consequences/DestinationConsequences.svelte';
 
 	// Get params
 	const roomCode = $page.params.roomCode;
@@ -438,6 +439,23 @@
 				<p class="mt-4 text-gray-600 font-semibold">Loading dashboard...</p>
 			</div>
 		</div>
+	{:else if currentPhase === 'consequences'}
+		<!-- US-3.5: Consequences Phase Display -->
+		<DestinationConsequences {destinationName} {currentRound} {budget} />
+	{:else if currentPhase === 'resolution'}
+		<!-- US-3.5: Resolution Loading Screen -->
+		<div class="flex items-center justify-center min-h-screen">
+			<div
+				data-testid="resolution-loading"
+				class="bg-white rounded-xl shadow-md p-12 text-center max-w-md"
+			>
+				<div
+					class="inline-block w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"
+				></div>
+				<h2 class="text-2xl font-bold text-gray-900 mb-2">Calculating Round Results...</h2>
+				<p class="text-gray-600">Please wait while we process this round's data</p>
+			</div>
+		</div>
 	{:else}
 		<!-- Header -->
 		<DashboardHeader
@@ -450,7 +468,7 @@
 			{isLockedIn}
 		/>
 
-		<!-- Dashboard Content -->
+		<!-- Dashboard Content (Planning Phase) -->
 		<div class="container mx-auto px-4 py-6 max-w-7xl">
 			<!-- Quick Actions -->
 			<DestinationQuickActions

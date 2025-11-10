@@ -159,6 +159,8 @@ export interface GameSession {
 	shared_pool?: number; // Shared destination budget pool
 	phase_start_time?: Date; // When current phase started
 	timer?: GameTimer; // Phase timer
+	// US-3.5: Resolution results for consequences display
+	resolution_results?: any; // ResolutionResults from resolution-types.ts (avoiding circular import)
 }
 
 /**

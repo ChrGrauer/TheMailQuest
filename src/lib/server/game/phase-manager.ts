@@ -47,7 +47,8 @@ const VALID_TRANSITIONS: Record<string, GamePhase[]> = {
 	lobby: ['resource_allocation'],
 	resource_allocation: ['planning'],
 	planning: ['resolution'], // Direct transition after all players lock in or timer expires (US-3.2)
-	resolution: ['planning', 'finished'], // Can go to next round or end game
+	resolution: ['consequences'], // US-3.5: Auto-transition to consequences after resolution
+	consequences: ['planning', 'finished'], // US-3.5: Can go to next round or end game
 	finished: []
 };
 

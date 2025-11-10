@@ -455,10 +455,49 @@ expect(getByTestId('budget-current')).toBeTruthy();
 
 ---
 
+## Consequences Phase (US-3.5)
+
+### ESPConsequences Component
+**Location**: `src/lib/components/consequences/ESPConsequences.svelte`
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `consequences-header` | `<h1>` | Round results header (e.g., "Round 2 Results") |
+| `consequences-team-name` | `<h2>` | Team name display |
+| `section-client-performance` | `<section>` | Client performance section container |
+| `section-revenue-summary` | `<section>` | Revenue summary section container |
+| `section-reputation-changes` | `<section>` | Reputation changes section container |
+| `section-budget-update` | `<section>` | Budget update section container |
+| `section-alerts-notifications` | `<section>` | Alerts and notifications section container |
+
+### DestinationConsequences Component
+**Location**: `src/lib/components/consequences/DestinationConsequences.svelte`
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `consequences-header` | `<h1>` | Round results header (e.g., "Round 2 Results") |
+| `consequences-team-name` | `<h2>` | Destination name display |
+| `section-spam-blocking` | `<section>` | Spam blocking summary section container |
+| `section-user-satisfaction` | `<section>` | User satisfaction section container |
+| `section-revenue-summary` | `<section>` | Revenue summary section container |
+| `section-budget-update` | `<section>` | Budget update section container |
+| `section-esp-behavior` | `<section>` | ESP behavior alerts section container |
+
+### Phase-Specific Screens
+**Location**: ESP and Destination dashboard pages
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `resolution-loading` | `<div>` | Loading screen during resolution calculation |
+| `current-phase` | Text | Current game phase display (for testing phase transitions) |
+| `phase-timer` | `<div>` | Phase timer display (should NOT show in consequences) |
+
+---
+
 ## Maintenance Notes
 
-- **Last Updated**: 2025-11-07
-- **Total Test IDs**: 165+
+- **Last Updated**: 2025-11-08
+- **Total Test IDs**: 185+
 - When adding new test IDs, follow the [Naming Conventions](#naming-conventions)
 - Update this document when adding/removing/renaming test IDs
 - Consider adding `data-*` attributes for additional test metadata (colors, states, etc.)
@@ -468,5 +507,6 @@ expect(getByTestId('budget-current')).toBeTruthy();
 - **Shared Components**: 28 test IDs (DashboardHeader, FilteringSliderItem, StatusBadge)
 - **ESP Dashboard**: 70+ test IDs (10 components)
 - **Destination Dashboard**: 60+ test IDs (8 components)
+- **Consequences Phase**: 18 test IDs (US-3.5)
 - **Lobby**: 5 test IDs
 - **Facilitator**: 1 test ID

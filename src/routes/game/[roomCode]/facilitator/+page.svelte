@@ -1,26 +1,60 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { websocketStore, type GameStateUpdate } from '$lib/stores/websocket';
 
 	const roomCode = $page.params.roomCode;
 
-	let round = 1;
-	let phase = 'planning';
-	let timerRemaining = 300;
+	let round = $state(1);
+	let phase = $state('planning');
+	let timerRemaining = $state(300);
 
 	// Format timer as M:SS
-	$: timerDisplay = `${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`;
+	let timerDisplay = $derived(`${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`);
+
+	// Handle game state updates from WebSocket
+	function handleGameStateUpdate(data: GameStateUpdate | any) {
+		// Handle phase_transition messages (nested structure)
+		if (data.type === 'phase_transition' && data.data) {
+			if (data.data.phase !== undefined) {
+				phase = data.data.phase;
+			}
+			if (data.data.round !== undefined) {
+				round = data.data.round;
+			}
+			return;
+		}
+
+		// Handle regular game_state_update messages
+		if (data.round !== undefined) {
+			round = data.round;
+		}
+		if (data.phase !== undefined) {
+			phase = data.phase;
+		}
+		if (data.timer_remaining !== undefined) {
+			timerRemaining = data.timer_remaining;
+		}
+	}
 
 	onMount(() => {
-		// Placeholder: In real implementation, this would connect to WebSocket
-		// and update based on game state
+		// Connect to WebSocket for real-time game state updates
+		websocketStore.connect(
+			roomCode,
+			() => {}, // Lobby updates not needed for facilitator
+			handleGameStateUpdate
+		);
+	});
+
+	onDestroy(() => {
+		websocketStore.disconnect();
 	});
 </script>
 
 <div class="container">
 	<h1>Facilitator Dashboard</h1>
 	<p>Room Code: {roomCode}</p>
-	<p>Round {round} - {phase} Phase</p>
+	<p>Round {round} - <span data-testid="current-phase">{phase}</span> Phase</p>
 
 	<div data-testid="game-timer" class="timer">
 		{timerDisplay}

@@ -18,6 +18,7 @@ import type { GameTimer } from './types';
 import { gameLogger } from '../logger';
 import { autoLockAllPlayers } from './lock-in-manager';
 import { transitionPhase } from './phase-manager';
+import { handleResolutionPhase } from './resolution-phase-handler';
 
 // ============================================================================
 // TYPES
@@ -359,6 +360,9 @@ export function updateTimerRemaining(
 						}
 					});
 				}
+
+				// US-3.5: Trigger resolution calculation and consequences transition
+				handleResolutionPhase(session, roomCode, broadcastWarning);
 			}
 
 			// Reset tracking for next phase
