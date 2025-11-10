@@ -1,4 +1,4 @@
-# US-X.X: Facilitator Start Next Round - Implementation Plan
+# US-8.2-0.0: Facilitator Start Next Round - Implementation Plan
 
 ## Overview
 
@@ -11,7 +11,7 @@
 ## Gherkin Feature File
 
 ```gherkin
-Feature: US-X.X - Facilitator Start Next Round
+Feature: US-8.2-0.0 - Facilitator Start Next Round
 
   As a facilitator
   I want to manually start the next round after reviewing consequences
@@ -212,7 +212,7 @@ Feature: US-X.X - Facilitator Start Next Round
 ### Phase 0: Write Feature File and Update Types ✅
 
 **Tasks:**
-- [x] Create feature file: `features/US-X.X-facilitator-start-next-round.feature`
+- [x] Create feature file: `features/US-8.2-0.0-facilitator-start-next-round.feature`
 - [ ] Update types if needed (check for any new interfaces)
 - [ ] Add test IDs to TEST-IDS-REFERENCE.md
 
@@ -231,14 +231,14 @@ Feature: US-X.X - Facilitator Start Next Round
 
 ### Phase 1: Write Failing Tests (Red) 🔴
 
-**File to Create:** `tests/us-x.x-facilitator-start-next-round.spec.ts`
+**File to Create:** `tests/us-8.2-0.0-facilitator-start-next-round.spec.ts`
 
 **Test Structure:**
 ```typescript
 import { test, expect } from '@playwright/test';
 import { createGameInPlanningPhase } from './helpers/game-setup';
 
-test.describe('US-X.X: Facilitator Start Next Round', () => {
+test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
   test('1.1 - Start Next Round button visibility', async ({ browser }) => {
     // Test button not visible in planning, visible in consequences
   });
@@ -545,8 +545,8 @@ POST /api/sessions/[roomCode]/next-round
 ## Files to Create/Modify
 
 ### New Files
-- [ ] `features/US-X.X-facilitator-start-next-round.feature`
-- [ ] `tests/us-x.x-facilitator-start-next-round.spec.ts`
+- [ ] `features/US-8.2-0.0-facilitator-start-next-round.feature`
+- [ ] `tests/us-8.2-0.0-facilitator-start-next-round.spec.ts`
 - [ ] `src/routes/api/sessions/[roomCode]/next-round/+server.ts`
 
 ### Modified Files

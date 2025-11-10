@@ -202,6 +202,16 @@
 			if (update.data?.round !== undefined) {
 				currentRound = update.data.round;
 			}
+			// Update lock-in state when transitioning phases (US-8.2-0.0: Start Next Round)
+			if (update.data?.locked_in !== undefined) {
+				isLockedIn = update.data.locked_in;
+				if (!update.data.locked_in) {
+					// Reset lock-in timestamp when unlocking
+					lockedInAt = null;
+					remainingPlayers = 0;
+					autoLockMessage = null;
+				}
+			}
 			// Show transition message
 			if (update.data?.message) {
 				phaseTransitionMessage = update.data.message;

@@ -351,6 +351,16 @@
 			if (data.data?.round !== undefined) {
 				currentRound = data.data.round;
 			}
+			// Update lock-in state when transitioning phases (US-8.2-0.0: Start Next Round)
+			if (data.data?.locked_in !== undefined) {
+				isLockedIn = data.data.locked_in;
+				if (!data.data.locked_in) {
+					// Reset lock-in timestamp when unlocking
+					lockedInAt = null;
+					remainingPlayers = 0;
+					autoLockMessage = null;
+				}
+			}
 			// US-3.5: Capture resolution results for consequences display
 			// First try current_round_results for convenience (from phase transition broadcast)
 			if (data.data?.current_round_results?.espResults) {

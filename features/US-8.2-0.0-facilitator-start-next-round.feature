@@ -1,4 +1,4 @@
-Feature: US-X.X - Facilitator Start Next Round
+Feature: US-8.2-0.0 - Facilitator Start Next Round
 
   As a facilitator
   I want to manually start the next round after reviewing consequences

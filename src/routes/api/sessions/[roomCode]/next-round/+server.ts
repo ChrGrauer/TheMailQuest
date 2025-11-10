@@ -9,7 +9,7 @@ import type { RequestHandler } from './$types';
 /**
  * POST /api/sessions/[roomCode]/next-round
  * Start the next round (transition from consequences to planning)
- * US-X.X: Facilitator can manually start next round after consequences
+ * US-8.2-0.0: Facilitator can manually start next round after consequences
  *
  * Requirements:
  * - Only facilitator can call this endpoint
@@ -171,7 +171,8 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 				phase: 'planning',
 				round: session.current_round,
 				message: `Round ${session.current_round} - Planning Phase`,
-				timer_remaining: remaining
+				timer_remaining: remaining,
+				locked_in: false // Explicitly tell all clients they are NOT locked in
 			}
 		});
 
@@ -181,7 +182,8 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 			phase: 'planning',
 			round: session.current_round,
 			timer_duration: 300,
-			timer_remaining: remaining
+			timer_remaining: remaining,
+			locked_in: false // Explicitly tell all clients they are NOT locked in
 		});
 
 		gameLogger.event('next_round_started', {
