@@ -602,18 +602,6 @@
 		</div>
 	{/if}
 
-	<!-- Game State Header -->
-	<DashboardHeader
-		entityName={teamName}
-		currentBudget={credits}
-		pendingCosts={totalPendingCosts}
-		{currentRound}
-		{totalRounds}
-		{timerSeconds}
-		theme="emerald"
-		{isLockedIn}
-	/>
-
 	<!-- Loading State -->
 	{#if loading}
 		<div class="max-w-7xl mx-auto px-4 py-8">
@@ -638,18 +626,38 @@
 	{:else if currentPhase === 'resolution'}
 		<!-- US-3.5: Resolution Loading Screen -->
 		<div class="max-w-7xl mx-auto px-4 py-8">
-			<div
-				data-testid="resolution-loading"
-				class="bg-white rounded-xl shadow-md p-12 text-center"
-			>
+			<div data-testid="resolution-loading" class="bg-white rounded-xl shadow-md p-12 text-center">
 				<div
 					class="animate-spin w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4"
 				></div>
 				<h2 class="text-2xl font-bold text-gray-900 mb-2">Calculating Round Results...</h2>
 				<p class="text-gray-600">Please wait while we process this round's data</p>
+
+				<!-- Auto-lock Message (if present) - US-3.2 -->
+				{#if autoLockMessage}
+					<div
+						data-testid="auto-lock-message"
+						class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-sm max-w-2xl mx-auto"
+						role="alert"
+					>
+						{autoLockMessage}
+					</div>
+				{/if}
 			</div>
 		</div>
 	{:else}
+		<!-- Game State Header -->
+		<DashboardHeader
+			entityName={teamName}
+			currentBudget={credits}
+			pendingCosts={totalPendingCosts}
+			{currentRound}
+			{totalRounds}
+			{timerSeconds}
+			theme="emerald"
+			{isLockedIn}
+		/>
+
 		<!-- Main Dashboard Content (Planning Phase) -->
 		<div class="max-w-7xl mx-auto px-4 py-8">
 			<!-- WebSocket Connection Status -->

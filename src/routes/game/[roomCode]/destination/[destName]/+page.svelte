@@ -454,6 +454,17 @@
 				></div>
 				<h2 class="text-2xl font-bold text-gray-900 mb-2">Calculating Round Results...</h2>
 				<p class="text-gray-600">Please wait while we process this round's data</p>
+
+				<!-- Auto-lock Message (if present) - US-3.2 -->
+				{#if autoLockMessage}
+					<div
+						data-testid="auto-lock-message"
+						class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-sm"
+						role="alert"
+					>
+						{autoLockMessage}
+					</div>
+				{/if}
 			</div>
 		</div>
 	{:else}
