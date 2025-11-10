@@ -159,8 +159,13 @@ export interface GameSession {
 	shared_pool?: number; // Shared destination budget pool
 	phase_start_time?: Date; // When current phase started
 	timer?: GameTimer; // Phase timer
-	// US-3.5: Resolution results for consequences display
-	resolution_results?: any; // ResolutionResults from resolution-types.ts (avoiding circular import)
+	// US-3.5: Resolution history for all rounds (max 4)
+	// Array of resolution results, one per completed round
+	resolution_history?: Array<{
+		round: number;
+		results: any; // ResolutionResults from resolution-types.ts (avoiding circular import)
+		timestamp: Date;
+	}>;
 }
 
 /**

@@ -105,7 +105,8 @@ export const GET: RequestHandler = async ({ params }) => {
 						remaining: timerRemaining,
 						isRunning: session.timer.isRunning
 					}
-				: null
+				: null,
+			resolution_history: session.resolution_history || [] // US-3.5: Resolution history for all rounds
 		},
 		destinations: session.destinations.map((dest) => ({
 			name: dest.name,

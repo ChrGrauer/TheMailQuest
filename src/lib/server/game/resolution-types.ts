@@ -148,3 +148,13 @@ export interface ResolutionResults {
 	espResults: Record<string, ESPResolutionResult>;
 	destinationResults?: Record<string, any>; // Future iterations
 }
+
+/**
+ * Resolution History Entry
+ * US-3.5: Stores resolution results for a specific round
+ */
+export interface RoundResolution {
+	round: number;
+	results: ResolutionResults;
+	timestamp: Date;
+}

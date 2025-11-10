@@ -352,15 +352,29 @@
 				currentRound = data.data.round;
 			}
 			// US-3.5: Capture resolution results for consequences display
-			if (data.data?.resolution_results?.espResults) {
-				// Extract this team's results from the full resolution results
-				// Use case-insensitive lookup since URL params are lowercase but team names may be capitalized
-				const espResults = data.data.resolution_results.espResults;
+			// First try current_round_results for convenience (from phase transition broadcast)
+			if (data.data?.current_round_results?.espResults) {
+				const espResults = data.data.current_round_results.espResults;
 				const matchingKey = Object.keys(espResults).find(
 					(key) => key.toLowerCase() === teamName.toLowerCase()
 				);
 				if (matchingKey) {
 					resolutionResults = espResults[matchingKey];
+				}
+			}
+			// Otherwise extract from resolution_history array
+			else if (data.data?.resolution_history && data.data?.round !== undefined) {
+				const currentRoundEntry = data.data.resolution_history.find(
+					(entry: any) => entry.round === data.data.round
+				);
+				if (currentRoundEntry?.results?.espResults) {
+					const espResults = currentRoundEntry.results.espResults;
+					const matchingKey = Object.keys(espResults).find(
+						(key) => key.toLowerCase() === teamName.toLowerCase()
+					);
+					if (matchingKey) {
+						resolutionResults = espResults[matchingKey];
+					}
 				}
 			}
 			// Show transition message

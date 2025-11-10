@@ -58,13 +58,22 @@ export function handleResolutionPhase(
 
 			const resolutionResults = await executeResolution(session, roomCode);
 
-			// Store results in session for consequences display
-			session.resolution_results = resolutionResults;
+			// Store results in session history for consequences display
+			if (!session.resolution_history) {
+				session.resolution_history = [];
+			}
 
-			gameLogger.info('Resolution calculation completed', {
+			session.resolution_history.push({
+				round: session.current_round,
+				results: resolutionResults,
+				timestamp: new Date()
+			});
+
+			gameLogger.info('Resolution calculation completed and stored in history', {
 				roomCode,
 				round: session.current_round,
-				espTeamsProcessed: Object.keys(resolutionResults.espResults).length
+				espTeamsProcessed: Object.keys(resolutionResults.espResults).length,
+				historyLength: session.resolution_history.length
 			});
 
 			// Auto-transition to consequences phase after brief delay
@@ -75,14 +84,16 @@ export function handleResolutionPhase(
 				});
 
 				if (consequencesResult.success) {
-					// Broadcast phase transition with resolution results
+					// Broadcast phase transition with resolution history
 					const message = {
 						type: 'phase_transition',
 						data: {
 							phase: 'consequences',
 							round: session.current_round,
 							message: 'Resolution complete - reviewing results',
-							resolution_results: resolutionResults
+							resolution_history: session.resolution_history,
+							// Include current round results for easy access
+							current_round_results: resolutionResults
 						}
 					};
 
