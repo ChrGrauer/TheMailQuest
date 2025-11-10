@@ -155,9 +155,7 @@ test.describe('Resolution Execution Trigger', () => {
 
 	test('Resolution calculates data for all ESP teams independently', async ({ page, context }) => {
 		// Given: Multiple ESP teams in planning phase
-		const roomCode = await page.goto('/').then(() =>
-			page.click("text=I'm a facilitator")
-		);
+		const roomCode = await page.goto('/').then(() => page.click("text=I'm a facilitator"));
 		await page.waitForURL('/create');
 		await page.click('text=Create a Session');
 		await page.waitForURL(/\/lobby\/.+/);

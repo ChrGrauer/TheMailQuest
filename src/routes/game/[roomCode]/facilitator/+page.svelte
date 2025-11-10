@@ -10,7 +10,9 @@
 	let timerRemaining = $state(300);
 
 	// Format timer as M:SS
-	let timerDisplay = $derived(`${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`);
+	let timerDisplay = $derived(
+		`${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`
+	);
 
 	// Handle game state updates from WebSocket
 	function handleGameStateUpdate(data: GameStateUpdate | any) {

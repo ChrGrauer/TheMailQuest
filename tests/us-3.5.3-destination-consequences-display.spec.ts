@@ -14,8 +14,10 @@ import { createGameWithDestinationPlayer } from './helpers/game-setup';
 test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', () => {
 	test('Destination player sees consequences screen structure', async ({ page, context }) => {
 		// Given: I am logged in as Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } =
-			await createGameWithDestinationPlayer(page, context);
+		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			page,
+			context
+		);
 
 		// And: The game transitions to Consequences phase for Round 1
 		// Lock in all players to trigger transition
@@ -64,8 +66,10 @@ test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', 
 
 	test('Destination consequences show basic team info', async ({ page, context }) => {
 		// Given: Destination with budget
-		const { roomCode, alicePage, bobPage, gmailPage } =
-			await createGameWithDestinationPlayer(page, context);
+		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			page,
+			context
+		);
 
 		// Lock in players to trigger consequences
 		await alicePage.locator('[data-testid="lock-in-button"]').click();
@@ -97,8 +101,10 @@ test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', 
 	test('Destination sees all sections even without filtering data', async ({ page, context }) => {
 		// Given: Destination in consequences phase
 		// (Without US-3.3 Iteration 6, we won't have filtering data)
-		const { roomCode, alicePage, bobPage, gmailPage } =
-			await createGameWithDestinationPlayer(page, context);
+		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			page,
+			context
+		);
 
 		await alicePage.locator('[data-testid="lock-in-button"]').click();
 		await bobPage.locator('[data-testid="lock-in-button"]').click();
@@ -126,9 +132,7 @@ test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', 
 
 	test('Multiple destinations see their own consequences', async ({ page, context }) => {
 		// Given: Multiple destinations in game
-		const roomCode = await page.goto('/').then(() =>
-			page.click("text=I'm a facilitator")
-		);
+		const roomCode = await page.goto('/').then(() => page.click("text=I'm a facilitator"));
 		await page.waitForURL('/create');
 		await page.click('text=Create a Session');
 		await page.waitForURL(/\/lobby\/.+/);

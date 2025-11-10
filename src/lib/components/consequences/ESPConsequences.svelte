@@ -23,9 +23,7 @@
 	let { teamName, resolutionData, currentRound, currentCredits }: Props = $props();
 
 	// Calculate updated budget (current credits + revenue earned)
-	let updatedBudget = $derived(
-		currentCredits + (resolutionData?.revenue?.actualRevenue || 0)
-	);
+	let updatedBudget = $derived(currentCredits + (resolutionData?.revenue?.actualRevenue || 0));
 </script>
 
 <div
@@ -46,10 +44,7 @@
 		<!-- Consequences Sections Grid -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 			<!-- Section 1: Client Performance -->
-			<section
-				data-testid="section-client-performance"
-				class="bg-white rounded-xl shadow-md p-6"
-			>
+			<section data-testid="section-client-performance" class="bg-white rounded-xl shadow-md p-6">
 				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-emerald-500 pb-2">
 					Client Performance
 				</h3>
@@ -75,9 +70,9 @@
 									{/if}
 									{#if clientVolume.adjustments.listHygiene}
 										<p class="text-emerald-600 text-xs">
-											↑ List hygiene adjustment: +{(clientVolume.adjustments.listHygiene * 100).toFixed(
-												0
-											)}%
+											↑ List hygiene adjustment: +{(
+												clientVolume.adjustments.listHygiene * 100
+											).toFixed(0)}%
 										</p>
 									{/if}
 								</div>
@@ -97,8 +92,7 @@
 						{#if resolutionData.delivery}
 							<div class="mt-3">
 								<p class="text-gray-800 font-semibold">
-									Delivery Success Rate: <span
-										class="text-emerald-600"
+									Delivery Success Rate: <span class="text-emerald-600"
 										>{resolutionData.delivery.finalRate.toFixed(1)}%</span
 									>
 								</p>
@@ -159,10 +153,7 @@
 			</section>
 
 			<!-- Section 3: Reputation Changes -->
-			<section
-				data-testid="section-reputation-changes"
-				class="bg-white rounded-xl shadow-md p-6"
-			>
+			<section data-testid="section-reputation-changes" class="bg-white rounded-xl shadow-md p-6">
 				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-emerald-500 pb-2">
 					Reputation Changes
 				</h3>
@@ -217,9 +208,7 @@
 							>+{resolutionData?.revenue?.actualRevenue || 0} credits</span
 						>
 					</div>
-					<div
-						class="flex justify-between items-center pt-3 border-t-2 border-emerald-500 mt-3"
-					>
+					<div class="flex justify-between items-center pt-3 border-t-2 border-emerald-500 mt-3">
 						<span class="text-gray-900 font-bold text-lg">New Budget:</span>
 						<span class="font-bold text-emerald-600 text-2xl">{updatedBudget} credits</span>
 					</div>
@@ -239,9 +228,7 @@
 					Alerts & Notifications
 				</h3>
 
-				<p class="text-gray-500 text-sm italic">
-					Alert system coming soon in a future iteration.
-				</p>
+				<p class="text-gray-500 text-sm italic">Alert system coming soon in a future iteration.</p>
 
 				<!-- Placeholder for future alerts -->
 				<div class="mt-4 text-sm text-gray-400">

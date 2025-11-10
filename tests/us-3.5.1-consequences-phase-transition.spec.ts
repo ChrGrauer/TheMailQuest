@@ -12,10 +12,7 @@ import { test, expect } from '@playwright/test';
 import { createGameInPlanningPhase } from './helpers/game-setup';
 
 test.describe('US-3.5 Scenario 1.1: Transition to Consequences Phase', () => {
-	test('Successful transition from Resolution to Consequences phase', async ({
-		page,
-		context
-	}) => {
+	test('Successful transition from Resolution to Consequences phase', async ({ page, context }) => {
 		// Given: the game is in "Resolution" phase for Round 2
 		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
@@ -84,10 +81,7 @@ test.describe('US-3.5 Scenario 1.1: Transition to Consequences Phase', () => {
 		await expect(bobPage.locator('[data-testid="consequences-team-name"]')).toContainText('Gmail');
 	});
 
-	test('Resolution phase executes in background before consequences', async ({
-		page,
-		context
-	}) => {
+	test('Resolution phase executes in background before consequences', async ({ page, context }) => {
 		// Given: Game in planning phase with decisions made
 		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
@@ -111,8 +105,8 @@ test.describe('US-3.5 Scenario 1.1: Transition to Consequences Phase', () => {
 		});
 
 		// And: Consequences should contain resolution data
-		await expect(
-			alicePage.locator('[data-testid="section-revenue-summary"]')
-		).toContainText('credits');
+		await expect(alicePage.locator('[data-testid="section-revenue-summary"]')).toContainText(
+			'credits'
+		);
 	});
 });
