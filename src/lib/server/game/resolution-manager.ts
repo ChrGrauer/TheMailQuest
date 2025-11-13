@@ -210,7 +210,7 @@ export async function executeResolution(
 			volumeData: volumeResult,
 			filteringPolicies,
 			ownedTools,
-			complaintRate: complaintsResult.adjustedComplaintRate
+			complaintRate: complaintsResult.adjustedComplaintRate / 100 // Convert percentage to decimal
 		});
 		logger.info('User satisfaction calculated', {
 			teamName: team.name,
@@ -242,9 +242,11 @@ export async function executeResolution(
 
 		for (const team of session.esp_teams) {
 			const espResult = results.espResults[team.name];
-			if (espResult?.satisfaction) {
+			// Include ESP if it has satisfaction data (allow 0 as valid value)
+			if (espResult?.satisfaction?.perDestination) {
 				const destVolume = espResult.volume.perDestination[destName] || 0;
-				const destSatisfaction = espResult.satisfaction.perDestination[destName] || 75;
+				// Use nullish coalescing to preserve 0 values (0 is valid, only null/undefined use fallback)
+				const destSatisfaction = espResult.satisfaction.perDestination[destName] ?? 75;
 				totalVolume += destVolume;
 				weightedSatisfaction += destSatisfaction * destVolume;
 			}

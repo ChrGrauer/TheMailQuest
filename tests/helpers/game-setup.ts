@@ -123,6 +123,49 @@ export async function createGameInPlanningPhase(
 }
 
 /**
+ * Acquire a client for an ESP team to enable resolution data generation
+ * @param page - ESP player page
+ * @param roomCode - Room code
+ * @param teamName - ESP team name
+ */
+async function acquireClientForTeam(page: Page, roomCode: string, teamName: string): Promise<void> {
+	// Get available client IDs
+	const clientIds = await page.evaluate(
+		async ({ roomCode, teamName }) => {
+			const response = await fetch(`/api/sessions/${roomCode}/esp/${teamName}/clients`);
+			const data = await response.json();
+			if (data.success && data.clients) {
+				return data.clients.map((c: any) => c.id);
+			}
+			return [];
+		},
+		{ roomCode, teamName }
+	);
+
+	if (clientIds.length === 0) {
+		throw new Error(`No clients available for ${teamName}`);
+	}
+
+	// Acquire the first available client
+	const clientId = clientIds[0];
+	const result = await page.evaluate(
+		async ({ roomCode, teamName, clientId }) => {
+			const response = await fetch(`/api/sessions/${roomCode}/esp/${teamName}/clients/acquire`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ clientId })
+			});
+			return await response.json();
+		},
+		{ roomCode, teamName, clientId }
+	);
+
+	if (!result.success) {
+		throw new Error(`Failed to acquire client for ${teamName}: ${result.error}`);
+	}
+}
+
+/**
  * Create a session with destination player and start game (for Destination dashboard tests)
  */
 export async function createGameWithDestinationPlayer(
@@ -138,6 +181,29 @@ export async function createGameWithDestinationPlayer(
 	// Start game
 	const startGameButton = facilitatorPage.getByRole('button', { name: /start game/i });
 	await startGameButton.click();
+
+	// Wait for ESPs to be redirected to their dashboards
+	await alicePage.waitForURL(`/game/${roomCode}/esp/sendwave`, { timeout: 10000 });
+	await bobPage.waitForURL(`/game/${roomCode}/esp/mailmonkey`, { timeout: 10000 });
+
+	// Wait for dashboards to be ready
+	await alicePage.waitForFunction(
+		() => (window as any).__espDashboardTest?.ready === true,
+		{},
+		{ timeout: 10000 }
+	);
+	await bobPage.waitForFunction(
+		() => (window as any).__espDashboardTest?.ready === true,
+		{},
+		{ timeout: 10000 }
+	);
+
+	// Acquire one client for each ESP team to enable resolution data generation
+	await acquireClientForTeam(alicePage, roomCode, 'SendWave');
+	await acquireClientForTeam(bobPage, roomCode, 'MailMonkey');
+
+	// Wait for client acquisition to complete and state to update
+	await alicePage.waitForTimeout(1000);
 
 	// Wait for Gmail to be redirected to destination dashboard
 	await gmailPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });

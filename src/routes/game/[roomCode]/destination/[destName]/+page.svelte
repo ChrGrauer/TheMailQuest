@@ -18,6 +18,7 @@
 	import { page } from '$app/stores';
 	import { websocketStore } from '$lib/stores/websocket';
 	import type { ESPDestinationStats, FilteringPolicy } from '$lib/server/game/types';
+	import type { DestinationResolutionResult, SatisfactionResult } from '$lib/server/game/resolution-types';
 
 	// Components
 	import DashboardHeader from '$lib/components/shared/DashboardHeader.svelte';
@@ -67,6 +68,10 @@
 	let remainingPlayers = $state(0);
 	let autoLockMessage = $state<string | null>(null);
 	let phaseTransitionMessage = $state<string | null>(null);
+
+	// Consequences state (US-3.5 Iteration 3)
+	let currentResolution = $state<DestinationResolutionResult | null>(null);
+	let espSatisfactionBreakdown = $state<Record<string, SatisfactionResult> | null>(null);
 
 	// Test state variables (for E2E testing) - null means use real value
 	let testWsConnected = $state<boolean | null>(null);
@@ -138,6 +143,10 @@
 			espStats = data.espStats || [];
 			collaborationsCount = data.collaborations_count || 0;
 
+			// US-3.5 Iteration 3: Store resolution data for consequences phase
+			currentResolution = data.currentResolution || null;
+			espSatisfactionBreakdown = data.espSatisfactionBreakdown || null;
+
 			loading = false;
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load dashboard';
@@ -198,6 +207,10 @@
 			// Phase transition (e.g., to resolution)
 			if (update.data?.phase) {
 				currentPhase = update.data.phase;
+			// Refetch data when transitioning to consequences to get resolution results
+			if (update.data.phase === 'consequences') {
+				fetchDashboardData();
+			}
 			}
 			if (update.data?.round !== undefined) {
 				currentRound = update.data.round;
@@ -451,7 +464,13 @@
 		</div>
 	{:else if currentPhase === 'consequences'}
 		<!-- US-3.5: Consequences Phase Display -->
-		<DestinationConsequences {destinationName} {currentRound} {budget} />
+		<DestinationConsequences
+			{destinationName}
+			{currentRound}
+			{budget}
+			resolution={currentResolution}
+			{espSatisfactionBreakdown}
+		/>
 	{:else if currentPhase === 'resolution'}
 		<!-- US-3.5: Resolution Loading Screen -->
 		<div class="flex items-center justify-center min-h-screen">
