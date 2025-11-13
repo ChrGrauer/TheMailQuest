@@ -179,9 +179,9 @@ export function allocateResources(request: ResourceAllocationRequest): ResourceA
 	});
 
 	try {
-		// Get list of active destinations (for ESP reputation initialization)
-		const activeDestinations = session.destinations.filter((d) => d.players.length > 0);
-		const destinationNames = activeDestinations.map((d) => d.name);
+		// Get all destination names (ESP reputation must be initialized for all destinations,
+		// not just active ones, since teams send to all destinations regardless of players)
+		const destinationNames = session.destinations.map((d) => d.name);
 
 		// Allocate resources to ESP teams
 		for (const team of session.esp_teams) {

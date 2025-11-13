@@ -96,10 +96,10 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			expect(mailMonkey?.credits).toBe(1000);
 			expect(bluePost?.credits).toBe(1000);
 
-			// Each team should have 70 reputation for each destination
-			expect(sendWave?.reputation).toEqual({ Gmail: 70 });
-			expect(mailMonkey?.reputation).toEqual({ Gmail: 70 });
-			expect(bluePost?.reputation).toEqual({ Gmail: 70 });
+			// Each team should have 70 reputation for ALL destinations (not just active ones)
+			expect(sendWave?.reputation).toEqual({ Gmail: 70, Outlook: 70, Yahoo: 70 });
+			expect(mailMonkey?.reputation).toEqual({ Gmail: 70, Outlook: 70, Yahoo: 70 });
+			expect(bluePost?.reputation).toEqual({ Gmail: 70, Outlook: 70, Yahoo: 70 });
 		});
 
 		test('When resource allocation starts, Then ESP team state should be initialized with empty arrays', () => {
