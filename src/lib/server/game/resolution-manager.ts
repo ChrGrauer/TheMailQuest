@@ -1,15 +1,16 @@
 /**
  * Resolution Manager
- * US 3.3: Resolution Phase Automation - Iterations 1-5
+ * US 3.3: Resolution Phase Automation - Iterations 1-6
  *
  * Orchestrates resolution phase calculations
  * Iteration 1: Basic volume and revenue calculation
  * Iteration 2: Reputation-based delivery success rates
  * Iteration 3-5: Reputation changes and complaint calculations
+ * Iteration 6: Per-destination delivery with filtering penalties
  */
 
 import type { GameSession } from './types';
-import type { ResolutionResults } from './resolution-types';
+import type { ResolutionResults, PerDestinationDelivery, DeliveryResult } from './resolution-types';
 import { calculateVolume } from './calculators/volume-calculator';
 import { calculateDeliverySuccess } from './calculators/delivery-calculator';
 import { calculateRevenue } from './calculators/revenue-calculator';
@@ -29,32 +30,28 @@ async function getLogger() {
 }
 
 /**
- * Calculate weighted average reputation across destinations
- * Uses market share as weights: Gmail 50%, Outlook 30%, Yahoo 20%
- * US 3.3: Iteration 2
+ * Calculate volume-weighted aggregate delivery rate
+ * Iteration 6: Uses per-destination volumes and delivery rates
  */
-function calculateWeightedReputation(reputation: Record<string, number>): number {
-	const weights: Record<string, number> = {
-		gmail: 0.5,
-		outlook: 0.3,
-		yahoo: 0.2
-	};
+function calculateAggregateDeliveryRate(
+	perDestinationDelivery: Record<string, number>,
+	perDestinationVolume: { Gmail: number; Outlook: number; Yahoo: number }
+): number {
+	const totalDeliveredVolume =
+		perDestinationVolume.Gmail * perDestinationDelivery.Gmail +
+		perDestinationVolume.Outlook * perDestinationDelivery.Outlook +
+		perDestinationVolume.Yahoo * perDestinationDelivery.Yahoo;
 
-	let weightedSum = 0;
-	let totalWeight = 0;
+	const totalVolume =
+		perDestinationVolume.Gmail + perDestinationVolume.Outlook + perDestinationVolume.Yahoo;
 
-	for (const [dest, rep] of Object.entries(reputation)) {
-		const weight = weights[dest.toLowerCase()] || 0;
-		weightedSum += rep * weight;
-		totalWeight += weight;
-	}
-
-	return totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 70;
+	return totalVolume > 0 ? totalDeliveredVolume / totalVolume : 0;
 }
 
 /**
  * Execute resolution phase for all ESP teams
- * Iteration 5: Volume, delivery, revenue, reputation changes, and complaints
+ * Iteration 6: Volume, per-destination delivery with filtering, aggregate delivery,
+ * revenue, reputation changes, and complaints
  */
 export async function executeResolution(
 	session: GameSession,
@@ -88,27 +85,57 @@ export async function executeResolution(
 			totalVolume: volumeResult.totalVolume
 		});
 
-		// 2. Calculate weighted reputation
-		const avgReputation = calculateWeightedReputation(team.reputation);
+		// 2. Calculate per-destination delivery (Iteration 6)
+		const perDestinationDelivery: PerDestinationDelivery = {
+			Gmail: { finalRate: 0, baseRate: 0, authBonus: 0, zone: '', breakdown: [] },
+			Outlook: { finalRate: 0, baseRate: 0, authBonus: 0, zone: '', breakdown: [] },
+			Yahoo: { finalRate: 0, baseRate: 0, authBonus: 0, zone: '', breakdown: [] }
+		};
 
-		// 3. Calculate delivery success (Iteration 2)
-		const deliveryResult = calculateDeliverySuccess({
-			reputation: avgReputation,
-			techStack: team.owned_tech_upgrades,
-			currentRound: session.current_round
-		});
-		logger.info('Delivery calculated', {
+		const perDestinationDeliveryRates: Record<string, number> = {};
+
+		for (const destination of session.destinations) {
+			const destName = destination.name as 'Gmail' | 'Outlook' | 'Yahoo';
+			const destReputation = team.reputation[destination.name.toLowerCase()];
+			// Get filtering level from policy object, fallback to permissive
+			const filteringPolicy = destination.filtering_policies[team.name];
+			const filteringLevel = filteringPolicy?.level || 'permissive';
+
+			const deliveryResult = calculateDeliverySuccess({
+				reputation: destReputation,
+				techStack: team.owned_tech_upgrades,
+				currentRound: session.current_round,
+				filteringLevel
+			});
+
+			perDestinationDelivery[destName] = deliveryResult;
+			perDestinationDeliveryRates[destName] = deliveryResult.finalRate;
+
+			logger.info('Delivery calculated for destination', {
+				teamName: team.name,
+				destination: destName,
+				reputation: destReputation,
+				filteringLevel,
+				zone: deliveryResult.zone,
+				deliveryRate: deliveryResult.finalRate
+			});
+		}
+
+		// 3. Calculate aggregate delivery rate (volume-weighted)
+		const aggregateDeliveryRate = calculateAggregateDeliveryRate(
+			perDestinationDeliveryRates,
+			volumeResult.perDestination
+		);
+		logger.info('Aggregate delivery rate calculated', {
 			teamName: team.name,
-			reputation: avgReputation,
-			zone: deliveryResult.zone,
-			deliveryRate: deliveryResult.finalRate
+			aggregateDeliveryRate
 		});
 
-		// 4. Calculate revenue (with delivery rate)
+		// 4. Calculate revenue (with aggregate delivery rate)
 		const revenueResult = calculateRevenue({
 			clients: activeClients,
 			clientStates: team.client_states || {},
-			deliveryRate: deliveryResult.finalRate
+			deliveryRate: aggregateDeliveryRate
 		});
 		logger.info('Revenue calculated', {
 			teamName: team.name,
@@ -143,10 +170,11 @@ export async function executeResolution(
 			adjustedComplaintRate: complaintsResult.adjustedComplaintRate
 		});
 
-		// Store results for this team
+		// Store results for this team (Iteration 6: per-destination delivery)
 		results.espResults[team.name] = {
 			volume: volumeResult,
-			delivery: deliveryResult,
+			delivery: perDestinationDelivery,
+			aggregateDeliveryRate,
 			revenue: revenueResult,
 			reputation: reputationResult,
 			complaints: complaintsResult

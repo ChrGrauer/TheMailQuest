@@ -149,11 +149,24 @@ export interface DeliveryResult {
 
 /**
  * Resolution Manager Types
+ * Iteration 6: Per-destination delivery calculations
  */
+
+/**
+ * Per-destination delivery results for an ESP team
+ * Iteration 6: Each destination has its own delivery calculation
+ */
+export interface PerDestinationDelivery {
+	Gmail: DeliveryResult;
+	Outlook: DeliveryResult;
+	Yahoo: DeliveryResult;
+}
+
 export interface ESPResolutionResult {
 	volume: VolumeResult;
 	reputation: ReputationResult; // Iteration 3: added
-	delivery: DeliveryResult;
+	delivery: PerDestinationDelivery; // Iteration 6: BREAKING CHANGE - was DeliveryResult
+	aggregateDeliveryRate: number; // Iteration 6: volume-weighted average for revenue
 	revenue: RevenueResult;
 	complaints: ComplaintResult; // Iteration 4: added
 }

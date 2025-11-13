@@ -70,7 +70,8 @@ export function generateClientStockForTeam(teamName: string, destinations: strin
 							tech: [...profile.requirements.tech], // Copy array
 							reputation: profile.requirements.reputation
 						}
-					: undefined
+					: undefined,
+				destination_distribution: { ...profile.destination_distribution } // US-3.3 Iteration 6
 			};
 
 			clients.push(client);

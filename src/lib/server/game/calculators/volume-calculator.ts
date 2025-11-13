@@ -48,7 +48,12 @@ export function calculateVolume(params: VolumeParams): VolumeResult {
 		}
 
 		// 3. Distribute volume per destination (Iteration 6)
-		const distribution = client.destination_distribution;
+		// Fallback to default distribution for clients without the field (backward compatibility)
+		const distribution = client.destination_distribution || {
+			Gmail: 50,
+			Outlook: 30,
+			Yahoo: 20
+		};
 		const perDestination = {
 			Gmail: Math.round(adjustedVolume * (distribution.Gmail / 100)),
 			Outlook: Math.round(adjustedVolume * (distribution.Outlook / 100)),

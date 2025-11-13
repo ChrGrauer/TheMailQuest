@@ -189,8 +189,15 @@ export interface GameConfiguration {
 /**
  * US-1.4: Game Phase Type
  * US-3.2: Removed 'action' phase - planning transitions directly to resolution after lock-in
+ * US-3.5: Added 'consequences' phase for displaying resolution results
  */
-export type GamePhase = 'lobby' | 'resource_allocation' | 'planning' | 'resolution' | 'finished';
+export type GamePhase =
+	| 'lobby'
+	| 'resource_allocation'
+	| 'planning'
+	| 'resolution'
+	| 'consequences'
+	| 'finished';
 
 /**
  * US-2.5: ESP Destination Statistics

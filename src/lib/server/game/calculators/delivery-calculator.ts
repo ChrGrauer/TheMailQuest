@@ -72,7 +72,7 @@ export function calculateDeliverySuccess(params: DeliveryParams): DeliveryResult
 	return {
 		baseRate,
 		authBonus,
-		filteringPenalty,
+		...(filteringPenalty > 0 && { filteringPenalty }), // Only include if > 0
 		dmarcPenalty,
 		finalRate,
 		zone: status.status,

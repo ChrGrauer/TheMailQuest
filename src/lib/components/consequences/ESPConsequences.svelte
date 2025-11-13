@@ -88,17 +88,38 @@
 							</p>
 						</div>
 
-						<!-- Delivery Rate -->
+						<!-- Delivery Rate - Per Destination (Iteration 6) -->
 						{#if resolutionData.delivery}
 							<div class="mt-3">
-								<p class="text-gray-800 font-semibold">
-									Delivery Success Rate: <span class="text-emerald-600"
-										>{resolutionData.delivery.finalRate.toFixed(1)}%</span
-									>
-								</p>
-								<p class="text-xs text-gray-500 mt-1">
-									Zone: {resolutionData.delivery.zone}
-								</p>
+								<p class="text-gray-800 font-semibold mb-2">Delivery Success Rates:</p>
+								<div class="space-y-2">
+									{#each Object.entries(resolutionData.delivery) as [destName, destDelivery]}
+										<div class="text-sm flex items-center justify-between">
+											<div class="flex items-center gap-2">
+												<span class="font-medium text-gray-700">{destName}:</span>
+												<span class="font-semibold text-gray-900">
+													{(destDelivery.finalRate * 100).toFixed(1)}%
+												</span>
+												<span class="text-xs text-gray-500 px-1.5 py-0.5 bg-gray-100 rounded">
+													{destDelivery.zone}
+												</span>
+											</div>
+											{#if destDelivery.filteringPenalty}
+												<span class="text-xs text-orange-600 font-medium">
+													-{(destDelivery.filteringPenalty * 100).toFixed(0)}% filtering
+												</span>
+											{/if}
+										</div>
+									{/each}
+								</div>
+								<div class="mt-3 pt-2 border-t border-gray-200">
+									<p class="text-sm flex justify-between">
+										<span class="text-gray-700">Aggregate Rate (for revenue):</span>
+										<span class="font-semibold text-emerald-600">
+											{(resolutionData.aggregateDeliveryRate * 100).toFixed(1)}%
+										</span>
+									</p>
+								</div>
 							</div>
 						{/if}
 					</div>

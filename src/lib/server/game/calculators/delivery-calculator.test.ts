@@ -376,7 +376,7 @@ describe('Delivery Calculator - Iteration 6: Filtering Penalties', () => {
 			});
 
 			expect(result.baseRate).toBe(0.85);
-			expect(result.filteringPenalty).toBe(0);
+			expect(result.filteringPenalty).toBeUndefined(); // No penalty = undefined
 			expect(result.finalRate).toBe(0.85);
 		});
 
