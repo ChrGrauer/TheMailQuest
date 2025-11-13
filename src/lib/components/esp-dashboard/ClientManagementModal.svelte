@@ -159,7 +159,8 @@
 	}
 
 	// Focus management for accessibility
-	let modalContent: HTMLDivElement;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	let modalContent: HTMLDivElement | undefined = $state();
 	let previouslyFocusedElement: HTMLElement | null = null;
 
 	// Fetch data when modal opens

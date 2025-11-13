@@ -4,7 +4,6 @@
 **The Mail Quest** is a multiplayer game built with SvelteKit where ESP teams compete to deliver emails.
 
 **Development Methodology**: ATDD (Acceptance Test-Driven Development)
-IMPORTANT: use a markdown file to keep track of your implementation plan and progress
 0. Read `.feature` files (Gherkin acceptance criteria)
 1. Write/update types
 2. Write failing tests (Red phase); IMPORTANT : check existing test ids in TEST-IDS-REFERENCE.md

@@ -75,7 +75,17 @@ export function lockInESPTeam(roomCode: string, teamName: string): LockInResult 
 	}
 
 	// 6. Commit pending onboarding decisions
-	commitPendingOnboardingDecisions(team);
+	commitPendingOnboardingDecisions(team, session.current_round);
+
+	// 6b. Mark ALL active new clients as activated
+	// This must happen even if there were no pending onboarding decisions
+	// (e.g., client acquired but onboarding options not changed)
+	for (const clientId of team.active_clients) {
+		const clientState = team.client_states?.[clientId];
+		if (clientState && clientState.first_active_round === null) {
+			clientState.first_active_round = session.current_round;
+		}
+	}
 
 	// 7. Lock in
 	team.locked_in = true;
@@ -228,8 +238,9 @@ export function calculatePendingOnboardingCosts(team: ESPTeam): number {
  * Commit pending onboarding decisions to client_states
  * Deducts credits and applies onboarding options
  * Clears pending_onboarding_decisions
+ * Sets first_active_round for newly activated clients
  */
-export function commitPendingOnboardingDecisions(team: ESPTeam): void {
+export function commitPendingOnboardingDecisions(team: ESPTeam, currentRound: number): void {
 	if (!team.pending_onboarding_decisions || !team.client_states) {
 		return;
 	}
@@ -254,6 +265,9 @@ export function commitPendingOnboardingDecisions(team: ESPTeam): void {
 		clientState.has_warmup = options.warmUp;
 		clientState.has_list_hygiene = options.listHygiene;
 
+		// Mark client as activated in this round
+		clientState.first_active_round = currentRound;
+
 		// Calculate cost
 		if (options.warmUp) {
 			totalCost += WARMUP_COST;
@@ -273,7 +287,8 @@ export function commitPendingOnboardingDecisions(team: ESPTeam): void {
 	getLogger().then((logger) => {
 		logger.info(`Committed pending onboarding decisions for ${team.name}`, {
 			totalCost,
-			remainingCredits: team.credits
+			remainingCredits: team.credits,
+			round: currentRound
 		});
 	});
 }
@@ -399,7 +414,16 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 			}
 
 			// Commit pending onboarding decisions
-			commitPendingOnboardingDecisions(team);
+			commitPendingOnboardingDecisions(team, session.current_round);
+
+			// Mark ALL active new clients as activated
+			// This must happen even if there were no pending onboarding decisions
+			for (const clientId of team.active_clients) {
+				const clientState = team.client_states?.[clientId];
+				if (clientState && clientState.first_active_round === null) {
+					clientState.first_active_round = session.current_round;
+				}
+			}
 
 			// Lock in
 			team.locked_in = true;

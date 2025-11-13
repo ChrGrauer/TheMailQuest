@@ -188,7 +188,9 @@
 								{#if repChange.currentReputation !== undefined && repChange.newReputation !== undefined}
 									<div class="text-sm text-gray-600 mt-2 space-y-1">
 										<p>
-											Previous: <span class="font-medium text-gray-900">{repChange.currentReputation}</span>
+											Previous: <span class="font-medium text-gray-900"
+												>{repChange.currentReputation}</span
+											>
 										</p>
 										<p>
 											Change: <span
@@ -204,7 +206,8 @@
 											New: <span
 												class="font-bold text-lg"
 												class:text-emerald-600={repChange.newReputation >= 70}
-												class:text-yellow-600={repChange.newReputation >= 40 && repChange.newReputation < 70}
+												class:text-yellow-600={repChange.newReputation >= 40 &&
+													repChange.newReputation < 70}
 												class:text-red-600={repChange.newReputation < 40}
 											>
 												{repChange.newReputation}

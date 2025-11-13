@@ -64,7 +64,12 @@
 	// US-3.5: Resolution results for consequences display
 	let resolutionResults = $state<ESPResolutionResult | undefined>();
 	// Actual team name with proper capitalization (from API, not URL param)
-	let actualTeamName = $state<string>(teamName);
+	let actualTeamName = $state<string>('');
+
+	// Sync actualTeamName when teamName prop changes
+	$effect(() => {
+		actualTeamName = teamName;
+	});
 
 	// Lock-in state (US-3.2)
 	let isLockedIn = $state(false);

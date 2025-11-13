@@ -15,7 +15,7 @@
 
 	<!-- Risk Level Filter -->
 	<div class="mb-4">
-		<label class="text-xs font-semibold text-gray-600 mb-2 block">Risk Level</label>
+		<div class="text-xs font-semibold text-gray-600 mb-2 block">Risk Level</div>
 		<div class="flex gap-2 flex-wrap">
 			{#each ['All', 'Low', 'Medium', 'High'] as risk}
 				<button

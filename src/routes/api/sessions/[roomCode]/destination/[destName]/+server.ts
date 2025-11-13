@@ -84,6 +84,32 @@ export const GET: RequestHandler = async ({ params }) => {
 	// Calculate remaining players count (US-3.2)
 	const remainingPlayersCount = getRemainingPlayersCount(session);
 
+	// US-3.5 Iteration 3: Get current round resolution data for consequences phase
+	let currentResolution = null;
+	let espSatisfactionBreakdown = null;
+
+	if (session.current_phase === 'consequences' && session.resolution_history) {
+		// Get the most recent resolution (current round)
+		const latestResolution = session.resolution_history[session.resolution_history.length - 1];
+
+		if (latestResolution && latestResolution.results) {
+			// Extract resolution data for this specific destination
+			if (latestResolution.results.destinationResults) {
+				currentResolution = latestResolution.results.destinationResults[destination.name];
+			}
+
+			// Extract per-ESP satisfaction breakdown for ESP Behavior Analysis
+			if (latestResolution.results.espResults) {
+				espSatisfactionBreakdown = {};
+				for (const [espName, espResult] of Object.entries(latestResolution.results.espResults)) {
+					if (espResult.satisfaction) {
+						espSatisfactionBreakdown[espName] = espResult.satisfaction;
+					}
+				}
+			}
+		}
+	}
+
 	// Prepare dashboard data
 	const dashboardData = {
 		success: true,
@@ -118,7 +144,10 @@ export const GET: RequestHandler = async ({ params }) => {
 			resolution_history: session.resolution_history || [] // US-3.5: Resolution history for all rounds
 		},
 		espStats,
-		collaborations_count: collaborationsCount
+		collaborations_count: collaborationsCount,
+		// US-3.5 Iteration 3: Current round resolution data for consequences display
+		currentResolution,
+		espSatisfactionBreakdown
 	};
 
 	gameLogger.event('destination_dashboard_fetch_success', {
