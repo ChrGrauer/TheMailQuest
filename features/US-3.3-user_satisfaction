@@ -11,30 +11,35 @@ Satisfaction decreases heavily when spam gets through
 Destination tech modifies filtering effectiveness
 To create diversity in the game play for the destination, we will perhaps use different formula per destination (for instance, having Yahoo users more tolerant to spam)
 
-Destination Tech Impact on Filtering: (to be checked agains values in config)
-javascript// Base filtering effectiveness by level
+Destination Tech Impact on Filtering:
+javascript// Base filtering effectiveness by level (from src/lib/utils/filtering.ts)
 base_effectiveness = {
-  "Permissive": { spam_blocked: 0.20, false_positives: 0.01 },
-  "Moderate":   { spam_blocked: 0.50, false_positives: 0.03 },
-  "Strict":     { spam_blocked: 0.75, false_positives: 0.08 },
-  "Maximum":    { spam_blocked: 0.90, false_positives: 0.15 }
+  "Permissive": { spam_blocked: 0.00, false_positives: 0.00 },  // 0% spam blocked, 0% FP
+  "Moderate":   { spam_blocked: 0.35, false_positives: 0.03 },  // 35% spam blocked, 3% FP
+  "Strict":     { spam_blocked: 0.65, false_positives: 0.08 },  // 65% spam blocked, 8% FP
+  "Maximum":    { spam_blocked: 0.85, false_positives: 0.15 }   // 85% spam blocked, 15% FP
 }
 
-// Tech modifiers (cumulative) (to be checked agains values in config)
-if (has_content_filtering) {
-  spam_blocked *= 1.30      // +30% spam detection
-  false_positives *= 0.90    // -10% false positives
+// Tech modifiers (additive, cumulative) (from src/lib/config/destination-technical-upgrades.ts)
+if (has_content_analysis_filter) {
+  spam_blocked += 0.15      // +15 percentage points spam detection
+  false_positives -= 0.02   // -2 percentage points false positives
 }
 
-if (has_ml_filtering) {
-  spam_blocked *= 1.40      // +40% spam detection  
-  false_positives *= 0.80    // -20% false positives
+if (has_ml_system) {
+  spam_blocked += 0.25      // +25 percentage points spam detection
+  false_positives -= 0.03   // -3 percentage points false positives
 }
 
-if (has_reputation_based_filtering) {
-  spam_blocked *= 1.20      // +20% spam detection
-  false_positives *= 0.95    // -5% false positives
+if (has_volume_throttling) {
+  spam_blocked += 0.05      // +5 percentage points spam detection
+  false_positives -= 0.01   // -1 percentage point false positives
 }
+
+// Auth validators also provide spam detection boost
+if (has_auth_validator_l1) spam_blocked += 0.05      // +5pp (SPF)
+if (has_auth_validator_l2) spam_blocked += 0.08      // +8pp (DKIM)
+if (has_auth_validator_l3) spam_blocked += 0.12      // +12pp (DMARC)
 
 // Cap at maximum 95% spam blocking, minimum 0.5% false positives
 spam_blocked = min(0.95, spam_blocked)
@@ -77,6 +82,9 @@ user_satisfaction = max(0, min(100, user_satisfaction))
 
 
 Test Cases:
+NOTE: Test scenarios below use OLD filtering values (20/50/75/90).
+Actual implementation tests will use CURRENT values (0/35/65/85) from code.
+
 gherkinFeature: User Satisfaction Calculation
 
 Scenario: Good filtering rewarded
@@ -187,10 +195,10 @@ Making tech investments more valuable
 
 Components:
 javascript
-// Different base revenues reflecting their market position, perhaps to high. we shall perhaps divide it by 2
+// Different base revenues reflecting their market position
 base_revenue = {
   Gmail:   300,  // Largest player, highest revenue
-  Outlook: 200,  // Medium player, moderate revenue  
+  Outlook: 200,  // Medium player, moderate revenue
   Yahoo:   150   // Smaller player, lower revenue
 }
 

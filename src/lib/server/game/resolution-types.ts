@@ -150,6 +150,56 @@ export interface DeliveryResult {
 }
 
 /**
+ * User Satisfaction Calculator Types
+ * US 3.3: Iteration 6.1
+ */
+export interface SatisfactionParams {
+	espName: string; // ESP team name
+	clients: Client[];
+	clientStates: Record<string, ClientState>;
+	volumeData: VolumeResult;
+	filteringPolicies: Record<string, 'permissive' | 'moderate' | 'strict' | 'maximum'>; // per destination
+	ownedTools: Record<string, string[]>; // per destination: owned tool IDs
+	complaintRate: number; // adjusted complaint rate from complaint calculator
+}
+
+export interface SatisfactionBreakdownItem {
+	destination: string;
+	spam_rate: number;
+	spam_blocked_percentage: number;
+	spam_through_percentage: number;
+	false_positive_percentage: number;
+	satisfaction_gain: number;
+	spam_penalty: number;
+	false_positive_penalty: number;
+	satisfaction: number;
+}
+
+export interface SatisfactionResult {
+	aggregatedSatisfaction: number; // Destination-wide satisfaction (0-100)
+	perDestination: Record<string, number>; // Per-destination satisfaction scores
+	breakdown: SatisfactionBreakdownItem[]; // Detailed calculations per destination
+}
+
+/**
+ * Destination Revenue Calculator Types
+ * US 3.3: Iteration 6.1
+ */
+export interface DestinationRevenueParams {
+	kingdom: string; // Gmail, Outlook, or Yahoo
+	totalVolume: number; // Total emails processed by this destination
+	userSatisfaction: number; // Aggregated user satisfaction (0-100)
+}
+
+export interface DestinationRevenueResult {
+	baseRevenue: number; // Base revenue by kingdom
+	volumeBonus: number; // Bonus from email volume processed
+	satisfactionMultiplier: number; // Multiplier based on satisfaction tier
+	satisfactionTier: string; // Tier label (e.g., "Excellent", "Warning")
+	totalRevenue: number; // Final revenue: (base + bonus) * multiplier
+}
+
+/**
  * Resolution Manager Types
  * Iteration 6: Per-destination delivery calculations
  */
@@ -171,11 +221,24 @@ export interface ESPResolutionResult {
 	aggregateDeliveryRate: number; // Iteration 6: volume-weighted average for revenue
 	revenue: RevenueResult;
 	complaints: ComplaintResult; // Iteration 4: added
+	satisfaction?: SatisfactionResult; // Iteration 6.1: user satisfaction
+}
+
+/**
+ * Destination resolution result
+ * Iteration 6.1: Destination revenue and aggregated satisfaction
+ */
+export interface DestinationResolutionResult {
+	destinationName: string;
+	kingdom: string;
+	aggregatedSatisfaction: number; // Aggregated across all ESPs
+	totalVolume: number; // Total volume processed by this destination
+	revenue: DestinationRevenueResult;
 }
 
 export interface ResolutionResults {
 	espResults: Record<string, ESPResolutionResult>;
-	destinationResults?: Record<string, any>; // Future iterations
+	destinationResults?: Record<string, DestinationResolutionResult>; // Iteration 6.1
 }
 
 /**

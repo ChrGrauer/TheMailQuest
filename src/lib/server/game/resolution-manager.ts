@@ -10,12 +10,19 @@
  */
 
 import type { GameSession } from './types';
-import type { ResolutionResults, PerDestinationDelivery, DeliveryResult } from './resolution-types';
+import type {
+	ResolutionResults,
+	PerDestinationDelivery,
+	DeliveryResult,
+	SatisfactionResult
+} from './resolution-types';
 import { calculateVolume } from './calculators/volume-calculator';
 import { calculateDeliverySuccess } from './calculators/delivery-calculator';
 import { calculateRevenue } from './calculators/revenue-calculator';
 import { calculateReputationChanges } from './calculators/reputation-calculator';
 import { calculateComplaints } from './calculators/complaint-calculator';
+import { calculateSatisfaction } from './calculators/satisfaction-calculator';
+import { calculateDestinationRevenue } from './calculators/destination-revenue-calculator';
 
 /**
  * Lazy logger import to avoid $app/environment issues during Vite config
@@ -184,14 +191,88 @@ export async function executeResolution(
 			adjustedComplaintRate: complaintsResult.adjustedComplaintRate
 		});
 
-		// Store results for this team (Iteration 6: per-destination delivery)
+		// 7. Calculate user satisfaction (Iteration 6.1)
+		// Build filtering policies and owned tools per destination
+		const filteringPolicies: Record<string, 'permissive' | 'moderate' | 'strict' | 'maximum'> = {};
+		const ownedTools: Record<string, string[]> = {};
+
+		for (const destination of session.destinations) {
+			const destName = destination.name as 'Gmail' | 'Outlook' | 'Yahoo';
+			const policy = destination.filtering_policies[team.name];
+			filteringPolicies[destName] = policy?.level || 'permissive';
+			ownedTools[destName] = destination.owned_tools || [];
+		}
+
+		const satisfactionResult = calculateSatisfaction({
+			espName: team.name,
+			clients: activeClients,
+			clientStates: team.client_states || {},
+			volumeData: volumeResult,
+			filteringPolicies,
+			ownedTools,
+			complaintRate: complaintsResult.adjustedComplaintRate
+		});
+		logger.info('User satisfaction calculated', {
+			teamName: team.name,
+			aggregatedSatisfaction: satisfactionResult.aggregatedSatisfaction
+		});
+
+		// Store results for this team (Iteration 6: per-destination delivery, Iteration 6.1: satisfaction)
 		results.espResults[team.name] = {
 			volume: volumeResult,
 			delivery: perDestinationDelivery,
 			aggregateDeliveryRate,
 			revenue: revenueResult,
 			reputation: reputationResult,
-			complaints: complaintsResult
+			complaints: complaintsResult,
+			satisfaction: satisfactionResult // Iteration 6.1
+		};
+	}
+
+	// 8. Calculate destination revenue (Iteration 6.1)
+	// After all ESPs processed, aggregate satisfaction and calculate revenue per destination
+	results.destinationResults = {};
+
+	for (const destination of session.destinations) {
+		const destName = destination.name as 'Gmail' | 'Outlook' | 'Yahoo';
+
+		// Aggregate satisfaction across all ESPs (volume-weighted)
+		let totalVolume = 0;
+		let weightedSatisfaction = 0;
+
+		for (const team of session.esp_teams) {
+			const espResult = results.espResults[team.name];
+			if (espResult?.satisfaction) {
+				const destVolume = espResult.volume.perDestination[destName] || 0;
+				const destSatisfaction = espResult.satisfaction.perDestination[destName] || 75;
+				totalVolume += destVolume;
+				weightedSatisfaction += destSatisfaction * destVolume;
+			}
+		}
+
+		const aggregatedSatisfaction =
+			totalVolume > 0 ? Math.round(weightedSatisfaction / totalVolume) : 75;
+
+		// Calculate destination revenue
+		const revenueResult = calculateDestinationRevenue({
+			kingdom: destination.kingdom || destName,
+			totalVolume,
+			userSatisfaction: aggregatedSatisfaction
+		});
+
+		logger.info('Destination revenue calculated', {
+			destination: destName,
+			totalVolume,
+			aggregatedSatisfaction,
+			revenue: revenueResult.totalRevenue
+		});
+
+		results.destinationResults[destName] = {
+			destinationName: destName,
+			kingdom: destination.kingdom || destName,
+			aggregatedSatisfaction,
+			totalVolume,
+			revenue: revenueResult
 		};
 	}
 

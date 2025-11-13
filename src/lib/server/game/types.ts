@@ -38,6 +38,7 @@ export interface Destination {
 	kingdom?: 'Gmail' | 'Outlook' | 'Yahoo'; // US-2.6.2: Kingdom for pricing
 	players: string[];
 	budget: number;
+	revenue?: number; // US-3.3 Iteration 6.1: Revenue earned per round
 	// US-1.4: Resource allocation fields
 	filtering_policies: Record<string, FilteringPolicy>; // US-2.6.1: Filtering policies per ESP (key = espName)
 	esp_reputation: Record<string, number>; // per ESP: { SendWave: 70, MailMonkey: 70, ... }
@@ -47,7 +48,7 @@ export interface Destination {
 	esp_metrics?: Record<
 		string,
 		{
-			user_satisfaction: number; // 0-100
+			user_satisfaction: number; // 0-100 (US-3.3 Iteration 6.1: calculated from satisfaction-calculator)
 			spam_level: number; // 0-100
 		}
 	>;
