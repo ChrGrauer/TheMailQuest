@@ -47,7 +47,7 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 		// Then: Aggregate delivery rate and revenue calculated correctly
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
 		expect(results.espResults.SendWave.revenue.baseRevenue).toBe(350);
-		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(297.5); // 350 * 0.85
+		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(298); // Math.round(350 * 0.85)
 	});
 
 	test('complete resolution with multiple clients', async () => {
@@ -93,7 +93,7 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 		// Then: Aggregate delivery rate and revenue calculated correctly
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
 		expect(results.espResults.SendWave.revenue.baseRevenue).toBe(530); // 350 + 180
-		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(450.5); // 530 * 0.85
+		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(451); // Math.round(530 * 0.85)
 	});
 
 	test('excludes paused clients properly', async () => {
@@ -147,7 +147,7 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 		// Then: Revenue calculated correctly
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
 		expect(results.espResults.SendWave.revenue.baseRevenue).toBe(530); // 350 + 180 (excludes 350)
-		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(450.5); // 530 * 0.85
+		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(451); // Math.round(530 * 0.85)
 	});
 
 	test('handles multiple ESP teams independently', async () => {
@@ -195,7 +195,7 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBe(0.85);
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
 		expect(results.espResults.SendWave.revenue.baseRevenue).toBe(350);
-		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(297.5); // 350 * 0.85
+		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(298); // Math.round(350 * 0.85)
 
 		// Then: MailMonkey calculated independently
 		expect(results.espResults.MailMonkey.volume.totalVolume).toBe(50000);
@@ -204,7 +204,7 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 		expect(results.espResults.MailMonkey.delivery.Yahoo.finalRate).toBe(0.85);
 		expect(results.espResults.MailMonkey.aggregateDeliveryRate).toBe(0.85);
 		expect(results.espResults.MailMonkey.revenue.baseRevenue).toBe(150);
-		expect(results.espResults.MailMonkey.revenue.actualRevenue).toBe(127.5); // 150 * 0.85
+		expect(results.espResults.MailMonkey.revenue.actualRevenue).toBe(128); // Math.round(150 * 0.85)
 	});
 });
 
@@ -217,7 +217,7 @@ describe('Resolution Manager - Iteration 2: Reputation-Based Delivery', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { gmail: 75, outlook: 75, yahoo: 75 },
+					reputation: { Gmail: 75, Outlook: 75, Yahoo: 75 },
 					clients: [client],
 					clientStates: {
 						'client-1': {
@@ -245,7 +245,7 @@ describe('Resolution Manager - Iteration 2: Reputation-Based Delivery', () => {
 		// Then: Aggregate delivery rate and revenue
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
 		expect(results.espResults.SendWave.revenue.baseRevenue).toBe(350);
-		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(297.5); // 350 × 0.85
+		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(298); // Math.round(350 × 0.85)
 	});
 
 	test('poor reputation (40) → 50% delivery → revenue adjustment', async () => {
@@ -257,7 +257,7 @@ describe('Resolution Manager - Iteration 2: Reputation-Based Delivery', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { gmail: 40, outlook: 40, yahoo: 40 },
+					reputation: { Gmail: 40, Outlook: 40, Yahoo: 40 },
 					clients: [premium, startup],
 					clientStates: {
 						'client-1': {
@@ -302,7 +302,7 @@ describe('Resolution Manager - Iteration 2: Reputation-Based Delivery', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { gmail: 80, outlook: 70, yahoo: 60 },
+					reputation: { Gmail: 80, Outlook: 70, Yahoo: 60 },
 					clients: [client],
 					clientStates: {
 						'client-1': {
@@ -343,7 +343,7 @@ describe('Resolution Manager - Iteration 2: Reputation-Based Delivery', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { gmail: 85, outlook: 85, yahoo: 85 }, // Good zone
+					reputation: { Gmail: 85, Outlook: 85, Yahoo: 85 }, // Good zone
 					clients: [team1Client],
 					clientStates: {
 						'sw-client-1': {
@@ -356,7 +356,7 @@ describe('Resolution Manager - Iteration 2: Reputation-Based Delivery', () => {
 				},
 				{
 					name: 'MailMonkey',
-					reputation: { gmail: 45, outlook: 45, yahoo: 45 }, // Poor zone
+					reputation: { Gmail: 45, Outlook: 45, Yahoo: 45 }, // Poor zone
 					clients: [team2Client],
 					clientStates: {
 						'mm-client-1': {
@@ -381,7 +381,7 @@ describe('Resolution Manager - Iteration 2: Reputation-Based Delivery', () => {
 		expect(results.espResults.SendWave.delivery.Yahoo.zone).toBe('good');
 		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBe(0.85);
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
-		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(297.5); // 350 * 0.85
+		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(298); // Math.round(350 * 0.85)
 
 		// Then: MailMonkey has 50% delivery (Poor zone) for all destinations
 		expect(results.espResults.MailMonkey.delivery.Gmail.zone).toBe('poor');
@@ -404,7 +404,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { gmail: 85, outlook: 70, yahoo: 60 }, // Good/Good/Warning zones
+					reputation: { Gmail: 85, Outlook: 70, Yahoo: 60 }, // Good/Good/Warning zones
 					clients: [client],
 					clientStates: {
 						'client-1': {
@@ -460,7 +460,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { gmail: 80, outlook: 80, yahoo: 80 }, // Good zone everywhere
+					reputation: { Gmail: 80, Outlook: 80, Yahoo: 80 }, // Good zone everywhere
 					clients: [client],
 					clientStates: {
 						'client-1': {
@@ -531,7 +531,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { gmail: 80, outlook: 80, yahoo: 80 },
+					reputation: { Gmail: 80, Outlook: 80, Yahoo: 80 },
 					clients: [premium, startup],
 					clientStates: {
 						'client-1': {
@@ -591,7 +591,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { gmail: 80, outlook: 80, yahoo: 80 },
+					reputation: { Gmail: 80, Outlook: 80, Yahoo: 80 },
 					clients: [team1Client],
 					clientStates: {
 						'sw-client-1': {
@@ -604,7 +604,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 				},
 				{
 					name: 'MailMonkey',
-					reputation: { gmail: 80, outlook: 80, yahoo: 80 },
+					reputation: { Gmail: 80, Outlook: 80, Yahoo: 80 },
 					clients: [team2Client],
 					clientStates: {
 						'mm-client-1': {

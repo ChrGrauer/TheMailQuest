@@ -42,7 +42,7 @@ export function buildTestTeam(nameOrConfig: string | TestTeamConfig): ESPTeam {
 		clients: [],
 		technical_stack: [],
 		credits: config.credits ?? 1000,
-		reputation: config.reputation ?? { gmail: 70, outlook: 70, yahoo: 70 },
+		reputation: config.reputation ?? { Gmail: 70, Outlook: 70, Yahoo: 70 },
 		active_clients: config.clients?.map((c) => c.id) ?? [],
 		owned_tech_upgrades: config.techStack ?? [],
 		round_history: [],

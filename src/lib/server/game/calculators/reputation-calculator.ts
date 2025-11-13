@@ -56,10 +56,14 @@ export function calculateReputationChanges(params: ReputationParams): Reputation
 	}
 
 	// 3. Calculate warmup bonus (Iteration 5)
-	// Count active clients with warmup
+	// Count active clients with warmup that are in their first active round
 	const activeWarmedClients = params.clients.filter((client) => {
 		const state = params.clientStates[client.id];
-		return state?.status === 'Active' && state?.has_warmup;
+		return (
+			state?.status === 'Active' &&
+			state?.has_warmup &&
+			state?.first_active_round === params.currentRound
+		);
 	});
 
 	const warmupBonus = activeWarmedClients.length * WARMUP_REPUTATION_BONUS;

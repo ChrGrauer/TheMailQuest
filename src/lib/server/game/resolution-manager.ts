@@ -96,7 +96,7 @@ export async function executeResolution(
 
 		for (const destination of session.destinations) {
 			const destName = destination.name as 'Gmail' | 'Outlook' | 'Yahoo';
-			const destReputation = team.reputation[destination.name.toLowerCase()];
+			const destReputation = team.reputation[destination.name]; // Use capitalized key to match storage
 			// Get filtering level from policy object, fallback to permissive
 			const filteringPolicy = destination.filtering_policies[team.name];
 			const filteringLevel = filteringPolicy?.level || 'permissive';
@@ -158,7 +158,7 @@ export async function executeResolution(
 
 		// Include current and new reputation values in results
 		for (const destination of destinations) {
-			const currentRep = team.reputation[destination.toLowerCase()] || 70;
+			const currentRep = team.reputation[destination] || 70; // Use capitalized key to match storage
 			const change = reputationResult.perDestination[destination];
 			if (change) {
 				change.currentReputation = currentRep;
