@@ -1,10 +1,11 @@
 /**
  * Volume Calculator
- * US 3.3: Resolution Phase Automation - Iteration 1, 5
+ * US 3.3: Resolution Phase Automation - Iteration 1, 5, 6
  *
  * Calculates email volume for ESP teams
  * Iteration 1: Basic volume calculation (filter active clients, sum volumes)
  * Iteration 5: List hygiene and warmup volume reductions
+ * Iteration 6: Per-destination volume distribution
  */
 
 import type { VolumeParams, VolumeResult, ClientVolumeData } from '../resolution-types';
@@ -17,6 +18,7 @@ import {
  * Calculate total email volume for a team
  * Iteration 1: Filters active clients
  * Iteration 5: Applies list hygiene and warmup reductions
+ * Iteration 6: Distributes volume per destination
  */
 export function calculateVolume(params: VolumeParams): VolumeResult {
 	// Filter to only active clients
@@ -45,20 +47,37 @@ export function calculateVolume(params: VolumeParams): VolumeResult {
 			adjustments.warmup = reductionAmount;
 		}
 
+		// 3. Distribute volume per destination (Iteration 6)
+		const distribution = client.destination_distribution;
+		const perDestination = {
+			Gmail: Math.round(adjustedVolume * (distribution.Gmail / 100)),
+			Outlook: Math.round(adjustedVolume * (distribution.Outlook / 100)),
+			Yahoo: Math.round(adjustedVolume * (distribution.Yahoo / 100))
+		};
+
 		return {
 			clientId: client.id,
 			baseVolume: client.volume,
 			adjustedVolume: Math.round(adjustedVolume),
-			adjustments
+			adjustments,
+			perDestination
 		};
 	});
 
 	// Sum total volume
 	const totalVolume = clientVolumes.reduce((sum, cv) => sum + cv.adjustedVolume, 0);
 
+	// Aggregate per-destination totals (Iteration 6)
+	const perDestination = {
+		Gmail: clientVolumes.reduce((sum, cv) => sum + cv.perDestination.Gmail, 0),
+		Outlook: clientVolumes.reduce((sum, cv) => sum + cv.perDestination.Outlook, 0),
+		Yahoo: clientVolumes.reduce((sum, cv) => sum + cv.perDestination.Yahoo, 0)
+	};
+
 	return {
 		activeClients,
 		clientVolumes,
-		totalVolume
+		totalVolume,
+		perDestination
 	};
 }

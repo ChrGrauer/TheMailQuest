@@ -1,11 +1,11 @@
 /**
  * Delivery Calculator
- * US 3.3: Resolution Phase Automation - Iteration 2, 3
+ * US 3.3: Resolution Phase Automation - Iteration 2, 3, 6
  *
  * Calculates delivery success rate based on reputation and authentication
  * Iteration 2: Base rate from reputation zones
  * Iteration 3: Authentication bonuses and DMARC enforcement
- * Future iterations will add: filtering penalties
+ * Iteration 6: Filtering penalties (false positives)
  */
 
 import type { DeliveryParams, DeliveryResult, DeliveryBreakdownItem } from '../resolution-types';
@@ -14,10 +14,12 @@ import {
 	getAuthenticationDeliveryBonus,
 	DMARC_MISSING_PENALTY
 } from '$lib/config/technical-upgrades';
+import { calculateImpactValues } from '$lib/utils/filtering';
 
 /**
  * Calculate delivery success rate for an ESP
  * Iteration 3: Reputation + authentication bonuses + DMARC penalty
+ * Iteration 6: Filtering penalties
  */
 export function calculateDeliverySuccess(params: DeliveryParams): DeliveryResult {
 	// 1. Base rate from reputation zone
@@ -27,10 +29,17 @@ export function calculateDeliverySuccess(params: DeliveryParams): DeliveryResult
 	// 2. Authentication bonus (cumulative)
 	const authBonus = getAuthenticationDeliveryBonus(params.techStack);
 
-	// 3. Calculate intermediate rate
-	let finalRate = baseRate + authBonus;
+	// 3. Filtering penalty (Iteration 6)
+	let filteringPenalty = 0;
+	if (params.filteringLevel && params.filteringLevel !== 'permissive') {
+		const impacts = calculateImpactValues(params.filteringLevel);
+		filteringPenalty = impacts.falsePositives / 100; // Convert to decimal
+	}
 
-	// 4. Build breakdown
+	// 4. Calculate intermediate rate
+	let finalRate = baseRate + authBonus - filteringPenalty;
+
+	// 5. Build breakdown
 	const breakdown: DeliveryBreakdownItem[] = [
 		{ factor: `Base (${status.status} zone)`, value: baseRate }
 	];
@@ -39,7 +48,11 @@ export function calculateDeliverySuccess(params: DeliveryParams): DeliveryResult
 		breakdown.push({ factor: 'Authentication Bonus', value: authBonus });
 	}
 
-	// 5. DMARC enforcement (Round 3+)
+	if (filteringPenalty > 0) {
+		breakdown.push({ factor: 'Filtering Penalty', value: -Math.round(filteringPenalty * 100) });
+	}
+
+	// 6. DMARC enforcement (Round 3+)
 	let dmarcPenalty: number | undefined;
 	if (params.currentRound >= 3 && !params.techStack.includes('dmarc')) {
 		dmarcPenalty = 1 - DMARC_MISSING_PENALTY; // 0.8 (80% rejection)
@@ -51,14 +64,15 @@ export function calculateDeliverySuccess(params: DeliveryParams): DeliveryResult
 		});
 	}
 
-	// 6. Cap at 100%
-	finalRate = Math.min(finalRate, 1.0);
+	// 7. Cap at 0-100%
+	finalRate = Math.max(0, Math.min(finalRate, 1.0));
 
 	breakdown.push({ factor: 'Final Rate', value: finalRate });
 
 	return {
 		baseRate,
 		authBonus,
+		filteringPenalty,
 		dmarcPenalty,
 		finalRate,
 		zone: status.status,

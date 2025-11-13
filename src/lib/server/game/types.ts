@@ -99,6 +99,12 @@ export interface Client {
 	available_from_round: number; // Round when this client becomes available (1, 2, or 3)
 	requirements?: ClientRequirements; // Optional requirements (for Premium Brand clients)
 	status?: 'Active' | 'Paused' | 'Suspended'; // Status for acquired clients in portfolio (US-2.4.0)
+	destination_distribution: {
+		// US-3.3: Resolution Phase Automation - Iteration 6
+		Gmail: number; // Percentage (0-100)
+		Outlook: number; // Percentage (0-100)
+		Yahoo: number; // Percentage (0-100)
+	};
 }
 
 /**

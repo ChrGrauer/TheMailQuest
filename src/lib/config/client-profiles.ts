@@ -23,6 +23,12 @@ export interface ClientProfile {
 	count: number; // How many of this type per team
 	requirements?: ClientRequirements; // Optional requirements (for Premium Brand)
 	description: string; // Description for display
+	destination_distribution: {
+		// US-3.3: Resolution Phase Automation - Iteration 6
+		Gmail: number; // Percentage (0-100)
+		Outlook: number; // Percentage (0-100)
+		Yahoo: number; // Percentage (0-100)
+	};
 }
 
 /**
@@ -44,7 +50,12 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 			reputation: 85
 		},
 		description:
-			'Established brand with engaged subscriber base. Excellent reputation, low complaint rates. Requires full authentication stack.'
+			'Established brand with engaged subscriber base. Excellent reputation, low complaint rates. Requires full authentication stack.',
+		destination_distribution: {
+			Gmail: 50,
+			Outlook: 30,
+			Yahoo: 20
+		}
 	},
 	{
 		type: 'growing_startup',
@@ -56,7 +67,12 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		availableFromRound: 1,
 		count: 3,
 		description:
-			'Fast-growing SaaS company with expanding list. Good engagement but occasional complaints.'
+			'Fast-growing SaaS company with expanding list. Good engagement but occasional complaints.',
+		destination_distribution: {
+			Gmail: 50,
+			Outlook: 30,
+			Yahoo: 20
+		}
 	},
 	{
 		type: 're_engagement',
@@ -68,7 +84,12 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		availableFromRound: 1,
 		count: 3,
 		description:
-			'Re-activation campaign targeting inactive subscribers. High volume, significant reputation risk.'
+			'Re-activation campaign targeting inactive subscribers. High volume, significant reputation risk.',
+		destination_distribution: {
+			Gmail: 50,
+			Outlook: 30,
+			Yahoo: 20
+		}
 	},
 	{
 		type: 'aggressive_marketer',
@@ -80,7 +101,12 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		availableFromRound: 2,
 		count: 2,
 		description:
-			'High-volume email marketer with purchased lists. High revenue but significant reputation risk.'
+			'High-volume email marketer with purchased lists. High revenue but significant reputation risk.',
+		destination_distribution: {
+			Gmail: 50,
+			Outlook: 30,
+			Yahoo: 20
+		}
 	},
 	{
 		type: 'event_seasonal',
@@ -92,7 +118,12 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		availableFromRound: 1,
 		count: 3,
 		description:
-			'Seasonal campaign with time-sensitive promotions. Moderate risk with concentrated traffic.'
+			'Seasonal campaign with time-sensitive promotions. Moderate risk with concentrated traffic.',
+		destination_distribution: {
+			Gmail: 50,
+			Outlook: 30,
+			Yahoo: 20
+		}
 	}
 ];
 
@@ -178,4 +209,25 @@ export const RISK_REPUTATION_IMPACT: Record<'Low' | 'Medium' | 'High', number> =
  */
 export function getReputationImpact(risk: 'Low' | 'Medium' | 'High'): number {
 	return RISK_REPUTATION_IMPACT[risk];
+}
+
+/**
+ * Validate destination distribution sums to 100%
+ * US-3.3: Resolution Phase Automation - Iteration 6
+ */
+export function validateDestinationDistribution(distribution: {
+	Gmail: number;
+	Outlook: number;
+	Yahoo: number;
+}): { valid: boolean; error?: string } {
+	const total = distribution.Gmail + distribution.Outlook + distribution.Yahoo;
+
+	if (Math.abs(total - 100) > 0.01) {
+		return {
+			valid: false,
+			error: `Distribution must sum to 100%, got ${total}%`
+		};
+	}
+
+	return { valid: true };
 }

@@ -24,12 +24,24 @@ export interface ClientVolumeData {
 	baseVolume: number;
 	adjustedVolume: number;
 	adjustments: VolumeAdjustments;
+	perDestination: {
+		// Iteration 6: per-destination volume split
+		Gmail: number;
+		Outlook: number;
+		Yahoo: number;
+	};
 }
 
 export interface VolumeResult {
 	activeClients: Client[];
 	clientVolumes: ClientVolumeData[];
 	totalVolume: number;
+	perDestination: {
+		// Iteration 6: aggregated per-destination volumes
+		Gmail: number;
+		Outlook: number;
+		Yahoo: number;
+	};
 }
 
 /**
@@ -111,12 +123,13 @@ export interface ComplaintResult {
 
 /**
  * Delivery Calculator Types
- * US 3.3: Iteration 2, 3
+ * US 3.3: Iteration 2, 3, 6
  */
 export interface DeliveryParams {
-	reputation: number; // weighted average across destinations
+	reputation: number; // weighted average across destinations (or per-destination in Iter 6)
 	techStack: string[];
 	currentRound: number;
+	filteringLevel?: 'permissive' | 'moderate' | 'strict' | 'maximum'; // Iteration 6
 }
 
 export interface DeliveryBreakdownItem {
@@ -127,6 +140,7 @@ export interface DeliveryBreakdownItem {
 export interface DeliveryResult {
 	baseRate: number; // from reputation zone
 	authBonus: number; // Iteration 3: authentication delivery bonus
+	filteringPenalty?: number; // Iteration 6: filtering false positives (as decimal)
 	dmarcPenalty?: number; // Iteration 3: DMARC missing penalty (Round 3+)
 	finalRate: number; // after all modifiers
 	zone: string; // reputation zone name (excellent/good/warning/poor/blacklist)

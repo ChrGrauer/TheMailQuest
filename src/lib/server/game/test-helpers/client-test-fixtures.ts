@@ -21,12 +21,16 @@ export function buildTestClient(type: ClientType, overrides?: Partial<Client>): 
 		id: overrides?.id || `test-${type}-${Date.now()}`,
 		name: overrides?.name || `Test ${profile.type}`,
 		type: profile.type,
+		cost: overrides?.cost ?? profile.baseCost,
 		volume: overrides?.volume ?? profile.baseVolume,
 		revenue: overrides?.revenue ?? profile.baseRevenue,
 		risk: overrides?.risk ?? profile.risk,
 		spam_rate: overrides?.spam_rate ?? profile.baseSpamRate,
+		available_from_round: overrides?.available_from_round ?? profile.availableFromRound,
 		requirements: profile.requirements,
-		description: profile.description
+		destination_distribution:
+			overrides?.destination_distribution ?? profile.destination_distribution,
+		...overrides
 	};
 }
 

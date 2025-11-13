@@ -364,3 +364,145 @@ describe('Delivery Calculator - Iteration 3: Authentication Impact', () => {
 		});
 	});
 });
+
+describe('Delivery Calculator - Iteration 6: Filtering Penalties', () => {
+	describe('Filtering levels', () => {
+		test('permissive filtering: no penalty', () => {
+			const result = calculateDeliverySuccess({
+				reputation: 75, // Good zone
+				techStack: [],
+				currentRound: 1,
+				filteringLevel: 'permissive'
+			});
+
+			expect(result.baseRate).toBe(0.85);
+			expect(result.filteringPenalty).toBe(0);
+			expect(result.finalRate).toBe(0.85);
+		});
+
+		test('moderate filtering: 3% penalty', () => {
+			const result = calculateDeliverySuccess({
+				reputation: 75,
+				techStack: [],
+				currentRound: 1,
+				filteringLevel: 'moderate'
+			});
+
+			expect(result.baseRate).toBe(0.85);
+			expect(result.filteringPenalty).toBe(0.03);
+			expect(result.finalRate).toBe(0.82); // 0.85 - 0.03
+		});
+
+		test('strict filtering: 8% penalty', () => {
+			const result = calculateDeliverySuccess({
+				reputation: 55, // Warning zone: 70% base
+				techStack: [],
+				currentRound: 1,
+				filteringLevel: 'strict'
+			});
+
+			expect(result.baseRate).toBe(0.7);
+			expect(result.filteringPenalty).toBe(0.08);
+			expect(result.finalRate).toBe(0.62); // 0.70 - 0.08
+		});
+
+		test('maximum filtering: 15% penalty', () => {
+			const result = calculateDeliverySuccess({
+				reputation: 85, // Good zone: 85% base
+				techStack: [],
+				currentRound: 1,
+				filteringLevel: 'maximum'
+			});
+
+			expect(result.baseRate).toBe(0.85);
+			expect(result.filteringPenalty).toBe(0.15);
+			expect(result.finalRate).toBe(0.7); // 0.85 - 0.15
+		});
+	});
+
+	describe('Filtering with authentication bonuses', () => {
+		test('filtering penalty applied after auth bonus', () => {
+			const result = calculateDeliverySuccess({
+				reputation: 70, // Good zone: 85%
+				techStack: ['spf', 'dkim'], // +13% bonus
+				currentRound: 1,
+				filteringLevel: 'strict' // -8%
+			});
+
+			expect(result.baseRate).toBe(0.85);
+			expect(result.authBonus).toBe(0.13);
+			expect(result.filteringPenalty).toBe(0.08);
+			expect(result.finalRate).toBe(0.9); // 0.85 + 0.13 - 0.08
+		});
+
+		test('full auth stack with maximum filtering', () => {
+			const result = calculateDeliverySuccess({
+				reputation: 80,
+				techStack: ['spf', 'dkim', 'dmarc'], // +25%
+				currentRound: 3,
+				filteringLevel: 'maximum' // -15%
+			});
+
+			expect(result.authBonus).toBe(0.25);
+			expect(result.filteringPenalty).toBe(0.15);
+			// 0.85 + 0.25 - 0.15 = 0.95
+			expect(result.finalRate).toBeCloseTo(0.95, 2);
+		});
+	});
+
+	describe('Filtering with DMARC penalty', () => {
+		test('filtering + DMARC missing penalty (Round 3)', () => {
+			const result = calculateDeliverySuccess({
+				reputation: 75,
+				techStack: ['spf'], // No DMARC
+				currentRound: 3,
+				filteringLevel: 'moderate'
+			});
+
+			// Base: 85%, SPF: +5%, Filtering: -3%, DMARC: ×0.2
+			// (0.85 + 0.05 - 0.03) × 0.2 = 0.174
+			expect(result.baseRate).toBe(0.85);
+			expect(result.authBonus).toBe(0.05);
+			expect(result.filteringPenalty).toBe(0.03);
+			expect(result.dmarcPenalty).toBeDefined();
+			expect(result.finalRate).toBeCloseTo(0.174, 2);
+		});
+	});
+
+	describe('Breakdown tracking', () => {
+		test('breakdown includes filtering penalty', () => {
+			const result = calculateDeliverySuccess({
+				reputation: 75,
+				techStack: ['spf'],
+				currentRound: 1,
+				filteringLevel: 'strict'
+			});
+
+			expect(result.breakdown).toContainEqual({
+				factor: 'Filtering Penalty',
+				value: -8
+			});
+		});
+	});
+
+	describe('Test case from feature file', () => {
+		test('Strict filtering on poor reputation ESP (line 342-349)', () => {
+			// Given Gmail has "Strict" filtering on "BluePost"
+			// And BluePost has reputation 55 at Gmail
+			const result = calculateDeliverySuccess({
+				reputation: 55, // Warning zone
+				techStack: [],
+				currentRound: 1,
+				filteringLevel: 'strict'
+			});
+
+			// Then spam reduction should be 65% (not tested here - Iteration 7)
+			// And legitimate email blocked should be 8%
+			expect(result.filteringPenalty).toBe(0.08);
+
+			// And effective delivery should be 62% (70% base - 8%)
+			expect(result.baseRate).toBe(0.7);
+			expect(result.finalRate).toBe(0.62);
+		});
+	});
+});

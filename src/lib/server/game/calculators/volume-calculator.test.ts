@@ -425,3 +425,102 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 		});
 	});
 });
+
+describe('Volume Calculator - Iteration 6: Per-Destination Volumes', () => {
+	describe('Single client distribution', () => {
+		test('premium_brand default distribution (50/30/20)', () => {
+			const client = buildTestClient('premium_brand'); // 30K volume
+			const result = calculateVolume({
+				clients: [client],
+				clientStates: {
+					[client.id]: {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
+				},
+				currentRound: 1
+			});
+
+			expect(result.totalVolume).toBe(30000);
+			expect(result.perDestination.Gmail).toBe(15000); // 50%
+			expect(result.perDestination.Outlook).toBe(9000); // 30%
+			expect(result.perDestination.Yahoo).toBe(6000); // 20%
+
+			expect(result.clientVolumes[0].perDestination.Gmail).toBe(15000);
+			expect(result.clientVolumes[0].perDestination.Outlook).toBe(9000);
+			expect(result.clientVolumes[0].perDestination.Yahoo).toBe(6000);
+		});
+
+		test('distribution applies after volume adjustments', () => {
+			const client = buildTestClient('aggressive_marketer'); // 80K, High risk
+			const result = calculateVolume({
+				clients: [client],
+				clientStates: {
+					[client.id]: {
+						status: 'Active',
+						has_warmup: true,
+						has_list_hygiene: true,
+						first_active_round: 1
+					}
+				},
+				currentRound: 1
+			});
+
+			// 80K × 0.85 (hygiene) × 0.50 (warmup) = 34,000
+			expect(result.totalVolume).toBe(34000);
+
+			// Distribution applied to adjusted volume
+			expect(result.perDestination.Gmail).toBe(17000); // 50%
+			expect(result.perDestination.Outlook).toBe(10200); // 30%
+			expect(result.perDestination.Yahoo).toBe(6800); // 20%
+		});
+	});
+
+	describe('Multiple clients with same distribution', () => {
+		test('sum volumes per destination', () => {
+			const client1 = buildTestClient('premium_brand', { id: 'c1' }); // 30K
+			const client2 = buildTestClient('premium_brand', { id: 'c2' }); // 30K
+
+			const result = calculateVolume({
+				clients: [client1, client2],
+				clientStates: {
+					c1: {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					},
+					c2: {
+						status: 'Active',
+						has_warmup: false,
+						has_list_hygiene: false,
+						first_active_round: null
+					}
+				},
+				currentRound: 1
+			});
+
+			expect(result.totalVolume).toBe(60000);
+			expect(result.perDestination.Gmail).toBe(30000); // 50% of 60K
+			expect(result.perDestination.Outlook).toBe(18000); // 30% of 60K
+			expect(result.perDestination.Yahoo).toBe(12000); // 20% of 60K
+		});
+	});
+
+	describe('Edge cases', () => {
+		test('no active clients: zero per destination', () => {
+			const result = calculateVolume({
+				clients: [],
+				clientStates: {},
+				currentRound: 1
+			});
+
+			expect(result.totalVolume).toBe(0);
+			expect(result.perDestination.Gmail).toBe(0);
+			expect(result.perDestination.Outlook).toBe(0);
+			expect(result.perDestination.Yahoo).toBe(0);
+		});
+	});
+});
