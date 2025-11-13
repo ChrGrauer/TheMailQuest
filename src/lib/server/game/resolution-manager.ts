@@ -152,6 +152,20 @@ export async function executeResolution(
 			volumeData: volumeResult,
 			currentRound: session.current_round
 		});
+
+		// Clamp reputation function (same as in application manager)
+		const clampReputation = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
+
+		// Include current and new reputation values in results
+		for (const destination of destinations) {
+			const currentRep = team.reputation[destination.toLowerCase()] || 70;
+			const change = reputationResult.perDestination[destination];
+			if (change) {
+				change.currentReputation = currentRep;
+				change.newReputation = clampReputation(currentRep + change.totalChange);
+			}
+		}
+
 		logger.info('Reputation changes calculated', {
 			teamName: team.name,
 			perDestination: Object.keys(reputationResult.perDestination).length

@@ -22,7 +22,7 @@ export function calculateRevenue(params: RevenueParams): RevenueResult {
 	// Calculate revenue for each active client
 	const perClient: ClientRevenueData[] = activeClients.map((client) => {
 		const baseRevenue = client.revenue;
-		const actualRevenue = baseRevenue * params.deliveryRate;
+		const actualRevenue = Math.round(baseRevenue * params.deliveryRate);
 
 		return {
 			clientId: client.id,

@@ -184,16 +184,45 @@
 						{#each Object.entries(resolutionData.reputation.perDestination) as [destName, repChange]}
 							<div class="border border-gray-200 rounded-lg p-3">
 								<p class="font-semibold text-gray-800">{destName}</p>
-								<p class="text-sm text-gray-600 mt-1">
-									Change: <span
-										class="font-medium"
-										class:text-emerald-600={repChange.totalChange > 0}
-										class:text-red-600={repChange.totalChange < 0}
-										class:text-gray-500={repChange.totalChange === 0}
-									>
-										{repChange.totalChange > 0 ? '+' : ''}{repChange.totalChange}
-									</span>
-								</p>
+
+								{#if repChange.currentReputation !== undefined && repChange.newReputation !== undefined}
+									<div class="text-sm text-gray-600 mt-2 space-y-1">
+										<p>
+											Previous: <span class="font-medium text-gray-900">{repChange.currentReputation}</span>
+										</p>
+										<p>
+											Change: <span
+												class="font-medium"
+												class:text-emerald-600={repChange.totalChange > 0}
+												class:text-red-600={repChange.totalChange < 0}
+												class:text-gray-500={repChange.totalChange === 0}
+											>
+												{repChange.totalChange > 0 ? '+' : ''}{repChange.totalChange}
+											</span>
+										</p>
+										<p class="font-semibold">
+											New: <span
+												class="font-bold text-lg"
+												class:text-emerald-600={repChange.newReputation >= 70}
+												class:text-yellow-600={repChange.newReputation >= 40 && repChange.newReputation < 70}
+												class:text-red-600={repChange.newReputation < 40}
+											>
+												{repChange.newReputation}
+											</span>
+										</p>
+									</div>
+								{:else}
+									<p class="text-sm text-gray-600 mt-1">
+										Change: <span
+											class="font-medium"
+											class:text-emerald-600={repChange.totalChange > 0}
+											class:text-red-600={repChange.totalChange < 0}
+											class:text-gray-500={repChange.totalChange === 0}
+										>
+											{repChange.totalChange > 0 ? '+' : ''}{repChange.totalChange}
+										</span>
+									</p>
+								{/if}
 
 								{#if repChange.breakdown && repChange.breakdown.length > 0}
 									<div class="mt-2 text-xs text-gray-500 space-y-1">

@@ -89,6 +89,8 @@ export interface DestinationReputationChange {
 	warmupBonus: number; // Iteration 5
 	totalChange: number;
 	breakdown: ReputationBreakdownItem[];
+	currentReputation?: number; // Current reputation before change
+	newReputation?: number; // New reputation after change (clamped)
 }
 
 export interface ReputationResult {
