@@ -36,4 +36,11 @@ playwright/.cache
 
 # Misc
 *.tsbuildinfo
-US-3.2-COMPLETION-PLAN.md
+
+# Temporary planning/progress documents (archived in docs/archive/)
+*-PLAN.md
+*-PROGRESS.md
+BUG-INVESTIGATION-*.md
+COHERENCE-ANALYSIS-*.md
+*-IMPLEMENTATION-COMPLETE.md
+*-MISSING-REQUIREMENTS.md
