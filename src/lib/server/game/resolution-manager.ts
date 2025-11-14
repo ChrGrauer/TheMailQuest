@@ -141,10 +141,24 @@ export async function executeResolution(
 		});
 
 		// 4. Calculate revenue (with aggregate delivery rate)
+		// Phase 2.1.1: Build per-client warmup factors
+		// Warmup reduces volume by 50% in first active round, so revenue should also be reduced
+		const perClientWarmupFactors: Record<string, number> = {};
+		for (const client of activeClients) {
+			const state = team.client_states?.[client.id];
+			if (state?.has_warmup && state.first_active_round === session.current_round) {
+				perClientWarmupFactors[client.id] = 0.5; // 50% reduction in first round
+			} else {
+				perClientWarmupFactors[client.id] = 1.0; // No reduction
+			}
+		}
+
 		const revenueResult = calculateRevenue({
 			clients: activeClients,
 			clientStates: team.client_states || {},
-			deliveryRate: aggregateDeliveryRate
+			deliveryRate: aggregateDeliveryRate,
+			currentRound: session.current_round,
+			perClientWarmupFactors
 		});
 		logger.info('Revenue calculated', {
 			teamName: team.name,

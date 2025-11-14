@@ -51,6 +51,11 @@ export interface RevenueParams {
 	clients: Client[];
 	clientStates: Record<string, ClientState>;
 	deliveryRate: number;
+	currentRound?: number; // Phase 2.1.1: Needed to determine warmup applicability
+	// Phase 2.1.1: Warmup factor applied to all clients (0.5 if warmup in first round, 1.0 otherwise)
+	warmupFactor?: number;
+	// Phase 2.1.1: Per-client warmup factors (overrides warmupFactor if provided)
+	perClientWarmupFactors?: Record<string, number>;
 }
 
 export interface ClientRevenueData {

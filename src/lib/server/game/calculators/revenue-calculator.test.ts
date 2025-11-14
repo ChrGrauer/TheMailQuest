@@ -159,3 +159,131 @@ describe('Revenue Calculator - Iteration 1: Basic Revenue', () => {
 		expect(result.perClient).toHaveLength(0);
 	});
 });
+
+describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
+	test('warmup reduces revenue by 50% in first active round', () => {
+		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
+
+		// Scenario: Client with warmup in round 1 (first active round)
+		// Expected: Volume reduced by 50%, revenue should also be reduced by 50%
+		const result = calculateRevenue({
+			clients: [premium],
+			clientStates: {
+				'client-1': {
+					status: 'Active',
+					has_warmup: true,
+					has_list_hygiene: false,
+					first_active_round: 1
+				}
+			},
+			deliveryRate: 1.0,
+			currentRound: 1,
+			// Warmup factor is 0.5 (50% reduction)
+			warmupFactor: 0.5
+		});
+
+		expect(result.baseRevenue).toBe(350);
+		// Actual revenue should be 50% of base due to warmup
+		expect(result.actualRevenue).toBe(175); // 350 * 0.5
+		expect(result.perClient[0].actualRevenue).toBe(175);
+	});
+
+	test('no warmup reduction after first round', () => {
+		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
+
+		// Scenario: Client with warmup in round 2 (not first active round)
+		// Expected: Full revenue (warmup only applies to first round)
+		const result = calculateRevenue({
+			clients: [premium],
+			clientStates: {
+				'client-1': {
+					status: 'Active',
+					has_warmup: true,
+					has_list_hygiene: false,
+					first_active_round: 1
+				}
+			},
+			deliveryRate: 1.0,
+			currentRound: 2,
+			warmupFactor: 1.0 // No reduction in round 2
+		});
+
+		expect(result.baseRevenue).toBe(350);
+		expect(result.actualRevenue).toBe(350);
+	});
+
+	test('warmup combines with delivery rate', () => {
+		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
+
+		// Scenario: Warmup (50%) + 80% delivery rate
+		// Expected: Revenue reduced by both factors: 350 * 0.5 * 0.8 = 140
+		const result = calculateRevenue({
+			clients: [premium],
+			clientStates: {
+				'client-1': {
+					status: 'Active',
+					has_warmup: true,
+					has_list_hygiene: false,
+					first_active_round: 1
+				}
+			},
+			deliveryRate: 0.8,
+			currentRound: 1,
+			warmupFactor: 0.5
+		});
+
+		expect(result.baseRevenue).toBe(350);
+		expect(result.actualRevenue).toBe(140); // 350 * 0.5 * 0.8
+	});
+
+	test('multiple clients with mixed warmup states', () => {
+		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
+		const startup = buildTestClient('growing_startup', { id: 'client-2', revenue: 180 });
+		const aggressive = buildTestClient('aggressive_marketer', { id: 'client-3', revenue: 350 });
+
+		// Client 1: Warmup in first round (50% revenue)
+		// Client 2: No warmup (100% revenue)
+		// Client 3: Warmup but not first round (100% revenue)
+		const result = calculateRevenue({
+			clients: [premium, startup, aggressive],
+			clientStates: {
+				'client-1': {
+					status: 'Active',
+					has_warmup: true,
+					has_list_hygiene: false,
+					first_active_round: 1
+				},
+				'client-2': {
+					status: 'Active',
+					has_warmup: false,
+					has_list_hygiene: false,
+					first_active_round: 1
+				},
+				'client-3': {
+					status: 'Active',
+					has_warmup: true,
+					has_list_hygiene: false,
+					first_active_round: 1
+				}
+			},
+			deliveryRate: 1.0,
+			currentRound: 1,
+			// Need per-client warmup factors
+			perClientWarmupFactors: {
+				'client-1': 0.5, // Warmup active
+				'client-2': 1.0, // No warmup
+				'client-3': 0.5 // Warmup active
+			}
+		});
+
+		expect(result.baseRevenue).toBe(880); // 350 + 180 + 350
+		// Client 1: 350 * 0.5 = 175
+		// Client 2: 180 * 1.0 = 180
+		// Client 3: 350 * 0.5 = 175
+		expect(result.actualRevenue).toBe(530); // 175 + 180 + 175
+
+		expect(result.perClient[0].actualRevenue).toBe(175); // client-1
+		expect(result.perClient[1].actualRevenue).toBe(180); // client-2
+		expect(result.perClient[2].actualRevenue).toBe(175); // client-3
+	});
+});

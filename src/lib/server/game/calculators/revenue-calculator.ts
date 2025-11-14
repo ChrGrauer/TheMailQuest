@@ -12,6 +12,7 @@ import type { RevenueParams, RevenueResult, ClientRevenueData } from '../resolut
 /**
  * Calculate revenue for a team
  * Iteration 1: Base revenue only (deliveryRate will be applied but is 1.0 for Iteration 1)
+ * Phase 2.1.1: Warmup reduces revenue proportionally to volume reduction
  */
 export function calculateRevenue(params: RevenueParams): RevenueResult {
 	// Filter to only active clients
@@ -22,7 +23,22 @@ export function calculateRevenue(params: RevenueParams): RevenueResult {
 	// Calculate revenue for each active client
 	const perClient: ClientRevenueData[] = activeClients.map((client) => {
 		const baseRevenue = client.revenue;
-		const actualRevenue = Math.round(baseRevenue * params.deliveryRate);
+
+		// Phase 2.1.1: Apply warmup factor if provided
+		// Warmup reduces volume by 50% in first active round, so revenue should also be reduced
+		let warmupFactor = 1.0; // Default: no reduction
+
+		// Check for per-client factor first (most specific)
+		if (params.perClientWarmupFactors && params.perClientWarmupFactors[client.id] !== undefined) {
+			warmupFactor = params.perClientWarmupFactors[client.id];
+		}
+		// Fallback to global warmup factor if provided
+		else if (params.warmupFactor !== undefined) {
+			warmupFactor = params.warmupFactor;
+		}
+
+		// Apply both warmup and delivery rate
+		const actualRevenue = Math.round(baseRevenue * warmupFactor * params.deliveryRate);
 
 		return {
 			clientId: client.id,
