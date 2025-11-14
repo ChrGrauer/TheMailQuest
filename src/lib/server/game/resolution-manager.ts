@@ -196,9 +196,22 @@ export async function executeResolution(
 
 		// 7. Calculate spam traps (Iteration 7)
 		// Build spam trap network active status per destination
+		// Phase 1.2: Spam trap activation timing logic
+		// - Secret traps (announced=false): Active immediately in same round as purchase
+		// - Announced traps (announced=true): Active starting next round after purchase
 		const spamTrapNetworkActive: Record<string, boolean> = {};
 		for (const destination of session.destinations) {
-			spamTrapNetworkActive[destination.name] = !!destination.spam_trap_active;
+			const trapInfo = destination.spam_trap_active;
+			if (!trapInfo) {
+				// No trap purchased
+				spamTrapNetworkActive[destination.name] = false;
+			} else if (trapInfo.announced) {
+				// Announced trap: Active only if current round > purchase round
+				spamTrapNetworkActive[destination.name] = session.current_round > trapInfo.round;
+			} else {
+				// Secret trap: Active immediately (current round >= purchase round)
+				spamTrapNetworkActive[destination.name] = session.current_round >= trapInfo.round;
+			}
 		}
 
 		const spamTrapsResult = calculateSpamTraps({
@@ -225,7 +238,10 @@ export async function executeResolution(
 				if (destChange) {
 					destChange.totalChange += spamTrapsResult.reputationPenalty; // Add penalty (negative)
 					const currentRep = team.reputation[destination] || 70;
-					destChange.newReputation = Math.max(0, Math.min(100, Math.round(currentRep + destChange.totalChange)));
+					destChange.newReputation = Math.max(
+						0,
+						Math.min(100, Math.round(currentRep + destChange.totalChange))
+					);
 				}
 			}
 			logger.info('Spam trap hit!', {
@@ -244,7 +260,10 @@ export async function executeResolution(
 				if (destChange) {
 					destChange.totalChange += complaintsResult.thresholdPenalty.penalty; // Add penalty (negative)
 					const currentRep = team.reputation[destination] || 70;
-					destChange.newReputation = Math.max(0, Math.min(100, Math.round(currentRep + destChange.totalChange)));
+					destChange.newReputation = Math.max(
+						0,
+						Math.min(100, Math.round(currentRep + destChange.totalChange))
+					);
 				}
 			}
 			logger.info('Complaint threshold exceeded', {
