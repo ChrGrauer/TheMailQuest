@@ -20,9 +20,10 @@
 
 	interface Props {
 		espStats: ESPDestinationStats[];
+		currentRound?: number; // Phase 4.1.1: Track round for spam complaints display
 	}
 
-	let { espStats }: Props = $props();
+	let { espStats, currentRound = 1 }: Props = $props();
 </script>
 
 <div class="bg-white rounded-xl shadow-md p-6" data-testid="esp-statistics-overview">
@@ -116,23 +117,32 @@
 						</div>
 
 						<!-- Spam Complaints -->
+						<!-- Phase 4.1.1: Round 1 shows '-' because no previous round data exists -->
 						<div class="text-center p-2 bg-gray-50 rounded-lg">
 							<div class="text-xs text-gray-500 font-semibold mb-1">Spam Complaints</div>
 							<div class="flex items-center justify-center gap-1">
-								<span
-									data-testid="status-icon-{spamStatus.status}"
-									class="text-sm"
-									aria-hidden="true"
-								>
-									{spamStatus.icon}
-								</span>
-								<span
-									data-testid="esp-spam-rate"
-									data-status={spamStatus.status}
-									class="{spamStatus.color} text-lg font-bold"
-								>
-									{formatSpamRate(esp.spamComplaintRate)}
-								</span>
+								{#if currentRound === 1}
+									<!-- Round 1: No previous round data, show placeholder -->
+									<span data-testid="esp-spam-rate" class="text-lg font-bold text-gray-400">
+										-
+									</span>
+								{:else}
+									<!-- Round 2+: Show actual spam complaint rate with color coding -->
+									<span
+										data-testid="status-icon-{spamStatus.status}"
+										class="text-sm"
+										aria-hidden="true"
+									>
+										{spamStatus.icon}
+									</span>
+									<span
+										data-testid="esp-spam-rate"
+										data-status={spamStatus.status}
+										class="{spamStatus.color} text-lg font-bold"
+									>
+										{formatSpamRate(esp.spamComplaintRate)}
+									</span>
+								{/if}
 							</div>
 						</div>
 					</div>

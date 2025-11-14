@@ -525,7 +525,7 @@
 			<div data-testid="dashboard-layout" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 				<!-- ESP Statistics (full width) -->
 				<div class="lg:col-span-2">
-					<ESPStatisticsOverview {espStats} />
+					<ESPStatisticsOverview {espStats} {currentRound} />
 				</div>
 
 				<!-- Technical Infrastructure -->
