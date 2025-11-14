@@ -226,6 +226,11 @@ export interface SatisfactionBreakdownItem {
 	spam_penalty: number;
 	false_positive_penalty: number;
 	satisfaction: number;
+	// Phase 4.3.1: Add actual volume data for better interpretability
+	total_volume: number; // Total emails at this destination
+	spam_blocked_volume: number; // Actual number of spam emails blocked
+	spam_through_volume: number; // Actual number of spam emails delivered
+	false_positive_volume: number; // Actual number of legitimate emails blocked
 }
 
 export interface SatisfactionResult {

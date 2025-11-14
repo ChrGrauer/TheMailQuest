@@ -92,6 +92,11 @@ function calculateDestinationSatisfaction(
 	// Cap between 0 and 100
 	satisfaction = Math.max(0, Math.min(100, satisfaction));
 
+	// Phase 4.3.1: Calculate actual volumes from percentages
+	const spamBlockedVolume = Math.round((spamBlockedPercentage / 100) * volumeAtDestination);
+	const spamThroughVolume = Math.round((spamThroughPercentage / 100) * volumeAtDestination);
+	const falsePositiveVolume = Math.round((falsePositivePercentage / 100) * volumeAtDestination);
+
 	return {
 		destination,
 		spam_rate: spamRate,
@@ -101,7 +106,12 @@ function calculateDestinationSatisfaction(
 		satisfaction_gain: satisfactionGain,
 		spam_penalty: spamPenalty,
 		false_positive_penalty: falsePositivePenalty,
-		satisfaction
+		satisfaction,
+		// Phase 4.3.1: Include volume data
+		total_volume: volumeAtDestination,
+		spam_blocked_volume: spamBlockedVolume,
+		spam_through_volume: spamThroughVolume,
+		false_positive_volume: falsePositiveVolume
 	};
 }
 

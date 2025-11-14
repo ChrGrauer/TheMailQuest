@@ -15,6 +15,7 @@
 		DestinationResolutionResult,
 		SatisfactionResult
 	} from '$lib/server/game/resolution-types';
+	import { formatVolume } from '$lib/config/metrics-thresholds';
 
 	interface Props {
 		destinationName: string;
@@ -91,20 +92,35 @@
 													<div class="mt-2 text-xs text-gray-600 space-y-1">
 														<div class="flex justify-between">
 															<span>Spam Blocked:</span>
-															<span class="font-medium text-green-600">
-																{Math.round(destBreakdown.spam_blocked_percentage)}%
+															<span
+																data-testid="spam-blocked-volume"
+																class="font-medium text-green-600"
+															>
+																{formatVolume(destBreakdown.spam_blocked_volume)} emails ({Math.round(
+																	destBreakdown.spam_blocked_percentage
+																)}%)
 															</span>
 														</div>
 														<div class="flex justify-between">
 															<span>Spam Delivered:</span>
-															<span class="font-medium text-red-600">
-																{Math.round(destBreakdown.spam_through_percentage)}%
+															<span
+																data-testid="spam-delivered-volume"
+																class="font-medium text-red-600"
+															>
+																{formatVolume(destBreakdown.spam_through_volume)} emails ({Math.round(
+																	destBreakdown.spam_through_percentage
+																)}%)
 															</span>
 														</div>
 														<div class="flex justify-between">
 															<span>False Positives (legitimate blocked):</span>
-															<span class="font-medium text-orange-600">
-																{Math.round(destBreakdown.false_positive_percentage)}%
+															<span
+																data-testid="false-positive-volume"
+																class="font-medium text-orange-600"
+															>
+																{formatVolume(destBreakdown.false_positive_volume)} emails ({Math.round(
+																	destBreakdown.false_positive_percentage
+																)}%)
 															</span>
 														</div>
 													</div>
