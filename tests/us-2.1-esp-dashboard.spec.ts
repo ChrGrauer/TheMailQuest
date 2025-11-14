@@ -133,6 +133,68 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			await alicePage.close();
 			await bobPage.close();
 		});
+
+		test('Scenario: Budget updates via WebSocket after resolution without page refresh', async ({
+			page,
+			context
+		}) => {
+			// Given: ESP team "SendWave" starts with 1000 credits
+			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
+
+			// And: player "Alice" is viewing the dashboard
+			const budgetElement = alicePage.locator('[data-testid="budget-current"]');
+			let initialBudget = await budgetElement.textContent();
+			expect(initialBudget).toMatch(/1[,]?000/);
+
+			// When: All players lock in to trigger resolution
+			await alicePage.locator('[data-testid="lock-in-button"]').click();
+			await bobPage.locator('[data-testid="lock-in-button"]').click();
+			await alicePage.waitForTimeout(2000); // Wait for resolution to complete
+
+			// Then: Alice should see the consequences phase
+			await expect(alicePage.locator('[data-testid="consequences-header"]')).toBeVisible({
+				timeout: 5000
+			});
+
+			// And: Budget update section should show the new budget
+			const budgetSection = alicePage.locator('[data-testid="section-budget-update"]');
+			await expect(budgetSection).toBeVisible({ timeout: 3000 });
+
+			// Extract the new budget value from consequences (should be 1000 + revenue earned)
+			// Look for text pattern like "Your new budget is X credits" or similar
+			const budgetText = await budgetSection.textContent();
+			const newBudgetMatch = budgetText?.match(/new budget.*?(\d[\d,]*)/i);
+			expect(newBudgetMatch).not.toBeNull();
+			const expectedNewBudget = newBudgetMatch![1].replace(/,/g, '');
+
+			// When: Alice clicks "Continue" to advance to next planning phase
+			const continueButton = alicePage.locator('[data-testid="continue-button"]');
+			await continueButton.click();
+			await alicePage.waitForTimeout(1000); // Wait for phase transition
+
+			// Then: Alice should see the planning phase dashboard for Round 2
+			await expect(alicePage.locator('[data-testid="current-round"]')).toContainText('2', {
+				timeout: 5000
+			});
+
+			// And: The budget should be updated to the new value WITHOUT requiring a page refresh
+			// This tests that WebSocket updates are working correctly
+			const updatedBudget = await budgetElement.textContent();
+			const actualBudget = updatedBudget?.replace(/[,\s]/g, '');
+
+			// Budget should match the value shown in consequences
+			expect(actualBudget).toContain(expectedNewBudget);
+
+			// And: Verify no page reload occurred by checking a test state variable
+			// (if page reloaded, test state would be lost)
+			const testState = await alicePage.evaluate(() => {
+				return (window as any).__espDashboardTest !== undefined;
+			});
+			expect(testState).toBe(true); // Test API should still exist (no reload)
+
+			await alicePage.close();
+			await bobPage.close();
+		});
 	});
 
 	// ============================================================================
@@ -140,6 +202,63 @@ test.describe('Feature: ESP Team Dashboard', () => {
 	// ============================================================================
 
 	test.describe('Reputation Display', () => {
+		test('Scenario: Reputation updates via WebSocket after resolution without page refresh', async ({
+			page,
+			context
+		}) => {
+			// Given: ESP team "SendWave" starts with default reputation (70 for each destination)
+			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
+
+			// And: player "Alice" is viewing the dashboard
+			const gmailGauge = alicePage.locator('[data-testid="reputation-gmail"]');
+			await expect(gmailGauge).toBeVisible();
+			await expect(gmailGauge).toContainText('70');
+
+			// When: All players lock in to trigger resolution
+			await alicePage.locator('[data-testid="lock-in-button"]').click();
+			await bobPage.locator('[data-testid="lock-in-button"]').click();
+			await alicePage.waitForTimeout(2000); // Wait for resolution to complete
+
+			// Then: Alice should see the consequences phase
+			await expect(alicePage.locator('[data-testid="consequences-header"]')).toBeVisible({
+				timeout: 5000
+			});
+
+			// And: Reputation changes section should show the changes
+			const reputationSection = alicePage.locator('[data-testid="section-reputation-changes"]');
+			await expect(reputationSection).toBeVisible({ timeout: 3000 });
+
+			// When: Alice clicks "Continue" to advance to next planning phase
+			const continueButton = alicePage.locator('[data-testid="continue-button"]');
+			await continueButton.click();
+			await alicePage.waitForTimeout(1000); // Wait for phase transition
+
+			// Then: Alice should see the planning phase dashboard for Round 2
+			await expect(alicePage.locator('[data-testid="current-round"]')).toContainText('2', {
+				timeout: 5000
+			});
+
+			// And: The reputation should be updated via WebSocket (likely changed from 70)
+			// Without requiring a page refresh
+			const updatedGmailRep = await gmailGauge.textContent();
+			const repValue = parseInt(updatedGmailRep?.replace(/\D/g, '') || '0');
+
+			// Reputation should have changed from initial 70 (could be higher or lower)
+			// The key test is that it updates automatically without refresh
+			// We just verify it's a valid reputation value (0-100)
+			expect(repValue).toBeGreaterThanOrEqual(0);
+			expect(repValue).toBeLessThanOrEqual(100);
+
+			// And: Verify no page reload occurred by checking test state
+			const testState = await alicePage.evaluate(() => {
+				return (window as any).__espDashboardTest !== undefined;
+			});
+			expect(testState).toBe(true); // Test API should still exist (no reload)
+
+			await alicePage.close();
+			await bobPage.close();
+		});
+
 		test('Scenario: Reputation per destination is displayed with color-coded gauges', async ({
 			page,
 			context

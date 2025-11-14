@@ -94,6 +94,26 @@ export function handleResolutionPhase(
 					teamsUpdated: applicationResult.updatedTeams?.length,
 					teams: applicationResult.updatedTeams
 				});
+
+				// Broadcast updated credits and reputation to each ESP team dashboard
+				// This ensures dashboards update in real-time without requiring a page refresh
+				for (const team of session.esp_teams) {
+					broadcast(roomCode, {
+						type: 'esp_dashboard_update',
+						data: {
+							teamName: team.name,
+							credits: team.credits,
+							reputation: team.reputation
+						}
+					});
+
+					gameLogger.info('Broadcast ESP dashboard update after resolution', {
+						roomCode,
+						teamName: team.name,
+						credits: team.credits,
+						reputation: team.reputation
+					});
+				}
 			}
 
 			// Auto-transition to consequences phase after brief delay
