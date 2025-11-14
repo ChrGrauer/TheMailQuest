@@ -56,17 +56,36 @@ export function calculateReputationChanges(params: ReputationParams): Reputation
 	}
 
 	// 3. Calculate warmup bonus (Iteration 5)
-	// Count active clients with warmup that are in their first active round
-	const activeWarmedClients = params.clients.filter((client) => {
-		const state = params.clientStates[client.id];
-		return (
-			state?.status === 'Active' &&
-			state?.has_warmup &&
-			state?.first_active_round === params.currentRound
-		);
-	});
+	// Phase 2.2.1: Volume-weighted warmup bonus (mirrors client risk calculation)
+	let warmupBonus = 0;
 
-	const warmupBonus = activeWarmedClients.length * WARMUP_REPUTATION_BONUS;
+	if (params.volumeData.totalVolume > 0 && params.clients.length > 0) {
+		let totalWeightedWarmup = 0;
+
+		for (const client of params.clients) {
+			// Only consider active clients with warmup in their first active round
+			const clientState = params.clientStates[client.id];
+			if (
+				clientState?.status !== 'Active' ||
+				!clientState?.has_warmup ||
+				clientState?.first_active_round !== params.currentRound
+			) {
+				continue;
+			}
+
+			// Get adjusted volume for this warmed client
+			const clientVolumeData = params.volumeData.clientVolumes.find(
+				(cv) => cv.clientId === client.id
+			);
+			const clientVolume = clientVolumeData?.adjustedVolume || 0;
+
+			// Accumulate weighted warmup bonus
+			totalWeightedWarmup += WARMUP_REPUTATION_BONUS * clientVolume;
+		}
+
+		// Calculate volume-weighted average
+		warmupBonus = totalWeightedWarmup / params.volumeData.totalVolume;
+	}
 
 	// 4. Build per-destination results
 	const perDestination: Record<string, DestinationReputationChange> = {};
