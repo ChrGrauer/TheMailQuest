@@ -670,7 +670,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 				}, threshold.seconds);
 
 				// Wait for front-end to process the update
-				await alicePage.waitForTimeout(300);
+				await alicePage.waitForTimeout(250);
 
 				// Then: the timer should change to the expected color
 				const timerClass = await timerElement.getAttribute('class');
