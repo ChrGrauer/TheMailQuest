@@ -298,6 +298,7 @@ export interface DestinationResolutionResult {
 export interface ResolutionResults {
 	espResults: Record<string, ESPResolutionResult>;
 	destinationResults?: Record<string, DestinationResolutionResult>; // Iteration 6.1
+	espSatisfactionData?: Record<string, SatisfactionResult>; // Phase 4.4.1: Per-ESP satisfaction for destination view only
 }
 
 /**

@@ -70,7 +70,8 @@ export async function executeResolution(
 	logger.info('Starting resolution phase', { roomCode, round: session.current_round });
 
 	const results: ResolutionResults = {
-		espResults: {}
+		espResults: {},
+		espSatisfactionData: {} // Phase 4.4.1: Store per-ESP satisfaction for destination view
 	};
 
 	// Get destination names for reputation calculations
@@ -315,6 +316,11 @@ export async function executeResolution(
 			aggregatedSatisfaction: satisfactionResult.aggregatedSatisfaction
 		});
 
+		// Phase 4.4.1: Store satisfaction data separately for destination view only
+		if (results.espSatisfactionData) {
+			results.espSatisfactionData[team.name] = satisfactionResult;
+		}
+
 		// Store results for this team (Iteration 6: per-destination delivery, Iteration 7: spam traps)
 		// Phase 3.3.1: Satisfaction data is NOT included in ESP results for data privacy
 		// Satisfaction should only be visible to destination players
@@ -343,11 +349,13 @@ export async function executeResolution(
 
 		for (const team of session.esp_teams) {
 			const espResult = results.espResults[team.name];
+			// Phase 4.4.1: Get satisfaction from espSatisfactionData instead of espResult
+			const satisfactionData = results.espSatisfactionData?.[team.name];
 			// Include ESP if it has satisfaction data (allow 0 as valid value)
-			if (espResult?.satisfaction?.perDestination) {
+			if (satisfactionData?.perDestination) {
 				const destVolume = espResult.volume.perDestination[destName] || 0;
 				// Use nullish coalescing to preserve 0 values (0 is valid, only null/undefined use fallback)
-				const destSatisfaction = espResult.satisfaction.perDestination[destName] ?? 75;
+				const destSatisfaction = satisfactionData.perDestination[destName] ?? 75;
 				totalVolume += destVolume;
 				weightedSatisfaction += destSatisfaction * destVolume;
 			}

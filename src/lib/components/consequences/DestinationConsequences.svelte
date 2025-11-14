@@ -357,6 +357,9 @@
 					<div class="space-y-3">
 						{#each Object.entries(espSatisfactionBreakdown) as [espName, satisfactionResult]}
 							{@const destSatisfaction = satisfactionResult.perDestination[destinationName]}
+							{@const destBreakdown = satisfactionResult.breakdown?.find(
+								(b) => b.destination === destinationName
+							)}
 							<div
 								class="border rounded-lg p-4"
 								class:border-green-300={destSatisfaction >= 80}
@@ -387,6 +390,47 @@
 										</span>
 									{/if}
 								</div>
+
+								<!-- Phase 4.4.1: Enriched Metrics -->
+								{#if destBreakdown}
+									<div class="mt-3 grid grid-cols-2 gap-3 text-xs">
+										<!-- Volume Metrics -->
+										<div class="bg-white/50 rounded p-2">
+											<p class="text-gray-500 font-medium mb-1">📧 Volume</p>
+											<p class="text-gray-900">
+												<span class="font-semibold">{formatVolume(destBreakdown.total_volume)}</span>
+												emails
+											</p>
+										</div>
+
+										<!-- Spam Blocked -->
+										<div class="bg-white/50 rounded p-2">
+											<p class="text-gray-500 font-medium mb-1">🛡️ Spam Blocked</p>
+											<p class="text-green-600">
+												<span class="font-semibold">{formatVolume(destBreakdown.spam_blocked_volume)}</span>
+												({Math.round(destBreakdown.spam_blocked_percentage)}%)
+											</p>
+										</div>
+
+										<!-- Spam Delivered -->
+										<div class="bg-white/50 rounded p-2">
+											<p class="text-gray-500 font-medium mb-1">⚠️ Spam Through</p>
+											<p class="text-red-600">
+												<span class="font-semibold">{formatVolume(destBreakdown.spam_through_volume)}</span>
+												({Math.round(destBreakdown.spam_through_percentage)}%)
+											</p>
+										</div>
+
+										<!-- False Positives -->
+										<div class="bg-white/50 rounded p-2">
+											<p class="text-gray-500 font-medium mb-1">❌ False Positives</p>
+											<p class="text-orange-600">
+												<span class="font-semibold">{formatVolume(destBreakdown.false_positive_volume)}</span>
+												({Math.round(destBreakdown.false_positive_percentage)}%)
+											</p>
+										</div>
+									</div>
+								{/if}
 
 								<!-- Alert Messages -->
 								{#if destSatisfaction < 60}

@@ -99,13 +99,9 @@ export const GET: RequestHandler = async ({ params }) => {
 			}
 
 			// Extract per-ESP satisfaction breakdown for ESP Behavior Analysis
-			if (latestResolution.results.espResults) {
-				espSatisfactionBreakdown = {};
-				for (const [espName, espResult] of Object.entries(latestResolution.results.espResults)) {
-					if (espResult.satisfaction) {
-						espSatisfactionBreakdown[espName] = espResult.satisfaction;
-					}
-				}
+			// Phase 4.4.1: Use espSatisfactionData instead of espResults (data privacy)
+			if (latestResolution.results.espSatisfactionData) {
+				espSatisfactionBreakdown = latestResolution.results.espSatisfactionData;
 			}
 		}
 	}
