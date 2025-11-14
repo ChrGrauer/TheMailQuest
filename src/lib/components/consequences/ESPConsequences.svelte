@@ -173,7 +173,67 @@
 				{/if}
 			</section>
 
-			<!-- Section 3: Reputation Changes -->
+			<!-- Section 3: Spam Complaints -->
+			<section data-testid="section-spam-complaints" class="bg-white rounded-xl shadow-md p-6">
+				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-emerald-500 pb-2">
+					Spam Complaints
+				</h3>
+
+				{#if resolutionData?.complaints?.perClient && resolutionData.complaints.perClient.length > 0}
+					<div class="space-y-3">
+						{#each resolutionData.complaints.perClient as clientComplaint}
+							{@const client = resolutionData.volume?.activeClients.find(
+								(c) => c.id === clientComplaint.clientId
+							)}
+							<div
+								class="border border-gray-200 rounded-lg p-4"
+								data-testid="client-complaint-card"
+							>
+								<p class="font-semibold text-gray-800">
+									{client?.name || clientComplaint.clientId}
+								</p>
+								<div class="mt-2 space-y-1 text-sm text-gray-600">
+									<p>
+										Base Complaint Rate: <span class="font-medium text-gray-900"
+											>{(clientComplaint.baseRate * 100).toFixed(2)}%</span
+										>
+									</p>
+									{#if clientComplaint.adjustedRate !== clientComplaint.baseRate}
+										<p class="text-emerald-600 text-xs">
+											↓ Adjusted Rate (after reductions): {(
+												clientComplaint.adjustedRate * 100
+											).toFixed(2)}%
+										</p>
+									{/if}
+									<p class="text-xs text-gray-500">
+										Volume: {clientComplaint.volume.toLocaleString()} emails
+									</p>
+								</div>
+							</div>
+						{/each}
+
+						<!-- Aggregate Complaint Rate -->
+						<div class="border-t-2 border-gray-300 pt-3 mt-4">
+							<div class="flex justify-between items-center">
+								<span class="text-gray-700">Adjusted Complaint Rate (overall):</span>
+								<span
+									class="font-semibold text-lg"
+									class:text-emerald-600={resolutionData.complaints.adjustedComplaintRate <= 0.001}
+									class:text-yellow-600={resolutionData.complaints.adjustedComplaintRate > 0.001 &&
+										resolutionData.complaints.adjustedComplaintRate <= 0.005}
+									class:text-red-600={resolutionData.complaints.adjustedComplaintRate > 0.005}
+								>
+									{(resolutionData.complaints.adjustedComplaintRate * 100).toFixed(2)}%
+								</span>
+							</div>
+						</div>
+					</div>
+				{:else}
+					<p class="text-gray-500 text-sm italic">No spam complaint data available.</p>
+				{/if}
+			</section>
+
+			<!-- Section 4: Reputation Changes -->
 			<section data-testid="section-reputation-changes" class="bg-white rounded-xl shadow-md p-6">
 				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-emerald-500 pb-2">
 					Reputation Changes
@@ -244,7 +304,7 @@
 				{/if}
 			</section>
 
-			<!-- Section 4: Budget Update -->
+			<!-- Section 5: Budget Update -->
 			<section data-testid="section-budget-update" class="bg-white rounded-xl shadow-md p-6">
 				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-emerald-500 pb-2">
 					Budget Update
@@ -272,7 +332,7 @@
 				</p>
 			</section>
 
-			<!-- Section 5: Alerts & Notifications -->
+			<!-- Section 6: Alerts & Notifications -->
 			<section
 				data-testid="section-alerts-notifications"
 				class="bg-white rounded-xl shadow-md p-6 lg:col-span-2"

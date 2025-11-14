@@ -210,4 +210,50 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 			}
 		}
 	});
+
+	test('Phase 3.2.1: Spam complaints per-client display', async ({ page, context }) => {
+		// Given: ESP with active clients
+		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
+
+		// Use API helpers to acquire clients
+		const { acquireClient, getAvailableClientIds } = await import('./helpers/client-management');
+
+		// Get first available client
+		const availableClients = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
+		if (availableClients.length > 0) {
+			const clientId = availableClients[0];
+			// Acquire the client
+			await acquireClient(alicePage, roomCode, 'SendWave', clientId);
+			await alicePage.waitForTimeout(500);
+		}
+
+		// Lock in to trigger consequences
+		await alicePage.locator('[data-testid="lock-in-button"]').click();
+		await bobPage.locator('[data-testid="lock-in-button"]').click();
+		await alicePage.waitForTimeout(2000);
+
+		// Then: Spam Complaints section should exist
+		const spamComplaintsSection = alicePage.locator('[data-testid="section-spam-complaints"]');
+		await expect(spamComplaintsSection).toBeVisible({ timeout: 5000 });
+
+		// And: Section should have title
+		await expect(spamComplaintsSection).toContainText(/spam complaint/i);
+
+		// And: Should show per-client spam complaint data
+		const clientComplaintCards = alicePage.locator('[data-testid="client-complaint-card"]');
+		const count = await clientComplaintCards.count();
+		expect(count).toBeGreaterThan(0);
+
+		// And: Each client card should show complaint rate
+		const firstCard = clientComplaintCards.first();
+		await expect(firstCard).toBeVisible();
+
+		// Should contain either rate information or explanation text
+		const hasComplaintInfo =
+			(await firstCard.locator('text=/rate/i').count()) > 0 ||
+			(await firstCard.locator('text=/complaint/i').count()) > 0 ||
+			(await firstCard.locator('text=/%/').count()) > 0;
+
+		expect(hasComplaintInfo).toBeTruthy();
+	});
 });
