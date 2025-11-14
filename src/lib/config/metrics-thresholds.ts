@@ -202,3 +202,48 @@ export function getDeliverySuccessRate(reputation: number): number {
 	const status = getReputationStatus(reputation);
 	return REPUTATION_DELIVERY_SUCCESS[status.status];
 }
+
+/**
+ * Complaint threshold penalty interface
+ * US-3.3: Resolution Phase Automation - Iteration 7
+ */
+export interface ComplaintThresholdPenalty {
+	threshold: number; // Complaint rate threshold (e.g., 0.03 for 3%)
+	penalty: number; // Reputation penalty
+	label: string; // Warning message
+}
+
+/**
+ * Complaint threshold penalties (graduated)
+ * US-3.3: Resolution Phase Automation - Iteration 7
+ * When ESP complaint rate exceeds threshold, apply reputation penalty
+ */
+export const COMPLAINT_THRESHOLD_PENALTIES: ComplaintThresholdPenalty[] = [
+	{ threshold: 0.03, penalty: -1, label: 'Elevated complaint rate' },
+	{ threshold: 0.04, penalty: -2, label: 'High complaint rate!' },
+	{ threshold: 0.045, penalty: -3, label: 'Critical complaint rate!' }
+];
+
+/**
+ * Get complaint penalty for a given complaint rate
+ * Returns the highest applicable penalty
+ */
+export function getComplaintPenalty(complaintRate: number): ComplaintThresholdPenalty | null {
+	// Find highest threshold that complaint rate exceeds
+	let applicablePenalty: ComplaintThresholdPenalty | null = null;
+
+	for (const penaltyTier of COMPLAINT_THRESHOLD_PENALTIES) {
+		if (complaintRate >= penaltyTier.threshold) {
+			applicablePenalty = penaltyTier;
+		}
+	}
+
+	return applicablePenalty;
+}
+
+/**
+ * Spam trap network multiplier
+ * US-3.3: Resolution Phase Automation - Iteration 7
+ * When destination has active spam trap network, multiply spam trap probability by this factor
+ */
+export const SPAM_TRAP_NETWORK_MULTIPLIER = 3;

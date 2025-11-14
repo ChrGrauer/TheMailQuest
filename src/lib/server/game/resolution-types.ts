@@ -120,7 +120,55 @@ export interface ComplaintResult {
 	baseComplaintRate: number; // volume-weighted before reductions
 	adjustedComplaintRate: number; // Iteration 5: after list hygiene + content filtering
 	perClient: ClientComplaintData[];
-	// Iteration 7 will add: spamTrapRisk
+	thresholdPenalty?: ComplaintThresholdPenalty; // Iteration 7: threshold penalty if exceeded
+}
+
+/**
+ * Spam Trap Calculator Types
+ * US 3.3: Iteration 7
+ */
+export interface SpamTrapParams {
+	clients: Client[];
+	clientStates: Record<string, ClientState>;
+	volumeData: VolumeResult;
+	roomCode: string;
+	round: number;
+	espName: string;
+	spamTrapNetworkActive: Record<string, boolean>; // Per destination: is spam trap network active?
+}
+
+export interface ClientSpamTrapData {
+	clientId: string;
+	clientType: string;
+	baseRisk: number; // Base spam trap risk from profile
+	adjustedRisk: number; // After List Hygiene reduction
+	networkMultipliedRisk: Record<string, number>; // Per destination, after network multiplier
+	volume: number;
+	trapHit: boolean; // Did this client hit a trap?
+	randomRoll: number; // Random value rolled (for transparency)
+	hitDestinations: string[]; // Which destinations had traps hit (if any)
+}
+
+export interface SpamTrapResult {
+	totalBaseRisk: number; // Sum of base risks across all clients
+	totalAdjustedRisk: number; // After List Hygiene reductions
+	perClient: ClientSpamTrapData[];
+	trapHit: boolean; // Did any trap get hit at any destination?
+	hitClientIds: string[]; // Which clients hit traps
+	hitDestinations: string[]; // Which destinations had traps hit
+	reputationPenalty: number; // -5 if trap hit (capped), 0 otherwise
+	cappedAtMax: boolean; // Whether penalty was capped at -5
+}
+
+/**
+ * Complaint Threshold Penalty
+ * US 3.3: Iteration 7
+ */
+export interface ComplaintThresholdPenalty {
+	threshold: number; // Threshold that was exceeded
+	penalty: number; // Reputation penalty applied
+	label: string; // Warning message
+	complaintRate: number; // Actual complaint rate
 }
 
 /**
@@ -222,6 +270,7 @@ export interface ESPResolutionResult {
 	revenue: RevenueResult;
 	complaints: ComplaintResult; // Iteration 4: added
 	satisfaction?: SatisfactionResult; // Iteration 6.1: user satisfaction
+	spamTraps?: SpamTrapResult; // Iteration 7: spam trap detection
 }
 
 /**

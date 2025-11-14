@@ -19,6 +19,7 @@ export interface ClientProfile {
 	baseVolume: number; // Baseline email volume (numeric)
 	risk: 'Low' | 'Medium' | 'High';
 	baseSpamRate: number; // Baseline spam complaint rate (e.g., 1.2 for 1.2%)
+	baseSpamTrapRisk: number; // US-3.3 Iteration 7: Spam trap probability (0.0-1.0, e.g., 0.05 for 5%)
 	availableFromRound: number; // Round when this type becomes available
 	count: number; // How many of this type per team
 	requirements?: ClientRequirements; // Optional requirements (for Premium Brand)
@@ -43,6 +44,7 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		baseVolume: 30000,
 		risk: 'Low',
 		baseSpamRate: 0.5,
+		baseSpamTrapRisk: 0.005, // 0.5% - Low risk, high quality lists
 		availableFromRound: 3,
 		count: 2,
 		requirements: {
@@ -64,6 +66,7 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		baseVolume: 35000,
 		risk: 'Medium',
 		baseSpamRate: 1.2,
+		baseSpamTrapRisk: 0.015, // 1.5% - Medium risk, growing lists
 		availableFromRound: 1,
 		count: 3,
 		description:
@@ -81,6 +84,7 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		baseVolume: 50000,
 		risk: 'High',
 		baseSpamRate: 2.5,
+		baseSpamTrapRisk: 0.03, // 3% - High risk, inactive subscribers
 		availableFromRound: 1,
 		count: 3,
 		description:
@@ -98,6 +102,7 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		baseVolume: 80000,
 		risk: 'High',
 		baseSpamRate: 3.0,
+		baseSpamTrapRisk: 0.05, // 5% - High risk, purchased lists
 		availableFromRound: 2,
 		count: 2,
 		description:
@@ -115,6 +120,7 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		baseVolume: 40000,
 		risk: 'Medium',
 		baseSpamRate: 1.5,
+		baseSpamTrapRisk: 0.025, // 2.5% - Medium risk, time-sensitive
 		availableFromRound: 1,
 		count: 3,
 		description:
@@ -230,4 +236,23 @@ export function validateDestinationDistribution(distribution: {
 	}
 
 	return { valid: true };
+}
+
+/**
+ * Base spam trap risk by client type
+ * US-3.3: Resolution Phase Automation - Iteration 7
+ */
+export const BASE_SPAM_TRAP_RISK: Record<ClientType, number> = {
+	premium_brand: 0.005, // 0.5% - Low risk, high quality lists
+	growing_startup: 0.015, // 1.5% - Medium risk, growing lists
+	re_engagement: 0.03, // 3% - High risk, inactive subscribers
+	aggressive_marketer: 0.05, // 5% - High risk, purchased lists
+	event_seasonal: 0.025 // 2.5% - Medium risk, time-sensitive
+};
+
+/**
+ * Get spam trap risk for a client type
+ */
+export function getSpamTrapRisk(type: ClientType): number {
+	return BASE_SPAM_TRAP_RISK[type];
 }

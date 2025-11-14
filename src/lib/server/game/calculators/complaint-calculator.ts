@@ -1,15 +1,22 @@
 /**
  * Complaint Calculator
- * US 3.3: Resolution Phase Automation - Iteration 4, 5
+ * US 3.3: Resolution Phase Automation - Iteration 4, 5, 7
  *
  * Calculates complaint rates from client spam rates
  * Iteration 4: Basic volume-weighted complaint rate
  * Iteration 5: List Hygiene and Content Filtering reductions
+ * Iteration 7: Complaint threshold penalties
  */
 
-import type { ComplaintParams, ComplaintResult, ClientComplaintData } from '../resolution-types';
+import type {
+	ComplaintParams,
+	ComplaintResult,
+	ClientComplaintData,
+	ComplaintThresholdPenalty
+} from '../resolution-types';
 import { LIST_HYGIENE_COMPLAINT_REDUCTION } from '$lib/config/client-onboarding';
 import { CONTENT_FILTERING_COMPLAINT_REDUCTION } from '$lib/config/technical-upgrades';
+import { getComplaintPenalty } from '$lib/config/metrics-thresholds';
 
 /**
  * Calculate volume-weighted complaint rate
@@ -59,9 +66,26 @@ export function calculateComplaints(params: ComplaintParams): ComplaintResult {
 		adjustedComplaintRate = adjustedComplaintRate * (1 - CONTENT_FILTERING_COMPLAINT_REDUCTION);
 	}
 
-	return {
+	// Iteration 7: Check for complaint threshold penalties
+	// Convert complaint rate to decimal (0.03 = 3%) for comparison
+	const complaintRateDecimal = adjustedComplaintRate / 100;
+	const thresholdPenalty = getComplaintPenalty(complaintRateDecimal);
+
+	// Build result with optional threshold penalty
+	const result: ComplaintResult = {
 		baseComplaintRate,
 		adjustedComplaintRate,
 		perClient
 	};
+
+	if (thresholdPenalty) {
+		result.thresholdPenalty = {
+			threshold: thresholdPenalty.threshold,
+			penalty: thresholdPenalty.penalty,
+			label: thresholdPenalty.label,
+			complaintRate: complaintRateDecimal
+		};
+	}
+
+	return result;
 }

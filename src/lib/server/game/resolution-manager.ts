@@ -1,12 +1,13 @@
 /**
  * Resolution Manager
- * US 3.3: Resolution Phase Automation - Iterations 1-6
+ * US 3.3: Resolution Phase Automation - Iterations 1-7
  *
  * Orchestrates resolution phase calculations
  * Iteration 1: Basic volume and revenue calculation
  * Iteration 2: Reputation-based delivery success rates
  * Iteration 3-5: Reputation changes and complaint calculations
  * Iteration 6: Per-destination delivery with filtering penalties
+ * Iteration 7: Spam trap detection and complaint threshold penalties
  */
 
 import type { GameSession } from './types';
@@ -23,6 +24,7 @@ import { calculateReputationChanges } from './calculators/reputation-calculator'
 import { calculateComplaints } from './calculators/complaint-calculator';
 import { calculateSatisfaction } from './calculators/satisfaction-calculator';
 import { calculateDestinationRevenue } from './calculators/destination-revenue-calculator';
+import { calculateSpamTraps } from './calculators/spam-trap-calculator';
 
 /**
  * Lazy logger import to avoid $app/environment issues during Vite config
@@ -178,7 +180,7 @@ export async function executeResolution(
 			perDestination: Object.keys(reputationResult.perDestination).length
 		});
 
-		// 6. Calculate complaints (Iteration 4-5)
+		// 6. Calculate complaints (Iteration 4-5, 7)
 		const complaintsResult = calculateComplaints({
 			clients: activeClients,
 			volumeData: volumeResult,
@@ -188,10 +190,73 @@ export async function executeResolution(
 		logger.info('Complaints calculated', {
 			teamName: team.name,
 			baseComplaintRate: complaintsResult.baseComplaintRate,
-			adjustedComplaintRate: complaintsResult.adjustedComplaintRate
+			adjustedComplaintRate: complaintsResult.adjustedComplaintRate,
+			thresholdPenalty: complaintsResult.thresholdPenalty
 		});
 
-		// 7. Calculate user satisfaction (Iteration 6.1)
+		// 7. Calculate spam traps (Iteration 7)
+		// Build spam trap network active status per destination
+		const spamTrapNetworkActive: Record<string, boolean> = {};
+		for (const destination of session.destinations) {
+			spamTrapNetworkActive[destination.name] = !!destination.spam_trap_active;
+		}
+
+		const spamTrapsResult = calculateSpamTraps({
+			clients: activeClients,
+			volumeData: volumeResult,
+			clientStates: team.client_states || {},
+			roomCode,
+			round: session.current_round,
+			espName: team.name,
+			spamTrapNetworkActive
+		});
+		logger.info('Spam traps calculated', {
+			teamName: team.name,
+			totalBaseRisk: spamTrapsResult.totalBaseRisk,
+			totalAdjustedRisk: spamTrapsResult.totalAdjustedRisk,
+			trapHit: spamTrapsResult.trapHit,
+			reputationPenalty: spamTrapsResult.reputationPenalty
+		});
+
+		// Apply spam trap penalty to all destinations (if trap hit)
+		if (spamTrapsResult.trapHit) {
+			for (const destination of destinations) {
+				const destChange = reputationResult.perDestination[destination];
+				if (destChange) {
+					destChange.totalChange += spamTrapsResult.reputationPenalty; // Add penalty (negative)
+					const currentRep = team.reputation[destination] || 70;
+					destChange.newReputation = Math.max(0, Math.min(100, Math.round(currentRep + destChange.totalChange)));
+				}
+			}
+			logger.info('Spam trap hit!', {
+				teamName: team.name,
+				hitClientIds: spamTrapsResult.hitClientIds,
+				hitDestinations: spamTrapsResult.hitDestinations,
+				penalty: spamTrapsResult.reputationPenalty,
+				cappedAtMax: spamTrapsResult.cappedAtMax
+			});
+		}
+
+		// Apply complaint threshold penalty (if exceeded)
+		if (complaintsResult.thresholdPenalty) {
+			for (const destination of destinations) {
+				const destChange = reputationResult.perDestination[destination];
+				if (destChange) {
+					destChange.totalChange += complaintsResult.thresholdPenalty.penalty; // Add penalty (negative)
+					const currentRep = team.reputation[destination] || 70;
+					destChange.newReputation = Math.max(0, Math.min(100, Math.round(currentRep + destChange.totalChange)));
+				}
+			}
+			logger.info('Complaint threshold exceeded', {
+				teamName: team.name,
+				complaintRate: complaintsResult.thresholdPenalty.complaintRate,
+				threshold: complaintsResult.thresholdPenalty.threshold,
+				penalty: complaintsResult.thresholdPenalty.penalty,
+				label: complaintsResult.thresholdPenalty.label
+			});
+		}
+
+		// 8. Calculate user satisfaction (Iteration 6.1)
 		// Build filtering policies and owned tools per destination
 		const filteringPolicies: Record<string, 'permissive' | 'moderate' | 'strict' | 'maximum'> = {};
 		const ownedTools: Record<string, string[]> = {};
@@ -217,7 +282,7 @@ export async function executeResolution(
 			aggregatedSatisfaction: satisfactionResult.aggregatedSatisfaction
 		});
 
-		// Store results for this team (Iteration 6: per-destination delivery, Iteration 6.1: satisfaction)
+		// Store results for this team (Iteration 6: per-destination delivery, Iteration 6.1: satisfaction, Iteration 7: spam traps)
 		results.espResults[team.name] = {
 			volume: volumeResult,
 			delivery: perDestinationDelivery,
@@ -225,11 +290,12 @@ export async function executeResolution(
 			revenue: revenueResult,
 			reputation: reputationResult,
 			complaints: complaintsResult,
-			satisfaction: satisfactionResult // Iteration 6.1
+			satisfaction: satisfactionResult, // Iteration 6.1
+			spamTraps: spamTrapsResult // Iteration 7
 		};
 	}
 
-	// 8. Calculate destination revenue (Iteration 6.1)
+	// 9. Calculate destination revenue (Iteration 6.1)
 	// After all ESPs processed, aggregate satisfaction and calculate revenue per destination
 	results.destinationResults = {};
 
