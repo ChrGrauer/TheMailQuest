@@ -64,8 +64,8 @@
 										>
 									</p>
 									{#if clientVolume.adjustments.warmup}
-										<p class="text-emerald-600 text-xs">
-											↑ Warmup adjustment: +{(clientVolume.adjustments.warmup * 100).toFixed(0)}%
+										<p class="text-gray-500 text-xs" data-testid="warmup-adjustment-message">
+											Initial volume reduced for warmup
 										</p>
 									{/if}
 									{#if clientVolume.adjustments.listHygiene}

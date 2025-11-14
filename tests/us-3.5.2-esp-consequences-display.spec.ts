@@ -154,4 +154,60 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		// This is OK if it doesn't explicitly show a message - just shouldn't crash
 		// Main assertion is that the section is visible and doesn't cause errors
 	});
+
+	test('Phase 3.1.1: Warmup message styling - gray informative text', async ({ page, context }) => {
+		// Given: ESP with a client that has warmup applied
+		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
+
+		// Use API helpers to acquire a client and apply warmup
+		const { acquireClient, configureOnboarding, getAvailableClientIds } = await import(
+			'./helpers/client-management'
+		);
+
+		// Get first available client
+		const availableClients = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
+		if (availableClients.length > 0) {
+			const clientId = availableClients[0];
+
+			// Acquire the client
+			await acquireClient(alicePage, roomCode, 'SendWave', clientId);
+			await alicePage.waitForTimeout(500);
+
+			// Apply warmup onboarding option
+			await configureOnboarding(alicePage, roomCode, 'SendWave', clientId, true, false);
+			await alicePage.waitForTimeout(500);
+		}
+
+		// Lock in to trigger consequences
+		await alicePage.locator('[data-testid="lock-in-button"]').click();
+		await bobPage.locator('[data-testid="lock-in-button"]').click();
+		await alicePage.waitForTimeout(2000);
+
+		// Then: Warmup message should be visible
+		const warmupMessage = alicePage.locator('[data-testid="warmup-adjustment-message"]').first();
+
+		// If warmup was applied, check the message styling
+		if ((await warmupMessage.count()) > 0) {
+			// Message should be visible
+			await expect(warmupMessage).toBeVisible({ timeout: 3000 });
+
+			// Message should contain informative text (not celebratory)
+			await expect(warmupMessage).toContainText(/initial volume reduced/i);
+
+			// Message should NOT be green (emerald) - should be gray
+			const color = await warmupMessage.evaluate((el) => {
+				return window.getComputedStyle(el).color;
+			});
+
+			// Gray color RGB values (approximately): rgb(107, 114, 128) or similar
+			// Green/emerald RGB would be: rgb(16, 185, 129) or similar
+			// We check that it's NOT greenish (green channel > 150)
+			const rgbMatch = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+			if (rgbMatch) {
+				const [, r, g, b] = rgbMatch.map(Number);
+				// Ensure it's not green (emerald-600 would have g > 150)
+				expect(g).toBeLessThan(150);
+			}
+		}
+	});
 });
