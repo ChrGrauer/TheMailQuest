@@ -54,16 +54,7 @@
 				{#if resolution?.aggregatedSatisfaction !== undefined}
 					<!-- Display actual spam blocking metrics -->
 					<div class="space-y-4">
-						<!-- Aggregated Satisfaction Score -->
-						<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-							<p class="text-sm text-gray-600 mb-1">Overall User Satisfaction</p>
-							<p class="text-3xl font-bold text-blue-600">
-								{Math.round(resolution.aggregatedSatisfaction)}%
-							</p>
-							<p class="text-xs text-gray-500 mt-1">
-								Based on spam blocking effectiveness and false positive rate
-							</p>
-						</div>
+						<!-- Phase 4.2.1: Removed duplicate satisfaction display - kept only in User Satisfaction section -->
 
 						<!-- Per-ESP Satisfaction Breakdown -->
 						{#if espSatisfactionBreakdown}
@@ -169,6 +160,41 @@
 							{/if}
 						</p>
 					</div>
+					<!-- Phase 4.2.1: Add "why" explanation for satisfaction changes -->
+					{@const aggregatedSpamPenalty = espSatisfactionBreakdown
+						? Object.values(espSatisfactionBreakdown).reduce((total, espSat) => {
+								const destBreakdown = espSat.breakdown?.find(
+									(b) => b.destination === destinationName
+								);
+								return total + (destBreakdown?.spam_penalty || 0);
+							}, 0)
+						: 0}
+					{@const aggregatedFPPenalty = espSatisfactionBreakdown
+						? Object.values(espSatisfactionBreakdown).reduce((total, espSat) => {
+								const destBreakdown = espSat.breakdown?.find(
+									(b) => b.destination === destinationName
+								);
+								return total + (destBreakdown?.false_positive_penalty || 0);
+							}, 0)
+						: 0}
+
+					{#if aggregatedSpamPenalty > 0 || aggregatedFPPenalty > 0}
+						<div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+							<p class="text-sm font-semibold text-amber-900 mb-1">Why is satisfaction changing?</p>
+							<p class="text-xs text-amber-800">
+								{#if aggregatedSpamPenalty > aggregatedFPPenalty}
+									Users are receiving too much spam. Consider increasing filtering levels to block
+									more spam emails.
+								{:else if aggregatedFPPenalty > aggregatedSpamPenalty}
+									Too many legitimate emails are being blocked (false positives). Consider reducing
+									filtering levels to allow more legitimate mail through.
+								{:else}
+									Both spam delivery and false positives are impacting user satisfaction. Balance
+									your filtering strategy carefully.
+								{/if}
+							</p>
+						</div>
+					{/if}
 
 					<!-- Volume Processed -->
 					<div class="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3">

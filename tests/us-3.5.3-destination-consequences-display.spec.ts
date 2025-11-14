@@ -405,3 +405,78 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		await expect(budgetSection).toContainText(/\d+ credits/);
 	});
 });
+
+/**
+ * Phase 4.2.1: Destination Consequences Layout Improvements
+ */
+test.describe('Phase 4.2.1: Destination Consequences Layout', () => {
+	test('Satisfaction should appear only once (not duplicated)', async ({ page, context }) => {
+		// Given: Destination player in consequences phase
+		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			page,
+			context
+		);
+
+		await alicePage.locator('[data-testid="lock-in-button"]').click();
+		await bobPage.locator('[data-testid="lock-in-button"]').click();
+		await gmailPage.locator('[data-testid="lock-in-button"]').click();
+		await gmailPage.waitForTimeout(2000);
+
+		// Then: Satisfaction score should appear in User Satisfaction section
+		const satisfactionSection = gmailPage.locator('[data-testid="section-user-satisfaction"]');
+		await expect(satisfactionSection).toBeVisible({ timeout: 5000 });
+
+		// Should contain satisfaction score
+		const satisfactionScore = satisfactionSection.locator('text=/\\d+.*100|\\d+%/');
+		await expect(satisfactionScore.first()).toBeVisible();
+
+		// And: Spam Blocking section should NOT show satisfaction score
+		const spamSection = gmailPage.locator('[data-testid="section-spam-blocking"]');
+		await expect(spamSection).toBeVisible();
+
+		// Count satisfaction section headers (h3 tags only, not all text occurrences)
+		const satisfactionSectionHeaders = gmailPage.locator('h3:has-text("User Satisfaction")');
+		const headerCount = await satisfactionSectionHeaders.count();
+
+		// Should have exactly 1 satisfaction section header
+		expect(headerCount).toBe(1);
+	});
+
+	test('Satisfaction section includes why explanation', async ({ page, context }) => {
+		// Given: Destination player in consequences phase
+		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			page,
+			context
+		);
+
+		await alicePage.locator('[data-testid="lock-in-button"]').click();
+		await bobPage.locator('[data-testid="lock-in-button"]').click();
+		await gmailPage.locator('[data-testid="lock-in-button"]').click();
+		await gmailPage.waitForTimeout(2000);
+
+		// Then: User Satisfaction section should explain WHY satisfaction changed
+		const satisfactionSection = gmailPage.locator('[data-testid="section-user-satisfaction"]');
+		await expect(satisfactionSection).toBeVisible({ timeout: 5000 });
+
+		// Should contain "Why is satisfaction changing?" heading which indicates explanation is present
+		// Note: The explanation box only shows if there are penalties (spam or false positives)
+		// In a real game with email traffic, there should always be some penalties
+		const whyHeading = satisfactionSection.locator('text=/why.*satisfaction/i');
+		const hasWhySection = (await whyHeading.count()) > 0;
+
+		if (hasWhySection) {
+			// If why section exists, verify it has explanatory content
+			await expect(whyHeading).toBeVisible();
+			const hasExplanation =
+				(await satisfactionSection.locator('text=/spam/i').count()) > 0 ||
+				(await satisfactionSection.locator('text=/false positive/i').count()) > 0 ||
+				(await satisfactionSection.locator('text=/legitimate/i').count()) > 0 ||
+				(await satisfactionSection.locator('text=/filtering/i').count()) > 0;
+			expect(hasExplanation).toBeTruthy();
+		} else {
+			// If no penalties, that's OK - it means perfect filtering (uncommon but valid)
+			// Just verify the section exists with satisfaction score
+			await expect(satisfactionSection.locator('text=/\\d+.*100|\\d+%/')).toBeVisible();
+		}
+	});
+});

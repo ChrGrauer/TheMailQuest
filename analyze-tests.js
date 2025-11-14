@@ -12,7 +12,9 @@ import fs from 'fs';
 import path from 'path';
 
 const testDir = './tests';
-const testFiles = fs.readdirSync(testDir).filter(f => f.endsWith('.spec.ts') && !f.includes('node_modules'));
+const testFiles = fs
+	.readdirSync(testDir)
+	.filter((f) => f.endsWith('.spec.ts') && !f.includes('node_modules'));
 
 // Patterns to track
 const patterns = {
@@ -48,7 +50,8 @@ const patterns = {
 	},
 	dashboardLoad: {
 		explicit: /test.*dashboard.*load|Scenario.*dashboard.*display/i,
-		implicit: /waitForSelector.*testid|__espDashboardTest.*ready|__destinationDashboardTest.*ready/i,
+		implicit:
+			/waitForSelector.*testid|__espDashboardTest.*ready|__destinationDashboardTest.*ready/i,
 		description: 'Dashboard loading and initial state'
 	},
 	modalOpen: {
@@ -71,7 +74,7 @@ const patterns = {
 // Analyze each test file
 const analysis = {};
 
-testFiles.forEach(file => {
+testFiles.forEach((file) => {
 	const filePath = path.join(testDir, file);
 	const content = fs.readFileSync(filePath, 'utf-8');
 
@@ -155,9 +158,11 @@ Object.entries(patterns).forEach(([patternName, pattern]) => {
 		console.log(`  Explicitly tested in: ${filesWithExplicit.join(', ')}`);
 		console.log(`  Implicitly verified in: ${filesWithImplicit.length} files`);
 
-		const redundantFiles = filesWithImplicit.filter(f => !filesWithExplicit.includes(f));
+		const redundantFiles = filesWithImplicit.filter((f) => !filesWithExplicit.includes(f));
 		if (redundantFiles.length > 0) {
-			console.log(`  → REDUNDANT in: ${redundantFiles.slice(0, 5).join(', ')}${redundantFiles.length > 5 ? '...' : ''}`);
+			console.log(
+				`  → REDUNDANT in: ${redundantFiles.slice(0, 5).join(', ')}${redundantFiles.length > 5 ? '...' : ''}`
+			);
 		}
 	}
 });
