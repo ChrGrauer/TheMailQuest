@@ -18,7 +18,10 @@
 	import { page } from '$app/stores';
 	import { websocketStore } from '$lib/stores/websocket';
 	import type { ESPDestinationStats, FilteringPolicy } from '$lib/server/game/types';
-	import type { DestinationResolutionResult, SatisfactionResult } from '$lib/server/game/resolution-types';
+	import type {
+		DestinationResolutionResult,
+		SatisfactionResult
+	} from '$lib/server/game/resolution-types';
 
 	// Components
 	import DashboardHeader from '$lib/components/shared/DashboardHeader.svelte';
@@ -207,10 +210,10 @@
 			// Phase transition (e.g., to resolution)
 			if (update.data?.phase) {
 				currentPhase = update.data.phase;
-			// Refetch data when transitioning to consequences to get resolution results
-			if (update.data.phase === 'consequences') {
-				fetchDashboardData();
-			}
+				// Refetch data when transitioning to consequences to get resolution results
+				if (update.data.phase === 'consequences') {
+					fetchDashboardData();
+				}
 			}
 			if (update.data?.round !== undefined) {
 				currentRound = update.data.round;

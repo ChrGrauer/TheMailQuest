@@ -222,10 +222,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		await expect(spamSection).toContainText(/\d+/); // Should show numbers
 	});
 
-	test('Scenario 3.2: Display false positive statistics and impact', async ({
-		page,
-		context
-	}) => {
+	test('Scenario 3.2: Display false positive statistics and impact', async ({ page, context }) => {
 		// Given: I am Destination player from "Gmail"
 		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
 			page,
@@ -330,10 +327,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		await expect(revenueSection).toContainText(/\d+ credits/);
 	});
 
-	test('Scenario 3.6: Display alerts about problematic ESP behavior', async ({
-		page,
-		context
-	}) => {
+	test('Scenario 3.6: Display alerts about problematic ESP behavior', async ({ page, context }) => {
 		// Given: I am Destination player from "Gmail"
 		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
 			page,

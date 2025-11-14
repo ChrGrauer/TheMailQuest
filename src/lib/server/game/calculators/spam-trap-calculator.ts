@@ -24,7 +24,7 @@ import { SPAM_TRAP_NETWORK_MULTIPLIER } from '$lib/config/metrics-thresholds';
 function seededRandom(seed: string): number {
 	let hash = 0;
 	for (let i = 0; i < seed.length; i++) {
-		hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+		hash = (hash << 5) - hash + seed.charCodeAt(i);
 		hash = hash & hash; // Convert to 32bit integer
 	}
 	// Ensure positive and normalize to 0-1

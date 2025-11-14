@@ -124,6 +124,43 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 			newRound: session.current_round
 		});
 
+		// Step 6.5: Reset spam traps (Phase 1.2.2)
+		// Spam traps must be repurchased each round
+		// - Secret traps: Active immediately (round N), reset when advancing to N+1
+		// - Announced traps: Active starting round N+1, reset when advancing to N+2
+		session.destinations.forEach((dest) => {
+			const trapInfo = dest.spam_trap_active;
+			if (trapInfo) {
+				let shouldReset = false;
+
+				if (trapInfo.announced) {
+					// Announced trap: reset if purchased 2+ rounds ago
+					// It was active in round N+1, remove when transitioning to N+2
+					shouldReset = session.current_round > trapInfo.round + 1;
+				} else {
+					// Secret trap: reset if purchased 1+ rounds ago
+					// It was active in round N, remove when transitioning to N+1
+					shouldReset = session.current_round > trapInfo.round;
+				}
+
+				if (shouldReset) {
+					// Remove spam trap from owned tools
+					dest.owned_tools = dest.owned_tools.filter((tool) => tool !== 'spam_trap_network');
+
+					// Reset spam_trap_active
+					dest.spam_trap_active = undefined;
+
+					gameLogger.info('Reset spam trap (not repurchased)', {
+						roomCode,
+						destination: dest.name,
+						wasAnnounced: trapInfo.announced,
+						purchasedInRound: trapInfo.round,
+						resetInRound: session.current_round
+					});
+				}
+			}
+		});
+
 		// Step 7: Transition to planning phase
 		const transitionResult = transitionPhase({
 			roomCode,

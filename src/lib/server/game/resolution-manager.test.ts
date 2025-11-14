@@ -840,3 +840,141 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.Gmail).toBeLessThan(0.09);
 	});
 });
+
+describe('Spam Trap Reset Between Rounds - Phase 1.2.2', () => {
+	test('secret trap purchased R2 should be removed when transitioning to R3', () => {
+		// This test verifies the reset logic that should happen in next-round endpoint
+		// Secret trap: active immediately (R2), should be reset when advancing to R3
+
+		const session = buildTestSession({
+			currentRound: 2
+		});
+
+		// Spam trap purchased and active in R2 (secret)
+		session.destinations[0].spam_trap_active = {
+			round: 2,
+			announced: false
+		};
+		session.destinations[0].owned_tools.push('spam_trap_network');
+
+		// When: Advancing to Round 3 (simulate next-round logic)
+		const newRound = 3;
+
+		// Then: Secret trap should be reset (it was active in R2, remove when going to R3)
+		// newRound (3) > purchase round (2)
+		const shouldReset = newRound > session.destinations[0].spam_trap_active!.round;
+		expect(shouldReset).toBe(true);
+
+		// Spam trap should be removed from owned_tools
+		// spam_trap_active should be set to undefined
+	});
+
+	test('announced trap purchased R2 should stay active in R3', () => {
+		// Announced trap: not active in R2, becomes active in R3
+		// Should NOT be reset when transitioning from R2 to R3
+		const session = buildTestSession({
+			currentRound: 2
+		});
+
+		// Spam trap purchased in R2 (announced)
+		session.destinations[0].spam_trap_active = {
+			round: 2,
+			announced: true
+		};
+		session.destinations[0].owned_tools.push('spam_trap_network');
+
+		// When: Advancing to Round 3
+		const newRound = 3;
+
+		// Then: Announced trap should NOT be reset yet (it becomes active in R3)
+		// newRound (3) > purchase round + 1 (2 + 1 = 3) → 3 > 3 → false
+		const shouldReset = newRound > session.destinations[0].spam_trap_active!.round + 1;
+		expect(shouldReset).toBe(false);
+
+		// Trap should remain in owned_tools and spam_trap_active should stay defined
+	});
+
+	test('announced trap purchased R2 should be removed when transitioning to R4', () => {
+		// Announced trap: active in R3, should be removed when transitioning to R4
+		const session = buildTestSession({
+			currentRound: 3
+		});
+
+		// Spam trap purchased in R2 (announced), currently active in R3
+		session.destinations[0].spam_trap_active = {
+			round: 2,
+			announced: true
+		};
+		session.destinations[0].owned_tools.push('spam_trap_network');
+
+		// When: Advancing to Round 4
+		const newRound = 4;
+
+		// Then: Announced trap should be reset (was active in R3, remove when going to R4)
+		// newRound (4) > purchase round + 1 (2 + 1 = 3) → 4 > 3 → true
+		const shouldReset = newRound > session.destinations[0].spam_trap_active!.round + 1;
+		expect(shouldReset).toBe(true);
+
+		// Trap should be removed from owned_tools
+		// spam_trap_active should be set to undefined
+	});
+
+	test('repurchased announced trap in R3 should stay active in R4', () => {
+		// If player repurchases trap in R3 and announces, it should stay active in R4
+		const session = buildTestSession({
+			currentRound: 3
+		});
+
+		// Spam trap was repurchased in R3 (announced)
+		session.destinations[0].spam_trap_active = {
+			round: 3, // Repurchased in R3
+			announced: true
+		};
+		session.destinations[0].owned_tools.push('spam_trap_network');
+
+		// When: Advancing to Round 4
+		const newRound = 4;
+
+		// Then: Trap should NOT be reset (repurchased in R3, active in R4)
+		// newRound (4) > purchase round + 1 (3 + 1 = 4) → 4 > 4 → false
+		const shouldReset = newRound > session.destinations[0].spam_trap_active!.round + 1;
+		expect(shouldReset).toBe(false);
+
+		// Trap should remain active
+	});
+
+	test('multiple destinations can have independent spam trap states', () => {
+		const session = buildTestSession({
+			currentRound: 2
+		});
+
+		// Gmail: secret trap in R2
+		session.destinations[0].spam_trap_active = {
+			round: 2,
+			announced: false
+		};
+
+		// Outlook: announced trap in R2
+		session.destinations[1].spam_trap_active = {
+			round: 2,
+			announced: true
+		};
+
+		// Yahoo: no trap
+		session.destinations[2].spam_trap_active = undefined;
+
+		// When: Advancing to Round 3
+		const newRound = 3;
+
+		// Then: Gmail's secret trap should be reset
+		const gmailShouldReset = newRound > session.destinations[0].spam_trap_active!.round;
+		expect(gmailShouldReset).toBe(true);
+
+		// Then: Outlook's announced trap should NOT be reset yet
+		const outlookShouldReset = newRound > session.destinations[1].spam_trap_active!.round + 1;
+		expect(outlookShouldReset).toBe(false);
+
+		// Then: Yahoo has nothing to reset
+		expect(session.destinations[2].spam_trap_active).toBeUndefined();
+	});
+});

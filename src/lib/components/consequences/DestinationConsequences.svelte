@@ -11,7 +11,10 @@
 	 * - ESP behavior analysis (US-3.3 Iteration 6.1)
 	 */
 
-	import type { DestinationResolutionResult, SatisfactionResult } from '$lib/server/game/resolution-types';
+	import type {
+		DestinationResolutionResult,
+		SatisfactionResult
+	} from '$lib/server/game/resolution-types';
 
 	interface Props {
 		destinationName: string;
@@ -21,7 +24,8 @@
 		espSatisfactionBreakdown?: Record<string, SatisfactionResult>; // Per-ESP satisfaction for behavior analysis
 	}
 
-	let { destinationName, currentRound, budget, resolution, espSatisfactionBreakdown }: Props = $props();
+	let { destinationName, currentRound, budget, resolution, espSatisfactionBreakdown }: Props =
+		$props();
 </script>
 
 <div
@@ -74,10 +78,14 @@
 												<span class="font-medium text-gray-900">{espName}</span>
 												<span
 													class="text-sm font-semibold"
-													class:text-green-600={satisfactionResult.perDestination[destinationName] >= 80}
-													class:text-yellow-600={satisfactionResult.perDestination[destinationName] >= 60 &&
-														satisfactionResult.perDestination[destinationName] < 80}
-													class:text-red-600={satisfactionResult.perDestination[destinationName] < 60}
+													class:text-green-600={satisfactionResult.perDestination[
+														destinationName
+													] >= 80}
+													class:text-yellow-600={satisfactionResult.perDestination[
+														destinationName
+													] >= 60 && satisfactionResult.perDestination[destinationName] < 80}
+													class:text-red-600={satisfactionResult.perDestination[destinationName] <
+														60}
 												>
 													{Math.round(satisfactionResult.perDestination[destinationName])}%
 													satisfaction
@@ -120,9 +128,7 @@
 				{:else}
 					<!-- No resolution data available -->
 					<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-						<p class="text-gray-600 text-sm">
-							No spam blocking data available for this round.
-						</p>
+						<p class="text-gray-600 text-sm">No spam blocking data available for this round.</p>
 					</div>
 				{/if}
 			</section>
@@ -173,9 +179,7 @@
 					</div>
 				{:else}
 					<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-						<p class="text-gray-600 text-sm">
-							No satisfaction data available for this round.
-						</p>
+						<p class="text-gray-600 text-sm">No satisfaction data available for this round.</p>
 					</div>
 				{/if}
 			</section>
@@ -233,7 +237,9 @@
 							<p>
 								({resolution.revenue.baseRevenue} base + {resolution.revenue.volumeBonus} volume bonus)
 								× {resolution.revenue.satisfactionMultiplier} satisfaction =
-								<span class="font-bold text-blue-600">{resolution.revenue.totalRevenue} credits</span>
+								<span class="font-bold text-blue-600"
+									>{resolution.revenue.totalRevenue} credits</span
+								>
 							</p>
 						</div>
 					</div>
@@ -321,7 +327,9 @@
 								<div class="flex justify-between items-start">
 									<div>
 										<h4 class="font-semibold text-gray-900">{espName}</h4>
-										<p class="text-sm text-gray-600">Satisfaction: {Math.round(destSatisfaction)}%</p>
+										<p class="text-sm text-gray-600">
+											Satisfaction: {Math.round(destSatisfaction)}%
+										</p>
 									</div>
 
 									<!-- Alert/Recognition Badge -->
@@ -330,7 +338,9 @@
 											⚠️ High Spam Risk
 										</span>
 									{:else if destSatisfaction >= 90}
-										<span class="px-3 py-1 bg-green-200 text-green-800 text-xs font-semibold rounded">
+										<span
+											class="px-3 py-1 bg-green-200 text-green-800 text-xs font-semibold rounded"
+										>
 											✅ Excellent Performance
 										</span>
 									{/if}
@@ -339,12 +349,13 @@
 								<!-- Alert Messages -->
 								{#if destSatisfaction < 60}
 									<p class="mt-2 text-sm text-red-700">
-										This ESP is generating significant user complaints. Consider increasing filtering level
-										to protect your users.
+										This ESP is generating significant user complaints. Consider increasing
+										filtering level to protect your users.
 									</p>
 								{:else if destSatisfaction >= 90}
 									<p class="mt-2 text-sm text-green-700">
-										This ESP maintains excellent email quality and user engagement. Great partnership!
+										This ESP maintains excellent email quality and user engagement. Great
+										partnership!
 									</p>
 								{/if}
 							</div>
@@ -352,9 +363,7 @@
 					</div>
 				{:else}
 					<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-						<p class="text-gray-600 text-sm">
-							No ESP behavior data available for this round.
-						</p>
+						<p class="text-gray-600 text-sm">No ESP behavior data available for this round.</p>
 					</div>
 				{/if}
 			</section>
