@@ -315,7 +315,9 @@ export async function executeResolution(
 			aggregatedSatisfaction: satisfactionResult.aggregatedSatisfaction
 		});
 
-		// Store results for this team (Iteration 6: per-destination delivery, Iteration 6.1: satisfaction, Iteration 7: spam traps)
+		// Store results for this team (Iteration 6: per-destination delivery, Iteration 7: spam traps)
+		// Phase 3.3.1: Satisfaction data is NOT included in ESP results for data privacy
+		// Satisfaction should only be visible to destination players
 		results.espResults[team.name] = {
 			volume: volumeResult,
 			delivery: perDestinationDelivery,
@@ -323,7 +325,7 @@ export async function executeResolution(
 			revenue: revenueResult,
 			reputation: reputationResult,
 			complaints: complaintsResult,
-			satisfaction: satisfactionResult, // Iteration 6.1
+			// satisfaction: satisfactionResult, // Phase 3.3.1: Removed - not visible to ESP
 			spamTraps: spamTrapsResult // Iteration 7
 		};
 	}
