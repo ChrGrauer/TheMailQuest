@@ -579,7 +579,9 @@ test.describe('Phase 4.4.1: Enriched ESP Behavior Analysis', () => {
 		await expect(espBehaviorSection).toBeVisible({ timeout: 5000 });
 
 		// Then: Each ESP card should show enriched metrics
-		const espCards = espBehaviorSection.locator('[class*="border"]').filter({ hasText: /SendWave|MailMonkey/ });
+		const espCards = espBehaviorSection
+			.locator('[class*="border"]')
+			.filter({ hasText: /SendWave|MailMonkey/ });
 		const cardCount = await espCards.count();
 
 		if (cardCount > 0) {

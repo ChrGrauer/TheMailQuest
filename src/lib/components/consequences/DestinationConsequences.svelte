@@ -398,7 +398,8 @@
 										<div class="bg-white/50 rounded p-2">
 											<p class="text-gray-500 font-medium mb-1">📧 Volume</p>
 											<p class="text-gray-900">
-												<span class="font-semibold">{formatVolume(destBreakdown.total_volume)}</span>
+												<span class="font-semibold">{formatVolume(destBreakdown.total_volume)}</span
+												>
 												emails
 											</p>
 										</div>
@@ -407,7 +408,9 @@
 										<div class="bg-white/50 rounded p-2">
 											<p class="text-gray-500 font-medium mb-1">🛡️ Spam Blocked</p>
 											<p class="text-green-600">
-												<span class="font-semibold">{formatVolume(destBreakdown.spam_blocked_volume)}</span>
+												<span class="font-semibold"
+													>{formatVolume(destBreakdown.spam_blocked_volume)}</span
+												>
 												({Math.round(destBreakdown.spam_blocked_percentage)}%)
 											</p>
 										</div>
@@ -416,7 +419,9 @@
 										<div class="bg-white/50 rounded p-2">
 											<p class="text-gray-500 font-medium mb-1">⚠️ Spam Through</p>
 											<p class="text-red-600">
-												<span class="font-semibold">{formatVolume(destBreakdown.spam_through_volume)}</span>
+												<span class="font-semibold"
+													>{formatVolume(destBreakdown.spam_through_volume)}</span
+												>
 												({Math.round(destBreakdown.spam_through_percentage)}%)
 											</p>
 										</div>
@@ -425,7 +430,9 @@
 										<div class="bg-white/50 rounded p-2">
 											<p class="text-gray-500 font-medium mb-1">❌ False Positives</p>
 											<p class="text-orange-600">
-												<span class="font-semibold">{formatVolume(destBreakdown.false_positive_volume)}</span>
+												<span class="font-semibold"
+													>{formatVolume(destBreakdown.false_positive_volume)}</span
+												>
 												({Math.round(destBreakdown.false_positive_percentage)}%)
 											</p>
 										</div>

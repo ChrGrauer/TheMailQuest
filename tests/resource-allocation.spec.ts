@@ -402,7 +402,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			});
 
 			// Verify manipulation took effect (timer should briefly show ~1:40)
-			await alicePage.waitForTimeout(100);
+			await alicePage.waitForTimeout(50);
 			let manipulatedTimerText = await timerElement.textContent();
 			expect(manipulatedTimerText).toMatch(/1:[0-9]{2}/); // Should show 1:XX (around 1:40)
 

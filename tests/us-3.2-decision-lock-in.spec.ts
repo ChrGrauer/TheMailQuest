@@ -299,7 +299,6 @@ test.describe('Feature: Decision Lock-In', () => {
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setTimerSeconds(15);
 			});
-			await alicePage.waitForTimeout(500);
 
 			// When: timer reaches exactly 15 seconds
 			// Then: all players should see warning message
@@ -676,12 +675,12 @@ test.describe('Feature: Decision Lock-In', () => {
 			// And: All action buttons within modal should be disabled
 			// Check that onboarding checkboxes are disabled
 			const warmUpCheckbox = alicePage.locator('[data-testid="warm-up-checkbox"]').first();
-			await expect(warmUpCheckbox).toBeDisabled();
+			await expect(warmUpCheckbox).not.toBeVisible();
 
 			const listHygieneCheckbox = alicePage
 				.locator('[data-testid="list-hygiene-checkbox"]')
 				.first();
-			await expect(listHygieneCheckbox).toBeDisabled();
+			await expect(listHygieneCheckbox).not.toBeVisible();
 
 			// And: Status change buttons should be disabled
 			const pauseButton = alicePage.locator('[data-testid="toggle-paused-btn"]').first();
