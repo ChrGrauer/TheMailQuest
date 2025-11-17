@@ -132,7 +132,37 @@ These are tested **implicitly** in 10+ files:
 
 ---
 
-## Recommended Deletions
+## Recommended Actions
+
+### Priority 0: Resource Cleanup (VERY LOW RISK - START HERE!)
+
+**Add proper page cleanup to prevent resource leaks and flaky tests:**
+
+| Action | Impact | Time |
+|--------|--------|------|
+| Add `closePages()` to all 18 test files | Fewer flaky tests, better stability | 2-3 hours |
+| Ensure `facilitatorPage` included in cleanup | Prevent resource leaks | Critical |
+| Remove manual cleanup code | ~50 lines saved | Bonus |
+
+**How to do it:**
+```typescript
+import { closePages } from './helpers/game-setup';
+
+test.afterEach(async () => {
+  // Close ALL pages, including facilitator (commonly forgotten!)
+  await closePages(facilitatorPage, alicePage, bobPage, gmailPage);
+});
+```
+
+**Why this matters:**
+- 🐛 Fixes flaky tests caused by resource exhaustion
+- ⚡ Tests run more reliably in CI/CD
+- 💾 Prevents memory leaks in long test runs
+- ✅ Can be done independently of other refactoring
+
+**This should be your FIRST step** - it's low risk, high value, and independent.
+
+---
 
 ### Priority 1: Obvious Duplicates (LOW RISK)
 
@@ -300,7 +330,21 @@ After refactoring:
 
 ## Next Steps
 
-### Option 1: Pilot Refactoring (RECOMMENDED)
+### Option 1: Quick Win - Resource Cleanup (HIGHLY RECOMMENDED START)
+
+1. Add `closePages()` import to all test files
+2. Update all `test.afterEach()` to use `closePages(facilitatorPage, ...)`
+3. Remove manual cleanup code
+4. Run suite → should be more stable
+
+**Time:** 2-3 hours
+**Risk:** Very low
+**Reward:** Fewer flaky tests, better stability
+**Can be done independently** of other refactoring
+
+---
+
+### Option 2: Pilot Refactoring
 
 1. Start with `game-session-creation.spec.ts`
 2. Delete obvious happy path tests
@@ -314,19 +358,20 @@ After refactoring:
 
 ---
 
-### Option 2: Full Refactoring
+### Option 3: Full Refactoring
 
 1. Follow [TEST-DELETION-CHECKLIST.md](TEST-DELETION-CHECKLIST.md)
-2. Delete in phases (week 1, 2, 3, 4)
-3. Validate after each phase
+2. Start with Week 0 (Resource Cleanup) - do this first!
+3. Delete in phases (week 1, 2, 3, 4)
+4. Validate after each phase
 
 **Time:** 2-3 weeks
 **Risk:** Low-medium
-**Reward:** 1,000+ lines removed
+**Reward:** 1,000+ lines removed + stable tests
 
 ---
 
-### Option 3: Do Nothing
+### Option 4: Do Nothing
 
 Keep current tests as-is.
 

@@ -285,6 +285,39 @@ Keep tests that verify:
 
 ## Implementation Order
 
+### Week 0: Resource Cleanup (RECOMMENDED START HERE)
+**Do this first - it's independent of other refactoring!**
+
+1. Add `closePages` import to all test files:
+   ```typescript
+   import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
+   ```
+
+2. Update all `test.afterEach()` hooks to close ALL pages:
+   ```typescript
+   test.afterEach(async () => {
+     await closePages(facilitatorPage, alicePage, bobPage, gmailPage);
+     // ⚠️ Don't forget facilitatorPage!
+   });
+   ```
+
+3. Remove manual cleanup code (replaced by helper)
+
+4. Run test suite - should be more stable
+
+**Files to update:**
+- ✅ All 18 test files (search for `.close()` calls)
+- ✅ Pay special attention to `facilitatorPage` - commonly forgotten
+
+**Risk:** Very Low (helper handles edge cases)
+**Reward:**
+- ~50 lines of manual cleanup removed
+- Fewer flaky tests
+- Better resource management
+- **Estimated time:** 2-3 hours
+
+---
+
 ### Week 1: Low-Risk Deletions
 1. `game-session-creation.spec.ts` - Delete happy path tests (keep errors)
 2. `game-start.spec.ts` - Delete successful start tests (keep validation)
