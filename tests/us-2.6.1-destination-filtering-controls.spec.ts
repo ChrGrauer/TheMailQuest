@@ -21,7 +21,7 @@ import {
 	addPlayer,
 	createGameWith5ESPTeams,
 	createGameWith3ESPTeams
-} from './helpers/game-setup';
+, closePages} from './helpers/game-setup';
 
 test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 	test.setTimeout(20000);
@@ -65,9 +65,8 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 
 			// And: all filtering settings should be preserved (verified in persistence tests)
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Close modal by clicking outside', async ({ page, context }) => {
@@ -92,9 +91,8 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			// Modal should close
 			await expect(modal).not.toBeVisible();
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -152,12 +150,7 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			const spamRate = sendWaveItem.locator('[data-testid="filtering-esp-spam-rate"]');
 			await expect(spamRate).toBeVisible();
 
-			await gmailPage.close();
-			await sendWavePage.close();
-			await mailMonkeyPage.close();
-			await bluePostPage.close();
-			await sendBoltPage.close();
-			await rocketMailPage.close();
+			await closePages(page, gmailPage, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage);
 		});
 
 		test('Scenario: ESP metrics are destination-specific', async ({ page, context }) => {
@@ -251,11 +244,7 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			await expect(outlookSatisfaction).toContainText('58');
 			await expect(outlookSpamRate).toContainText('2.2');
 
-			await gmailPage.close();
-			await outlookPage.close();
-			await sendWavePage.close();
-			await mailMonkeyPage.close();
-			await bluePostPage.close();
+			await closePages(page, gmailPage, outlookPage, sendWavePage, mailMonkeyPage, bluePostPage);
 		});
 	});
 
@@ -327,9 +316,8 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 				await expect(falsePositives).toContainText(level.fp);
 			}
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Slider visual feedback and gradient', async ({ page, context }) => {
@@ -378,9 +366,8 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			const strictColor = await levelDisplay.getAttribute('data-level-color');
 			expect(strictColor).toBe('orange');
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -456,10 +443,7 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			await expect(bluePostSpam).toContainText('65%');
 			await expect(bluePostFP).toContainText('8%');
 
-			await gmailPage.close();
-			await sendWavePage.close();
-			await mailMonkeyPage.close();
-			await bluePostPage.close();
+			await closePages(page, gmailPage, sendWavePage, mailMonkeyPage, bluePostPage);
 		});
 	});
 
@@ -528,9 +512,8 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			);
 			await expect(mailMonkeySpam).toContainText('35%');
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Filtering maintains state across rounds', async ({ page, context }) => {
@@ -591,9 +574,8 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			const newMailMonkeyValue = await mailMonkeySlider.inputValue();
 			expect(newMailMonkeyValue).toBe('3');
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -656,9 +638,8 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			const espItems = gmailPage.locator('[data-testid^="filtering-item-"]');
 			await expect(espItems.first()).toBeVisible();
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Handle slider interaction error', async ({ page, context }) => {
@@ -695,9 +676,8 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			// And: I can retry the adjustment
 			// (Slider remains interactive)
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 });

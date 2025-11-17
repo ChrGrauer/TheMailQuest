@@ -4,7 +4,10 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createGameInPlanningPhase } from './helpers/game-setup';
+import {
+	createGameInPlanningPhase ,
+	closePages
+} from './helpers/game-setup';
 
 test.describe('US-2.3: Technical Infrastructure Shop', () => {
 	// ============================================================================
@@ -32,7 +35,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		await expect(spfCard.getByTestId('upgrade-description')).toBeVisible();
 		await expect(spfCard.getByTestId('upgrade-category')).toBeVisible();
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Display purchase requirements for each upgrade', async ({ page, context }) => {
@@ -55,7 +58,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 			dmarcCard.getByText(/Requires:.*SPF Authentication.*DKIM Signature/i)
 		).toBeVisible();
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Highlight DMARC as mandatory from Round 3', async ({ page, context }) => {
@@ -79,7 +82,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		await expect(dmarcCard.getByTestId('mandatory-warning')).toBeVisible();
 		await expect(dmarcCard.getByText(/MANDATORY from Round 3/i)).toBeVisible();
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	// ============================================================================
@@ -113,7 +116,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const dmarcCard = alicePage.getByTestId('upgrade-card-dmarc');
 		await expect(dmarcCard.getByTestId('upgrade-status')).toHaveText('Locked');
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Display locked status for upgrades with unmet dependencies', async ({
@@ -142,7 +145,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		await expect(spfCard.getByTestId('upgrade-status')).toHaveText('Available');
 		await expect(spfCard.getByTestId('purchase-button')).toBeEnabled();
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	// ============================================================================
@@ -171,7 +174,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		await expect(spfCard.getByTestId('purchase-button')).toBeDisabled();
 		await expect(spfCard.getByText(/Insufficient Budget/i)).toBeVisible();
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Budget is deducted immediately upon successful purchase', async ({
@@ -208,7 +211,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 
 		expect(updatedCredits).toBe(initialCredits - spfCost);
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	// ============================================================================
@@ -234,7 +237,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		// Purchase button should not be visible for owned upgrade
 		await expect(spfCard.getByTestId('purchase-button')).not.toBeVisible();
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Owned upgrades unlock dependent upgrades', async ({ page, context }) => {
@@ -264,7 +267,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		// But DMARC should still be Locked
 		await expect(dmarcCard.getByTestId('upgrade-status')).toHaveText('Locked');
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	// ============================================================================
@@ -300,7 +303,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		await expect(dmarcItem.getByTestId('tech-icon-cross')).toBeVisible();
 		await expect(dmarcItem).toHaveAttribute('data-status', 'missing');
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Quick action badge alerts for missing critical upgrades', async ({
@@ -323,7 +326,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const techShopButton = alicePage.getByTestId('open-tech-shop');
 		await expect(techShopButton.getByText(/DMARC needed/i)).toBeVisible();
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	// ============================================================================
@@ -352,6 +355,6 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		// Should now be owned
 		await expect(contentFilteringCard.getByTestId('upgrade-status')).toHaveText(/Active|Owned/i);
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 });

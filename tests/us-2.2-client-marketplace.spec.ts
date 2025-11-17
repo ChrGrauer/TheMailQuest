@@ -4,7 +4,10 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createGameInPlanningPhase, createGameWith2ESPTeams } from './helpers/game-setup';
+import {
+	createGameInPlanningPhase, createGameWith2ESPTeams ,
+	closePages
+} from './helpers/game-setup';
 
 test.describe('US-2.2: Client Marketplace', () => {
 	test('Scenario: Marketplace displays client details', async ({ page, context }) => {
@@ -29,7 +32,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		await expect(firstCard.getByTestId('client-volume')).toBeVisible();
 		await expect(firstCard.getByTestId('client-risk')).toBeVisible();
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Filter clients by risk level', async ({ page, context }) => {
@@ -63,7 +66,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 			}
 		}
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Successfully acquire a client', async ({ page, context }) => {
@@ -130,7 +133,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 
 		expect(newCredits).toBe(initialCredits - clientCost);
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Cannot acquire client with insufficient credits', async ({ page, context }) => {
@@ -167,7 +170,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 			}
 		}
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: Client remains unavailable after acquisition', async ({ page, context }) => {
@@ -228,7 +231,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const clientNames = await alicePage.getByTestId('client-name').allTextContents();
 		expect(clientNames).not.toContain(clientName);
 
-		await alicePage.close();
+		await closePages(page, alicePage);
 	});
 
 	test('Scenario: ESP teams have independent client stocks', async ({ page, context }) => {
@@ -278,7 +281,6 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const bobCount = await bobPage.getByTestId('client-card').count();
 		expect(bobCount).toBe(aliceCount); // Same initial count, Alice's acquisition doesn't affect Bob
 
-		await alicePage.close();
-		await bobPage.close();
+		await closePages(page, alicePage, bobPage);
 	});
 });

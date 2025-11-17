@@ -17,7 +17,8 @@ import {
 	createTestSession,
 	addPlayer,
 	createSessionWithMinimumPlayers,
-	createSessionWithMultiplePlayers
+	createSessionWithMultiplePlayers,
+	closePages
 } from './helpers/game-setup';
 
 // ============================================================================
@@ -55,8 +56,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			await page.waitForURL(`/game/${roomCode}/facilitator`, { timeout: 10000 });
 			expect(page.url()).toContain(`/game/${roomCode}/facilitator`);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -112,10 +112,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			await expect(charliePage).toHaveURL(`/game/${roomCode}/esp/bluepost`, { timeout: 15000 });
 			await expect(gracePage).toHaveURL(`/game/${roomCode}/destination/gmail`, { timeout: 15000 });
 
-			await alicePage.close();
-			await bobPage.close();
-			await charliePage.close();
-			await gracePage.close();
+			await closePages(page, alicePage, bobPage, charliePage, gracePage);
 		});
 	});
 
@@ -151,8 +148,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			// The backend timer logic is fully tested in unit tests (timer-manager.test.ts)
 			// This E2E test verifies the timer is displayed after resource allocation
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -193,8 +189,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 				timeout: 5000
 			});
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Given Destination player redirected to dashboard, Then they see their budget', async ({
@@ -214,8 +209,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			// Then - Bob (Gmail) should see budget of 500 (use specific test ID to avoid ambiguity)
 			await expect(bobPage.locator('[data-testid="budget-current"]')).toContainText('500');
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -255,10 +249,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			// Then - Should complete within 2 seconds (2000ms)
 			expect(duration).toBeLessThan(2000);
 
-			await alicePage.close();
-			await bobPage.close();
-			await charliePage.close();
-			await gracePage.close();
+			await closePages(page, alicePage, bobPage, charliePage, gracePage);
 		});
 	});
 
@@ -313,9 +304,8 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			await expect(roundIndicator).toBeVisible({ timeout: 5000 });
 			await expect(roundIndicator).toContainText(/round.*1/i);
 
-			await reconnectedAlicePage.close();
+			await closePages(page, reconnectedAlicePage, bobPage);
 			await newContext.close();
-			await bobPage.close();
 		});
 	});
 
@@ -340,7 +330,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			// And - Error message should be visible
 			await expect(page.locator('text=/at least.*destination/i')).toBeVisible();
 
-			await alicePage.close();
+			await closePages(page, alicePage);
 		});
 
 		test('Given no ESP teams, When facilitator tries to start, Then error is shown', async ({
@@ -359,7 +349,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			// And - Error message should be visible
 			await expect(page.locator('text=/at least.*esp/i')).toBeVisible();
 
-			await bobPage.close();
+			await closePages(page, bobPage);
 		});
 	});
 
@@ -419,8 +409,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			// Should be back in 4:XX-5:XX range (server value)
 			expect(correctedTimerText).toMatch(/[4-5]:[0-9]{2}/);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Given timer is running, When client sets timer to 0, Then server corrects it', async ({
@@ -467,8 +456,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			// Should be around 4:57-5:00 (server's actual value)
 			expect(correctedTimerText).toMatch(/[4-5]:[0-9]{2}/);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 });

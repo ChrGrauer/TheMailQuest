@@ -19,7 +19,7 @@ import {
 	createGameInPlanningPhase,
 	createGameWith5ESPTeams,
 	createGameWithDestinationPlayer
-} from './helpers/game-setup';
+, closePages} from './helpers/game-setup';
 
 // ============================================================================
 // SECTION 1: SUCCESSFUL LOCK-IN
@@ -62,8 +62,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			// And: game state should show "SendWave" as locked
 			// (Verified via WebSocket - implementation will handle this)
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Destination successfully locks in filtering decisions', async ({
@@ -98,9 +97,8 @@ test.describe('Feature: Decision Lock-In', () => {
 			// And: game state should show "Gmail" as locked
 			// (Verified via WebSocket - implementation will handle this)
 
-			await alicePage.close();
-			await bobPage.close();
-			await gmailPage.close();
+			await closePages(page, alicePage, bobPage);
+			await closePages(page, gmailPage);
 		});
 	});
 
@@ -169,8 +167,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			// Budget warning should disappear
 			await expect(budgetWarning).not.toBeVisible();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Lock-in button is enabled when budget is within limits', async ({
@@ -193,8 +190,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			const lockInButton = alicePage.locator('[data-testid="lock-in-button"]');
 			await expect(lockInButton).toBeEnabled();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -234,12 +230,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(confirmation).toBeVisible();
 			await expect(lockInButton).not.toBeVisible();
 
-			await sendWavePage.close();
-			await mailMonkeyPage.close();
-			await bluePostPage.close();
-			await sendBoltPage.close();
-			await rocketMailPage.close();
-			await gmailPage.close();
+			await closePages(page, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage);
 		});
 
 		test('Scenario: Waiting count updates as more players lock in', async ({ page, context }) => {
@@ -277,12 +268,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			// Then: "SendWave" should see "3 players remaining"
 			await expect(remainingCount).toContainText('3', { timeout: 2000 });
 
-			await sendWavePage.close();
-			await mailMonkeyPage.close();
-			await bluePostPage.close();
-			await sendBoltPage.close();
-			await rocketMailPage.close();
-			await gmailPage.close();
+			await closePages(page, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage);
 		});
 	});
 
@@ -310,8 +296,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			// And: warning should persist until timer expires
 			// (Implementation will handle timer countdown)
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Valid decisions auto-locked when timer reaches zero', async ({
@@ -351,8 +336,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(autoLockMessage).toContainText("Time's up");
 			await expect(autoLockMessage).toContainText('automatically');
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Invalid decisions are corrected during auto-lock (onboarding options exceed budget)', async ({
@@ -413,8 +397,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(autoCorrectMessage).toContainText("Time's up");
 			await expect(autoCorrectMessage).toContainText('onboarding options were removed');
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Empty decisions auto-locked when timer reaches zero', async ({
@@ -450,8 +433,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(autoLockMessage).toBeVisible();
 			await expect(autoLockMessage).toContainText("Time's up");
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -504,12 +486,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			});
 			expect(currentPhase).not.toBe('planning');
 
-			await sendWavePage.close();
-			await mailMonkeyPage.close();
-			await bluePostPage.close();
-			await sendBoltPage.close();
-			await rocketMailPage.close();
-			await gmailPage.close();
+			await closePages(page, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage);
 		});
 
 		test('Scenario: Resolution phase starts when timer expires', async ({ page, context }) => {
@@ -549,8 +526,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(autoLockMessage).toBeVisible();
 			await expect(autoLockMessage).toContainText("Time's up");
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -571,7 +547,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(confirmation).toBeVisible();
 
 			// When: "SendWave" disconnects from the game
-			await alicePage.close();
+			await closePages(page, alicePage);
 
 			// And: "SendWave" reconnects after 10 seconds
 			const reconnectedPage = await context.newPage();
@@ -592,8 +568,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			const lockInButton = reconnectedPage.locator('[data-testid="lock-in-button"]');
 			await expect(lockInButton).not.toBeVisible();
 
-			await reconnectedPage.close();
-			await bobPage.close();
+			await closePages(page, reconnectedPage, bobPage);
 		});
 
 		test('Scenario: Cannot unlock once locked in', async ({ page, context }) => {
@@ -625,8 +600,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(lockedButtons.first()).toBeVisible();
 			await expect(lockedButtons.first()).toBeDisabled();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: ESP dashboard becomes read-only after lock-in', async ({ page, context }) => {
@@ -686,8 +660,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			const pauseButton = alicePage.locator('[data-testid="toggle-paused-btn"]').first();
 			await expect(pauseButton).toBeDisabled();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Destination dashboard becomes read-only after lock-in', async ({
@@ -723,9 +696,8 @@ test.describe('Feature: Decision Lock-In', () => {
 			const filteringSlider = gmailPage.locator('[data-testid="filtering-slider"]').first();
 			await expect(filteringSlider).toBeDisabled();
 
-			await alicePage.close();
-			await bobPage.close();
-			await gmailPage.close();
+			await closePages(page, alicePage, bobPage);
+			await closePages(page, gmailPage);
 		});
 	});
 
@@ -748,8 +720,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			const confirmation = alicePage.locator('[data-testid="lock-in-confirmation"]');
 			await expect(confirmation).toBeVisible();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Auto-lock events are logged', async ({ page, context }) => {
@@ -774,8 +745,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			const autoLockMessage = alicePage.locator('[data-testid="auto-lock-message"]');
 			await expect(autoLockMessage).toBeVisible();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Auto-correction during auto-lock is logged', async ({ page, context }) => {
@@ -828,8 +798,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(autoCorrectMessage).toBeVisible();
 			await expect(autoCorrectMessage).toContainText('removed');
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 });

@@ -30,7 +30,11 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createGameInPlanningPhase, createGameWithDestinationPlayer } from './helpers/game-setup';
+import {
+	createGameInPlanningPhase,
+	createGameWithDestinationPlayer,
+	closePages
+} from './helpers/game-setup';
 
 // ============================================================================
 // TESTS
@@ -60,8 +64,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			expect(box).not.toBeNull();
 			expect(box!.y).toBeLessThan(200); // Should be in top 200px of viewport
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Budget updates in real-time when spending credits on purchases', async ({
@@ -93,8 +96,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// And: the update should be smooth without page refresh
 			// (if page refreshed, we'd lose test state)
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Budget forecast is displayed after making decisions', async ({
@@ -130,8 +132,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Forecast should have different styling (opacity, color, etc.)
 			expect(forecastStyles.opacity).not.toBe(currentStyles.opacity);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Budget updates via WebSocket after resolution without page refresh', async ({
@@ -192,8 +193,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			});
 			expect(testState).toBe(true); // Test API should still exist (no reload)
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -261,8 +261,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			});
 			expect(testState).toBe(true); // Test API should still exist (no reload)
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Reputation per destination is displayed with color-coded gauges', async ({
@@ -310,8 +309,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const yahooColor = await yahooGauge.getAttribute('data-status');
 			expect(yahooColor).toBe('warning');
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Reputation color coding follows defined thresholds', async ({
@@ -347,8 +345,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 				expect(status).toBe(testCase.expectedStatus);
 			}
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Visual warning appears when reputation drops to warning zone', async ({
@@ -378,8 +375,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const status = await gmailGauge.getAttribute('data-status');
 			expect(status).toBe('warning');
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Visual alert appears when reputation drops to danger zone', async ({
@@ -415,8 +411,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const fontWeight = parseFloat(alertStyles.fontWeight) || 400;
 			expect(fontWeight).toBeGreaterThanOrEqual(600);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Destination weight is displayed with reputation', async ({ page, context }) => {
@@ -445,8 +440,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const distance = Math.abs(gmailGaugeBox!.y - gmailWeightBox!.y);
 			expect(distance).toBeLessThan(100);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -512,8 +506,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			expect(activeStatus).toBe('active');
 			expect(pausedStatus).toBe('paused');
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Empty portfolio displays helpful message', async ({ page, context }) => {
@@ -531,8 +524,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			await expect(ctaButton).toBeVisible();
 			await expect(ctaButton).toContainText(/client marketplace/i);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Client status is clearly indicated', async ({ page, context }) => {
@@ -562,8 +554,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const pausedBadgeClass = await pausedBadge.getAttribute('class');
 			expect(pausedBadgeClass).toMatch(/orange|warning/i);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Portfolio displays client count', async ({ page, context }) => {
@@ -603,8 +594,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			await expect(portfolioHeader).toContainText(/5.*active.*clients/i, { timeout: 2000 });
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -643,8 +633,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const spfIcon = spfItem.locator('[data-testid="tech-icon-checkmark"]');
 			await expect(spfIcon).toBeVisible();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Missing critical tech is highlighted', async ({ page, context }) => {
@@ -674,8 +663,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const crossIcon = dmarcItem.locator('[data-testid="tech-icon-cross"]');
 			await expect(crossIcon).toBeVisible();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Missing technical upgrades are indicated', async ({ page, context }) => {
@@ -709,8 +697,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 				expect(ownedStyles.opacity).not.toBe(missingStyles.opacity);
 			}
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -740,8 +727,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			expect(box).not.toBeNull();
 			expect(box!.y).toBeLessThan(200); // Should be in top 200px
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Timer shows remaining time in current phase', async ({ page, context }) => {
@@ -769,8 +755,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Time should have decreased (not necessarily by exactly 2 seconds due to clock sync)
 			expect(laterTime).not.toBe(initialTime);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		// Parameterized test for timer color changes at different thresholds
@@ -810,8 +795,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 					expect(typeof animations).toBe('string');
 				}
 
-				await alicePage.close();
-				await bobPage.close();
+				await closePages(page, alicePage, bobPage);
 			});
 		}
 	});
@@ -846,8 +830,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// And: no manual refresh should be required
 			// (test continues without page reload)
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Dashboard handles disconnection gracefully', async ({ page, context }) => {
@@ -886,8 +869,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const budgetElement = alicePage.locator('[data-testid="budget-current"]');
 			await expect(budgetElement).toBeVisible();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -919,8 +901,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const marketplaceIcon = marketplaceButton.locator('[data-testid="button-icon"]');
 			await expect(marketplaceIcon).toBeVisible();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Lock-in button is visible during planning phase', async ({ page, context }) => {
@@ -940,8 +921,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// And: the button should be enabled
 			await expect(lockInButton).toBeEnabled();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Lock-in button is disabled during resolution phase', async ({
@@ -970,8 +950,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			}
 			// Otherwise, it's hidden, which is acceptable
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -1000,8 +979,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const clientWidth = await alicePage.evaluate(() => document.body.clientWidth);
 			expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 5); // 5px tolerance
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Dashboard is responsive on mobile', async ({ page, context }) => {
@@ -1036,8 +1014,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			expect(budgetBox).not.toBeNull();
 			expect(budgetBox!.y).toBeLessThan(667); // Should be within viewport
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -1084,8 +1061,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const gmailLabel = await gmailGauge.getAttribute('aria-label');
 			expect(gmailLabel).toMatch(/excellent|95/i);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Dashboard is keyboard navigable', async ({ page, context }) => {
@@ -1148,8 +1124,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			buttonClicked = await alicePage.evaluate(() => (window as any).lockInClicked === true);
 			expect(buttonClicked).toBe(true);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -1184,8 +1159,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// And: the dashboard should attempt to reload the data
 			// (simulated by checking for retry mechanism - implementation detail)
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Dashboard shows error when game state is invalid', async ({
@@ -1223,8 +1197,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			const budgetExists = await budgetElement.isVisible();
 			expect(budgetExists).toBe(true);
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 });

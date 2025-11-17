@@ -14,7 +14,8 @@ import { test, expect } from '@playwright/test';
 import {
 	createTestSession,
 	addPlayer,
-	createSessionWithMinimumPlayers
+	createSessionWithMinimumPlayers,
+	closePages
 } from './helpers/game-setup';
 
 // ============================================================================
@@ -52,7 +53,7 @@ test.describe('Feature: Game Lobby Management - E2E', () => {
 			const playerButton = playerPage.getByRole('button', { name: /start game/i });
 			await expect(playerButton).not.toBeVisible();
 
-			await playerPage.close();
+			await closePages(page, playerPage);
 			await playerContext.close();
 		});
 	});
@@ -84,8 +85,7 @@ test.describe('Feature: Game Lobby Management - E2E', () => {
 
 			await expect(startGameButton).toBeEnabled();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -110,8 +110,7 @@ test.describe('Feature: Game Lobby Management - E2E', () => {
 			// Then - Button should disappear (game has started)
 			await expect(startGameButton).not.toBeVisible();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Given game has started, When checking the page, Then Start Game button should not be visible', async ({
@@ -128,8 +127,7 @@ test.describe('Feature: Game Lobby Management - E2E', () => {
 			// When/Then - Start Game button should not be visible
 			await expect(startGameButton).not.toBeVisible();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -154,8 +152,7 @@ test.describe('Feature: Game Lobby Management - E2E', () => {
 			await startGameButton.focus();
 			await expect(startGameButton).toBeFocused();
 
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 });

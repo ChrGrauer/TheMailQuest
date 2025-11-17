@@ -4,7 +4,10 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createGameWithDestination } from './helpers/game-setup';
+import {
+	createGameWithDestination ,
+	closePages
+} from './helpers/game-setup';
 
 // Test helper type for destination dashboard test API
 type DestinationDashboardTestAPI = {
@@ -53,9 +56,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			expect(scopeBadges.every((text: string) => text.includes('ALL_ESPS'))).toBe(true);
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Display kingdom-specific tool catalog for Yahoo', async ({ page, context }) => {
@@ -84,9 +86,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			);
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Tool displays comprehensive information', async ({ page, context }) => {
@@ -117,9 +118,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(toolCard.locator('[data-testid="tool-status"]')).toContainText('Paused');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -154,9 +154,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(toolCard.locator('[data-testid="tool-status"]')).toContainText('Active');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Purchase fails when budget insufficient', async ({ page, context }) => {
@@ -197,9 +196,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(contentAnalysisButton).toContainText('Insufficient Budget');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Confirmation dialog for expensive tools', async ({ page, context }) => {
@@ -230,9 +228,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(destinationPage.locator('[data-testid="budget-display"]')).toContainText('0');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -263,9 +260,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			);
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Progressive Authentication Validator purchase', async ({ page, context }) => {
@@ -322,9 +318,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(destinationPage.locator('[data-testid="budget-display"]')).toContainText('200');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Complete authentication stack is affordable for all kingdoms', async ({
@@ -358,9 +353,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(destinationPage.locator('[data-testid="budget-display"]')).toContainText('50');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -402,9 +396,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(toolCard.locator('[data-testid="tool-status"]')).toContainText('Active');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test.skip('Spam Trap Network must be repurchased each round', async ({ page }) => {
@@ -436,9 +429,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(mlCard.locator('[data-testid="purchase-button"]')).not.toBeVisible();
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('ML System available for Gmail and Outlook', async ({ page, context }) => {
@@ -457,9 +449,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(mlCard.locator('[data-testid="purchase-button"]')).toBeEnabled();
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -512,9 +503,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			).toContainText('Active');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test.skip('Tool ownership persists across rounds', async ({ page }) => {
@@ -577,9 +567,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(destinationPage.locator('[data-testid="budget-current"]')).toContainText('250');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -605,9 +594,8 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(toolCard.locator('[data-testid="tool-status"]')).toContainText('Active');
 
 			// Cleanup
-			await destinationPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, destinationPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 });

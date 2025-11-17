@@ -98,9 +98,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			const timerText = await timer.textContent();
 			expect(timerText).toMatch(/\d+:\d+/);
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -168,9 +167,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			const spamRate = firstCard.locator('[data-testid="esp-spam-rate"]');
 			await expect(spamRate).toBeVisible();
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: ESP with zero volume displays correctly', async ({ page, context }) => {
@@ -215,9 +213,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			const reputation = espCard.locator('[data-testid="esp-reputation"]');
 			await expect(reputation).toContainText('70');
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -279,9 +276,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 					expect(repStyles).not.toBe('rgba(0, 0, 0, 1)');
 				}
 
-				await gmailPage.close();
-				await alicePage.close();
-				await bobPage.close();
+				await closePages(page, gmailPage, alicePage, bobPage);
 			});
 		}
 
@@ -357,9 +352,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			spamStatus = await spamRate.getAttribute('data-status');
 			expect(spamStatus).toBe('high');
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -387,9 +381,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			const collabCount = coordCard.locator('[data-testid="collaborations-count"]');
 			await expect(collabCount).toContainText('0');
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -431,9 +424,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			const l2Status = techSection.locator('[data-testid="tech-status-auth_validator_l2"]');
 			await expect(l2Status).toContainText('Active');
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -495,9 +487,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// This will depend on game configuration, but they should be different
 			expect(gmailBudget).not.toBe(outlookBudget);
 
-			await gmailPage.close();
-			await outlookPage.close();
-			await alicePage.close();
+			await closePages(page, gmailPage, outlookPage, alicePage);
 		});
 	});
 
@@ -535,9 +525,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// And: the button should have a lock icon
 			await expect(lockInButton).toContainText('Lock In');
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Dashboard layout adapts to different screen sizes', async ({
@@ -576,9 +565,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// On mobile, should be single column or flex
 			expect(mobileLayout.display).toBeTruthy();
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -619,9 +607,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 				expect(hasOutline || hasRing).toBeTruthy();
 			}
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Color-coding is accessible to color-blind users', async ({ page, context }) => {
@@ -658,9 +645,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			const iconText = await icons.first().textContent();
 			expect(iconText).toMatch(/[✓✕⚠!👍]/); // Should have an icon
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -697,9 +683,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			await dismissButton.click();
 			await expect(errorBanner).not.toBeVisible();
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -740,9 +725,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 				expect(statusText).toMatch(/Connected/i);
 			}
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 	});
 
@@ -777,9 +761,8 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// Should show '-' or similar placeholder (not a percentage or number)
 			expect(spamRateText?.trim()).toBe('-');
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(page, gmailPage);
+			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Round 2+ ESP statistics should show actual spam complaint rates', async ({
