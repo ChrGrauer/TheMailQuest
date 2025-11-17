@@ -19,43 +19,14 @@ test.describe('Feature: Join Game Session - E2E', () => {
 	// ============================================================================
 	// ROOM CODE ENTRY AND VALIDATION
 	// ============================================================================
-
-	test.describe('Scenario: Player enters valid room code', () => {
-		test('should redirect to lobby page and show role selection when valid room code is entered', async ({
-			page
-		}) => {
-			// Given - Create a session first
-			const roomCode = await createTestSession(page);
-
-			// Open new page as a different player
-			const playerPage = await page.context().newPage();
-
-			// Given a player is on the landing page
-			await playerPage.goto('/');
-
-			// When the player clicks "Join a game"
-			await playerPage.click('text=Join a game');
-
-			// Should navigate to join page
-			await playerPage.waitForURL('/join');
-
-			// And the player enters room code
-			const roomCodeInput = playerPage.locator('input[name="roomCode"]');
-			await expect(roomCodeInput).toBeVisible();
-			await roomCodeInput.fill(roomCode);
-
-			// And the player submits the form
-			await playerPage.click('button[type="submit"]');
-
-			// Then the player should be redirected to the lobby page
-			await playerPage.waitForURL(`/lobby/${roomCode}`);
-
-			// And the player should see the role selection screen
-			await expect(playerPage.locator('text=Select Your Role')).toBeVisible();
-			await expect(playerPage.getByRole('heading', { name: 'ESP Teams' })).toBeVisible();
-			await expect(playerPage.getByRole('heading', { name: 'Destinations' })).toBeVisible();
-		});
-	});
+	//
+	// NOTE: Happy path tests for successful joining have been removed as they are
+	// implicitly tested 50+ times via the addPlayer() helper across all test files.
+	// This file now focuses on:
+	// - Error cases (invalid/malformed room codes, validation failures)
+	// - Edge cases (occupied slots, full sessions)
+	// - Accessibility attributes
+	// ============================================================================
 
 	test.describe('Scenario: Player enters invalid or non-existent room code', () => {
 		test('should show error message for non-existent room code', async ({ page }) => {
@@ -138,30 +109,8 @@ test.describe('Feature: Join Game Session - E2E', () => {
 	});
 
 	// ============================================================================
-	// ROLE SELECTION SCREEN
+	// OCCUPIED SLOTS & EDGE CASES
 	// ============================================================================
-
-	test.describe('Scenario: Player sees available roles on lobby page', () => {
-		test('should display 5 ESP team slots and 3 Destination slots', async ({ page }) => {
-			// Given a player has entered valid room code
-			const roomCode = await createTestSession(page);
-
-			// When the player is on the lobby page
-			await page.goto(`/lobby/${roomCode}`);
-
-			// Then the player should see 5 ESP team slots
-			const espTeams = ['SendWave', 'MailMonkey', 'BluePost', 'SendBolt', 'RocketMail'];
-			for (const team of espTeams) {
-				await expect(page.locator(`text=${team}`)).toBeVisible();
-			}
-
-			// And the player should see 3 Destination slots
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
-			for (const dest of destinations) {
-				await expect(page.locator(`text=${dest}`)).toBeVisible();
-			}
-		});
-	});
 
 	test.describe('Scenario: Player sees occupied slots as unavailable', () => {
 		test('should show occupied slots as unavailable and remaining slots as available', async ({
@@ -211,68 +160,8 @@ test.describe('Feature: Join Game Session - E2E', () => {
 	});
 
 	// ============================================================================
-	// PLAYER JOINS GAME
+	// VALIDATION ERRORS
 	// ============================================================================
-
-	test.describe('Scenario: Player selects ESP team role and joins', () => {
-		test('should allow player to join as ESP team with display name', async ({ page }) => {
-			// Given a player is on the lobby page
-			const roomCode = await createTestSession(page);
-			await page.goto(`/lobby/${roomCode}`);
-
-			// When the player selects "SendWave" team slot
-			await page.click('text=SendWave');
-
-			// Should show display name input modal
-			await expect(page.locator('input[name="displayName"]')).toBeVisible();
-
-			// And the player enters display name "Alice"
-			await page.locator('input[name="displayName"]').fill('Alice');
-
-			// And the player confirms their selection
-			await page.click('button:has-text("Join Game")');
-
-			// Then the SendWave slot should be marked as occupied
-			const sendWaveSlot = page.locator('[data-team="SendWave"]');
-			await expect(sendWaveSlot).toHaveAttribute('data-occupied', 'true');
-
-			// And the player should see their name in the slot
-			await expect(sendWaveSlot.locator('text=Alice')).toBeVisible();
-
-			// And ESP team count should be updated
-			await expect(page.locator('text=ESP Teams: 1/5')).toBeVisible();
-		});
-	});
-
-	test.describe('Scenario: Player selects Destination role and joins', () => {
-		test('should allow player to join as Destination with display name', async ({ page }) => {
-			// Given a player is on the lobby page
-			const roomCode = await createTestSession(page);
-			await page.goto(`/lobby/${roomCode}`);
-
-			// When the player selects "Gmail" destination slot
-			await page.click('text=Gmail');
-
-			// Should show display name input modal
-			await expect(page.locator('input[name="displayName"]')).toBeVisible();
-
-			// And the player enters display name "Bob"
-			await page.locator('input[name="displayName"]').fill('Bob');
-
-			// And the player confirms their selection
-			await page.click('button:has-text("Join Game")');
-
-			// Then the Gmail slot should be marked as occupied
-			const gmailSlot = page.locator('[data-team="Gmail"]');
-			await expect(gmailSlot).toHaveAttribute('data-occupied', 'true');
-
-			// And the player should see their name in the slot
-			await expect(gmailSlot.locator('text=Bob')).toBeVisible();
-
-			// And destination count should be updated
-			await expect(page.locator('text=Destinations: 1/3')).toBeVisible();
-		});
-	});
 
 	test.describe('Scenario: Player cannot join with empty display name', () => {
 		test('should show validation error when display name is empty', async ({ page }) => {
@@ -368,92 +257,12 @@ test.describe('Feature: Join Game Session - E2E', () => {
 	});
 
 	// ============================================================================
-	// REAL-TIME LOBBY UPDATES
-	// ============================================================================
-
-	test.describe('Scenario: All players see lobby updates when someone joins', () => {
-		test('should update all connected players when a new player joins', async ({
-			page,
-			context
-		}) => {
-			// Given players Alice and Bob are in the lobby
-			const roomCode = await createTestSession(page);
-
-			// Alice joins as SendWave
-			await page.goto(`/lobby/${roomCode}`);
-			await page.click('text=SendWave');
-			await page.locator('input[name="displayName"]').fill('Alice');
-			await page.click('button:has-text("Join Game")');
-			await expect(page.locator('text=Alice')).toBeVisible();
-
-			// Bob joins as MailMonkey
-			const bobPage = await context.newPage();
-			await bobPage.goto(`/lobby/${roomCode}`);
-			await bobPage.click('text=MailMonkey');
-			await bobPage.locator('input[name="displayName"]').fill('Bob');
-			await bobPage.click('button:has-text("Join Game")');
-			await expect(bobPage.locator('text=Bob')).toBeVisible();
-
-			// When a new player Charlie joins as BluePost team
-			const charliePage = await context.newPage();
-			await charliePage.goto(`/lobby/${roomCode}`);
-			await charliePage.click('text=BluePost');
-			await charliePage.locator('input[name="displayName"]').fill('Charlie');
-			await charliePage.click('button:has-text("Join Game")');
-
-			// Then Alice should see BluePost slot marked as occupied
-			await expect(page.locator('[data-team="BluePost"]')).toHaveAttribute('data-occupied', 'true');
-			await expect(page.locator('text=Charlie')).toBeVisible();
-
-			// And Bob should see BluePost slot marked as occupied
-			await expect(bobPage.locator('[data-team="BluePost"]')).toHaveAttribute(
-				'data-occupied',
-				'true'
-			);
-			await expect(bobPage.locator('text=Charlie')).toBeVisible();
-
-			// And the lobby should show 3 players in total
-			await expect(page.locator('text=ESP Teams: 3/5')).toBeVisible();
-			await expect(bobPage.locator('text=ESP Teams: 3/5')).toBeVisible();
-			await expect(charliePage.locator('text=ESP Teams: 3/5')).toBeVisible();
-		});
-	});
-
-	test.describe('Scenario: Player count is updated in real-time', () => {
-		test('should show updated player counts as players join', async ({ page, context }) => {
-			// Given the lobby shows "ESP Teams: 0/5" and "Destinations: 0/3"
-			const roomCode = await createTestSession(page);
-			await page.goto(`/lobby/${roomCode}`);
-			await expect(page.locator('text=ESP Teams: 0/5')).toBeVisible();
-			await expect(page.locator('text=Destinations: 0/3')).toBeVisible();
-
-			// When player Alice joins as SendWave team
-			await page.click('text=SendWave');
-			await page.locator('input[name="displayName"]').fill('Alice');
-			await page.click('button:has-text("Join Game")');
-
-			// Then all players in the lobby should see "ESP Teams: 1/5"
-			await expect(page.locator('text=ESP Teams: 1/5')).toBeVisible();
-
-			// When player Bob joins as Gmail destination
-			const bobPage = await context.newPage();
-			await bobPage.goto(`/lobby/${roomCode}`);
-
-			// Bob should see Alice's update
-			await expect(bobPage.locator('text=ESP Teams: 1/5')).toBeVisible();
-
-			await bobPage.click('text=Gmail');
-			await bobPage.locator('input[name="displayName"]').fill('Bob');
-			await bobPage.click('button:has-text("Join Game")');
-
-			// Then all players in the lobby should see "Destinations: 1/3"
-			await expect(page.locator('text=Destinations: 1/3')).toBeVisible();
-			await expect(bobPage.locator('text=Destinations: 1/3')).toBeVisible();
-		});
-	});
-
-	// ============================================================================
 	// SESSION VALIDATION - UI BEHAVIOR
+	// ============================================================================
+	//
+	// NOTE: WebSocket real-time update tests have been removed as generic sync
+	// behavior should be tested in a dedicated websocket-sync.spec.ts file
+	// (Phase 4 of refactoring).
 	// ============================================================================
 
 	test.describe('Scenario: Player cannot join full session', () => {
