@@ -4,8 +4,25 @@
  * Common helper functions for setting up game sessions and players in E2E tests.
  * Extracted from individual test files to eliminate duplication.
  */
-
+import { expect } from '@playwright/test';
 import { type Page, type BrowserContext } from '@playwright/test';
+
+/**
+ * Close multiple pages safely (ignores null/undefined and already closed pages)
+ * Useful for cleanup in tests to prevent resource leaks
+ *
+ * @example
+ * await closePages(facilitatorPage, alicePage, bobPage, gmailPage);
+ */
+export async function closePages(...pages: (Page | null | undefined)[]): Promise<void> {
+	for (const page of pages) {
+		if (page && !page.isClosed()) {
+			await page.close().catch(() => {
+				// Ignore errors if page is already closed
+			});
+		}
+	}
+}
 
 /**
  * Create a game session as facilitator and return room code
@@ -216,6 +233,75 @@ export async function createGameWithDestinationPlayer(
 	);
 
 	return { roomCode, alicePage, bobPage, gmailPage };
+}
+
+/**
+ * Create a session with destination player and move to round 2
+ */
+export async function createGameInSecondRound(
+	facilitatorPage: Page,
+	context: BrowserContext
+): Promise<{ roomCode: string; facilitatorPage: Page; alicePage: Page; gmailPage: Page }> {
+	const roomCode = await createTestSession(facilitatorPage);
+	const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+	const gmailPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'Gmail');
+	await facilitatorPage.waitForTimeout(500);
+
+	// Start game
+	const startGameButton = facilitatorPage.getByRole('button', { name: /start game/i });
+	await startGameButton.click();
+
+	// Wait for ESPs to be redirected to their dashboards
+	await alicePage.waitForURL(`/game/${roomCode}/esp/sendwave`, { timeout: 10000 });
+
+	// Wait for dashboards to be ready
+	await alicePage.waitForFunction(
+		() => (window as any).__espDashboardTest?.ready === true,
+		{},
+		{ timeout: 10000 }
+	);
+
+	// Acquire one client for each ESP team to enable resolution data generation
+	await acquireClientForTeam(alicePage, roomCode, 'SendWave');
+	await acquireClientForTeam(alicePage, roomCode, 'SendWave');
+
+	// Wait for client acquisition to complete and state to update
+	await alicePage.waitForTimeout(1000);
+
+	// Wait for Gmail to be redirected to destination dashboard
+	await gmailPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });
+
+	// Wait for dashboard to finish loading
+	await gmailPage.waitForFunction(
+		() => (window as any).__destinationDashboardTest?.ready === true,
+		{},
+		{ timeout: 10000 }
+	);
+
+	// All players lock in to trigger resolution and Alice should see the consequences phase
+	await alicePage.locator('[data-testid="lock-in-button"]').click();
+	await gmailPage.locator('[data-testid="lock-in-button"]').click();
+	await alicePage.waitForTimeout(2000); // Wait for resolution to complete
+	await expect(alicePage.locator('[data-testid="consequences-header"]')).toBeVisible({
+		timeout: 5000
+	});
+
+	// facilitator clicks "Continue" to advance to next planning phase and Alice
+	// should see the planning phase dashboard for Round 2
+	const continueButton = facilitatorPage.locator('[data-testid="start-next-round-button"]');
+	await continueButton.click();
+	await alicePage.waitForTimeout(1000); // Wait for phase transition
+	await expect(alicePage.locator('[data-testid="round-indicator"]')).toContainText('2', {
+		timeout: 5000
+	});
+
+	// Wait for Gmail page to also transition to Round 2
+	await gmailPage.waitForTimeout(1000);
+	await expect(gmailPage.locator('[data-testid="round-indicator"]')).toContainText('2', {
+		timeout: 5000
+	});
+
+	return { roomCode, facilitatorPage, alicePage, gmailPage };
 }
 
 /**

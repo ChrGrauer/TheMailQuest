@@ -32,7 +32,9 @@ import { test, expect } from '@playwright/test';
 import {
 	createTestSession,
 	addPlayer,
-	createGameWithDestinationPlayer
+	createGameWithDestinationPlayer,
+	createGameInSecondRound,
+	closePages
 } from './helpers/game-setup';
 
 // ============================================================================
@@ -162,11 +164,9 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			const satText = await satisfaction.textContent();
 			expect(satText).toMatch(/\d+%/);
 
-			// Spam complaint rate (Percentage + color)
+			// Spam complaint rate (contains '-' first round)
 			const spamRate = firstCard.locator('[data-testid="esp-spam-rate"]');
 			await expect(spamRate).toBeVisible();
-			const spamText = await spamRate.textContent();
-			expect(spamText).toMatch(/\d+\.?\d*%/);
 
 			await gmailPage.close();
 			await alicePage.close();
@@ -289,7 +289,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			page,
 			context
 		}) => {
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
@@ -786,49 +786,11 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			page,
 			context
 		}) => {
-			// Given: I am a destination player in Round 1
-			const { gmailPage, alicePage, bobPage, roomCode } = await createGameWithDestinationPlayer(
+			// Given: I am a destination player in Round 2
+			const { roomCode, facilitatorPage, alicePage, gmailPage } = await createGameInSecondRound(
 				page,
 				context
 			);
-
-			// When: All players lock in and game advances to Round 2
-			await alicePage.locator('[data-testid="lock-in-button"]').click();
-			await bobPage.locator('[data-testid="lock-in-button"]').click();
-			await gmailPage.locator('[data-testid="lock-in-button"]').click();
-
-			// Wait for consequences phase
-			await gmailPage.waitForTimeout(2000);
-
-			// Verify we're in consequences phase
-			await expect(gmailPage.locator('[data-testid="consequences-header"]')).toBeVisible({
-				timeout: 5000
-			});
-
-			// Click "Ready for Next Round" button to advance to Round 2
-			const readyButton = gmailPage.locator('[data-testid="lock-in-button"]');
-			if (await readyButton.isVisible()) {
-				await readyButton.click();
-				await gmailPage.waitForTimeout(500);
-			}
-
-			// All players ready for Round 2
-			const aliceReadyButton = alicePage.locator('[data-testid="lock-in-button"]');
-			if (await aliceReadyButton.isVisible()) {
-				await aliceReadyButton.click();
-				await gmailPage.waitForTimeout(500);
-			}
-
-			const bobReadyButton = bobPage.locator('[data-testid="lock-in-button"]');
-			if (await bobReadyButton.isVisible()) {
-				await bobReadyButton.click();
-				await gmailPage.waitForTimeout(2000);
-			}
-
-			// Then: In Round 2, spam complaints should show actual numeric data
-			// Wait for Round 2 planning phase
-			const roundIndicator = gmailPage.locator('[data-testid="round-indicator"]');
-			await expect(roundIndicator).toContainText('2', { timeout: 5000 });
 
 			// Check ESP Statistics Overview
 			const espOverview = gmailPage.locator('[data-testid="esp-statistics-overview"]');
@@ -845,9 +807,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// Should contain either a percentage sign or numeric data
 			expect(spamRateText).toMatch(/\d+|%/);
 
-			await gmailPage.close();
-			await alicePage.close();
-			await bobPage.close();
+			await closePages(facilitatorPage, alicePage, gmailPage);
 		});
 	});
 });

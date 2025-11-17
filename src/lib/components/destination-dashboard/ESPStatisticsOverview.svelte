@@ -117,17 +117,17 @@
 						</div>
 
 						<!-- Spam Complaints -->
-						<!-- Phase 4.1.1: Round 1 shows '-' because no previous round data exists -->
+						<!-- Phase 4.1.1+: Shows '-' when spam rate is 0 (no previous round data or no spam sent) -->
 						<div class="text-center p-2 bg-gray-50 rounded-lg">
 							<div class="text-xs text-gray-500 font-semibold mb-1">Spam Complaints</div>
 							<div class="flex items-center justify-center gap-1">
-								{#if currentRound === 1}
-									<!-- Round 1: No previous round data, show placeholder -->
+								{#if esp.spamComplaintRate === 0}
+									<!-- No spam data available (Round 1 or no spam sent) -->
 									<span data-testid="esp-spam-rate" class="text-lg font-bold text-gray-400">
 										-
 									</span>
 								{:else}
-									<!-- Round 2+: Show actual spam complaint rate with color coding -->
+									<!-- Show actual spam complaint rate with color coding -->
 									<span
 										data-testid="status-icon-{spamStatus.status}"
 										class="text-sm"

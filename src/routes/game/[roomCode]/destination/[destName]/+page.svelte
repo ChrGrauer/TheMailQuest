@@ -208,10 +208,16 @@
 
 		if (messageType === 'phase_transition') {
 			// Phase transition (e.g., to resolution)
+			const previousRound = currentRound;
 			if (update.data?.phase) {
 				currentPhase = update.data.phase;
 				// Refetch data when transitioning to consequences to get resolution results
 				if (update.data.phase === 'consequences') {
+					fetchDashboardData();
+				}
+				// Refetch data when transitioning to planning for a new round
+				// This ensures spam rates from previous round are loaded
+				if (update.data.phase === 'planning' && update.data.round > previousRound) {
 					fetchDashboardData();
 				}
 			}

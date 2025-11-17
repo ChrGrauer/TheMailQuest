@@ -159,8 +159,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
 /**
  * Calculate ESP statistics from destination's perspective
- * US-2.5: For now, uses placeholder/mock data for volume, satisfaction, and spam rates
- * These will be calculated from actual game mechanics in later US
+ * Phase 4.1.1+: Spam complaint rate calculated from previous round's resolution data
  */
 function calculateESPStatsForDestination(
 	esp: any,
@@ -186,18 +185,67 @@ function calculateESPStatsForDestination(
 	// In future US, this will be calculated from user feedback
 	const userSatisfaction = reputation;
 
-	// PLACEHOLDER: Spam complaint rate based on reputation
-	// Better reputation = lower spam rate
-	// This is simplified for now, will be tracked properly in later US
-	let spamComplaintRate: number;
-	if (reputation >= 90) {
-		spamComplaintRate = 0.01 + Math.random() * 0.03; // 0.01-0.04%
-	} else if (reputation >= 70) {
-		spamComplaintRate = 0.04 + Math.random() * 0.06; // 0.04-0.10%
-	} else if (reputation >= 50) {
-		spamComplaintRate = 0.08 + Math.random() * 0.12; // 0.08-0.20%
-	} else {
-		spamComplaintRate = 0.15 + Math.random() * 0.15; // 0.15-0.30%
+	// Calculate spam complaint rate from previous round's resolution history
+	// Formula: spam_through_volume / total_volume from previous round
+	let spamComplaintRate: number = 0;
+
+	if (session.current_round > 1 && session.resolution_history) {
+		// Get previous round's resolution (current_round - 1)
+		const previousRoundIndex = session.current_round - 2; // Array is 0-indexed
+		const previousRound = session.resolution_history[previousRoundIndex];
+
+		gameLogger.event('spam_rate_debug', {
+			roomCode: session.roomCode,
+			espName: esp.name,
+			destinationName: destination.name,
+			currentRound: session.current_round,
+			previousRoundIndex,
+			historyLength: session.resolution_history.length,
+			hasPreviousRound: !!previousRound,
+			hasResults: !!previousRound?.results,
+			hasEspSatisfactionData: !!previousRound?.results?.espSatisfactionData,
+			espNamesInSatisfactionData: previousRound?.results?.espSatisfactionData
+				? Object.keys(previousRound.results.espSatisfactionData)
+				: [],
+			lookingForESP: esp.name
+		});
+
+		if (previousRound?.results?.espSatisfactionData?.[esp.name]) {
+			const espSatisfaction = previousRound.results.espSatisfactionData[esp.name];
+
+			// Find breakdown for this specific destination
+			const destBreakdown = espSatisfaction.breakdown.find(
+				(b: any) => b.destination === destination.name
+			);
+
+			gameLogger.event('spam_rate_breakdown', {
+				roomCode: session.roomCode,
+				espName: esp.name,
+				destinationName: destination.name,
+				foundBreakdown: !!destBreakdown,
+				allDestinationsInBreakdown: espSatisfaction.breakdown.map((b: any) => b.destination),
+				totalVolume: destBreakdown?.total_volume,
+				spamThroughVolume: destBreakdown?.spam_through_volume,
+				spamBlockedVolume: destBreakdown?.spam_blocked_volume,
+				spamRate: destBreakdown?.spam_rate
+			});
+
+			if (destBreakdown && destBreakdown.total_volume > 0) {
+				// Calculate spam complaint rate: spam delivered / total volume
+				const rawRate = destBreakdown.spam_through_volume / destBreakdown.total_volume;
+				spamComplaintRate = rawRate;
+
+				gameLogger.event('spam_rate_calculated', {
+					roomCode: session.roomCode,
+					espName: esp.name,
+					destinationName: destination.name,
+					spamThroughVolume: destBreakdown.spam_through_volume,
+					totalVolume: destBreakdown.total_volume,
+					rawRate,
+					afterConversion: Math.round(rawRate * 10000) / 100
+				});
+			}
+		}
 	}
 
 	return {
@@ -208,7 +256,7 @@ function calculateESPStatsForDestination(
 		volumeRaw,
 		reputation,
 		userSatisfaction,
-		spamComplaintRate: Math.round(spamComplaintRate * 100) / 100 // Round to 2 decimals
+		spamComplaintRate: Math.round(spamComplaintRate * 10000) / 100 // Convert to percentage and round to 2 decimals
 	};
 }
 
