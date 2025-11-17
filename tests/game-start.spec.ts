@@ -90,49 +90,15 @@ test.describe('Feature: Game Lobby Management - E2E', () => {
 	});
 
 	// ============================================================================
-	// STARTING THE GAME
-	// ============================================================================
-
-	test.describe('Scenario: Clicking Start Game launches the game', () => {
-		test('Given minimum players present, When facilitator clicks Start Game, Then game starts and button disappears', async ({
-			page,
-			context
-		}) => {
-			// Given - Create session with minimum players
-			const { alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
-			await page.waitForTimeout(500);
-
-			// When - Facilitator clicks Start Game
-			const startGameButton = page.getByRole('button', { name: /start game/i });
-			await expect(startGameButton).toBeEnabled();
-			await startGameButton.click();
-
-			// Then - Button should disappear (game has started)
-			await expect(startGameButton).not.toBeVisible();
-
-			await closePages(page, alicePage, bobPage);
-		});
-
-		test('Given game has started, When checking the page, Then Start Game button should not be visible', async ({
-			page,
-			context
-		}) => {
-			// Given - Create session with players and start the game
-			const { alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
-			await page.waitForTimeout(500);
-
-			const startGameButton = page.getByRole('button', { name: /start game/i });
-			await startGameButton.click();
-
-			// When/Then - Start Game button should not be visible
-			await expect(startGameButton).not.toBeVisible();
-
-			await closePages(page, alicePage, bobPage);
-		});
-	});
-
-	// ============================================================================
 	// ACCESSIBILITY
+	// ============================================================================
+	//
+	// NOTE: Happy path tests for successful game start have been removed as they
+	// are implicitly tested in 9+ other test files via helper functions like
+	// createGameInPlanningPhase(). This file now focuses on:
+	// - Permission checks (facilitator-only visibility)
+	// - Validation logic (minimum player requirements)
+	// - Accessibility attributes
 	// ============================================================================
 
 	test.describe('Accessibility', () => {
