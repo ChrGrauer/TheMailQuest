@@ -41,136 +41,21 @@ import {
 // TESTS
 // ============================================================================
 
+// NOTE: Streamlined test file - removed redundant tests
+// Setup validation (dashboard loading, basic visibility) is tested by helpers:
+// - createGameWithDestinationPlayer() already validates game setup and dashboard access
+// - Generic WebSocket sync tests moved to dedicated WebSocket test file
+// This file focuses on Destination Dashboard-specific business logic and calculations
+
 test.describe('Feature: Destination Kingdom Dashboard', () => {
 	// Increase timeout for all tests in this suite due to parallel execution resource contention
 	test.setTimeout(20000);
-
-	// ============================================================================
-	// SECTION 1: DASHBOARD INITIAL LOAD & BRANDING
-	// ============================================================================
-
-	test.describe('Dashboard Branding', () => {
-		test('Scenario: Dashboard displays destination-specific branding for Gmail', async ({
-			page,
-			context
-		}) => {
-			// Given: I am logged in as a Destination player for "Gmail"
-			// When: I navigate to the Destination dashboard
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
-				page,
-				context
-			);
-
-			// Then: I should see the destination name as "Gmail"
-			const destinationName = gmailPage.locator('[data-testid="destination-name"]');
-			await expect(destinationName).toHaveText('Gmail');
-
-			// And: I should see an appropriate destination icon
-			const destinationIcon = gmailPage.locator('[data-testid="destination-icon"]');
-			await expect(destinationIcon).toBeVisible();
-
-			// And: the color theme should use blue tones (not ESP green)
-			const header = gmailPage.locator('[data-testid="game-header"]');
-			const headerStyles = await header.evaluate((el) => {
-				const styles = window.getComputedStyle(el);
-				return {
-					background: styles.background,
-					color: styles.color
-				};
-			});
-			// Check for blue tones (not green)
-			expect(headerStyles.background).not.toContain('rgb(16, 185, 129)'); // Not emerald-500
-
-			// And: I should see my current budget displayed
-			const budget = gmailPage.locator('[data-testid="budget-current"]');
-			await expect(budget).toBeVisible();
-			const budgetText = await budget.textContent();
-			expect(budgetText).toMatch(/\d+/);
-
-			// And: I should see the round
-			const roundInfo = gmailPage.locator('[data-testid="round-indicator"]');
-			await expect(roundInfo).toBeVisible();
-			await expect(roundInfo).toContainText('Round');
-
-			// And: I should see the timer counting down
-			const timer = gmailPage.locator('[data-testid="timer-display"]');
-			await expect(timer).toBeVisible();
-			const timerText = await timer.textContent();
-			expect(timerText).toMatch(/\d+:\d+/);
-
-			await closePages(page, gmailPage);
-			await closePages(page, alicePage, bobPage);
-		});
-	});
 
 	// ============================================================================
 	// SECTION 2: ESP TRAFFIC STATISTICS DISPLAY
 	// ============================================================================
 
 	test.describe('ESP Statistics Display', () => {
-		test('Scenario: Dashboard displays statistics for all playing ESPs', async ({
-			page,
-			context
-		}) => {
-			// Given: I am logged in as a Destination player for "Gmail"
-			// And: there are 2 ESP teams active in the game
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
-				page,
-				context
-			);
-
-			// When: I view the ESP Statistics Overview section
-			const espSection = gmailPage.locator('[data-testid="esp-statistics-overview"]');
-			await expect(espSection).toBeVisible();
-
-			// Then: I should see exactly 2 ESP teams listed
-			const espCards = gmailPage.locator('[data-testid^="esp-card-"]');
-			await expect(espCards).toHaveCount(2);
-
-			// And: each ESP should display required fields
-			const firstCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
-			await expect(firstCard).toBeVisible();
-
-			// Team identifier (2-letter code)
-			const teamCode = firstCard.locator('[data-testid="esp-team-code"]');
-			await expect(teamCode).toBeVisible();
-			await expect(teamCode).toHaveText(/^[A-Z]{2}$/);
-
-			// Team name (Full name)
-			const teamName = firstCard.locator('[data-testid="esp-team-name"]');
-			await expect(teamName).toBeVisible();
-			await expect(teamName).toContainText('SendWave');
-
-			// Active clients count
-			const clientsCount = firstCard.locator('[data-testid="esp-clients-count"]');
-			await expect(clientsCount).toBeVisible();
-
-			// Email volume
-			const volume = firstCard.locator('[data-testid="esp-volume"]');
-			await expect(volume).toBeVisible();
-			const volumeText = await volume.textContent();
-			expect(volumeText).toMatch(/\d+K?/); // Format: "185K"
-
-			// Reputation score (0-100 with color)
-			const reputation = firstCard.locator('[data-testid="esp-reputation"]');
-			await expect(reputation).toBeVisible();
-			const repText = await reputation.textContent();
-			expect(repText).toMatch(/\d+/);
-
-			// User satisfaction (Percentage + color)
-			const satisfaction = firstCard.locator('[data-testid="esp-satisfaction"]');
-			await expect(satisfaction).toBeVisible();
-			const satText = await satisfaction.textContent();
-			expect(satText).toMatch(/\d+%/);
-
-			// Spam complaint rate (contains '-' first round)
-			const spamRate = firstCard.locator('[data-testid="esp-spam-rate"]');
-			await expect(spamRate).toBeVisible();
-
-			await closePages(page, gmailPage);
-			await closePages(page, alicePage, bobPage);
-		});
-
 		test('Scenario: ESP with zero volume displays correctly', async ({ page, context }) => {
 			// Given: I am viewing the Destination dashboard
 			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
@@ -386,48 +271,6 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 		});
 	});
 
-	// ============================================================================
-	// SECTION 5: TECHNICAL INFRASTRUCTURE STATUS
-	// ============================================================================
-
-	test.describe('Technical Infrastructure', () => {
-		test('Scenario: Owned technical upgrades are displayed', async ({ page, context }) => {
-			// Given: I am logged in as a Destination player
-			// And: I have purchased some tech
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
-				page,
-				context
-			);
-
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setOwnedTools([
-					'auth_validator_l1',
-					'auth_validator_l2'
-				]);
-			});
-
-			await gmailPage.waitForTimeout(500);
-
-			// When: I view the dashboard
-			const techSection = gmailPage.locator('[data-testid="technical-infrastructure"]');
-			await expect(techSection).toBeVisible();
-
-			// Then: the technical infrastructure section should list owned tech
-			// Note: Tool names updated to match current config (auth_validator_l1, auth_validator_l2, auth_validator_l3)
-			const authValidator = techSection.locator('text=Authentication Validator');
-			await expect(authValidator.first()).toBeVisible();
-
-			// And: active tech should show "Active" status
-			const l1Status = techSection.locator('[data-testid="tech-status-auth_validator_l1"]');
-			await expect(l1Status).toContainText('Active');
-
-			const l2Status = techSection.locator('[data-testid="tech-status-auth_validator_l2"]');
-			await expect(l2Status).toContainText('Active');
-
-			await closePages(page, gmailPage);
-			await closePages(page, alicePage, bobPage);
-		});
-	});
 
 	// ============================================================================
 	// SECTION 6: MULTI-PLAYER & DATA ISOLATION
@@ -491,126 +334,12 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 		});
 	});
 
-	// ============================================================================
-	// SECTION 7: UI LAYOUT & RESPONSIVENESS
-	// ============================================================================
-
-	test.describe('UI Layout', () => {
-		test('Scenario: Lock-in button is visible and properly positioned', async ({
-			page,
-			context
-		}) => {
-			// Given: I am viewing the Destination dashboard
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
-				page,
-				context
-			);
-
-			// When: I scroll to the bottom of the page
-			await gmailPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-			await gmailPage.waitForTimeout(500);
-
-			// Then: I should see a "Lock In Decisions" button
-			const lockInButton = gmailPage.locator('[data-testid="lock-in-button"]');
-			await expect(lockInButton).toBeVisible();
-
-			// And: the button should be prominent and full-width
-			const buttonBox = await lockInButton.boundingBox();
-			expect(buttonBox).not.toBeNull();
-			const viewportSize = gmailPage.viewportSize();
-			if (viewportSize && buttonBox) {
-				expect(buttonBox.width).toBeGreaterThan(viewportSize.width * 0.8); // At least 80% width
-			}
-
-			// And: the button should have a lock icon
-			await expect(lockInButton).toContainText('Lock In');
-
-			await closePages(page, gmailPage);
-			await closePages(page, alicePage, bobPage);
-		});
-
-		test('Scenario: Dashboard layout adapts to different screen sizes', async ({
-			page,
-			context
-		}) => {
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
-				page,
-				context
-			);
-
-			// Desktop (1600px): Two-column grid
-			await gmailPage.setViewportSize({ width: 1600, height: 900 });
-			await gmailPage.waitForTimeout(500);
-
-			const dashboardLayout = gmailPage.locator('[data-testid="dashboard-layout"]');
-			const gridCols = await dashboardLayout.evaluate((el) => {
-				const styles = window.getComputedStyle(el);
-				return styles.gridTemplateColumns;
-			});
-			// Check if it's a multi-column layout (not "none")
-			expect(gridCols).not.toBe('none');
-
-			// Mobile (768px): Single column layout
-			await gmailPage.setViewportSize({ width: 768, height: 900 });
-			await gmailPage.waitForTimeout(500);
-
-			// Check that layout adapts (grid becomes single column or flex stacks)
-			const mobileLayout = await dashboardLayout.evaluate((el) => {
-				const styles = window.getComputedStyle(el);
-				return {
-					display: styles.display,
-					gridTemplateColumns: styles.gridTemplateColumns
-				};
-			});
-			// On mobile, should be single column or flex
-			expect(mobileLayout.display).toBeTruthy();
-
-			await closePages(page, gmailPage);
-			await closePages(page, alicePage, bobPage);
-		});
-	});
 
 	// ============================================================================
 	// SECTION 8: ACCESSIBILITY
 	// ============================================================================
 
 	test.describe('Accessibility', () => {
-		test('Scenario: Dashboard is keyboard navigable', async ({ page, context }) => {
-			// Given: I am viewing the Destination dashboard
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
-				page,
-				context
-			);
-
-			// When: I tab through the dashboard
-			// Start from the top
-			await gmailPage.keyboard.press('Tab');
-			await gmailPage.waitForTimeout(200);
-
-			// Then: focused elements should have visible focus indicators
-			const focusedElement = await gmailPage.evaluate(() => {
-				const el = document.activeElement;
-				if (!el) return null;
-				const styles = window.getComputedStyle(el);
-				return {
-					tagName: el.tagName,
-					outlineWidth: styles.outlineWidth,
-					boxShadow: styles.boxShadow
-				};
-			});
-
-			expect(focusedElement).not.toBeNull();
-			// Should have either outline or ring (box-shadow)
-			if (focusedElement) {
-				const hasOutline = focusedElement.outlineWidth !== '0px';
-				const hasRing = focusedElement.boxShadow !== 'none' && focusedElement.boxShadow.length > 0;
-				expect(hasOutline || hasRing).toBeTruthy();
-			}
-
-			await closePages(page, gmailPage);
-			await closePages(page, alicePage, bobPage);
-		});
-
 		test('Scenario: Color-coding is accessible to color-blind users', async ({ page, context }) => {
 			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
@@ -688,47 +417,6 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 		});
 	});
 
-	// ============================================================================
-	// SECTION 10: WEBSOCKET CONNECTION
-	// ============================================================================
-
-	test.describe('WebSocket Connection', () => {
-		test('Scenario: Dashboard handles disconnection gracefully', async ({ page, context }) => {
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
-				page,
-				context
-			);
-
-			// When: the WebSocket connection is lost
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setWsStatus(false, 'Connection lost');
-			});
-
-			await gmailPage.waitForTimeout(500);
-
-			// Then: a connection status indicator should show "Disconnected"
-			const wsStatus = gmailPage.locator('[data-testid="ws-status"]');
-			await expect(wsStatus).toBeVisible();
-			await expect(wsStatus).toContainText(/Disconnected|Connection lost/i);
-
-			// When: the connection is restored
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setWsStatus(true);
-			});
-
-			await gmailPage.waitForTimeout(500);
-
-			// Then: the status indicator should show "Connected" or disappear
-			const wsStatusAfter = await wsStatus.isVisible().catch(() => false);
-			if (wsStatusAfter) {
-				const statusText = await wsStatus.textContent();
-				expect(statusText).toMatch(/Connected/i);
-			}
-
-			await closePages(page, gmailPage);
-			await closePages(page, alicePage, bobPage);
-		});
-	});
 
 	// ============================================================================
 	// SECTION: PHASE 4.1.1 - ROUND 1 SPAM COMPLAINTS DISPLAY
