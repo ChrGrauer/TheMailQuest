@@ -20,8 +20,9 @@ import {
 	createTestSession,
 	addPlayer,
 	createGameWith5ESPTeams,
-	createGameWith3ESPTeams
-, closePages} from './helpers/game-setup';
+	createGameWith3ESPTeams,
+	closePages
+} from './helpers/game-setup';
 
 test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 	test.setTimeout(20000);
@@ -150,7 +151,15 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			const spamRate = sendWaveItem.locator('[data-testid="filtering-esp-spam-rate"]');
 			await expect(spamRate).toBeVisible();
 
-			await closePages(page, gmailPage, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage);
+			await closePages(
+				page,
+				gmailPage,
+				sendWavePage,
+				mailMonkeyPage,
+				bluePostPage,
+				sendBoltPage,
+				rocketMailPage
+			);
 		});
 
 		test('Scenario: ESP metrics are destination-specific', async ({ page, context }) => {

@@ -93,10 +93,7 @@ test.describe('Feature: WebSocket Synchronization', () => {
 			await closePages(page, alicePage, bobPage);
 		});
 
-		test('should broadcast updates to multiple concurrent clients', async ({
-			page,
-			context
-		}) => {
+		test('should broadcast updates to multiple concurrent clients', async ({ page, context }) => {
 			// Given: Multiple players in lobby
 			const roomCode = await createTestSession(page);
 
@@ -109,10 +106,7 @@ test.describe('Feature: WebSocket Synchronization', () => {
 			await page.waitForTimeout(500);
 
 			// Then: All existing clients see Charlie
-			await expect(page.locator('[data-team="BluePost"]')).toHaveAttribute(
-				'data-occupied',
-				'true'
-			);
+			await expect(page.locator('[data-team="BluePost"]')).toHaveAttribute('data-occupied', 'true');
 			await expect(alicePage.locator('[data-team="BluePost"]')).toHaveAttribute(
 				'data-occupied',
 				'true'
@@ -187,10 +181,7 @@ test.describe('Feature: WebSocket Synchronization', () => {
 	// ============================================================================
 
 	test.describe('Message: Routing and filtering', () => {
-		test('should route room-specific updates only to correct room', async ({
-			page,
-			context
-		}) => {
+		test('should route room-specific updates only to correct room', async ({ page, context }) => {
 			// Given: Two separate game sessions
 			const roomCode1 = await createTestSession(page);
 			const alicePage = await addPlayer(context, roomCode1, 'Alice', 'ESP', 'SendWave');

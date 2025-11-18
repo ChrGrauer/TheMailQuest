@@ -4,10 +4,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import {
-	createGameInPlanningPhase ,
-	closePages
-} from './helpers/game-setup';
+import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
 
 test.describe('US-2.3: Technical Infrastructure Shop', () => {
 	// ============================================================================

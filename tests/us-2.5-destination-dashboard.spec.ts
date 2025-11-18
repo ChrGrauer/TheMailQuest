@@ -271,7 +271,6 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 		});
 	});
 
-
 	// ============================================================================
 	// SECTION 6: MULTI-PLAYER & DATA ISOLATION
 	// ============================================================================
@@ -333,7 +332,6 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			await closePages(page, gmailPage, outlookPage, alicePage);
 		});
 	});
-
 
 	// ============================================================================
 	// SECTION 8: ACCESSIBILITY
@@ -416,7 +414,6 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			await closePages(page, alicePage, bobPage);
 		});
 	});
-
 
 	// ============================================================================
 	// SECTION: PHASE 4.1.1 - ROUND 1 SPAM COMPLAINTS DISPLAY

@@ -32,7 +32,6 @@ import {
 // This file focuses on resource allocation-specific logic and edge cases
 
 test.describe('Feature: Resources Allocation - E2E', () => {
-
 	// ============================================================================
 	// PERFORMANCE
 	// ============================================================================

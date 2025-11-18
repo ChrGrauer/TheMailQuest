@@ -18,8 +18,9 @@ import { test, expect } from '@playwright/test';
 import {
 	createGameInPlanningPhase,
 	createGameWith5ESPTeams,
-	createGameWithDestinationPlayer
-, closePages} from './helpers/game-setup';
+	createGameWithDestinationPlayer,
+	closePages
+} from './helpers/game-setup';
 
 // ============================================================================
 // SECTION 1: SUCCESSFUL LOCK-IN
@@ -230,7 +231,15 @@ test.describe('Feature: Decision Lock-In', () => {
 			await expect(confirmation).toBeVisible();
 			await expect(lockInButton).not.toBeVisible();
 
-			await closePages(page, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage);
+			await closePages(
+				page,
+				sendWavePage,
+				mailMonkeyPage,
+				bluePostPage,
+				sendBoltPage,
+				rocketMailPage,
+				gmailPage
+			);
 		});
 
 		test('Scenario: Waiting count updates as more players lock in', async ({ page, context }) => {
@@ -268,7 +277,15 @@ test.describe('Feature: Decision Lock-In', () => {
 			// Then: "SendWave" should see "3 players remaining"
 			await expect(remainingCount).toContainText('3', { timeout: 2000 });
 
-			await closePages(page, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage);
+			await closePages(
+				page,
+				sendWavePage,
+				mailMonkeyPage,
+				bluePostPage,
+				sendBoltPage,
+				rocketMailPage,
+				gmailPage
+			);
 		});
 	});
 
@@ -486,7 +503,15 @@ test.describe('Feature: Decision Lock-In', () => {
 			});
 			expect(currentPhase).not.toBe('planning');
 
-			await closePages(page, sendWavePage, mailMonkeyPage, bluePostPage, sendBoltPage, rocketMailPage, gmailPage);
+			await closePages(
+				page,
+				sendWavePage,
+				mailMonkeyPage,
+				bluePostPage,
+				sendBoltPage,
+				rocketMailPage,
+				gmailPage
+			);
 		});
 
 		test('Scenario: Resolution phase starts when timer expires', async ({ page, context }) => {

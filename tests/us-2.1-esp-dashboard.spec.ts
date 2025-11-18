@@ -477,16 +477,13 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			await closePages(page, alicePage, bobPage);
 		});
-
 	});
-
 
 	// ============================================================================
 	// QUICK ACTIONS / NAVIGATION
 	// ============================================================================
 
 	test.describe('Quick Actions / Navigation', () => {
-
 		test('Scenario: Lock-in button is disabled during resolution phase', async ({
 			page,
 			context
@@ -516,7 +513,6 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			await closePages(page, alicePage, bobPage);
 		});
 	});
-
 
 	// ============================================================================
 	// ACCESSIBILITY

@@ -13,10 +13,7 @@
  */
 
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
-import {
-	createGameInPlanningPhase ,
-	closePages
-} from './helpers/game-setup';
+import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
 import {
 	acquireClient,
 	toggleClientStatus,

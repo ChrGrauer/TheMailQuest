@@ -5,7 +5,8 @@
 
 import { test, expect } from '@playwright/test';
 import {
-	createGameInPlanningPhase, createGameWith2ESPTeams ,
+	createGameInPlanningPhase,
+	createGameWith2ESPTeams,
 	closePages
 } from './helpers/game-setup';
 

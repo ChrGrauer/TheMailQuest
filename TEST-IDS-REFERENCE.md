@@ -280,10 +280,12 @@ This document catalogs all `data-testid` attributes used across the frontend for
 | `esp-team-name` | `<div>` | ESP team name |
 | `esp-clients-count` | `<div>` | Count of active clients |
 | `esp-volume` | `<div>` | Total email volume |
-| `status-icon-{status}` | Icon | Status icon (excellent/good/warning/critical) |
+| `status-icon-{status}` | Icon | Status icon for reputation/satisfaction/spam (excellent/good/warning/critical) |
 | `esp-reputation` | `<div>` | Reputation value |
 | `esp-satisfaction` | `<div>` | Satisfaction percentage |
 | `esp-spam-rate` | `<div>` | Spam rate percentage |
+
+**Note**: The `status-icon-{status}` pattern is used with dynamic status values from `repStatus.status`, `satStatus.status`, and `spamStatus.status` in the implementation.
 
 ### CoordinationStatus
 **Location**: `src/lib/components/destination-dashboard/CoordinationStatus.svelte`
@@ -465,10 +467,14 @@ expect(getByTestId('budget-current')).toBeTruthy();
 
 | Test ID | Element | Description |
 |---------|---------|-------------|
+| `esp-consequences` | `<div>` | Main ESP consequences container |
 | `consequences-header` | `<h1>` | Round results header (e.g., "Round 2 Results") |
 | `consequences-team-name` | `<h2>` | Team name display |
 | `section-client-performance` | `<section>` | Client performance section container |
+| `warmup-adjustment-message` | `<p>` | Warmup adjustment message for clients |
 | `section-revenue-summary` | `<section>` | Revenue summary section container |
+| `section-spam-complaints` | `<section>` | Spam complaints section container |
+| `client-complaint-card` | `<div>` | Individual client complaint card |
 | `section-reputation-changes` | `<section>` | Reputation changes section container |
 | `section-budget-update` | `<section>` | Budget update section container |
 | `section-alerts-notifications` | `<section>` | Alerts and notifications section container |
@@ -478,9 +484,13 @@ expect(getByTestId('budget-current')).toBeTruthy();
 
 | Test ID | Element | Description |
 |---------|---------|-------------|
+| `destination-consequences` | `<div>` | Main destination consequences container |
 | `consequences-header` | `<h1>` | Round results header (e.g., "Round 2 Results") |
 | `consequences-team-name` | `<h2>` | Destination name display |
 | `section-spam-blocking` | `<section>` | Spam blocking summary section container |
+| `spam-blocked-volume` | `<span>` | Spam blocked volume metric |
+| `spam-delivered-volume` | `<span>` | Spam delivered volume metric |
+| `false-positive-volume` | `<span>` | False positive volume metric |
 | `section-user-satisfaction` | `<section>` | User satisfaction section container |
 | `section-revenue-summary` | `<section>` | Revenue summary section container |
 | `section-budget-update` | `<section>` | Budget update section container |
@@ -499,8 +509,8 @@ expect(getByTestId('budget-current')).toBeTruthy();
 
 ## Maintenance Notes
 
-- **Last Updated**: 2025-11-10
-- **Total Test IDs**: 188+
+- **Last Updated**: 2025-11-17
+- **Total Test IDs**: 196+
 - When adding new test IDs, follow the [Naming Conventions](#naming-conventions)
 - Update this document when adding/removing/renaming test IDs
 - Consider adding `data-*` attributes for additional test metadata (colors, states, etc.)
@@ -510,6 +520,6 @@ expect(getByTestId('budget-current')).toBeTruthy();
 - **Shared Components**: 28 test IDs (DashboardHeader, FilteringSliderItem, StatusBadge)
 - **ESP Dashboard**: 70+ test IDs (10 components)
 - **Destination Dashboard**: 60+ test IDs (8 components)
-- **Consequences Phase**: 18 test IDs (US-3.5)
+- **Consequences Phase**: 26 test IDs (US-3.5) - Updated with missing container and volume metrics
 - **Lobby**: 5 test IDs
 - **Facilitator**: 4 test IDs
