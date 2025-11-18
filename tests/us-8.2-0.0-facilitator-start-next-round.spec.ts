@@ -9,7 +9,9 @@
  */
 
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
-import { createGameInPlanningPhase } from './helpers/game-setup';
+import { createGameInPlanningPhase,
+	closePages
+ } from './helpers/game-setup';
 
 /**
  * Helper: Get a game to consequences phase
@@ -60,6 +62,8 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 
 		// Then: the "Start Next Round" button should be visible
 		await expect(startButton).toBeVisible({ timeout: 3000 });
+
+		await closePages(page, alicePage, bobPage);
 	});
 
 	test.skip('1.2 - Button not visible in Round 4 consequences', async ({ page, context }) => {
@@ -112,6 +116,8 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		await expect(bobPage.locator('[data-testid="dashboard-layout"]')).toBeVisible({
 			timeout: 3000
 		});
+
+		await closePages(page, alicePage, bobPage);
 	});
 
 	// ========================================================================
@@ -153,6 +159,8 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		await expect(bobLockButton).toBeVisible({ timeout: 5000 });
 		await expect(bobLockButton).toBeEnabled();
 		await expect(bobLockButton).toContainText('Lock In Decisions');
+
+		await closePages(page, alicePage, bobPage);
 	});
 
 	// ========================================================================
@@ -196,6 +204,8 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		const portfolioButton = alicePage.locator('[data-testid="open-portfolio"]');
 		await expect(portfolioButton).toBeVisible();
 		await expect(portfolioButton).toBeEnabled();
+
+		await closePages(page, alicePage, bobPage);
 	});
 
 	test('4.2 - Destination dashboards exit read-only mode when planning phase starts', async ({
@@ -230,6 +240,8 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		const techShopButton = bobPage.locator('[data-testid="tech-shop-button"]');
 		await expect(techShopButton).toBeVisible();
 		await expect(techShopButton).toBeEnabled();
+
+		await closePages(page, alicePage, bobPage);
 	});
 
 	// ========================================================================
@@ -311,12 +323,12 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		// Check in technical infrastructure section
 		const techInfra = alicePage.locator('[data-testid="technical-infrastructure"]');
 		await expect(techInfra).toContainText('SPF');
+
+		await closePages(page, alicePage, bobPage);
 	});
 
-	test.skip('5.4-5.5 - Client statuses persist across rounds', async ({ page, context }) => {
+	test('5.4-5.5 - Client statuses persist across rounds', async ({ page, context }) => {
 		// NOTE: This test verifies that paused/suspended clients persist their status
-		// This is implicitly tested through the game flow
-		// Skipping due to modal interaction complexity
 		// Given: the game is in round 1 planning
 		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
@@ -367,6 +379,8 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		// And: the player should be able to change the status
 		const activateButton = modal.locator('[data-testid="toggle-active-btn"]').first();
 		await expect(activateButton).toBeEnabled();
+
+		await closePages(page, alicePage, bobPage);
 	});
 
 	// ========================================================================
@@ -400,6 +414,8 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		await page.waitForTimeout(1500);
 		await expect(page.locator('[data-testid="current-phase"]')).toContainText('planning');
 		await expect(startButton).not.toBeVisible();
+
+		await closePages(page, alicePage, bobPage);
 	});
 
 	test('6.3 - No confirmation dialog is shown', async ({ page, context }) => {
@@ -420,6 +436,8 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		// And: the round should start immediately
 		await page.waitForTimeout(1000);
 		await expect(page.locator('[data-testid="current-phase"]')).toContainText('planning');
+
+		await closePages(page, alicePage, bobPage);
 	});
 
 	// ========================================================================
@@ -469,5 +487,7 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		// Timer should show approximately 5:00 or 4:59
 		await expect(aliceTimer).toContainText(/[45]:[0-9]{2}/);
 		await expect(bobTimer).toContainText(/[45]:[0-9]{2}/);
+
+		await closePages(page, alicePage, bobPage);
 	});
 });

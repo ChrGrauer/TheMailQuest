@@ -4,10 +4,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import {
-	createGameWithDestination ,
-	closePages
-} from './helpers/game-setup';
+import { createGameWithDestination, closePages } from './helpers/game-setup';
 
 // Test helper type for destination dashboard test API
 type DestinationDashboardTestAPI = {
@@ -124,7 +121,7 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 	});
 
 	test.describe('Section 2: Basic Tool Purchase', () => {
-		test.skip('Successfully purchase a permanent tool', async ({ page, context }) => {
+		test('Successfully purchase a permanent tool', async ({ page, context }) => {
 			// Create game session and navigate to Gmail destination dashboard
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
@@ -154,8 +151,7 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(toolCard.locator('[data-testid="tool-status"]')).toContainText('Active');
 
 			// Cleanup
-			await closePages(page, destinationPage);
-			await closePages(page, alicePage, bobPage);
+			await closePages(page, destinationPage, alicePage, bobPage);
 		});
 
 		test('Purchase fails when budget insufficient', async ({ page, context }) => {
@@ -400,11 +396,92 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await closePages(page, alicePage, bobPage);
 		});
 
-		test.skip('Spam Trap Network must be repurchased each round', async ({ page }) => {
-			// TODO: Implement when round transition is available
-			// Purchase Spam Trap in round 1
-			// Transition to round 2
-			// Verify Spam Trap shows "Not Owned"
+		test('Spam Trap Network must be repurchased each round', async ({ page, context }) => {
+			// Given: the game is in round 1 planning with a Gmail destination
+			const { destinationPage, alicePage, bobPage, roomCode } = await createGameWithDestination(
+				page,
+				context,
+				'Gmail'
+			);
+
+			// And: destination purchases Spam Trap Network (consumable/temporary)
+			await destinationPage.click('[data-testid="tech-shop-button"]');
+			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
+
+			// Purchase Spam Trap Network
+			await destinationPage.click(
+				'[data-tool-id="spam_trap_network"] [data-testid="purchase-button"]'
+			);
+
+			// Handle announcement dialog (select "Keep Secret")
+			await destinationPage.waitForSelector('[data-testid="announcement-dialog"]');
+			await destinationPage.click('[data-testid="option-secret"]');
+			await destinationPage.click('[data-testid="confirm-announcement-button"]');
+			await destinationPage.waitForTimeout(500);
+
+			// Verify it's Active in round 1
+			const spamTrapCard = destinationPage.locator('[data-tool-id="spam_trap_network"]');
+			await expect(spamTrapCard.locator('[data-testid="tool-status"]')).toContainText('Active');
+
+			// Close tech shop
+			await destinationPage.click('[data-testid="close-tech-shop"]');
+			await destinationPage.waitForTimeout(300);
+
+			// Get to consequences and start next round
+			await page.goto(`/game/${roomCode}/facilitator`);
+			await page.waitForTimeout(500);
+
+			// Lock in all players (Alice, Bob, and destination player)
+			const aliceLockButton = alicePage.locator('[data-testid="lock-in-button"]');
+			if (await aliceLockButton.isVisible()) {
+				await aliceLockButton.click();
+				await alicePage.waitForTimeout(300);
+			}
+
+			const bobLockButton = bobPage.locator('[data-testid="lock-in-button"]');
+			if (await bobLockButton.isVisible()) {
+				await bobLockButton.click();
+				await bobPage.waitForTimeout(300);
+			}
+
+			const destLockButton = destinationPage.locator('[data-testid="lock-in-button"]');
+			if (await destLockButton.isVisible()) {
+				await destLockButton.click();
+				await destinationPage.waitForTimeout(300);
+			}
+
+			// Wait for consequences phase
+			await page.waitForTimeout(1500);
+			await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+				timeout: 5000
+			});
+
+			// When: facilitator starts next round
+			const startButton = page.locator('[data-testid="start-next-round-button"]');
+			await startButton.click();
+			await page.waitForTimeout(1000);
+
+			// Then: verify we're in round 2
+			await expect(destinationPage.locator('[data-testid="round-indicator"]')).toContainText(
+				'Round 2',
+				{ timeout: 5000 }
+			);
+
+			// And: Spam Trap Network should NOT be owned anymore (should be Paused)
+			// Open tech shop to check status
+			await destinationPage.click('[data-testid="tech-shop-button"]');
+			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
+
+			const spamTrapCardRound2 = destinationPage.locator('[data-tool-id="spam_trap_network"]');
+			await expect(spamTrapCardRound2.locator('[data-testid="tool-status"]')).toContainText(
+				'Paused'
+			);
+
+			// And: purchase button should be enabled (can be repurchased)
+			await expect(spamTrapCardRound2.locator('[data-testid="purchase-button"]')).toBeEnabled();
+
+			// Cleanup
+			await closePages(page, alicePage, bobPage, destinationPage);
 		});
 	});
 
@@ -507,11 +584,97 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await closePages(page, alicePage, bobPage);
 		});
 
-		test.skip('Tool ownership persists across rounds', async ({ page }) => {
-			// TODO: Implement when round transition is available
-			// Purchase tool in round 1
-			// Transition to round 2
-			// Verify tool still shows "Owned" (except Spam Trap)
+		test('Tool ownership persists across rounds', async ({ page, context }) => {
+			// Given: the game is in round 1 planning with a Gmail destination
+			const { destinationPage, alicePage, bobPage, roomCode } = await createGameWithDestination(
+				page,
+				context,
+				'Gmail'
+			);
+
+			// And: destination purchases permanent tools (not Spam Trap)
+			await destinationPage.click('[data-testid="tech-shop-button"]');
+			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
+
+			// Purchase Content Analysis Filter (permanent)
+			await destinationPage.click(
+				'[data-tool-id="content_analysis_filter"] [data-testid="purchase-button"]'
+			);
+			await destinationPage.waitForTimeout(500);
+
+			// Purchase Auth Validator L1 (permanent)
+			await destinationPage.click(
+				'[data-tool-id="auth_validator_l1"] [data-testid="purchase-button"]'
+			);
+			await destinationPage.waitForTimeout(500);
+
+			// Close tech shop
+			await destinationPage.click('[data-testid="close-tech-shop"]');
+			await destinationPage.waitForTimeout(300);
+
+			// Get to consequences and start next round
+			await page.goto(`/game/${roomCode}/facilitator`);
+			await page.waitForTimeout(500);
+
+			// Lock in all players (Alice, Bob, and destination player)
+			const aliceLockButton = alicePage.locator('[data-testid="lock-in-button"]');
+			if (await aliceLockButton.isVisible()) {
+				await aliceLockButton.click();
+				await alicePage.waitForTimeout(300);
+			}
+
+			const bobLockButton = bobPage.locator('[data-testid="lock-in-button"]');
+			if (await bobLockButton.isVisible()) {
+				await bobLockButton.click();
+				await bobPage.waitForTimeout(300);
+			}
+
+			const destLockButton = destinationPage.locator('[data-testid="lock-in-button"]');
+			if (await destLockButton.isVisible()) {
+				await destLockButton.click();
+				await destinationPage.waitForTimeout(300);
+			}
+
+			// Wait for consequences phase
+			await page.waitForTimeout(1500);
+			await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+				timeout: 5000
+			});
+
+			// When: facilitator starts next round
+			const startButton = page.locator('[data-testid="start-next-round-button"]');
+			await startButton.click();
+			await page.waitForTimeout(1000);
+
+			// Then: verify we're in round 2
+			await expect(destinationPage.locator('[data-testid="round-indicator"]')).toContainText(
+				'Round 2',
+				{ timeout: 5000 }
+			);
+
+			// And: permanent tools should still be owned (show Active status)
+			await expect(
+				destinationPage.locator('[data-testid="technical-infrastructure"]')
+			).toBeVisible();
+
+			const contentAnalysisTool = destinationPage.locator(
+				'[data-testid="tech-item-content_analysis_filter"]'
+			);
+			await expect(contentAnalysisTool).toBeVisible();
+			await expect(
+				contentAnalysisTool.locator('[data-testid="tech-status-content_analysis_filter"]')
+			).toContainText('Active');
+
+			const authValidatorTool = destinationPage.locator(
+				'[data-testid="tech-item-auth_validator_l1"]'
+			);
+			await expect(authValidatorTool).toBeVisible();
+			await expect(
+				authValidatorTool.locator('[data-testid="tech-status-auth_validator_l1"]')
+			).toContainText('Active');
+
+			// Cleanup
+			await closePages(page, alicePage, bobPage, destinationPage);
 		});
 	});
 
