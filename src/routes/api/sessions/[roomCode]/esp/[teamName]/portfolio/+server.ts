@@ -75,7 +75,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	}
 
 	// Calculate revenue preview and budget forecast
-	const revenuePreview = calculateRevenuePreview(team, allClients);
+	const revenuePreview = calculateRevenuePreview(team, allClients, session.current_round);
 	const budgetForecast = calculateBudgetForecast(team); // Only current credits, no revenue
 
 	gameLogger.event('portfolio_fetch_success', {

@@ -467,7 +467,7 @@ describe('Client Portfolio Manager', () => {
 				}
 			];
 
-			const revenue = calculateRevenuePreview(team, clients);
+			const revenue = calculateRevenuePreview(team, clients, 1);
 
 			expect(revenue).toBe(530); // 200 + 180 + 150
 		});
@@ -543,7 +543,7 @@ describe('Client Portfolio Manager', () => {
 				}
 			];
 
-			const revenue = calculateRevenuePreview(team, clients);
+			const revenue = calculateRevenuePreview(team, clients, 1);
 
 			expect(revenue).toBe(350); // 200 + 150 (excludes 180 from paused client)
 		});
@@ -602,7 +602,7 @@ describe('Client Portfolio Manager', () => {
 				}
 			];
 
-			const revenue = calculateRevenuePreview(team, clients);
+			const revenue = calculateRevenuePreview(team, clients, 1);
 
 			expect(revenue).toBe(200); // Only active client
 		});
@@ -644,7 +644,7 @@ describe('Client Portfolio Manager', () => {
 				}
 			];
 
-			const revenue = calculateRevenuePreview(team, clients);
+			const revenue = calculateRevenuePreview(team, clients, 1);
 
 			expect(revenue).toBe(0);
 		});

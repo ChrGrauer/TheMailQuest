@@ -15,7 +15,9 @@ import type { ESPTeam, Client, ClientState } from './types';
 import {
 	WARMUP_COST,
 	LIST_HYGIENE_COST,
-	calculateOnboardingCost
+	calculateOnboardingCost,
+	WARMUP_VOLUME_REDUCTION,
+	getListHygieneVolumeReduction
 } from '$lib/config/client-onboarding';
 
 /**
@@ -201,31 +203,54 @@ export function getClientWithState(
  *
  * Only includes clients with status = 'Active'
  * Excludes paused and suspended clients
+ * Applies warmup and list hygiene factors to match actual resolution calculations
  *
  * @param team - ESP team with client_states
  * @param clients - Array of all Client objects (from marketplace or team's available_clients)
- * @returns Total revenue from active clients
+ * @param currentRound - Current game round number
+ * @returns Total revenue from active clients (adjusted for warmup and list hygiene)
  */
-export function calculateRevenuePreview(team: ESPTeam, clients: Client[]): number {
+export function calculateRevenuePreview(
+	team: ESPTeam,
+	clients: Client[],
+	currentRound: number
+): number {
 	if (!team.client_states || Object.keys(team.client_states).length === 0) {
 		return 0;
 	}
 
 	let totalRevenue = 0;
 
-	// Create a map of clientId -> revenue for quick lookup
-	const clientRevenueMap = new Map<string, number>();
+	// Create a map of clientId -> client for quick lookup
+	const clientMap = new Map<string, Client>();
 	for (const client of clients) {
-		clientRevenueMap.set(client.id, client.revenue);
+		clientMap.set(client.id, client);
 	}
 
-	// Sum revenue for active clients only
+	// Calculate revenue for active clients with warmup and list hygiene factors
 	for (const clientId of team.active_clients) {
 		const clientState = team.client_states[clientId];
 		if (clientState && clientState.status === 'Active') {
-			const revenue = clientRevenueMap.get(clientId);
-			if (revenue !== undefined) {
-				totalRevenue += revenue;
+			const client = clientMap.get(clientId);
+			if (client) {
+				let baseRevenue = client.revenue;
+
+				// Apply warmup factor (50% reduction in first active round)
+				let warmupFactor = 1.0;
+				if (clientState.has_warmup && clientState.first_active_round === currentRound) {
+					warmupFactor = 1.0 - WARMUP_VOLUME_REDUCTION; // 0.5 (50% reduction)
+				}
+
+				// Apply list hygiene factor (permanent volume reduction)
+				let listHygieneFactor = 1.0;
+				if (clientState.has_list_hygiene) {
+					const reductionPercentage = getListHygieneVolumeReduction(client.risk);
+					listHygieneFactor = 1.0 - reductionPercentage; // 0.95, 0.90, or 0.85
+				}
+
+				// Combined revenue with both factors
+				const adjustedRevenue = Math.round(baseRevenue * warmupFactor * listHygieneFactor);
+				totalRevenue += adjustedRevenue;
 			}
 		}
 	}
