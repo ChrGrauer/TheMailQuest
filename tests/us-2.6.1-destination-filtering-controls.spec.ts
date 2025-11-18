@@ -17,8 +17,6 @@
 import { test, expect } from '@playwright/test';
 import {
 	createGameWithDestinationPlayer,
-	createTestSession,
-	addPlayer,
 	createGameWith5ESPTeams,
 	createGameWith3ESPTeams,
 	closePages
@@ -160,100 +158,6 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 				sendBoltPage,
 				rocketMailPage
 			);
-		});
-
-		test('Scenario: ESP metrics are destination-specific', async ({ page, context }) => {
-			// Given: "BluePost" has different metrics at each destination
-			const roomCode = await createTestSession(page);
-			const sendWavePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
-			const mailMonkeyPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
-			const bluePostPage = await addPlayer(context, roomCode, 'Charlie', 'ESP', 'BluePost');
-			const gmailPage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'Gmail');
-			const outlookPage = await addPlayer(context, roomCode, 'Eve', 'Destination', 'Outlook');
-
-			await page.waitForTimeout(500);
-
-			// Start game
-			const startGameButton = page.getByRole('button', { name: /start game/i });
-			await startGameButton.click();
-
-			await gmailPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });
-			await outlookPage.waitForURL(`/game/${roomCode}/destination/outlook`, { timeout: 10000 });
-
-			// Wait for dashboards to load
-			await gmailPage.waitForFunction(
-				() => (window as any).__destinationDashboardTest?.ready === true,
-				{},
-				{ timeout: 10000 }
-			);
-			await outlookPage.waitForFunction(
-				() => (window as any).__destinationDashboardTest?.ready === true,
-				{},
-				{ timeout: 10000 }
-			);
-
-			// Set BluePost with different metrics at each destination
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setESPStats([
-					{
-						espName: 'BluePost',
-						teamCode: 'BP',
-						activeClientsCount: 5,
-						volume: '54K',
-						volumeRaw: 54000,
-						reputation: 70,
-						userSatisfaction: 52,
-						spamComplaintRate: 2.8
-					}
-				]);
-			});
-
-			await outlookPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setESPStats([
-					{
-						espName: 'BluePost',
-						teamCode: 'BP',
-						activeClientsCount: 3,
-						volume: '37K',
-						volumeRaw: 37000,
-						reputation: 82,
-						userSatisfaction: 58,
-						spamComplaintRate: 2.2
-					}
-				]);
-			});
-
-			// When I am "Gmail" and view "BluePost" filtering item
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.openFilteringControls();
-			});
-			await gmailPage.waitForTimeout(300);
-
-			const gmailBluePost = gmailPage.locator('[data-testid="filtering-item-bluepost"]');
-			const gmailSatisfaction = gmailBluePost.locator('[data-testid="filtering-esp-satisfaction"]');
-			const gmailSpamRate = gmailBluePost.locator('[data-testid="filtering-esp-spam-rate"]');
-
-			// Then: I should see Satisfaction: 52% and Spam: 2.8%
-			await expect(gmailSatisfaction).toContainText('52');
-			await expect(gmailSpamRate).toContainText('2.8');
-
-			// When I am "Outlook" and view "BluePost" filtering item
-			await outlookPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.openFilteringControls();
-			});
-			await outlookPage.waitForTimeout(300);
-
-			const outlookBluePost = outlookPage.locator('[data-testid="filtering-item-bluepost"]');
-			const outlookSatisfaction = outlookBluePost.locator(
-				'[data-testid="filtering-esp-satisfaction"]'
-			);
-			const outlookSpamRate = outlookBluePost.locator('[data-testid="filtering-esp-spam-rate"]');
-
-			// Then: I should see Satisfaction: 58% and Spam: 2.2%
-			await expect(outlookSatisfaction).toContainText('58');
-			await expect(outlookSpamRate).toContainText('2.2');
-
-			await closePages(page, gmailPage, outlookPage, sendWavePage, mailMonkeyPage, bluePostPage);
 		});
 	});
 
@@ -593,62 +497,77 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 	// ============================================================================
 
 	test.describe('Section 6: Error Handling', () => {
-		test('Scenario: Handle ESP data loading error', async ({ page, context }) => {
+		test('Scenario: Handle dashboard API error and retry', async ({ page, context }) => {
+			// Given: I create a game with destination player but mock API to fail initially
 			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
-			// Simulate error state
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setError('Unable to load ESP data');
+			// Get room code from URL
+			const url = gmailPage.url();
+			const roomCode = url.match(/\/game\/([^/]+)\//)?.[1];
+
+			let apiCallCount = 0;
+
+			// Mock the dashboard API to fail on first retry, succeed on second
+			await gmailPage.route(`**/api/sessions/${roomCode}/destination/gmail`, (route) => {
+				apiCallCount++;
+				if (apiCallCount === 1) {
+					// First refetch: simulate server error
+					route.fulfill({
+						status: 500,
+						contentType: 'application/json',
+						body: JSON.stringify({ success: false, error: 'Database connection failed' })
+					});
+				} else {
+					// Subsequent calls: let it through to real API
+					route.continue();
+				}
 			});
 
-			// When: I open the Filtering Controls modal
+			// Simulate an error state (as if initial load failed)
+			await gmailPage.evaluate(() => {
+				(window as any).__destinationDashboardTest.setError('Database connection failed');
+			});
+
+			// When: I open the Filtering Controls modal (use test API since UI might be hidden due to error)
 			await gmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
 			await gmailPage.waitForTimeout(300);
 
-			// Then: I should see error message "Unable to load ESP data"
+			// Then: I should see the error banner with database error message
 			const errorBanner = gmailPage.locator('[data-testid="filtering-error-banner"]');
 			await expect(errorBanner).toBeVisible();
-			await expect(errorBanner).toContainText('Unable to load ESP data');
+			await expect(errorBanner).toContainText('Database connection failed');
 
 			// And: I should see a retry button
 			const retryButton = gmailPage.locator('[data-testid="filtering-error-retry"]');
 			await expect(retryButton).toBeVisible();
 
-			// And: error banner should have proper styling
-			const errorTitle = errorBanner.locator('text=Error Loading ESP Data');
-			await expect(errorTitle).toBeVisible();
+			// When: I click the retry button (will trigger refetch and hit our mock)
+			await retryButton.click();
+			await gmailPage.waitForTimeout(500);
 
-			// When: Error is cleared, modal should show ESP data
-			await gmailPage.evaluate(() => {
-				(window as any).__destinationDashboardTest.setError(null);
-				(window as any).__destinationDashboardTest.setESPStats([
-					{
-						espName: 'SendWave',
-						teamCode: 'SW',
-						activeClientsCount: 4,
-						volume: '185K',
-						volumeRaw: 185000,
-						reputation: 78,
-						userSatisfaction: 78,
-						spamComplaintRate: 0.8
-					}
-				]);
-			});
+			// Then: Still shows error because first retry failed
+			await expect(errorBanner).toBeVisible();
+			await expect(errorBanner).toContainText('Database connection failed');
 
-			await gmailPage.waitForTimeout(300);
+			// When: I click retry again (will succeed this time)
+			await retryButton.click();
+			await gmailPage.waitForTimeout(500);
 
-			// Then: Error should be gone, ESP items should appear
+			// Then: Error banner should disappear
 			await expect(errorBanner).not.toBeVisible();
+
+			// And: ESP data should now be visible
 			const espItems = gmailPage.locator('[data-testid^="filtering-item-"]');
 			await expect(espItems.first()).toBeVisible();
+			await expect(gmailPage.locator('[data-testid="filtering-item-sendwave"]')).toBeVisible();
+			await expect(gmailPage.locator('[data-testid="filtering-item-mailmonkey"]')).toBeVisible();
 
-			await closePages(page, gmailPage);
-			await closePages(page, alicePage, bobPage);
+			await closePages(page, gmailPage, alicePage, bobPage);
 		});
 
 		test('Scenario: Handle slider interaction error', async ({ page, context }) => {

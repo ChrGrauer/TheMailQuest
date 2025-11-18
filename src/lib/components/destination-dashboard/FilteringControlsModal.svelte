@@ -36,13 +36,21 @@
 		destName,
 		espTeams,
 		filteringPolicies,
-		dashboardError = null,
+		dashboardError,
 		onRetry
 	}: Props = $props();
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let localPolicies = $state<Record<string, FilteringPolicy>>({});
+
+	// Local copy of dashboardError for reactivity (Svelte 5 fix)
+	let localDashboardError = $state<string | null | undefined>(dashboardError);
+
+	// Watch for dashboardError prop changes
+	$effect(() => {
+		localDashboardError = dashboardError;
+	});
 
 	// Initialize local policies from props
 	$effect(() => {
@@ -51,6 +59,16 @@
 			error = null;
 		}
 	});
+
+	// Expose test API for E2E testing
+	if (typeof window !== 'undefined') {
+		(window as any).__filteringControlsModalTest = {
+			setDashboardError: (errorMsg: string | null) => {
+				localDashboardError = errorMsg;
+			},
+			getDashboardError: () => localDashboardError
+		};
+	}
 
 	async function handleFilterChange(espName: string, level: FilteringLevel) {
 		loading = true;
@@ -176,12 +194,11 @@
 			{/if}
 
 			<!-- Dashboard Error Banner (error loading ESP data) -->
-			{#if dashboardError}
+			{#if localDashboardError}
 				<div
 					class="mx-6 mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg"
 					role="alert"
 					aria-live="assertive"
-					transition:scale={{ duration: 200 }}
 					data-testid="filtering-error-banner"
 				>
 					<div class="flex items-center justify-between">
@@ -190,7 +207,7 @@
 								<span class="text-red-600 font-semibold" aria-hidden="true">⚠️</span>
 								<span class="text-red-800 font-semibold">Error Loading ESP Data</span>
 							</div>
-							<p class="text-red-700 mt-1">{dashboardError}</p>
+							<p class="text-red-700 mt-1">{localDashboardError}</p>
 						</div>
 						{#if onRetry}
 							<button
