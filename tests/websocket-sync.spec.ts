@@ -282,7 +282,7 @@ test.describe('Feature: WebSocket Synchronization', () => {
 				addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey'),
 				addPlayer(context, roomCode, 'Charlie', 'ESP', 'BluePost'),
 				addPlayer(context, roomCode, 'David', 'ESP', 'SendBolt'),
-				addPlayer(context, roomCode, 'Eve', 'ESP', 'RocketMail')
+				addPlayer(context, roomCode, 'Evan', 'ESP', 'RocketMail')
 			]);
 
 			await page.waitForTimeout(1000);
@@ -292,7 +292,7 @@ test.describe('Feature: WebSocket Synchronization', () => {
 			await expect(page.locator('text=Bob')).toBeVisible();
 			await expect(page.locator('text=Charlie')).toBeVisible();
 			await expect(page.locator('text=David')).toBeVisible();
-			await expect(page.locator('text=Eve')).toBeVisible();
+			await expect(page.locator('text=Evan')).toBeVisible();
 
 			// And: Count is correct
 			await expect(page.locator('text=ESP Teams: 5/5')).toBeVisible();
