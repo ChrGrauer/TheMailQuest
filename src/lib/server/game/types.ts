@@ -211,7 +211,7 @@ export interface ESPDestinationStats {
 	volume: string; // Email volume formatted (e.g., "185K")
 	volumeRaw: number; // Email volume as number
 	reputation: number; // ESP's reputation at this destination (0-100)
-	userSatisfaction: number; // User satisfaction percentage (0-100)
+	userSatisfaction: number | null; // User satisfaction percentage (0-100), null if no history
 	spamComplaintRate: number; // Spam complaint rate percentage (0-100)
 }
 

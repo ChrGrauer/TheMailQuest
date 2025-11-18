@@ -71,11 +71,34 @@ export const GET: RequestHandler = async ({ params }) => {
 		timerRemaining = Math.max(0, session.timer.duration - elapsed);
 	}
 
+	// Extract ESP satisfaction data from resolution history (if available)
+	// This is used for user satisfaction display in ESP stats
+	let espSatisfactionBreakdown = null;
+	let currentResolution = null;
+
+	if (session.resolution_history && session.resolution_history.length > 0) {
+		// Get the most recent resolution (latest round with resolution data)
+		const latestResolution = session.resolution_history[session.resolution_history.length - 1];
+
+		if (latestResolution && latestResolution.results) {
+			// Extract per-ESP satisfaction breakdown
+			// Phase 4.4.1: Use espSatisfactionData instead of espResults (data privacy)
+			if (latestResolution.results.espSatisfactionData) {
+				espSatisfactionBreakdown = latestResolution.results.espSatisfactionData;
+			}
+
+			// Extract resolution data for this specific destination (consequences phase only)
+			if (session.current_phase === 'consequences' && latestResolution.results.destinationResults) {
+				currentResolution = latestResolution.results.destinationResults[destination.name];
+			}
+		}
+	}
+
 	// Calculate ESP statistics for all ESP teams that have players
 	const espStats: ESPDestinationStats[] = session.esp_teams
 		.filter((esp) => esp.players.length > 0) // Only include ESPs with players
 		.map((esp) => {
-			return calculateESPStatsForDestination(esp, destination, session);
+			return calculateESPStatsForDestination(esp, destination, session, espSatisfactionBreakdown);
 		});
 
 	// Count active collaborations (placeholder for now - will be implemented in US-2.7)
@@ -83,28 +106,6 @@ export const GET: RequestHandler = async ({ params }) => {
 
 	// Calculate remaining players count (US-3.2)
 	const remainingPlayersCount = getRemainingPlayersCount(session);
-
-	// US-3.5 Iteration 3: Get current round resolution data for consequences phase
-	let currentResolution = null;
-	let espSatisfactionBreakdown = null;
-
-	if (session.current_phase === 'consequences' && session.resolution_history) {
-		// Get the most recent resolution (current round)
-		const latestResolution = session.resolution_history[session.resolution_history.length - 1];
-
-		if (latestResolution && latestResolution.results) {
-			// Extract resolution data for this specific destination
-			if (latestResolution.results.destinationResults) {
-				currentResolution = latestResolution.results.destinationResults[destination.name];
-			}
-
-			// Extract per-ESP satisfaction breakdown for ESP Behavior Analysis
-			// Phase 4.4.1: Use espSatisfactionData instead of espResults (data privacy)
-			if (latestResolution.results.espSatisfactionData) {
-				espSatisfactionBreakdown = latestResolution.results.espSatisfactionData;
-			}
-		}
-	}
 
 	// Prepare dashboard data
 	const dashboardData = {
@@ -164,7 +165,8 @@ export const GET: RequestHandler = async ({ params }) => {
 function calculateESPStatsForDestination(
 	esp: any,
 	destination: any,
-	session: any
+	session: any,
+	espSatisfactionBreakdown: any
 ): ESPDestinationStats {
 	// Get ESP reputation at this destination
 	const reputation = esp.reputation[destination.name] || 70;
@@ -181,9 +183,15 @@ function calculateESPStatsForDestination(
 	const volumeRaw = Math.floor(activeClientsCount * volumePerClient);
 	const volume = formatVolume(volumeRaw);
 
-	// PLACEHOLDER: User satisfaction mirrors reputation for now
-	// In future US, this will be calculated from user feedback
-	const userSatisfaction = reputation;
+	// Get user satisfaction from resolution history
+	// If no history exists, return null to display '-' in the UI
+	let userSatisfaction: number | null = null;
+	if (espSatisfactionBreakdown && espSatisfactionBreakdown[esp.name]) {
+		const satisfactionData = espSatisfactionBreakdown[esp.name];
+		if (satisfactionData.perDestination && satisfactionData.perDestination[destination.name] !== undefined) {
+			userSatisfaction = satisfactionData.perDestination[destination.name];
+		}
+	}
 
 	// Calculate spam complaint rate from previous round's resolution history
 	// Formula: spam_through_volume / total_volume from previous round

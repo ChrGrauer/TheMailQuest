@@ -37,7 +37,7 @@
 		<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
 			{#each espStats as esp}
 				{@const repStatus = getReputationStatus(esp.reputation)}
-				{@const satStatus = getSatisfactionStatus(esp.userSatisfaction)}
+				{@const satStatus = esp.userSatisfaction !== null ? getSatisfactionStatus(esp.userSatisfaction) : null}
 				{@const spamStatus = getSpamRateStatus(esp.spamComplaintRate)}
 
 				<div
@@ -99,20 +99,28 @@
 						<div class="text-center p-2 bg-gray-50 rounded-lg">
 							<div class="text-xs text-gray-500 font-semibold mb-1">User Satisfaction</div>
 							<div class="flex items-center justify-center gap-1">
-								<span
-									data-testid="status-icon-{satStatus.status}"
-									class="text-sm"
-									aria-hidden="true"
-								>
-									{satStatus.icon}
-								</span>
-								<span
-									data-testid="esp-satisfaction"
-									data-status={satStatus.status}
-									class="{satStatus.color} text-lg font-bold"
-								>
-									{esp.userSatisfaction}%
-								</span>
+								{#if esp.userSatisfaction === null}
+									<!-- No satisfaction data available (no resolution history yet) -->
+									<span data-testid="esp-satisfaction" class="text-lg font-bold text-gray-400">
+										-
+									</span>
+								{:else}
+									<!-- Show actual user satisfaction with color coding -->
+									<span
+										data-testid="status-icon-{satStatus.status}"
+										class="text-sm"
+										aria-hidden="true"
+									>
+										{satStatus.icon}
+									</span>
+									<span
+										data-testid="esp-satisfaction"
+										data-status={satStatus.status}
+										class="{satStatus.color} text-lg font-bold"
+									>
+										{esp.userSatisfaction}%
+									</span>
+								{/if}
 							</div>
 						</div>
 
