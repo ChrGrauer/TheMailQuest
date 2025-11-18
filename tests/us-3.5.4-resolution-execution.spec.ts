@@ -8,6 +8,7 @@
 
 import { test, expect } from '@playwright/test';
 import { createGameInPlanningPhase } from './helpers/game-setup';
+import { lockInAllPlayers } from './helpers/e2e-actions';
 
 test.describe('Resolution Execution Trigger', () => {
 	test('Resolution executes when Planning transitions to Resolution', async ({ page, context }) => {
@@ -107,9 +108,7 @@ test.describe('Resolution Execution Trigger', () => {
 		}
 
 		// When: Resolution executes
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await alicePage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage]);
 
 		// Then: Consequences should show calculated data
 		await expect(alicePage.locator('[data-testid="consequences-header"]')).toBeVisible({
@@ -133,9 +132,7 @@ test.describe('Resolution Execution Trigger', () => {
 		// Don't acquire any clients
 
 		// When: Resolution executes
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await alicePage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage]);
 
 		// Then: Should still reach consequences phase without errors
 		await expect(alicePage.locator('[data-testid="consequences-header"]')).toBeVisible({

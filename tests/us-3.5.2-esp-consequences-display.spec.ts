@@ -10,6 +10,7 @@
 
 import { test, expect } from '@playwright/test';
 import { createGameInPlanningPhase } from './helpers/game-setup';
+import { lockInAllPlayers } from './helpers/e2e-actions';
 
 test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 	test('ESP player sees consequences screen structure', async ({ page, context }) => {
@@ -18,9 +19,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 
 		// And: The game transitions to Consequences phase for Round 1
 		// Lock in all players to trigger transition
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await alicePage.waitForTimeout(2000); // Wait for resolution + transition
+		await lockInAllPlayers([alicePage, bobPage]); // Wait for resolution + transition
 
 		// When: I view my consequences screen
 		// (Screen should auto-display on phase transition)
@@ -83,9 +82,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		}
 
 		// Lock in players to trigger consequences
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await alicePage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage]);
 
 		// Then: Client Performance section should show client data
 		const clientSection = alicePage.locator('[data-testid="section-client-performance"]');
@@ -112,9 +109,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		// Given: Game in consequences phase
 		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await alicePage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage]);
 
 		// Then: Reputation Changes section exists (but may have placeholder)
 		const reputationSection = alicePage.locator('[data-testid="section-reputation-changes"]');
@@ -132,9 +127,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		// Don't acquire any clients
 
 		// Lock in to trigger consequences
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await alicePage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage]);
 
 		// Then: Should see consequences screen
 		await expect(alicePage.locator('[data-testid="consequences-header"]')).toBeVisible({
@@ -179,9 +172,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		}
 
 		// Lock in to trigger consequences
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await alicePage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage]);
 
 		// Then: Warmup message should be visible
 		const warmupMessage = alicePage.locator('[data-testid="warmup-adjustment-message"]').first();
@@ -228,9 +219,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		}
 
 		// Lock in to trigger consequences
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await alicePage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage]);
 
 		// Then: Spam Complaints section should exist
 		const spamComplaintsSection = alicePage.locator('[data-testid="section-spam-complaints"]');

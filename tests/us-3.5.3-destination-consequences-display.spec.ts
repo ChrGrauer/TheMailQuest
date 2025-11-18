@@ -10,6 +10,7 @@
 
 import { test, expect } from '@playwright/test';
 import { createGameWithDestinationPlayer } from './helpers/game-setup';
+import { lockInAllPlayers } from './helpers/e2e-actions';
 
 test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', () => {
 	test('Destination player sees consequences screen structure', async ({ page, context }) => {
@@ -203,10 +204,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		);
 
 		// And: The game transitions to Consequences phase
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the "Spam Blocking Summary" section
 		const spamSection = gmailPage.locator('[data-testid="section-spam-blocking"]');
@@ -230,10 +228,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		);
 
 		// And: The game transitions to Consequences phase
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the "Spam Blocking Summary" section
 		const spamSection = gmailPage.locator('[data-testid="section-spam-blocking"]');
@@ -252,10 +247,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		);
 
 		// And: The game transitions to Consequences phase
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the "ESP Behavior Analysis" section
 		const espSection = gmailPage.locator('[data-testid="section-esp-behavior"]');
@@ -277,10 +269,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		);
 
 		// And: The game transitions to Consequences phase
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the "User Satisfaction" section
 		const satisfactionSection = gmailPage.locator('[data-testid="section-user-satisfaction"]');
@@ -303,10 +292,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		);
 
 		// And: The game transitions to Consequences phase
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the "Revenue Summary" section
 		const revenueSection = gmailPage.locator('[data-testid="section-revenue-summary"]');
@@ -335,10 +321,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		);
 
 		// And: The game transitions to Consequences phase
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the "ESP Behavior Alerts" section
 		const espSection = gmailPage.locator('[data-testid="section-esp-behavior"]');
@@ -364,10 +347,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		);
 
 		// And: The game transitions to Consequences phase
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the "ESP Behavior Alerts" section
 		const espSection = gmailPage.locator('[data-testid="section-esp-behavior"]');
@@ -387,10 +367,7 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		);
 
 		// And: The game transitions to Consequences phase
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the "Budget Update" section
 		const budgetSection = gmailPage.locator('[data-testid="section-budget-update"]');
