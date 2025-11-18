@@ -82,7 +82,9 @@
 			const pendingDecisions = data.pending_onboarding_decisions || {};
 			clients.forEach((client) => {
 				if (client.first_active_round === null) {
-					// Load from pending decisions if exists, otherwise from client state
+					// Load from pending decisions if exists, otherwise default to false
+					// Do NOT use client.has_warmup/has_list_hygiene as those may be from
+					// previous rounds where costs were already paid
 					if (pendingDecisions[client.id]) {
 						onboardingSelections[client.id] = {
 							warmup: pendingDecisions[client.id].warmUp,
@@ -90,8 +92,8 @@
 						};
 					} else {
 						onboardingSelections[client.id] = {
-							warmup: client.has_warmup || false,
-							listHygiene: client.has_list_hygiene || false
+							warmup: false,
+							listHygiene: false
 						};
 					}
 				}
