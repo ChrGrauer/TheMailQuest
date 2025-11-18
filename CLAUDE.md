@@ -83,12 +83,90 @@ if (update.destinationName && update.destinationName !== destName) {
 
 ## Testing Patterns
 
+### E2E Testing Philosophy (Refactored 2025-01)
+
+**Core Principle**: Trust your helpers, test what matters
+
+E2E tests should focus on:
+- ✅ **Business logic**: Calculations, thresholds, rules
+- ✅ **Error states**: Validation failures, edge cases
+- ✅ **Feature-specific behavior**: Unique interactions
+- ❌ **NOT setup validation**: Already tested by helpers
+- ❌ **NOT generic UI**: Visibility, navigation, loading states
+- ❌ **NOT happy paths**: Covered implicitly by feature tests
+
 ### Reusable Test Helpers
-Create helpers in `tests/helpers/` (game-setup.ts, assertions.ts, fixtures.ts) to avoid duplication:
-- **Benefits**: DRY principle, easy updates, clearer test intent
-- **Best Practice**: Use simple timeouts instead of complex selectors when waiting for async operations
+
+Helpers in `tests/helpers/game-setup.ts` are the foundation:
+- **createTestSession()**: Used 17+ times - validates session creation
+- **addPlayer()**: Used 50+ times - validates player joining
+- **createGameInPlanningPhase()**: Used 9+ times - validates game start
+- **closePages()**: Use for cleanup - prevents resource leaks
+
+**Trust your helpers**: If a helper is used successfully elsewhere, don't test it again.
+
 ```typescript
-// ✅ Simple and reliable
+// ❌ BAD: Testing that createTestSession works
+test('should create session', async ({ page }) => {
+  await page.goto('/create');
+  await page.click('text=Create a Session');
+  await expect(page).toHaveURL(/\/lobby\/.+/);
+});
+
+// ✅ GOOD: Use helper, test feature logic
+test('should calculate budget forecast correctly', async ({ page, context }) => {
+  const { alicePage } = await createGameInPlanningPhase(page, context);
+  // Test feature-specific calculation, not setup
+  const forecast = await alicePage.getByTestId('budget-forecast');
+  await expect(forecast).toContainText('690'); // 1000 - 310 cost
+  await closePages(page, alicePage); // Always cleanup!
+});
+```
+
+### Resource Cleanup (CRITICAL)
+
+Always use `closePages()` helper to prevent resource leaks:
+
+```typescript
+import { closePages } from './helpers/game-setup';
+
+test.afterEach(async () => {
+  // Include ALL pages, especially facilitator page
+  await closePages(page, alicePage, bobPage, gmailPage);
+});
+```
+
+**Common mistake**: Forgetting to close `page` (facilitator page)
+
+### WebSocket Synchronization
+
+Generic WebSocket sync is tested in `tests/websocket-sync.spec.ts`:
+- Real-time updates between clients
+- Connection/reconnection handling
+- Message routing and filtering
+
+**Feature tests should NOT re-test generic sync**. Test feature-specific data updates only.
+
+```typescript
+// ❌ BAD: Generic WebSocket sync test in feature file
+test('should see real-time updates when player joins', async ({ page, context }) => {
+  const roomCode = await createTestSession(page);
+  const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+  await expect(page.locator('text=Alice')).toBeVisible(); // Generic sync
+});
+
+// ✅ GOOD: Feature-specific data update
+test('should update reputation after resolution with correct calculation', async ({ page, context }) => {
+  const { alicePage } = await createGameAfterResolution(page, context);
+  const reputation = await alicePage.getByTestId('reputation-gmail');
+  await expect(reputation).toContainText('85'); // Specific business value
+});
+```
+
+### Test Best Practices
+
+```typescript
+// ✅ Simple and reliable timeouts
 await playerPage.click('button:has-text("Join Game")');
 await playerPage.waitForTimeout(500);
 
