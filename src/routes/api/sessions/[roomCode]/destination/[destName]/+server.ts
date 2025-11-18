@@ -193,9 +193,10 @@ function calculateESPStatsForDestination(
 		}
 	}
 
-	// Calculate spam complaint rate from previous round's resolution history
+	// Calculate spam complaint rate and volume from previous round's resolution history
 	// Formula: spam_through_volume / total_volume from previous round
 	let spamComplaintRate: number = 0;
+	let spamComplaintVolume: number = 0;
 
 	if (session.current_round > 1 && session.resolution_history) {
 		// Get previous round's resolution (current_round - 1)
@@ -242,6 +243,7 @@ function calculateESPStatsForDestination(
 				// Calculate spam complaint rate: spam delivered / total volume
 				const rawRate = destBreakdown.spam_through_volume / destBreakdown.total_volume;
 				spamComplaintRate = rawRate;
+				spamComplaintVolume = destBreakdown.spam_through_volume;
 
 				gameLogger.event('spam_rate_calculated', {
 					roomCode: session.roomCode,
@@ -264,7 +266,8 @@ function calculateESPStatsForDestination(
 		volumeRaw,
 		reputation,
 		userSatisfaction,
-		spamComplaintRate: Math.round(spamComplaintRate * 10000) / 100 // Convert to percentage and round to 2 decimals
+		spamComplaintRate: Math.round(spamComplaintRate * 10000) / 100, // Convert to percentage and round to 2 decimals
+		spamComplaintVolume // Number of spam emails delivered
 	};
 }
 

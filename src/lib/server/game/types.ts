@@ -213,6 +213,7 @@ export interface ESPDestinationStats {
 	reputation: number; // ESP's reputation at this destination (0-100)
 	userSatisfaction: number | null; // User satisfaction percentage (0-100), null if no history
 	spamComplaintRate: number; // Spam complaint rate percentage (0-100)
+	spamComplaintVolume: number; // Spam email volume (number of spam emails)
 }
 
 /**

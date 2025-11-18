@@ -128,30 +128,38 @@
 						<!-- Phase 4.1.1+: Shows '-' when spam rate is 0 (no previous round data or no spam sent) -->
 						<div class="text-center p-2 bg-gray-50 rounded-lg">
 							<div class="text-xs text-gray-500 font-semibold mb-1">Spam Complaints</div>
-							<div class="flex items-center justify-center gap-1">
-								{#if esp.spamComplaintRate === 0}
-									<!-- No spam data available (Round 1 or no spam sent) -->
-									<span data-testid="esp-spam-rate" class="text-lg font-bold text-gray-400">
-										-
-									</span>
-								{:else}
-									<!-- Show actual spam complaint rate with color coding -->
-									<span
-										data-testid="status-icon-{spamStatus.status}"
-										class="text-sm"
-										aria-hidden="true"
-									>
-										{spamStatus.icon}
-									</span>
+							{#if esp.spamComplaintRate === 0}
+								<!-- No spam data available (Round 1 or no spam sent) -->
+								<span data-testid="esp-spam-rate" class="text-lg font-bold text-gray-400">
+									-
+								</span>
+							{:else}
+								<!-- Show spam volume and rate -->
+								<div class="flex flex-col items-center gap-1">
+									<div class="flex items-center justify-center gap-1">
+										<span
+											data-testid="status-icon-{spamStatus.status}"
+											class="text-sm"
+											aria-hidden="true"
+										>
+											{spamStatus.icon}
+										</span>
+										<span
+											data-testid="esp-spam-volume"
+											class="text-sm font-semibold text-gray-700"
+										>
+											{esp.spamComplaintVolume.toLocaleString()} emails
+										</span>
+									</div>
 									<span
 										data-testid="esp-spam-rate"
 										data-status={spamStatus.status}
-										class="{spamStatus.color} text-lg font-bold"
+										class="{spamStatus.color} text-xs font-medium"
 									>
-										{formatSpamRate(esp.spamComplaintRate)}
+										Rate: {formatSpamRate(esp.spamComplaintRate)}
 									</span>
-								{/if}
-							</div>
+								</div>
+							{/if}
 						</div>
 					</div>
 				</div>
