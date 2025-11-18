@@ -161,10 +161,9 @@
 	function handleGameStateUpdate(update: any) {
 		if (update.current_round !== undefined) currentRound = update.current_round;
 		if (update.current_phase !== undefined) currentPhase = update.current_phase;
-		if (update.timer !== undefined) {
-			timerDuration = update.timer.duration;
-			timerRemaining = update.timer.remaining;
-			timerRunning = update.timer.isRunning;
+		// Timer: Use simple value from WebSocket (matches ESP dashboard pattern)
+		if (update.timer_remaining !== undefined) {
+			timerRemaining = update.timer_remaining;
 		}
 
 		// US-3.2: Handle WebSocket lock-in events
@@ -273,21 +272,8 @@
 		if (update.locked_in_at) lockedInAt = new Date(update.locked_in_at);
 	}
 
-	// Timer countdown (client-side)
-	let timerInterval: ReturnType<typeof setInterval> | null = null;
-
-	function startTimerCountdown() {
-		if (timerInterval) clearInterval(timerInterval);
-
-		timerInterval = setInterval(() => {
-			if (timerRunning && timerRemaining > 0) {
-				timerRemaining--;
-			} else if (timerRemaining <= 0) {
-				timerRunning = false;
-				if (timerInterval) clearInterval(timerInterval);
-			}
-		}, 1000);
-	}
+	// Timer: No client-side countdown needed - values come from WebSocket updates
+	// This matches the ESP dashboard pattern for consistent timer behavior
 
 	// Handle coordination panel click (placeholder for US-2.7)
 	function handleCoordinationClick() {
@@ -356,10 +342,7 @@
 			handleDestinationDashboardUpdate // onDestinationDashboardUpdate
 		);
 
-		// Start timer countdown
-		if (timerRunning) {
-			startTimerCountdown();
-		}
+		// Timer values come from WebSocket updates - no need to start countdown
 
 		// Expose test API for E2E tests
 		if (typeof window !== 'undefined') {
@@ -415,7 +398,6 @@
 
 	// Destroy lifecycle
 	onDestroy(() => {
-		if (timerInterval) clearInterval(timerInterval);
 		websocketStore.disconnect();
 
 		// Clean up test API
