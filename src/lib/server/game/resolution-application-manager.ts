@@ -103,6 +103,27 @@ export function applyResolutionToGameState(
 			updatedTeams.push(team.name);
 		}
 
+		// 3. Apply destination revenue (update destination budgets)
+		const updatedDestinations: string[] = [];
+		for (const destination of session.destinations) {
+			const destResults = results.destinationResults?.[destination.name];
+
+			if (destResults && destResults.revenue) {
+				const oldBudget = destination.budget;
+				const revenueEarned = destResults.revenue.totalRevenue;
+				destination.budget += revenueEarned;
+
+				gameLogger.event('destination_revenue_applied', {
+					destinationName: destination.name,
+					oldBudget,
+					revenueEarned,
+					newBudget: destination.budget
+				});
+
+				updatedDestinations.push(destination.name);
+			}
+		}
+
 		// Log all state changes
 		for (const change of stateChanges) {
 			gameLogger.event('resolution_applied', {
@@ -116,7 +137,9 @@ export function applyResolutionToGameState(
 
 		gameLogger.info('Resolution results applied to game state', {
 			teamsUpdated: updatedTeams.length,
-			teams: updatedTeams
+			teams: updatedTeams,
+			destinationsUpdated: updatedDestinations.length,
+			destinations: updatedDestinations
 		});
 
 		return {
