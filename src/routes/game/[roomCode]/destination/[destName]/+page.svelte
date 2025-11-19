@@ -352,7 +352,19 @@
 				},
 				setBudget: (value: number) => (budget = value),
 				setCredits: (value: number) => (budget = value), // Alias for setBudget (US-3.2)
-				setESPStats: (value: ESPDestinationStats[]) => (espStats = value),
+				setESPStats: (value: ESPDestinationStats[]) => {
+					// Merge new stats with existing espStats instead of replacing
+					const updated = [...espStats];
+					for (const newStat of value) {
+						const index = updated.findIndex((s) => s.espName === newStat.espName);
+						if (index >= 0) {
+							updated[index] = newStat; // Update existing ESP
+						} else {
+							updated.push(newStat); // Add new ESP
+						}
+					}
+					espStats = updated;
+				},
 				setCoordinationCount: (count: number) => (collaborationsCount = count),
 				setOwnedTech: (value: string[]) => (ownedTech = value),
 				setRound: (value: number) => (currentRound = value),
