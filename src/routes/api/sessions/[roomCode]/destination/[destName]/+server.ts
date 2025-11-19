@@ -188,7 +188,10 @@ function calculateESPStatsForDestination(
 	let userSatisfaction: number | null = null;
 	if (espSatisfactionBreakdown && espSatisfactionBreakdown[esp.name]) {
 		const satisfactionData = espSatisfactionBreakdown[esp.name];
-		if (satisfactionData.perDestination && satisfactionData.perDestination[destination.name] !== undefined) {
+		if (
+			satisfactionData.perDestination &&
+			satisfactionData.perDestination[destination.name] !== undefined
+		) {
 			userSatisfaction = satisfactionData.perDestination[destination.name];
 		}
 	}

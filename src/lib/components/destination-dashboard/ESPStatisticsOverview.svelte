@@ -37,7 +37,8 @@
 		<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
 			{#each espStats as esp}
 				{@const repStatus = getReputationStatus(esp.reputation)}
-				{@const satStatus = esp.userSatisfaction !== null ? getSatisfactionStatus(esp.userSatisfaction) : null}
+				{@const satStatus =
+					esp.userSatisfaction !== null ? getSatisfactionStatus(esp.userSatisfaction) : null}
 				{@const spamStatus = getSpamRateStatus(esp.spamComplaintRate)}
 
 				<div
@@ -130,9 +131,7 @@
 							<div class="text-xs text-gray-500 font-semibold mb-1">Spam Complaints</div>
 							{#if esp.spamComplaintRate === 0}
 								<!-- No spam data available (Round 1 or no spam sent) -->
-								<span data-testid="esp-spam-rate" class="text-lg font-bold text-gray-400">
-									-
-								</span>
+								<span data-testid="esp-spam-rate" class="text-lg font-bold text-gray-400"> - </span>
 							{:else}
 								<!-- Show spam volume and rate -->
 								<div class="flex flex-col items-center gap-1">
@@ -144,10 +143,7 @@
 										>
 											{spamStatus.icon}
 										</span>
-										<span
-											data-testid="esp-spam-volume"
-											class="text-sm font-semibold text-gray-700"
-										>
+										<span data-testid="esp-spam-volume" class="text-sm font-semibold text-gray-700">
 											{esp.spamComplaintVolume.toLocaleString()} emails
 										</span>
 									</div>
