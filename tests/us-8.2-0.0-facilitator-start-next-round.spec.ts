@@ -9,9 +9,7 @@
  */
 
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
-import { createGameInPlanningPhase,
-	closePages
- } from './helpers/game-setup';
+import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
 
 /**
  * Helper: Get a game to consequences phase

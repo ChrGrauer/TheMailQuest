@@ -5,6 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
+import { openModal, waitForDashboardReady, extractBudget } from './helpers/e2e-actions';
 
 test.describe('US-2.3: Technical Infrastructure Shop', () => {
 	// ============================================================================
@@ -15,10 +16,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Open tech shop
-		await alicePage.getByTestId('open-tech-shop').click();
-
-		// Wait for modal to appear
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// Verify 5 core upgrades are displayed (check for specific upgrade cards)
 		await expect(alicePage.getByTestId('upgrade-card-spf')).toBeVisible();
@@ -38,8 +36,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 	test('Scenario: Display purchase requirements for each upgrade', async ({ page, context }) => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// SPF should show "No requirements"
 		const spfCard = alicePage.getByTestId('upgrade-card-spf');
@@ -62,17 +59,12 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Set current round to 2 (one round before DMARC becomes mandatory in round 3)
-		await alicePage.waitForFunction(
-			() => (window as any).__espDashboardTest?.ready === true,
-			{},
-			{ timeout: 5000 }
-		);
+		await waitForDashboardReady(alicePage, 'esp');
 		await alicePage.evaluate(() => {
 			(window as any).__espDashboardTest.setRound(2);
 		});
 
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// DMARC should be visually highlighted
 		const dmarcCard = alicePage.getByTestId('upgrade-card-dmarc');
@@ -90,8 +82,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// Try to purchase DKIM without SPF - should be locked
 		const dkimCard = alicePage.getByTestId('upgrade-card-dkim');
@@ -122,8 +113,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 	}) => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// DKIM should show Locked status
 		const dkimCard = alicePage.getByTestId('upgrade-card-dkim');
@@ -154,17 +144,12 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Set credits to insufficient amount (50 credits, SPF costs 100)
-		await alicePage.waitForFunction(
-			() => (window as any).__espDashboardTest?.ready === true,
-			{},
-			{ timeout: 5000 }
-		);
+		await waitForDashboardReady(alicePage, 'esp');
 		await alicePage.evaluate(() => {
 			(window as any).__espDashboardTest.setCredits(50);
 		});
 
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// SPF purchase button should be disabled
 		const spfCard = alicePage.getByTestId('upgrade-card-spf');
@@ -182,12 +167,9 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Get initial credits
-		await alicePage.getByTestId('budget-current').waitFor({ state: 'visible' });
-		const initialCreditsText = await alicePage.getByTestId('budget-current').textContent();
-		const initialCredits = parseInt(initialCreditsText?.replace(/[^0-9]/g, '') || '0');
+		const initialCredits = await extractBudget(alicePage, 'budget-current');
 
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// Get SPF cost
 		const spfCard = alicePage.getByTestId('upgrade-card-spf');
@@ -203,8 +185,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		// Close modal and verify credits deducted
 		await alicePage.getByTestId('close-modal').click();
 
-		const updatedCreditsText = await alicePage.getByTestId('budget-current').textContent();
-		const updatedCredits = parseInt(updatedCreditsText?.replace(/[^0-9]/g, '') || '0');
+		const updatedCredits = await extractBudget(alicePage, 'budget-current');
 
 		expect(updatedCredits).toBe(initialCredits - spfCost);
 
@@ -219,8 +200,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// Purchase SPF
 		const spfCard = alicePage.getByTestId('upgrade-card-spf');
@@ -241,8 +221,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// DKIM should be locked initially
 		const dkimCard = alicePage.getByTestId('upgrade-card-dkim');
@@ -279,8 +258,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Purchase SPF through shop
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		const spfCard = alicePage.getByTestId('upgrade-card-spf');
 		await spfCard.getByTestId('purchase-button').click();
@@ -310,11 +288,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Set current round to 2 (one round before DMARC becomes mandatory in round 3)
-		await alicePage.waitForFunction(
-			() => (window as any).__espDashboardTest?.ready === true,
-			{},
-			{ timeout: 5000 }
-		);
+		await waitForDashboardReady(alicePage, 'esp');
 		await alicePage.evaluate(() => {
 			(window as any).__espDashboardTest.setRound(2);
 		});
@@ -337,8 +311,7 @@ test.describe('US-2.3: Technical Infrastructure Shop', () => {
 		test.setTimeout(30000);
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('open-tech-shop').click();
-		await alicePage.getByTestId('tech-shop-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-tech-shop', 'tech-shop-modal');
 
 		// Content Filtering should be available immediately
 		const contentFilteringCard = alicePage.getByTestId('upgrade-card-content-filtering');

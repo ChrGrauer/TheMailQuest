@@ -9,16 +9,14 @@ import {
 	createGameWith2ESPTeams,
 	closePages
 } from './helpers/game-setup';
+import { openModal, performPurchaseAction, extractBudget } from './helpers/e2e-actions';
 
 test.describe('US-2.2: Client Marketplace', () => {
 	test('Scenario: Marketplace displays client details', async ({ page, context }) => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Open marketplace
-		await alicePage.getByTestId('open-client-marketplace').click();
-
-		// Wait for modal and for clients to load
-		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
 		// Check that clients are displayed (Round 1 = 9 clients)
@@ -39,8 +37,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 	test('Scenario: Filter clients by risk level', async ({ page, context }) => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
-		await alicePage.getByTestId('open-client-marketplace').click();
-		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
 		// Get initial client count
@@ -75,13 +72,10 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Wait for dashboard to load and get initial credits
-		await alicePage.getByTestId('budget-current').waitFor({ state: 'visible' });
-		const initialCreditsText = await alicePage.getByTestId('budget-current').textContent();
-		const initialCredits = parseInt(initialCreditsText?.replace(/[^0-9]/g, '') || '0');
+		const initialCredits = await extractBudget(alicePage, 'budget-current');
 
 		// Open marketplace
-		await alicePage.getByTestId('open-client-marketplace').click();
-		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
 		// Get initial count and first client info
@@ -90,35 +84,8 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const costText = await firstCard.getByTestId('client-cost').textContent();
 		const clientCost = parseInt(costText?.replace(/[^0-9]/g, '') || '0');
 
-		// Click acquire button
-		await firstCard.getByTestId('acquire-button').click();
-
-		// Wait for either success or error (with longer timeout for API call)
-		const successOrError = await Promise.race([
-			alicePage
-				.getByTestId('success-message')
-				.waitFor({ state: 'visible', timeout: 15000 })
-				.then(() => 'success'),
-			alicePage
-				.getByTestId('error-banner')
-				.waitFor({ state: 'visible', timeout: 15000 })
-				.then(() => 'error'),
-			alicePage.waitForTimeout(15000).then(() => 'timeout')
-		]);
-
-		// If error or timeout, capture details and fail
-		if (successOrError === 'error') {
-			const errorText = await alicePage.getByTestId('error-banner').textContent();
-			throw new Error(`Acquisition failed with error: ${errorText}`);
-		}
-		if (successOrError === 'timeout') {
-			// Check if still loading
-			const isLoading = await alicePage
-				.getByTestId('loading-spinner')
-				.isVisible()
-				.catch(() => false);
-			throw new Error(`Acquisition timed out. Still loading: ${isLoading}`);
-		}
+		// Acquire client
+		await performPurchaseAction(alicePage, firstCard.getByTestId('acquire-button'));
 
 		// Verify client was removed
 		const newCount = await alicePage.getByTestId('client-card').count();
@@ -129,8 +96,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 
 		// Verify credits updated (wait a bit for WebSocket)
 		await alicePage.waitForTimeout(1000);
-		const newCreditsText = await alicePage.getByTestId('budget-current').textContent();
-		const newCredits = parseInt(newCreditsText?.replace(/[^0-9]/g, '') || '0');
+		const newCredits = await extractBudget(alicePage, 'budget-current');
 
 		expect(newCredits).toBe(initialCredits - clientCost);
 
@@ -150,8 +116,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		await alicePage.waitForTimeout(200);
 
 		// Open marketplace
-		await alicePage.getByTestId('open-client-marketplace').click();
-		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
 		// Find expensive client (check multiple cards)
@@ -179,8 +144,7 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const { alicePage } = await createGameInPlanningPhase(page, context);
 
 		// Open marketplace and get initial count
-		await alicePage.getByTestId('open-client-marketplace').click();
-		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
 		const initialCount = await alicePage.getByTestId('client-card').count();
@@ -190,38 +154,12 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const clientName = await firstCard.getByTestId('client-name').textContent();
 
 		// Acquire it
-		await firstCard.getByTestId('acquire-button').click();
-
-		// Wait for either success or error
-		const successOrError = await Promise.race([
-			alicePage
-				.getByTestId('success-message')
-				.waitFor({ state: 'visible', timeout: 15000 })
-				.then(() => 'success'),
-			alicePage
-				.getByTestId('error-banner')
-				.waitFor({ state: 'visible', timeout: 15000 })
-				.then(() => 'error'),
-			alicePage.waitForTimeout(15000).then(() => 'timeout')
-		]);
-
-		if (successOrError === 'error') {
-			const errorText = await alicePage.getByTestId('error-banner').textContent();
-			throw new Error(`Acquisition failed with error: ${errorText}`);
-		}
-		if (successOrError === 'timeout') {
-			const isLoading = await alicePage
-				.getByTestId('loading-spinner')
-				.isVisible()
-				.catch(() => false);
-			throw new Error(`Acquisition timed out. Still loading: ${isLoading}`);
-		}
+		await performPurchaseAction(alicePage, firstCard.getByTestId('acquire-button'));
 
 		// Close and reopen marketplace
 		await alicePage.getByTestId('close-modal').click();
 		await alicePage.waitForTimeout(300);
-		await alicePage.getByTestId('open-client-marketplace').click();
-		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
 		// Count should be reduced
@@ -240,42 +178,20 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const { alicePage, bobPage } = await createGameWith2ESPTeams(page, context);
 
 		// Alice opens marketplace
-		await alicePage.getByTestId('open-client-marketplace').click();
-		await alicePage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
+		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
 		// Get Alice's available clients count
 		const aliceCount = await alicePage.getByTestId('client-card').count();
 
 		// Alice acquires a client
-		await alicePage.getByTestId('client-card').first().getByTestId('acquire-button').click();
-
-		// Wait for success or error
-		const result = await Promise.race([
-			alicePage
-				.getByTestId('success-message')
-				.waitFor({ state: 'visible', timeout: 15000 })
-				.then(() => 'success'),
-			alicePage
-				.getByTestId('error-banner')
-				.waitFor({ state: 'visible', timeout: 15000 })
-				.then(() => 'error'),
-			alicePage.waitForTimeout(15000).then(() => 'timeout')
-		]);
-
-		if (result === 'error') {
-			const errorText = await alicePage.getByTestId('error-banner').textContent();
-			throw new Error(`Alice acquisition failed: ${errorText}`);
-		}
-		if (result === 'timeout') {
-			throw new Error('Alice acquisition timed out');
-		}
+		const acquireButton = alicePage.getByTestId('client-card').first().getByTestId('acquire-button');
+		await performPurchaseAction(alicePage, acquireButton);
 
 		await alicePage.getByTestId('close-modal').click();
 
 		// Bob opens his marketplace
-		await bobPage.getByTestId('open-client-marketplace').click();
-		await bobPage.getByTestId('marketplace-modal').waitFor({ state: 'visible' });
+		await openModal(bobPage, 'open-client-marketplace', 'marketplace-modal');
 		await bobPage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
 
 		// Bob should still see all his clients (independent stock)
