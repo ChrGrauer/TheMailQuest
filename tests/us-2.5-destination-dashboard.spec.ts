@@ -75,16 +75,15 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 						volumeRaw: 0,
 						reputation: 70,
 						userSatisfaction: 70,
-						spamComplaintRate: 0
+						spamComplaintRate: 0,
+						spamComplaintVolume: 0
 					}
 				]);
 			});
 
-			await gmailPage.waitForTimeout(500);
-
 			// When: I view the ESP Statistics Overview
 			const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
-			await expect(espCard).toBeVisible();
+			await expect(espCard).toBeVisible({ timeout: 2000 });
 
 			// Then: "SendWave" should still appear in the list
 			const teamName = espCard.locator('[data-testid="esp-team-name"]');
@@ -128,6 +127,9 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 
 				// When: ESP has reputation at threshold value
 				await gmailPage.evaluate((rep) => {
+					const spamRate = rep >= 90 ? 0.01 : rep >= 70 ? 0.04 : rep >= 50 ? 0.08 : 0.2;
+					const spamVolume = Math.floor(185000 * spamRate);
+
 					(window as any).__destinationDashboardTest.setESPStats([
 						{
 							espName: 'SendWave',
@@ -137,16 +139,19 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 							volumeRaw: 185000,
 							reputation: rep,
 							userSatisfaction: rep,
-							spamComplaintRate: rep >= 90 ? 0.01 : rep >= 70 ? 0.04 : rep >= 50 ? 0.08 : 0.2
+							spamComplaintRate: spamRate,
+							spamComplaintVolume: spamVolume
 						}
 					]);
 				}, threshold.value);
 
-				await gmailPage.waitForTimeout(500);
-
-				// Then: reputation should display correct status
+				// Then: reputation should display correct status (wait for DOM update)
 				const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
+				await expect(espCard).toBeVisible({ timeout: 2000 });
+
 				const reputation = espCard.locator('[data-testid="esp-reputation"]');
+				await expect(reputation).toContainText(String(threshold.value), { timeout: 2000 });
+
 				const repStatus = await reputation.getAttribute('data-status');
 				expect(repStatus).toBe(threshold.expectedStatus);
 
@@ -169,73 +174,80 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			page,
 			context
 		}) => {
-			const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			const { alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
+			const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
+			const spamRate = espCard.locator('[data-testid="esp-spam-rate"]');
+
 			// Test low spam rate (<0.05%)
 			await gmailPage.evaluate(() => {
+				const volumeRaw = 185000;
+				const rate = 0.04;
 				(window as any).__destinationDashboardTest.setESPStats([
 					{
 						espName: 'SendWave',
 						teamCode: 'SW',
 						activeClientsCount: 4,
 						volume: '185K',
-						volumeRaw: 185000,
+						volumeRaw: volumeRaw,
 						reputation: 85,
 						userSatisfaction: 85,
-						spamComplaintRate: 0.04
+						spamComplaintRate: rate,
+						spamComplaintVolume: Math.floor(volumeRaw * rate)
 					}
 				]);
 			});
 
-			await gmailPage.waitForTimeout(500);
-
-			const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
-			const spamRate = espCard.locator('[data-testid="esp-spam-rate"]');
-			let spamStatus = await spamRate.getAttribute('data-status');
-			expect(spamStatus).toBe('low');
+			// Wait for DOM update
+			await expect(espCard).toBeVisible({ timeout: 2000 });
+			await expect(spamRate).toHaveAttribute('data-status', 'low', { timeout: 2000 });
 
 			// Test medium spam rate (0.05-0.15%)
 			await gmailPage.evaluate(() => {
+				const volumeRaw = 185000;
+				const rate = 0.1;
 				(window as any).__destinationDashboardTest.setESPStats([
 					{
 						espName: 'SendWave',
 						teamCode: 'SW',
 						activeClientsCount: 4,
 						volume: '185K',
-						volumeRaw: 185000,
+						volumeRaw: volumeRaw,
 						reputation: 70,
 						userSatisfaction: 70,
-						spamComplaintRate: 0.1
+						spamComplaintRate: rate,
+						spamComplaintVolume: Math.floor(volumeRaw * rate)
 					}
 				]);
 			});
 
-			await gmailPage.waitForTimeout(500);
-			spamStatus = await spamRate.getAttribute('data-status');
-			expect(spamStatus).toBe('medium');
+			// Wait for DOM update
+			await expect(spamRate).toHaveAttribute('data-status', 'medium', { timeout: 2000 });
 
 			// Test high spam rate (≥0.15%)
 			await gmailPage.evaluate(() => {
+				const volumeRaw = 185000;
+				const rate = 0.28;
 				(window as any).__destinationDashboardTest.setESPStats([
 					{
 						espName: 'SendWave',
 						teamCode: 'SW',
 						activeClientsCount: 4,
 						volume: '185K',
-						volumeRaw: 185000,
+						volumeRaw: volumeRaw,
 						reputation: 52,
 						userSatisfaction: 52,
-						spamComplaintRate: 0.28
+						spamComplaintRate: rate,
+						spamComplaintVolume: Math.floor(volumeRaw * rate)
 					}
 				]);
 			});
 
-			await gmailPage.waitForTimeout(500);
-			spamStatus = await spamRate.getAttribute('data-status');
-			expect(spamStatus).toBe('high');
+			// Wait for DOM update
+			await expect(spamRate).toHaveAttribute('data-status', 'high', { timeout: 2000 });
 
 			await closePages(page, gmailPage);
 			await closePages(page, alicePage, bobPage);
@@ -260,7 +272,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 
 			// When: I view the Inter-Destination Coordination card
 			const coordCard = gmailPage.locator('[data-testid="coordination-status"]');
-			await expect(coordCard).toBeVisible();
+			await expect(coordCard).toBeVisible({ timeout: 5000 });
 
 			// Then: I should see "Active Collaborations: 0"
 			const collabCount = coordCard.locator('[data-testid="collaborations-count"]');
@@ -346,29 +358,31 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 
 			// Set ESP with excellent reputation
 			await gmailPage.evaluate(() => {
+				const volumeRaw = 185000;
+				const rate = 0.01;
 				(window as any).__destinationDashboardTest.setESPStats([
 					{
 						espName: 'SendWave',
 						teamCode: 'SW',
 						activeClientsCount: 4,
 						volume: '185K',
-						volumeRaw: 185000,
+						volumeRaw: volumeRaw,
 						reputation: 95,
 						userSatisfaction: 95,
-						spamComplaintRate: 0.01
+						spamComplaintRate: rate,
+						spamComplaintVolume: Math.floor(volumeRaw * rate)
 					}
 				]);
 			});
 
-			await gmailPage.waitForTimeout(500);
-
-			// Then: each status should also use icons
+			// Then: each status should also use icons (wait for DOM update)
 			const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
+			await expect(espCard).toBeVisible({ timeout: 2000 });
 
 			// Check for icon (checkmark for excellent) - there are multiple excellent icons (rep + satisfaction)
 			// So we'll just check that at least one exists
 			const icons = espCard.locator('[data-testid^="status-icon-"]');
-			await expect(icons.first()).toBeVisible();
+			await expect(icons.first()).toBeVisible({ timeout: 2000 });
 			const iconText = await icons.first().textContent();
 			expect(iconText).toMatch(/[✓✕⚠!👍]/); // Should have an icon
 
@@ -394,11 +408,9 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 				(window as any).__destinationDashboardTest.setError('Failed to load ESP statistics');
 			});
 
-			await gmailPage.waitForTimeout(500);
-
-			// Then: an error banner should appear at the top
+			// Then: an error banner should appear at the top (wait for DOM update)
 			const errorBanner = gmailPage.locator('[data-testid="error-banner"]');
-			await expect(errorBanner).toBeVisible();
+			await expect(errorBanner).toBeVisible({ timeout: 2000 });
 			await expect(errorBanner).toContainText('Failed to load ESP statistics');
 
 			// And: the dashboard should remain functional (non-blocking)
@@ -408,7 +420,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// And: user can dismiss the error
 			const dismissButton = errorBanner.locator('button');
 			await dismissButton.click();
-			await expect(errorBanner).not.toBeVisible();
+			await expect(errorBanner).not.toBeVisible({ timeout: 2000 });
 
 			await closePages(page, gmailPage);
 			await closePages(page, alicePage, bobPage);
@@ -455,7 +467,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			context
 		}) => {
 			// Given: I am a destination player in Round 2
-			const { roomCode, facilitatorPage, alicePage, gmailPage } = await createGameInSecondRound(
+			const { facilitatorPage, alicePage, gmailPage } = await createGameInSecondRound(
 				page,
 				context
 			);

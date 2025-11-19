@@ -53,8 +53,6 @@ export async function addPlayer(
 	await playerPage.click(`text=${teamName}`);
 	await playerPage.locator('input[name="displayName"]').fill(displayName);
 	await playerPage.click('button:has-text("Join Game")');
-	// Wait for join to complete (button changes to "Joining..." then modal closes)
-	await playerPage.waitForTimeout(500);
 	return playerPage;
 }
 
