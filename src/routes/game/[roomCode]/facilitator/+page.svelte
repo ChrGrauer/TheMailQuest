@@ -2,6 +2,11 @@
 	import { page } from '$app/stores';
 	import { onMount, onDestroy } from 'svelte';
 	import { websocketStore, type GameStateUpdate } from '$lib/stores/websocket';
+	import IncidentTriggerButton from '$lib/components/incident/IncidentTriggerButton.svelte';
+	import IncidentSelectionModal from '$lib/components/incident/IncidentSelectionModal.svelte';
+	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
+	import IncidentHistory from '$lib/components/incident/IncidentHistory.svelte';
+	import type { IncidentCard, IncidentHistoryEntry } from '$lib/types/incident';
 
 	const roomCode = $page.params.roomCode;
 
@@ -13,6 +18,12 @@
 	let isStartingRound = $state(false);
 	let error = $state<string | null>(null);
 
+	// Incident state
+	let showIncidentSelectionModal = $state(false);
+	let showIncidentCard = $state(false);
+	let currentIncident = $state<IncidentCard | null>(null);
+	let incidentHistory = $state<IncidentHistoryEntry[]>([]);
+
 	// Format timer as M:SS
 	let timerDisplay = $derived(
 		`${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`
@@ -23,6 +34,13 @@
 
 	// Handle game state updates from WebSocket
 	function handleGameStateUpdate(data: GameStateUpdate | any) {
+		// Handle incident_triggered messages
+		if (data.type === 'incident_triggered' && data.incident) {
+			currentIncident = data.incident;
+			showIncidentCard = true;
+			return;
+		}
+
 		// Handle phase_transition messages (nested structure)
 		if (data.type === 'phase_transition' && data.data) {
 			if (data.data.phase !== undefined) {
@@ -35,6 +53,10 @@
 			}
 			if (data.data.timer_remaining !== undefined) {
 				timerRemaining = data.data.timer_remaining;
+			}
+			// Update incident history if present
+			if (data.data.incident_history !== undefined) {
+				incidentHistory = data.data.incident_history;
 			}
 			return;
 		}
@@ -50,6 +72,10 @@
 		}
 		if (data.timer_remaining !== undefined) {
 			timerRemaining = data.timer_remaining;
+		}
+		// Update incident history if present
+		if (data.incident_history !== undefined) {
+			incidentHistory = data.incident_history;
 		}
 	}
 
@@ -123,10 +149,51 @@
 		</div>
 	{/if}
 
+	<!-- Incident Controls -->
+	<div class="incident-section">
+		<IncidentTriggerButton
+			onclick={() => (showIncidentSelectionModal = true)}
+		/>
+	</div>
+
+	<!-- Incident History -->
+	{#if incidentHistory.length > 0}
+		<div class="incident-history-section">
+			<IncidentHistory history={incidentHistory} />
+		</div>
+	{/if}
+
 	<p class="placeholder-notice">
 		This is a placeholder dashboard. Full implementation coming in future user stories.
 	</p>
 </div>
+
+<!-- Incident Selection Modal -->
+<IncidentSelectionModal
+	bind:show={showIncidentSelectionModal}
+	{roomCode}
+	currentRound={round}
+	onClose={() => (showIncidentSelectionModal = false)}
+	onTriggerSuccess={(incident) => {
+		incidentHistory = [...incidentHistory, {
+			incidentId: incident.id,
+			name: incident.name,
+			category: incident.category,
+			roundTriggered: round,
+			timestamp: new Date()
+		}];
+	}}
+/>
+
+<!-- Incident Card Display -->
+<IncidentCardDisplay
+	bind:show={showIncidentCard}
+	incident={currentIncident}
+	onClose={() => {
+		showIncidentCard = false;
+		currentIncident = null;
+	}}
+/>
 
 <style>
 	.container {
@@ -189,5 +256,13 @@
 		background-color: #f3f4f6;
 		border-radius: 0.5rem;
 		color: #6b7280;
+	}
+
+	.incident-section {
+		margin: 1.5rem 0;
+	}
+
+	.incident-history-section {
+		margin: 1.5rem 0;
 	}
 </style>
