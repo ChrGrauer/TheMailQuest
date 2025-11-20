@@ -91,6 +91,7 @@
 		class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
 		transition:fade={{ duration: 200 }}
 		onclick={onClose}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
 		tabindex="-1"
 		role="button"
 		aria-label="Close incident card"
@@ -102,6 +103,8 @@
 				incident.category
 			)}"
 			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			tabindex="-1"
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="incident-title"

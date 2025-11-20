@@ -294,10 +294,6 @@
 		color: #6b7280;
 	}
 
-	.incident-section {
-		margin: 1.5rem 0;
-	}
-
 	.incident-history-section {
 		margin: 1.5rem 0;
 	}

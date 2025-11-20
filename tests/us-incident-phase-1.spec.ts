@@ -268,7 +268,7 @@ test.describe('Incident Cards Phase 1: Round-Based Filtering', () => {
 	});
 
 	test('cannot trigger same incident twice in same round', async ({ page, context }) => {
-		const { roomCode, alicePage } = await createGameInPlanningPhase(page, context);
+		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 		// Trigger INC-001 first time
 		await page.click('[data-testid="drama-trigger-incident-button"]');
@@ -310,7 +310,7 @@ test.describe('Incident Cards Phase 1: Round-Based Filtering', () => {
 			expect(inc001Count).toBe(0);
 		}
 
-		await closePages(page, alicePage);
+		await closePages(page, alicePage, bobPage);
 	});
 });
 

@@ -128,6 +128,7 @@
 		class="fixed inset-0 bg-black/50 z-50"
 		transition:fade={{ duration: 200 }}
 		onclick={onClose}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
 		tabindex="-1"
 		role="button"
 		aria-label="Close modal"
@@ -139,6 +140,8 @@
 					class="bg-white rounded-xl shadow-xl max-w-4xl w-full"
 					transition:scale={{ duration: 200 }}
 					onclick={(e) => e.stopPropagation()}
+					onkeydown={(e) => e.stopPropagation()}
+					tabindex="-1"
 					role="dialog"
 					aria-modal="true"
 					aria-labelledby="modal-title"
