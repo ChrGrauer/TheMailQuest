@@ -340,30 +340,32 @@ export function updateTimerRemaining(
 			// Auto-lock all unlocked players
 			autoLockAllPlayers(roomCode);
 
-			// Transition to resolution phase
-			const transitionResult = transitionPhase({
-				roomCode,
-				toPhase: 'resolution'
-			});
+			// Transition to resolution phase (async IIFE to handle await)
+			(async () => {
+				const transitionResult = await transitionPhase({
+					roomCode,
+					toPhase: 'resolution'
+				});
 
-			if (transitionResult.success) {
-				gameLogger.info('Phase transitioned to resolution after timer expiry', { roomCode });
+				if (transitionResult.success) {
+					gameLogger.info('Phase transitioned to resolution after timer expiry', { roomCode });
 
-				// Broadcast phase transition if callback provided
-				if (broadcastWarning) {
-					broadcastWarning(roomCode, {
-						type: 'phase_transition',
-						data: {
-							phase: 'resolution',
-							round: transitionResult.round,
-							message: "Time's up! All decisions locked - Starting Resolution"
-						}
-					});
+					// Broadcast phase transition if callback provided
+					if (broadcastWarning) {
+						broadcastWarning(roomCode, {
+							type: 'phase_transition',
+							data: {
+								phase: 'resolution',
+								round: transitionResult.round,
+								message: "Time's up! All decisions locked - Starting Resolution"
+							}
+						});
+					}
+
+					// US-3.5: Trigger resolution calculation and consequences transition
+					handleResolutionPhase(session, roomCode, broadcastWarning);
 				}
-
-				// US-3.5: Trigger resolution calculation and consequences transition
-				handleResolutionPhase(session, roomCode, broadcastWarning);
-			}
+			})();
 
 			// Reset tracking for next phase
 			resetTimerTracking(roomCode);

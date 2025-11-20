@@ -8,6 +8,7 @@ This document catalogs all `data-testid` attributes used across the frontend for
 - [Destination Dashboard](#destination-dashboard)
 - [Lobby](#lobby)
 - [Facilitator Dashboard](#facilitator-dashboard)
+- [Incident Cards (Phase 1: MVP)](#incident-cards-phase-1-mvp)
 - [Naming Conventions](#naming-conventions)
 
 ---
@@ -507,10 +508,58 @@ expect(getByTestId('budget-current')).toBeTruthy();
 
 ---
 
+## Incident Cards (Phase 1: MVP)
+
+### Facilitator Controls
+**Location**: `src/routes/game/[roomCode]/facilitator/+page.svelte`
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `drama-trigger-incident-button` | `<button>` | Button to open incident selection modal (facilitator only) |
+
+### Incident Selection Modal
+**Location**: `src/lib/components/incident/IncidentSelectionModal.svelte`
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `drama-selection-modal` | `<div>` | Incident selection modal container (facilitator only) |
+| `drama-incident-{id}` | `<button>` | Individual incident card in selection list (e.g., `drama-incident-INC-001`) |
+| `drama-preview-description` | `<p>` | Preview description area showing selected incident details |
+| `drama-trigger-button` | `<button>` | Confirm trigger button in modal |
+
+### Incident Card Display
+**Location**: `src/lib/components/incident/IncidentCardDisplay.svelte`
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `drama-card-display` | `<div>` | Full-screen incident card overlay (shown to all players) |
+| `drama-card-title` | `<h2>` | Incident card title/name |
+| `drama-card-description` | `<p>` | Incident card description text |
+| `drama-card-educational` | `<p>` | Educational note explaining learning objective |
+| `drama-card-category` | `<span>` | Category badge (Regulatory, Security, Market, Industry, Technical) |
+
+### Incident History
+**Location**: `src/lib/components/incident/IncidentHistory.svelte`
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `drama-incident-history` | `<div>` | Collapsible incident history panel (facilitator only) |
+| `drama-history-toggle` | `<button>` | Collapse/expand toggle button for history |
+| `drama-history-item-{round}-{index}` | `<div>` | Individual history entry (e.g., `drama-history-item-1-0` for first incident of round 1) |
+
+**Notes**:
+- All incident test IDs use the `drama-` prefix as requested
+- Incident card displays to all players (ESP, Destination, and Facilitator)
+- History and trigger controls are facilitator-only
+- Auto-dismisses after 10 seconds in Phase 1 MVP
+- Supports manual dismiss via Escape key or click-outside
+
+---
+
 ## Maintenance Notes
 
-- **Last Updated**: 2025-11-17
-- **Total Test IDs**: 196+
+- **Last Updated**: 2025-11-20
+- **Total Test IDs**: 207+
 - When adding new test IDs, follow the [Naming Conventions](#naming-conventions)
 - Update this document when adding/removing/renaming test IDs
 - Consider adding `data-*` attributes for additional test metadata (colors, states, etc.)
@@ -523,3 +572,4 @@ expect(getByTestId('budget-current')).toBeTruthy();
 - **Consequences Phase**: 26 test IDs (US-3.5) - Updated with missing container and volume metrics
 - **Lobby**: 5 test IDs
 - **Facilitator**: 4 test IDs
+- **Incident Cards**: 11 test IDs (Phase 1 MVP - drama-* prefix)

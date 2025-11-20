@@ -99,7 +99,9 @@ export function canTransitionPhase(request: PhaseTransitionRequest): PhaseTransi
  * @param request Transition request with roomCode and target phase
  * @returns Result indicating success or error
  */
-export function transitionPhase(request: PhaseTransitionRequest): PhaseTransitionResult {
+export async function transitionPhase(
+	request: PhaseTransitionRequest
+): Promise<PhaseTransitionResult> {
 	const { roomCode, toPhase } = request;
 
 	// Validate room code
@@ -147,6 +149,72 @@ export function transitionPhase(request: PhaseTransitionRequest): PhaseTransitio
 
 		// Record phase start time
 		session.phase_start_time = new Date();
+
+		// Phase 1: Automatic DMARC Enforcement at Round 3
+		// Trigger INC-010 automatically when entering Round 3 planning phase
+		if (toPhase === 'planning' && session.current_round === 3) {
+			// Check if DMARC incident not already triggered
+			const dmarcAlreadyTriggered =
+				session.incident_history?.some((entry) => entry.incidentId === 'INC-010') || false;
+
+			if (!dmarcAlreadyTriggered) {
+				try {
+					// Import incident management functions dynamically to avoid circular dependencies
+					const { triggerIncident } = await import('./incident-manager');
+					const { applyIncidentEffects } = await import('./incident-effects-manager');
+					const { getIncidentById } = await import('$lib/config/incident-cards');
+					const { GameWebSocketServer } = await import('../websocket');
+
+					// Trigger DMARC incident
+					const incident = getIncidentById('INC-010');
+					if (incident) {
+						const triggerResult = triggerIncident(session, 'INC-010');
+
+						if (triggerResult.success) {
+							// Apply effects
+							const effectResult = applyIncidentEffects(session, incident);
+
+							// Broadcast incident to all players
+							const gameWss = new GameWebSocketServer();
+							gameWss.broadcastToRoom(roomCode, {
+								type: 'incident_triggered',
+								incident: {
+									id: incident.id,
+									name: incident.name,
+									description: incident.description,
+									educationalNote: incident.educationalNote,
+									category: incident.category,
+									rarity: incident.rarity,
+									duration: incident.duration,
+									displayDurationMs: 10000
+								}
+							});
+
+							// Broadcast effects
+							gameWss.broadcastToRoom(roomCode, {
+								type: 'incident_effects_applied',
+								incidentId: incident.id,
+								changes: effectResult.changes
+							});
+
+							gameLogger.info({
+								action: 'automatic_incident_triggered',
+								roomCode,
+								incidentId: 'INC-010',
+								incidentName: 'DMARC Enforcement',
+								round: 3
+							});
+						}
+					}
+				} catch (error) {
+					// Log error but don't fail phase transition
+					gameLogger.error(error as Error, {
+						context: 'automatic_dmarc_trigger',
+						roomCode
+					});
+				}
+			}
+		}
 
 		// Update activity
 		updateActivity(roomCode);

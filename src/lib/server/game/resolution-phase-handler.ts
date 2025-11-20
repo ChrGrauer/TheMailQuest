@@ -117,8 +117,8 @@ export function handleResolutionPhase(
 			}
 
 			// Auto-transition to consequences phase after brief delay
-			setTimeout(() => {
-				const consequencesResult = transitionPhase({
+			setTimeout(async () => {
+				const consequencesResult = await transitionPhase({
 					roomCode,
 					toPhase: 'consequences'
 				});

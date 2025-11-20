@@ -2,11 +2,11 @@
 	import { page } from '$app/stores';
 	import { onMount, onDestroy } from 'svelte';
 	import { websocketStore, type GameStateUpdate } from '$lib/stores/websocket';
+	import type { IncidentCard, IncidentHistoryEntry } from '$lib/types/incident';
 	import IncidentTriggerButton from '$lib/components/incident/IncidentTriggerButton.svelte';
 	import IncidentSelectionModal from '$lib/components/incident/IncidentSelectionModal.svelte';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 	import IncidentHistory from '$lib/components/incident/IncidentHistory.svelte';
-	import type { IncidentCard, IncidentHistoryEntry } from '$lib/types/incident';
 
 	const roomCode = $page.params.roomCode;
 
@@ -79,6 +79,51 @@
 		}
 	}
 
+	// Fetch incident history on mount
+	async function fetchIncidentHistory() {
+		try {
+			const response = await fetch(`/api/sessions/${roomCode}`);
+			if (response.ok) {
+				const data = await response.json();
+				if (data.success && data.session.incident_history) {
+					incidentHistory = data.session.incident_history;
+				}
+			}
+		} catch (err) {
+			console.error('Error fetching incident history:', err);
+		}
+	}
+
+	// Handle incident trigger button click
+	function handleTriggerIncident() {
+		showIncidentSelectionModal = true;
+	}
+
+	// Handle successful incident trigger
+	function handleIncidentTriggered(incident: IncidentCard) {
+		// Add to history
+		incidentHistory = [
+			...incidentHistory,
+			{
+				incidentId: incident.id,
+				name: incident.name,
+				category: incident.category,
+				roundTriggered: round,
+				timestamp: new Date()
+			}
+		];
+
+		// Show card display
+		currentIncident = incident;
+		showIncidentCard = true;
+	}
+
+	// Handle incident card close
+	function handleIncidentCardClose() {
+		showIncidentCard = false;
+		currentIncident = null;
+	}
+
 	onMount(() => {
 		// Connect to WebSocket for real-time game state updates
 		websocketStore.connect(
@@ -86,6 +131,9 @@
 			() => {}, // Lobby updates not needed for facilitator
 			handleGameStateUpdate
 		);
+
+		// Fetch incident history
+		fetchIncidentHistory();
 	});
 
 	onDestroy(() => {
@@ -131,17 +179,23 @@
 		{timerDisplay}
 	</div>
 
-	{#if showStartButton}
-		<button
-			data-testid="start-next-round-button"
-			onclick={handleStartNextRound}
-			disabled={isStartingRound}
-			class="start-button"
-			class:loading={isStartingRound}
-		>
-			{isStartingRound ? 'Starting...' : 'Start Next Round'}
-		</button>
-	{/if}
+	<!-- Facilitator Actions -->
+	<div class="actions-panel">
+		{#if showStartButton}
+			<button
+				data-testid="start-next-round-button"
+				onclick={handleStartNextRound}
+				disabled={isStartingRound}
+				class="start-button"
+				class:loading={isStartingRound}
+			>
+				{isStartingRound ? 'Starting...' : 'Start Next Round'}
+			</button>
+		{/if}
+
+		<!-- Incident Trigger Button -->
+		<IncidentTriggerButton disabled={false} onClick={handleTriggerIncident} />
+	</div>
 
 	{#if error}
 		<div data-testid="error-message" class="error-banner" role="alert">

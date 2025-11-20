@@ -576,4 +576,3 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 		});
 	});
 });
-

@@ -30,6 +30,8 @@
 	import { calculateOnboardingCost } from '$lib/config/client-onboarding';
 	import type { OnboardingOptions } from '$lib/server/game/types';
 	import type { ESPResolutionResult } from '$lib/server/game/resolution-types';
+	import type { IncidentCard } from '$lib/types/incident';
+	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 
 	// Get params from page store
 	let roomCode = $derived($page.params.roomCode || '');
@@ -90,6 +92,10 @@
 	let showMarketplace = $state(false);
 	let showTechShop = $state(false);
 	let showClientManagement = $state(false);
+
+	// Incident state
+	let showIncidentCard = $state(false);
+	let currentIncident = $state<IncidentCard | null>(null);
 
 	// Test state for WebSocket status (used by E2E tests)
 	let testWsConnected = $state<boolean | null>(null);
@@ -275,6 +281,13 @@
 	 * Handle game state updates (phase, round, timer)
 	 */
 	function handleGameStateUpdate(data: any) {
+		// Handle incident_triggered messages
+		if (data.type === 'incident_triggered' && data.incident) {
+			currentIncident = data.incident;
+			showIncidentCard = true;
+			return;
+		}
+
 		if (data.phase) {
 			currentPhase = data.phase;
 		}
@@ -799,5 +812,15 @@
 		{teamName}
 		currentCredits={credits}
 		{currentRound}
+	/>
+
+	<!-- Incident Card Display -->
+	<IncidentCardDisplay
+		bind:show={showIncidentCard}
+		incident={currentIncident}
+		onClose={() => {
+			showIncidentCard = false;
+			currentIncident = null;
+		}}
 	/>
 </div>

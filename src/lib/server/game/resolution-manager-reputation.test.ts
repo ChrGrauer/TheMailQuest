@@ -195,4 +195,3 @@ describe('Resolution Manager - Iteration 2: Reputation-Based Delivery', () => {
 		expect(results.espResults.MailMonkey.revenue.actualRevenue).toBe(75); // 150 * 0.50
 	});
 });
-

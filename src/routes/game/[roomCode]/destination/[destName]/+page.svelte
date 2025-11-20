@@ -33,6 +33,8 @@
 	import TechnicalShopModal from '$lib/components/destination-dashboard/TechnicalShopModal.svelte';
 	import FilteringControlsModal from '$lib/components/destination-dashboard/FilteringControlsModal.svelte';
 	import DestinationConsequences from '$lib/components/consequences/DestinationConsequences.svelte';
+	import type { IncidentCard } from '$lib/types/incident';
+	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 
 	// Get params
 	const roomCode = $page.params.roomCode;
@@ -64,6 +66,10 @@
 	// Filtering Controls state (US-2.6.1)
 	let showFilteringControls = $state(false);
 	let filteringPolicies = $state<Record<string, FilteringPolicy>>({});
+
+	// Incident state
+	let showIncidentCard = $state(false);
+	let currentIncident = $state<IncidentCard | null>(null);
 
 	// Lock-in state (US-3.2)
 	let isLockedIn = $state(false);
@@ -159,6 +165,13 @@
 
 	// Handle game state updates from WebSocket
 	function handleGameStateUpdate(update: any) {
+		// Handle incident_triggered messages
+		if (update.type === 'incident_triggered' && update.incident) {
+			currentIncident = update.incident;
+			showIncidentCard = true;
+			return;
+		}
+
 		if (update.current_round !== undefined) currentRound = update.current_round;
 		if (update.current_phase !== undefined) currentPhase = update.current_phase;
 		// Timer: Use simple value from WebSocket (matches ESP dashboard pattern)
@@ -584,4 +597,14 @@
 	{filteringPolicies}
 	dashboardError={error}
 	onRetry={handleRetry}
+/>
+
+<!-- Incident Card Display -->
+<IncidentCardDisplay
+	bind:show={showIncidentCard}
+	incident={currentIncident}
+	onClose={() => {
+		showIncidentCard = false;
+		currentIncident = null;
+	}}
 />

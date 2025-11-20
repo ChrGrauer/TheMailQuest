@@ -345,4 +345,3 @@ describe('Spam Trap Reset Between Rounds - Phase 1.2.2', () => {
 		expect(session.destinations[2].spam_trap_active).toBeUndefined();
 	});
 });
-
