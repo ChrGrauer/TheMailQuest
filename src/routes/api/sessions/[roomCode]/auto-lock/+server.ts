@@ -2,6 +2,7 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import { autoLockAllPlayers } from '$lib/server/game/lock-in-manager';
 import { getSession } from '$lib/server/game/session-manager';
 import { transitionPhase } from '$lib/server/game/phase-manager';
+import { handleResolutionPhase } from '$lib/server/game/resolution-phase-handler';
 import { gameLogger } from '$lib/server/logger';
 import { gameWss } from '$lib/server/websocket';
 
@@ -124,6 +125,11 @@ export const POST: RequestHandler = async ({ params }) => {
 				round: transitionResult.round,
 				message: "Time's up! All decisions locked - Starting Resolution"
 			}
+		});
+
+		// US-3.5: Trigger resolution calculation and consequences transition
+		handleResolutionPhase(session, roomCode, (roomCode, message) => {
+			gameWss.broadcastToRoom(roomCode, message);
 		});
 
 		gameLogger.event('auto_lock_success', {
