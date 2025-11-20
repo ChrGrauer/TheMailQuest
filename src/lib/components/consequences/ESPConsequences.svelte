@@ -18,9 +18,11 @@
 		resolutionData?: ESPResolutionResult;
 		currentRound: number;
 		currentCredits: number;
+		autoCorrectionMessage?: string | null;
 	}
 
-	let { teamName, resolutionData, currentRound, currentCredits }: Props = $props();
+	let { teamName, resolutionData, currentRound, currentCredits, autoCorrectionMessage }: Props =
+		$props();
 
 	// Calculate updated budget (current credits + revenue earned)
 	let updatedBudget = $derived(currentCredits + (resolutionData?.revenue?.actualRevenue || 0));
@@ -48,6 +50,18 @@
 				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-emerald-500 pb-2">
 					Client Performance
 				</h3>
+
+				<!-- Auto-correction Message (US-3.2) -->
+				{#if autoCorrectionMessage && autoCorrectionMessage.includes('removed')}
+					<div
+						data-testid="auto-correction-message"
+						class="mb-4 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-lg text-orange-800 text-sm"
+						role="alert"
+					>
+						<div class="font-semibold mb-1">Auto-Lock Adjustment</div>
+						<div class="whitespace-pre-line">{autoCorrectionMessage}</div>
+					</div>
+				{/if}
 
 				{#if resolutionData?.volume?.clientVolumes && resolutionData.volume.clientVolumes.length > 0}
 					<div class="space-y-3">

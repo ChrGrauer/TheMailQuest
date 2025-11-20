@@ -104,6 +104,39 @@ export async function configureOnboarding(
 }
 
 /**
+ * Configure pending onboarding for a client (without immediately deducting costs)
+ * Uses the /pending-onboarding endpoint to store selections that will be applied at lock-in
+ *
+ * @param page - Player page
+ * @param roomCode - Room code
+ * @param teamName - ESP team name
+ * @param clientId - Client ID
+ * @param warmup - Whether to enable warm-up option
+ * @param listHygiene - Whether to enable list hygiene option
+ * @returns Response from API
+ */
+export async function configurePendingOnboarding(
+	page: Page,
+	roomCode: string,
+	teamName: string,
+	clientId: string,
+	warmup: boolean,
+	listHygiene: boolean
+): Promise<any> {
+	return await page.evaluate(
+		async ({ roomCode, teamName, clientId, warmup, listHygiene }) => {
+			const response = await fetch(`/api/sessions/${roomCode}/esp/${teamName}/pending-onboarding`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ clientId, warmup, list_hygiene: listHygiene })
+			});
+			return await response.json();
+		},
+		{ roomCode, teamName, clientId, warmup, listHygiene }
+	);
+}
+
+/**
  * Get portfolio data for a team via API
  *
  * @param page - Player page

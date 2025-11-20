@@ -19,7 +19,6 @@
 		excessAmount?: number;
 		isLockedIn?: boolean;
 		remainingPlayers?: number;
-		autoLockMessage?: string | null;
 		onLockIn?: () => void;
 	}
 
@@ -31,14 +30,11 @@
 		excessAmount = 0,
 		isLockedIn = false,
 		remainingPlayers = 0,
-		autoLockMessage = null,
 		onLockIn
 	}: Props = $props();
 
-	// Button should be visible in planning phase OR if there's an auto-lock message to display
-	let isVisible = $derived(
-		phase === 'planning' || (autoLockMessage !== null && autoLockMessage !== '')
-	);
+	// Button should be visible in planning phase
+	let isVisible = $derived(phase === 'planning');
 
 	// Button is disabled if:
 	// - Not in planning phase
@@ -77,17 +73,6 @@
 							</p>
 						{/if}
 					</div>
-
-					<!-- Auto-lock Message (if present) -->
-					{#if autoLockMessage}
-						<div
-							data-testid="auto-lock-message"
-							class="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-sm"
-							role="alert"
-						>
-							{autoLockMessage}
-						</div>
-					{/if}
 				</div>
 			{:else}
 				<!-- Not Locked In Yet -->

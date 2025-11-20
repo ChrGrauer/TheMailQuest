@@ -376,7 +376,15 @@
 					// Reset lock-in timestamp when unlocking
 					lockedInAt = null;
 					remainingPlayers = 0;
-					autoLockMessage = null;
+					// Only clear autoLockMessage if it's not a correction/completion message
+					// (preserve for display in consequences phase)
+					if (
+						autoLockMessage &&
+						!autoLockMessage.includes('removed') &&
+						!autoLockMessage.includes("Time's up")
+					) {
+						autoLockMessage = null;
+					}
 				}
 			}
 			// US-3.5: Capture resolution results for consequences display
@@ -606,6 +614,8 @@
 				getCredits: () => credits,
 				getPendingOnboarding: () => pendingOnboardingDecisions,
 				getIsLockedIn: () => isLockedIn,
+				getAutoLockMessage: () => autoLockMessage,
+				getRevenue: () => resolutionResults?.revenue?.actualRevenue || 0,
 				openPortfolioModal: () => (showClientManagement = true)
 			};
 		}
@@ -667,6 +677,7 @@
 			resolutionData={resolutionResults}
 			{currentRound}
 			currentCredits={credits}
+			autoCorrectionMessage={autoLockMessage}
 		/>
 	{:else if currentPhase === 'resolution'}
 		<!-- US-3.5: Resolution Loading Screen -->
@@ -677,17 +688,6 @@
 				></div>
 				<h2 class="text-2xl font-bold text-gray-900 mb-2">Calculating Round Results...</h2>
 				<p class="text-gray-600">Please wait while we process this round's data</p>
-
-				<!-- Auto-lock Message (if present) - US-3.2 -->
-				{#if autoLockMessage}
-					<div
-						data-testid="auto-lock-message"
-						class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-sm max-w-2xl mx-auto"
-						role="alert"
-					>
-						{autoLockMessage}
-					</div>
-				{/if}
 			</div>
 		</div>
 	{:else}
@@ -763,7 +763,6 @@
 				{excessAmount}
 				{isLockedIn}
 				{remainingPlayers}
-				{autoLockMessage}
 				onLockIn={handleLockIn}
 			/>
 
