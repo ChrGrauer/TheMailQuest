@@ -603,6 +603,9 @@
 				setRemainingPlayers: (count: number) => (remainingPlayers = count),
 				setAutoLockMessage: (msg: string | null) => (autoLockMessage = msg),
 				getCurrentPhase: () => currentPhase,
+				getCredits: () => credits,
+				getPendingOnboarding: () => pendingOnboardingDecisions,
+				getIsLockedIn: () => isLockedIn,
 				openPortfolioModal: () => (showClientManagement = true)
 			};
 		}

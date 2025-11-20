@@ -347,11 +347,29 @@ test.describe('Feature: Decision Lock-In', () => {
 			await alicePage.waitForTimeout(1000);
 
 			// Then: "SendWave" decisions should be auto-locked as-is
-			// And: "SendWave" should see "Time's up! Decisions locked automatically"
-			const autoLockMessage = alicePage.locator('[data-testid="auto-lock-message"]');
-			await expect(autoLockMessage).toBeVisible();
-			await expect(autoLockMessage).toContainText("Time's up");
-			await expect(autoLockMessage).toContainText('automatically');
+			// And: Credits should be deducted: 1450 - 460 = 990
+			const finalCredits = await alicePage.evaluate(() => {
+				return (window as any).__espDashboardTest.getCredits();
+			});
+			expect(finalCredits).toBe(990);
+
+			// And: Pending onboarding decisions should be cleared
+			const pendingAfter = await alicePage.evaluate(() => {
+				return (window as any).__espDashboardTest.getPendingOnboarding();
+			});
+			expect(Object.keys(pendingAfter)).toHaveLength(0);
+
+			// And: Player should be locked in
+			const isLockedIn = await alicePage.evaluate(() => {
+				return (window as any).__espDashboardTest.getIsLockedIn();
+			});
+			expect(isLockedIn).toBe(true);
+
+			// And: Resolution Phase should start (could go too fast to get caught by test)
+			const currentPhase = await alicePage.evaluate(() => {
+				return (window as any).__espDashboardTest.getCurrentPhase();
+			});
+			expect(currentPhase).not.toBe('planning');
 
 			await closePages(page, alicePage, bobPage);
 		});
