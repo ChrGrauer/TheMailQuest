@@ -307,5 +307,4 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			expect(totalCost).toBe(0);
 		});
 	});
-
 });

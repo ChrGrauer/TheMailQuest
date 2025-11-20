@@ -185,7 +185,10 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const aliceCount = await alicePage.getByTestId('client-card').count();
 
 		// Alice acquires a client
-		const acquireButton = alicePage.getByTestId('client-card').first().getByTestId('acquire-button');
+		const acquireButton = alicePage
+			.getByTestId('client-card')
+			.first()
+			.getByTestId('acquire-button');
 		await performPurchaseAction(alicePage, acquireButton);
 
 		await alicePage.getByTestId('close-modal').click();

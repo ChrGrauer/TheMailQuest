@@ -255,4 +255,3 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 		expect(results.espResults.MailMonkey.aggregateDeliveryRate).toBe(0.85);
 	});
 });
-

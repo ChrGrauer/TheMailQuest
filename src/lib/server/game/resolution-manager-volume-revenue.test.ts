@@ -207,4 +207,3 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 		expect(results.espResults.MailMonkey.revenue.actualRevenue).toBe(128); // Math.round(150 * 0.85)
 	});
 });
-

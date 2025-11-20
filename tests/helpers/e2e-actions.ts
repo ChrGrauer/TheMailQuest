@@ -21,15 +21,11 @@ export async function waitForDashboardReady(
 	dashboardType: 'esp' | 'destination' = 'esp',
 	timeout = 10000
 ): Promise<void> {
-	const testApiName = dashboardType === 'esp'
-		? '__espDashboardTest'
-		: '__destinationDashboardTest';
+	const testApiName = dashboardType === 'esp' ? '__espDashboardTest' : '__destinationDashboardTest';
 
-	await page.waitForFunction(
-		(apiName) => (window as any)[apiName]?.ready === true,
-		testApiName,
-		{ timeout }
-	);
+	await page.waitForFunction((apiName) => (window as any)[apiName]?.ready === true, testApiName, {
+		timeout
+	});
 }
 
 /**
@@ -70,10 +66,12 @@ export async function performPurchaseAction(
 	const timeout = options?.timeout || 15000;
 
 	const result = await Promise.race([
-		page.getByTestId('success-message')
+		page
+			.getByTestId('success-message')
 			.waitFor({ state: 'visible', timeout })
 			.then(() => 'success' as const),
-		page.getByTestId('error-banner')
+		page
+			.getByTestId('error-banner')
 			.waitFor({ state: 'visible', timeout })
 			.then(() => 'error' as const)
 	]).catch(() => 'timeout' as const);

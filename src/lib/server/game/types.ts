@@ -9,7 +9,10 @@
  * US-2.6.1: Destination Filtering Controls (added FilteringLevel, FilteringPolicy, FilteringPolicyUpdateResult)
  * US-2.6.2: Destination Tech Shop (added kingdom, owned_tools, authentication_level, spam_trap_active, esp_metrics)
  * US-3.2: Decision Lock-In (added locked_in, locked_in_at, pending_onboarding_decisions, lock-in interfaces)
+ * Phase 1: Incident Cards (added incident_history)
  */
+
+import type { IncidentHistoryEntry } from '$lib/types/incident';
 
 export interface ESPTeam {
 	name: string;
@@ -173,6 +176,9 @@ export interface GameSession {
 		results: any; // ResolutionResults from resolution-types.ts (avoiding circular import)
 		timestamp: Date;
 	}>;
+	// Phase 1: Incident Cards history
+	// Array of triggered incidents for facilitator reference
+	incident_history?: IncidentHistoryEntry[];
 }
 
 /**

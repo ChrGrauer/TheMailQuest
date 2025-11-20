@@ -200,5 +200,4 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			expect(gmail?.locked_in).toBe(true);
 		});
 	});
-
 });

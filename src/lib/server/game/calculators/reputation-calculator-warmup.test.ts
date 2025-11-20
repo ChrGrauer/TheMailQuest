@@ -458,4 +458,3 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 		});
 	});
 });
-

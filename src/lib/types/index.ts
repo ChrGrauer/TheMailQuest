@@ -8,3 +8,19 @@ export interface WebSocketMessage {
 	payload?: unknown;
 	timestamp: number;
 }
+
+// Export incident card types
+export type {
+	IncidentCategory,
+	IncidentRarity,
+	IncidentDuration,
+	IncidentEffectTarget,
+	IncidentEffectType,
+	IncidentEffect,
+	IncidentCard,
+	IncidentHistoryEntry,
+	IncidentTriggerRequest,
+	IncidentTriggerResult,
+	EffectChanges,
+	EffectApplicationResult
+} from './incident';

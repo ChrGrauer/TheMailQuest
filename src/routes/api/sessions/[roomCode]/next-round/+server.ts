@@ -162,7 +162,7 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 		});
 
 		// Step 7: Transition to planning phase
-		const transitionResult = transitionPhase({
+		const transitionResult = await transitionPhase({
 			roomCode,
 			toPhase: 'planning'
 		});
