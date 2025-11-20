@@ -8,24 +8,34 @@
  * So that I can evaluate my filtering strategy
  */
 
-import { test, expect } from '@playwright/test';
-import { createGameWithDestinationPlayer } from './helpers/game-setup';
+import { test, expect, type Page } from '@playwright/test';
+import {
+	createGameWithDestinationPlayer,
+	createTestSession,
+	addPlayer,
+	closePages
+} from './helpers/game-setup';
 import { lockInAllPlayers } from './helpers/e2e-actions';
 
 test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', () => {
+	let alicePage: Page;
+	let bobPage: Page;
+	let gmailPage: Page;
+	let yahooPage: Page | undefined;
+
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage, gmailPage, yahooPage);
+	});
+
 	test('Destination player sees consequences screen structure', async ({ page, context }) => {
 		// Given: I am logged in as Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// And: The game transitions to Consequences phase for Round 1
-		// Lock in all players to trigger transition
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000); // Wait for resolution + transition
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view my consequences screen
 
@@ -67,16 +77,13 @@ test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', 
 
 	test('Destination consequences show basic team info', async ({ page, context }) => {
 		// Given: Destination with budget
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// Lock in players to trigger consequences
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// Then: Should see budget displayed in Revenue Summary
 		const revenueSection = gmailPage.locator('[data-testid="section-revenue-summary"]');
@@ -102,15 +109,12 @@ test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', 
 	test('Destination sees all sections even without filtering data', async ({ page, context }) => {
 		// Given: Destination in consequences phase
 		// (Without US-3.3 Iteration 6, we won't have filtering data)
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// Then: All 5 sections should be visible (even if some are placeholders)
 		const sections = [
@@ -133,44 +137,17 @@ test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', 
 
 	test('Multiple destinations see their own consequences', async ({ page, context }) => {
 		// Given: Multiple destinations in game
-		const roomCode = await page.goto('/').then(() => page.click("text=I'm a facilitator"));
-		await page.waitForURL('/create');
-		await page.click('text=Create a Session');
-		await page.waitForURL(/\/lobby\/.+/);
-		const url = page.url();
-		const roomCodeValue = url.split('/lobby/')[1];
-
-		// Create players
-		const alicePage = await context.newPage();
-		await alicePage.goto(`/lobby/${roomCodeValue}`);
-		await alicePage.click('text=SendWave');
-		await alicePage.locator('input[name="displayName"]').fill('Alice');
-		await alicePage.click('button:has-text("Join Game")');
-		await alicePage.waitForTimeout(500);
-
-		const gmailPage = await context.newPage();
-		await gmailPage.goto(`/lobby/${roomCodeValue}`);
-		await gmailPage.click('text=Gmail');
-		await gmailPage.locator('input[name="displayName"]').fill('Carol');
-		await gmailPage.click('button:has-text("Join Game")');
-		await gmailPage.waitForTimeout(500);
-
-		const yahooPage = await context.newPage();
-		await yahooPage.goto(`/lobby/${roomCodeValue}`);
-		await yahooPage.click('text=Yahoo');
-		await yahooPage.locator('input[name="displayName"]').fill('Diana');
-		await yahooPage.click('button:has-text("Join Game")');
-		await yahooPage.waitForTimeout(500);
+		const roomCode = await createTestSession(page);
+		alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+		gmailPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'Gmail');
+		yahooPage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'Yahoo');
 
 		// Start game
 		await page.click('text=Start Game');
 		await page.waitForTimeout(1000);
 
 		// Lock in all players
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await yahooPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, gmailPage, yahooPage]);
 
 		// Then: Gmail sees "Gmail" in header
 		await expect(gmailPage.locator('[data-testid="consequences-team-name"]')).toContainText(
@@ -196,12 +173,20 @@ test.describe('US-3.5 Scenario 1.3: Destination Consequences Screen Structure', 
  * ATDD RED PHASE: These tests FAIL until real data is displayed
  */
 test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Iteration 6.1)', () => {
+	let alicePage: Page;
+	let bobPage: Page;
+	let gmailPage: Page;
+
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage, gmailPage);
+	});
+
 	test('Scenario 3.1: Display overall spam blocking statistics', async ({ page, context }) => {
 		// Given: I am Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// And: The game transitions to Consequences phase
 		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
@@ -222,10 +207,10 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 
 	test('Scenario 3.2: Display false positive statistics and impact', async ({ page, context }) => {
 		// Given: I am Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// And: The game transitions to Consequences phase
 		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
@@ -241,10 +226,10 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 
 	test('Scenario 3.3: Display filtering effectiveness per ESP', async ({ page, context }) => {
 		// Given: I am Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// And: The game transitions to Consequences phase
 		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
@@ -263,10 +248,10 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 
 	test('Scenario 3.4: Display user satisfaction score and changes', async ({ page, context }) => {
 		// Given: I am Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// And: The game transitions to Consequences phase
 		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
@@ -286,10 +271,10 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 
 	test('Scenario 3.5: Display destination revenue earned', async ({ page, context }) => {
 		// Given: I am Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// And: The game transitions to Consequences phase
 		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
@@ -315,10 +300,10 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 
 	test('Scenario 3.6: Display alerts about problematic ESP behavior', async ({ page, context }) => {
 		// Given: I am Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// And: The game transitions to Consequences phase
 		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
@@ -341,10 +326,10 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 		context
 	}) => {
 		// Given: I am Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// And: The game transitions to Consequences phase
 		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
@@ -361,10 +346,10 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
 
 	test('Budget Update section shows actual revenue impact', async ({ page, context }) => {
 		// Given: I am Destination player from "Gmail"
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// And: The game transitions to Consequences phase
 		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
@@ -387,17 +372,22 @@ test.describe('US-3.5 Iteration 3: Destination Detailed Results (Post US-3.3 Ite
  * Phase 4.2.1: Destination Consequences Layout Improvements
  */
 test.describe('Phase 4.2.1: Destination Consequences Layout', () => {
+	let alicePage: Page;
+	let bobPage: Page;
+	let gmailPage: Page;
+
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage, gmailPage);
+	});
+
 	test('Satisfaction should appear only once (not duplicated)', async ({ page, context }) => {
 		// Given: Destination player in consequences phase
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// Then: Satisfaction score should appear in User Satisfaction section
 		const satisfactionSection = gmailPage.locator('[data-testid="section-user-satisfaction"]');
@@ -421,15 +411,12 @@ test.describe('Phase 4.2.1: Destination Consequences Layout', () => {
 
 	test('Satisfaction section includes why explanation', async ({ page, context }) => {
 		// Given: Destination player in consequences phase
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// Then: User Satisfaction section should explain WHY satisfaction changed
 		const satisfactionSection = gmailPage.locator('[data-testid="section-user-satisfaction"]');
@@ -459,18 +446,26 @@ test.describe('Phase 4.2.1: Destination Consequences Layout', () => {
 });
 
 test.describe('Phase 4.3.1: Spam Data Display as Volumes', () => {
+	let alicePage: Page;
+	let bobPage: Page;
+	let gmailPage: Page;
+
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage, gmailPage);
+	});
+
 	test('Spam metrics should display actual volumes (not just percentages)', async ({
 		page,
 		context
 	}) => {
 		// Given: Destination player views consequences after a round with email traffic
-		const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(page, context);
+		const result = await createGameWithDestinationPlayer(page, context);
+		gmailPage = result.gmailPage;
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
 		// Lock in to trigger consequences
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the consequences page
 		await expect(gmailPage.locator('[data-testid="consequences-header"]')).toBeVisible({
@@ -510,13 +505,13 @@ test.describe('Phase 4.3.1: Spam Data Display as Volumes', () => {
 		context
 	}) => {
 		// Given: Destination with consequences displayed
-		const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(page, context);
+		const result = await createGameWithDestinationPlayer(page, context);
+		gmailPage = result.gmailPage;
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
 		// Lock in to trigger consequences
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: Viewing spam blocking section with volume data
 		const spamSection = gmailPage.locator('[data-testid="section-spam-blocking"]');
@@ -541,15 +536,23 @@ test.describe('Phase 4.3.1: Spam Data Display as Volumes', () => {
 });
 
 test.describe('Phase 4.4.1: Enriched ESP Behavior Analysis', () => {
+	let alicePage: Page;
+	let bobPage: Page;
+	let gmailPage: Page;
+
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage, gmailPage);
+	});
+
 	test('ESP behavior section shows detailed metrics', async ({ page, context }) => {
 		// Given: Destination player views consequences with ESP data
-		const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(page, context);
+		const result = await createGameWithDestinationPlayer(page, context);
+		gmailPage = result.gmailPage;
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
 		// Lock in to trigger consequences
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: I view the ESP Behavior Analysis section
 		const espBehaviorSection = gmailPage.locator('[data-testid="section-esp-behavior"]');
@@ -585,12 +588,12 @@ test.describe('Phase 4.4.1: Enriched ESP Behavior Analysis', () => {
 
 	test('ESP metrics show reputation if available', async ({ page, context }) => {
 		// Given: Game with ESP teams
-		const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(page, context);
+		const result = await createGameWithDestinationPlayer(page, context);
+		gmailPage = result.gmailPage;
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: Viewing ESP behavior section
 		const espBehaviorSection = gmailPage.locator('[data-testid="section-esp-behavior"]');
@@ -608,12 +611,12 @@ test.describe('Phase 4.4.1: Enriched ESP Behavior Analysis', () => {
 
 	test('ESP behavior shows client count information', async ({ page, context }) => {
 		// Given: ESPs with clients
-		const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(page, context);
+		const result = await createGameWithDestinationPlayer(page, context);
+		gmailPage = result.gmailPage;
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
-		await alicePage.locator('[data-testid="lock-in-button"]').click();
-		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.waitForTimeout(2000);
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 
 		// When: Viewing ESP behavior analysis
 		const espBehaviorSection = gmailPage.locator('[data-testid="section-esp-behavior"]');

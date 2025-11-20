@@ -28,6 +28,135 @@ Assist with writing, reviewing, and validating E2E tests for The Mail Quest. Thi
 ### Trust Your Helpers
 If a helper is used successfully in 10+ tests, **don't test it again**. Use it and focus on your feature.
 
+## Boy Scout Rule: Leave Tests Cleaner Than You Found Them
+
+**Principle**: When touching any test file, always look for opportunities to improve it beyond your immediate task.
+
+### Quick Wins to Look For
+
+When working on a test file, scan for these common issues and fix them:
+
+#### 1. **Missing Resource Cleanup** 🚨 (CRITICAL)
+```typescript
+// ❌ BAD - No cleanup
+test('should do something', async ({ page, context }) => {
+  const { alicePage } = await createGameInPlanningPhase(page, context);
+  // ... test code ...
+  // Pages never closed!
+});
+
+// ✅ GOOD - Proper cleanup
+let alicePage: Page;
+
+test.afterEach(async ({ page }) => {
+  await closePages(page, alicePage);
+});
+
+test('should do something', async ({ page, context }) => {
+  const result = await createGameInPlanningPhase(page, context);
+  alicePage = result.alicePage;
+  // ... test code ...
+});
+```
+
+#### 2. **Manual Setup Instead of Helpers**
+```typescript
+// ❌ BAD - Manual setup (5+ lines)
+await alicePage.locator('[data-testid="lock-in-button"]').click();
+await bobPage.locator('[data-testid="lock-in-button"]').click();
+await gmailPage.locator('[data-testid="lock-in-button"]').click();
+await page.waitForTimeout(2000);
+
+// ✅ GOOD - Use helper
+await lockInAllPlayers([alicePage, bobPage, gmailPage]);
+```
+
+#### 3. **Invalid or Missing Test IDs**
+```typescript
+// ❌ BAD - Test ID doesn't exist
+await page.getByTestId('submit-button'); // Not in TEST-IDS-REFERENCE.md
+
+// ✅ GOOD - Use valid test ID
+await page.getByTestId('lock-in-button'); // Documented in reference
+```
+
+#### 4. **Inconsistent Page Variable Patterns**
+```typescript
+// ❌ BAD - Mixing patterns
+test('test 1', async ({ page, context }) => {
+  const { alicePage } = await helper(page, context);
+});
+
+test('test 2', async ({ page, context }) => {
+  const result = await helper(page, context);
+  const alicePage = result.alicePage;
+});
+
+// ✅ GOOD - Consistent pattern
+let alicePage: Page;
+
+test('test 1', async ({ page, context }) => {
+  const result = await helper(page, context);
+  alicePage = result.alicePage;
+});
+
+test('test 2', async ({ page, context }) => {
+  const result = await helper(page, context);
+  alicePage = result.alicePage;
+});
+```
+
+#### 5. **Outdated Comments or Dead Code**
+```typescript
+// ❌ BAD - Outdated comment
+// Wait for WebSocket sync (legacy approach)
+await page.waitForTimeout(3000);
+
+// ✅ GOOD - Accurate comment or remove if obvious
+await lockInAllPlayers([alicePage, bobPage]);
+```
+
+### Boy Scout Checklist
+
+When working on any test file, quickly check:
+- [ ] All `describe` blocks have `afterEach` with `closePages()`
+- [ ] No manual lock-in patterns (use `lockInAllPlayers`)
+- [ ] No manual session setup (use `createTestSession` + `addPlayer`)
+- [ ] All test IDs exist in TEST-IDS-REFERENCE.md
+- [ ] Consistent destructuring pattern for page variables
+- [ ] No `console.log()` statements
+- [ ] Comments are accurate and helpful
+
+### When to Apply Boy Scout Rule
+
+**Always apply** when:
+- Writing new tests in existing file
+- Fixing a bug in a test
+- Reviewing test code
+- File is already open for changes
+
+**Consider skipping** if:
+- Changes would be too invasive (>50% of file)
+- File has failing tests you'd need to fix first
+- Time-sensitive emergency fix
+
+### Impact Example
+
+```typescript
+// BEFORE Boy Scout Rule:
+// - No resource cleanup (resource leak)
+// - Manual lock-in pattern (5 lines × 8 tests = 40 lines)
+// - Inconsistent page variables
+
+// AFTER Boy Scout Rule:
+// - ✅ afterEach cleanup added
+// - ✅ lockInAllPlayers helper (8 lines total)
+// - ✅ Consistent page patterns
+// Result: Safer, -32 lines, more maintainable
+```
+
+**Remember**: Small improvements compound. If every developer improves 2-3 things when touching a file, the entire test suite improves rapidly.
+
 ## Step-by-Step Process
 
 ### 1. Context Loading
@@ -269,24 +398,27 @@ test('should deduct acquisition cost from budget', async ({ page, context }) => 
 When asked to write or review an E2E test:
 
 1. **Load context files** (helpers and TEST-IDS-REFERENCE.md)
-2. **Identify the feature** being tested (not the setup)
-3. **Find similar tests** for pattern reference
-4. **Choose the right helper** for setup
-5. **Validate test IDs** against reference
-6. **Focus test on business logic** (calculations, thresholds, rules)
-7. **Ensure cleanup** with closePages()
-8. **Review against checklist** before finalizing
+2. **Apply Boy Scout Rule** - Scan file for quick wins (cleanup, helpers, test IDs)
+3. **Identify the feature** being tested (not the setup)
+4. **Find similar tests** for pattern reference
+5. **Choose the right helper** for setup
+6. **Validate test IDs** against reference
+7. **Focus test on business logic** (calculations, thresholds, rules)
+8. **Ensure cleanup** with closePages()
+9. **Review against checklist** before finalizing
+10. **Report improvements** made beyond the primary task
 
 ## Output Format
 
 When reviewing a test, provide:
 
 1. **Summary**: What the test does (1-2 sentences)
-2. **Issues Found**: List of problems with explanations
-3. **Suggested Fixes**: Concrete code changes
-4. **Test ID Validation**: Confirm all IDs are valid or list invalid ones
-5. **Helper Opportunities**: Point out where helpers could be used
-6. **Cleanup Check**: Verify closePages() usage
+2. **Boy Scout Opportunities**: Quick wins found in the file (cleanup, helpers, test IDs)
+3. **Issues Found**: List of problems with explanations
+4. **Suggested Fixes**: Concrete code changes
+5. **Test ID Validation**: Confirm all IDs are valid or list invalid ones
+6. **Helper Opportunities**: Point out where helpers could be used
+7. **Cleanup Check**: Verify closePages() usage
 
 When writing a test, provide:
 
@@ -295,6 +427,7 @@ When writing a test, provide:
 3. **Test IDs Used**: List all test IDs with references to where they're defined
 4. **Business Logic Focus**: Explain what specific business rule is tested
 5. **Cleanup**: Show closePages() usage
+6. **Boy Scout Improvements**: List any additional improvements made to the file
 
 ---
 
