@@ -365,10 +365,10 @@ Each incident card contains:
   esp:
     - mandatory_choice:
       - patch:
-        - cost: 250
+        - cost: 150
         - maintain_reputation: true
       - ignore:
-        - reputation_loss: 10
+        - reputation_loss: 15
         - vulnerability_flag: true
   destination:
     - free_monitoring: true

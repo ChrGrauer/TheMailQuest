@@ -163,7 +163,7 @@ export async function transitionPhase(
 					const { triggerIncident } = await import('./incident-manager');
 					const { applyIncidentEffects } = await import('./incident-effects-manager');
 					const { getIncidentById } = await import('$lib/config/incident-cards');
-					const { GameWebSocketServer } = await import('../websocket');
+					const { gameWss } = await import('../websocket');
 
 					// Trigger DMARC incident
 					const incident = getIncidentById('INC-010');
@@ -175,7 +175,6 @@ export async function transitionPhase(
 							const effectResult = applyIncidentEffects(session, incident);
 
 							// Broadcast incident to all players
-							const gameWss = new GameWebSocketServer();
 							gameWss.broadcastToRoom(roomCode, {
 								type: 'incident_triggered',
 								incident: {

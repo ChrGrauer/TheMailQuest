@@ -133,9 +133,11 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 		for (const team of session.esp_teams) {
 			gameWss.broadcastToRoom(roomCode, {
 				type: 'esp_dashboard_update',
-				espName: team.name,
-				credits: team.credits,
-				reputation: team.reputation
+				data: {
+					teamName: team.name,
+					credits: team.credits,
+					reputation: team.reputation
+				}
 			});
 		}
 
@@ -143,8 +145,10 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 		for (const destination of session.destinations) {
 			gameWss.broadcastToRoom(roomCode, {
 				type: 'destination_dashboard_update',
-				destinationName: destination.name,
-				budget: destination.budget
+				data: {
+					destinationName: destination.name,
+					budget: destination.budget
+				}
 			});
 		}
 

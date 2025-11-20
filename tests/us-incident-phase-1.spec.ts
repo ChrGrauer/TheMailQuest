@@ -16,8 +16,10 @@ import {
 	createTestSession,
 	addPlayer,
 	createGameInPlanningPhase,
+	createGameWithDestinationPlayer,
 	closePages
 } from './helpers/game-setup';
+import { lockInAllPlayers } from './helpers/e2e-actions';
 
 test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 	test('facilitator can trigger incident manually', async ({ page, context }) => {
@@ -56,6 +58,10 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 		// Verify facilitator also sees the card
 		await expect(page.getByTestId('drama-card-display')).toBeVisible();
 
+		// Facilitator closes the incident card
+		await page.click('button:has-text("Close")');
+		await expect(page.getByTestId('drama-card-display')).not.toBeVisible();
+
 		// Expand incident history to verify incident was logged
 		await page.click('[data-testid="drama-history-toggle"]');
 		await expect(page.getByTestId('drama-history-item-1-0')).toBeVisible();
@@ -64,7 +70,7 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 	});
 
 	test('players cannot trigger incidents', async ({ page, context }) => {
-		const { roomCode, alicePage } = await createGameInPlanningPhase(page, context);
+		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 		// On player page, trigger button should not be visible
 		const triggerButton = alicePage.getByTestId('drama-trigger-incident-button');
@@ -76,7 +82,7 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 		const modalCount = await selectionModal.count();
 		expect(modalCount).toBe(0);
 
-		await closePages(page, alicePage);
+		await closePages(page, alicePage, bobPage);
 	});
 
 	test('incident card auto-dismisses after 10 seconds', async ({ page, context }) => {
@@ -103,39 +109,68 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 test.describe('Incident Cards Phase 1: Effect Application', () => {
 	test('Industry Scandal affects all ESP teams and destinations', async ({ page, context }) => {
 		// Create game with 2 ESP teams and 1 destination
-		const { roomCode, alicePage } = await createGameInPlanningPhase(page, context);
-
-		// Add second ESP team
-		const bobPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
+		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(page, context);
 
 		// Wait for game state to sync
 		await page.waitForTimeout(500);
 
-		// Need to advance to Round 2 (INC-006 is a Round 2 incident)
-		// For now, skip round transition in Phase 1 MVP - test with Round 1 incident instead
-		// Or we can manually set up the test to be in Round 2
-
-		// Get initial reputation for Alice's ESP (SendWave)
-		const aliceReputationElement = alicePage.getByTestId('reputation-gmail');
-		const aliceInitialRepText = await aliceReputationElement.textContent();
-		const aliceInitialRep = parseInt(aliceInitialRepText || '70', 10);
-
-		// Trigger INC-001 for Round 1 (notification only, no state changes)
-		await page.click('[data-testid="drama-trigger-incident-button"]');
-		await page.click('[data-testid="drama-incident-INC-001"]');
-		await page.click('[data-testid="drama-trigger-button"]');
-
-		// Wait for incident to trigger
+		// Lock in all players to advance to Round 2
+		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
 		await page.waitForTimeout(1000);
 
-		// Verify card appeared for both ESPs
+		// Facilitator advances to Round 2
+		await page.click('[data-testid="start-next-round-button"]');
+		await page.waitForTimeout(1000);
+
+		// Get initial values before triggering incident
+		// Alice's ESP (SendWave) reputation with Gmail
+		const aliceRepElement = alicePage.getByTestId('reputation-gmail');
+		const aliceInitialRepText = await aliceRepElement.textContent();
+		const aliceInitialRep = parseInt(aliceInitialRepText || '70', 10);
+
+		// Bob's ESP (MailMonkey) reputation with Gmail
+		const bobRepElement = bobPage.getByTestId('reputation-gmail');
+		const bobInitialRepText = await bobRepElement.textContent();
+		const bobInitialRep = parseInt(bobInitialRepText || '70', 10);
+
+		// Gmail's budget
+		const gmailBudgetElement = gmailPage.getByTestId('budget-current');
+		const gmailInitialBudgetText = await gmailBudgetElement.textContent();
+		const gmailInitialBudget = parseInt(gmailInitialBudgetText?.match(/\d+/)?.[0] || '1000', 10);
+
+		// Trigger INC-006 (Industry Scandal) - Round 2 incident
+		await page.click('[data-testid="drama-trigger-incident-button"]');
+		await page.click('[data-testid="drama-incident-INC-006"]');
+		await page.click('[data-testid="drama-trigger-button"]');
+
+		// Wait for incident to trigger and effects to apply
+		await page.waitForTimeout(1000);
+
+		// Verify card appeared for all players
 		await expect(alicePage.getByTestId('drama-card-display')).toBeVisible();
 		await expect(bobPage.getByTestId('drama-card-display')).toBeVisible();
+		await expect(gmailPage.getByTestId('drama-card-display')).toBeVisible();
 
-		// For INC-001, no reputation changes should occur (notification only)
-		// This test will be expanded in future phases to test INC-006 effects
+		// Facilitator closes the incident card
+		await page.click('button:has-text("Close")');
+		await page.waitForTimeout(500);
 
-		await closePages(page, alicePage, bobPage);
+		// Verify effects applied:
+		// Both ESPs should lose 5 reputation
+		const aliceFinalRepText = await aliceRepElement.textContent();
+		const aliceFinalRep = parseInt(aliceFinalRepText || '70', 10);
+		expect(aliceFinalRep).toBe(aliceInitialRep - 5);
+
+		const bobFinalRepText = await bobRepElement.textContent();
+		const bobFinalRep = parseInt(bobFinalRepText || '70', 10);
+		expect(bobFinalRep).toBe(bobInitialRep - 5);
+
+		// Gmail should gain 100 budget
+		const gmailFinalBudgetText = await gmailBudgetElement.textContent();
+		const gmailFinalBudget = parseInt(gmailFinalBudgetText?.match(/\d+/)?.[0] || '1000', 10);
+		expect(gmailFinalBudget).toBe(gmailInitialBudget + 100);
+
+		await closePages(page, alicePage, bobPage, gmailPage);
 	});
 
 	test('incident history is collapsible', async ({ page, context }) => {
@@ -149,6 +184,9 @@ test.describe('Incident Cards Phase 1: Effect Application', () => {
 		// Wait for incident to be added to history
 		await page.waitForTimeout(500);
 
+		// Facilitator closes the incident card
+		await page.click('button:has-text("Close")');
+
 		// History should start collapsed - items not visible
 		const historyItem = page.getByTestId('drama-history-item-1-0');
 		const itemVisible = await historyItem.isVisible().catch(() => false);
@@ -160,6 +198,8 @@ test.describe('Incident Cards Phase 1: Effect Application', () => {
 
 		// Click toggle again to collapse
 		await page.click('[data-testid="drama-history-toggle"]');
+		// Wait for transition to complete (200ms slide duration)
+		await page.waitForTimeout(300);
 		const itemVisibleAfterCollapse = await historyItem.isVisible().catch(() => false);
 		expect(itemVisibleAfterCollapse).toBe(false);
 
@@ -238,6 +278,9 @@ test.describe('Incident Cards Phase 1: Round-Based Filtering', () => {
 		// Wait for incident to complete
 		await page.waitForTimeout(1000);
 
+		// Facilitator closes the incident card
+		await page.click('button:has-text("Close")');
+
 		// Try to trigger again
 		await page.click('[data-testid="drama-trigger-incident-button"]');
 
@@ -273,14 +316,7 @@ test.describe('Incident Cards Phase 1: Round-Based Filtering', () => {
 
 test.describe('Incident Cards Phase 1: WebSocket Sync', () => {
 	test('incident card displays synchronously across all clients', async ({ page, context }) => {
-		const { roomCode, alicePage } = await createGameInPlanningPhase(page, context);
-
-		// Add second ESP and a destination player
-		const bobPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
-		const gmailPage = await addPlayer(context, roomCode, 'Charlie', 'Destination', 'Gmail');
-
-		// Wait for all players to join
-		await page.waitForTimeout(500);
+		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(page, context);
 
 		// Facilitator triggers incident
 		await page.click('[data-testid="drama-trigger-incident-button"]');

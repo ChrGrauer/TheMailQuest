@@ -118,7 +118,7 @@ export const POST: RequestHandler = async ({ params }) => {
 		gameLogger.info('All players locked in - transitioning to resolution', { roomCode });
 
 		// Transition to resolution phase
-		const transitionResult = transitionPhase({
+		const transitionResult = await transitionPhase({
 			roomCode,
 			toPhase: 'resolution'
 		});

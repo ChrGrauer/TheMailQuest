@@ -203,13 +203,6 @@
 		</div>
 	{/if}
 
-	<!-- Incident Controls -->
-	<div class="incident-section">
-		<IncidentTriggerButton
-			onclick={() => (showIncidentSelectionModal = true)}
-		/>
-	</div>
-
 	<!-- Incident History -->
 	{#if incidentHistory.length > 0}
 		<div class="incident-history-section">
@@ -228,25 +221,14 @@
 	{roomCode}
 	currentRound={round}
 	onClose={() => (showIncidentSelectionModal = false)}
-	onTriggerSuccess={(incident) => {
-		incidentHistory = [...incidentHistory, {
-			incidentId: incident.id,
-			name: incident.name,
-			category: incident.category,
-			roundTriggered: round,
-			timestamp: new Date()
-		}];
-	}}
+	onTriggerSuccess={handleIncidentTriggered}
 />
 
 <!-- Incident Card Display -->
 <IncidentCardDisplay
 	bind:show={showIncidentCard}
 	incident={currentIncident}
-	onClose={() => {
-		showIncidentCard = false;
-		currentIncident = null;
-	}}
+	onClose={handleIncidentCardClose}
 />
 
 <style>

@@ -318,7 +318,7 @@ This document catalogs all `data-testid` attributes used across the frontend for
 | Test ID | Element | Description |
 |---------|---------|-------------|
 | `tech-shop-modal` | `<div>` | Modal container |
-| `budget-display` | `<div>` | Current budget display in header |
+| `budget-current` | `<div>` | Current budget display in header |
 | `close-tech-shop` | `<button>` | Close button |
 | `view-only-banner` | `<div>` | View-only mode notification |
 | `success-message` | `<div>` | Success notification after purchase |

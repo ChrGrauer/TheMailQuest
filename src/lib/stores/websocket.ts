@@ -186,6 +186,13 @@ function createWebSocketStore() {
 								}
 								break;
 
+							case 'incident_triggered':
+								// Incident Cards Phase 1: Pass incident card to gameStateUpdateCallback
+								if (gameStateUpdateCallback) {
+									gameStateUpdateCallback(message as any);
+								}
+								break;
+
 							default:
 								// Handle other message types
 								break;
