@@ -24,8 +24,10 @@
 	let { teamName, resolutionData, currentRound, currentCredits, autoCorrectionMessage }: Props =
 		$props();
 
-	// Calculate updated budget (current credits + revenue earned)
-	let updatedBudget = $derived(currentCredits + (resolutionData?.revenue?.actualRevenue || 0));
+	// Calculate starting budget (before revenue was added)
+	// currentCredits already includes the revenue, so we subtract it to get the starting value
+	let actualRevenue = $derived(resolutionData?.revenue?.actualRevenue || 0);
+	let startingBudget = $derived(currentCredits - actualRevenue);
 </script>
 
 <div
@@ -83,10 +85,11 @@
 										</p>
 									{/if}
 									{#if clientVolume.adjustments.listHygiene}
-										<p class="text-emerald-600 text-xs">
-											↑ List hygiene adjustment: +{(
-												clientVolume.adjustments.listHygiene * 100
-											).toFixed(0)}%
+										<p
+											class="text-emerald-600 text-xs"
+											data-testid="list-hygiene-adjustment-message"
+										>
+											Volume reduced with list hygiene
 										</p>
 									{/if}
 								</div>
@@ -327,23 +330,19 @@
 				<div class="space-y-3">
 					<div class="flex justify-between items-center">
 						<span class="text-gray-700">Starting Budget:</span>
-						<span class="font-semibold text-gray-900">{currentCredits} credits</span>
+						<span class="font-semibold text-gray-900">{startingBudget} credits</span>
 					</div>
 					<div class="flex justify-between items-center">
 						<span class="text-gray-700">Revenue Earned:</span>
-						<span class="font-semibold text-emerald-600"
-							>+{resolutionData?.revenue?.actualRevenue || 0} credits</span
-						>
+						<span class="font-semibold text-emerald-600">+{actualRevenue} credits</span>
 					</div>
 					<div class="flex justify-between items-center pt-3 border-t-2 border-emerald-500 mt-3">
 						<span class="text-gray-900 font-bold text-lg">New Budget:</span>
-						<span class="font-bold text-emerald-600 text-2xl">{updatedBudget} credits</span>
+						<span class="font-bold text-emerald-600 text-2xl">{currentCredits} credits</span>
 					</div>
 				</div>
 
-				<p class="text-xs text-gray-500 mt-4 italic">
-					Budget will be updated at the start of the next round.
-				</p>
+				<p class="text-xs text-gray-500 mt-4 italic">Budget has been updated for the next round.</p>
 			</section>
 
 			<!-- Section 6: Alerts & Notifications -->

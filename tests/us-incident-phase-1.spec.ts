@@ -109,7 +109,10 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 test.describe('Incident Cards Phase 1: Effect Application', () => {
 	test('Industry Scandal affects all ESP teams and destinations', async ({ page, context }) => {
 		// Create game with 2 ESP teams and 1 destination
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(page, context);
+		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			page,
+			context
+		);
 
 		// Wait for game state to sync
 		await page.waitForTimeout(500);
@@ -316,7 +319,10 @@ test.describe('Incident Cards Phase 1: Round-Based Filtering', () => {
 
 test.describe('Incident Cards Phase 1: WebSocket Sync', () => {
 	test('incident card displays synchronously across all clients', async ({ page, context }) => {
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(page, context);
+		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			page,
+			context
+		);
 
 		// Facilitator triggers incident
 		await page.click('[data-testid="drama-trigger-incident-button"]');

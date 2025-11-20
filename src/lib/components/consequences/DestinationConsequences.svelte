@@ -27,6 +27,11 @@
 
 	let { destinationName, currentRound, budget, resolution, espSatisfactionBreakdown }: Props =
 		$props();
+
+	// Calculate starting budget (before revenue was added)
+	// budget already includes the revenue, so we subtract it to get the starting value
+	let revenueEarned = $derived(resolution?.revenue?.totalRevenue || 0);
+	let previousBudget = $derived(budget - revenueEarned);
 </script>
 
 <div
@@ -312,26 +317,22 @@
 						<!-- Budget Change Summary -->
 						<div class="bg-green-50 border border-green-200 rounded-lg p-4">
 							<p class="text-sm text-gray-600 mb-1">Revenue Earned This Round</p>
-							<p class="text-3xl font-bold text-green-600">
-								+{resolution.revenue.totalRevenue} credits
-							</p>
+							<p class="text-3xl font-bold text-green-600">+{revenueEarned} credits</p>
 						</div>
 
 						<!-- Budget Calculation -->
 						<div class="space-y-2 text-sm">
 							<div class="flex justify-between items-center">
 								<span class="text-gray-700">Previous Budget:</span>
-								<span class="font-medium text-gray-900">{budget} credits</span>
+								<span class="font-medium text-gray-900">{previousBudget} credits</span>
 							</div>
 							<div class="flex justify-between items-center text-green-600">
 								<span>+ Revenue Earned:</span>
-								<span class="font-medium">+{resolution.revenue.totalRevenue} credits</span>
+								<span class="font-medium">+{revenueEarned} credits</span>
 							</div>
 							<div class="flex justify-between items-center pt-2 border-t-2 border-gray-300">
 								<span class="font-semibold text-gray-900">New Budget:</span>
-								<span class="font-bold text-blue-600 text-xl">
-									{budget + resolution.revenue.totalRevenue} credits
-								</span>
+								<span class="font-bold text-blue-600 text-xl">{budget} credits</span>
 							</div>
 						</div>
 					</div>
