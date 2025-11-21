@@ -41,9 +41,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -72,9 +72,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Paused',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -101,9 +101,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Suspended',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -152,9 +152,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -191,9 +191,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null // New client
+						first_active_round: null, // New client
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -201,8 +201,16 @@ describe('Client Portfolio Manager', () => {
 			const result = configureOnboarding(team, 'client-001', { warmup: true, listHygiene: false });
 
 			expect(result.success).toBe(true);
-			expect(result.team?.client_states?.['client-001'].has_warmup).toBe(true);
-			expect(result.team?.client_states?.['client-001'].has_list_hygiene).toBe(false);
+			// Check warmup modifier was added
+			expect(
+				result.team?.client_states?.['client-001'].volumeModifiers.some((m) => m.source === 'warmup')
+			).toBe(true);
+			// Check list hygiene modifier was NOT added
+			expect(
+				result.team?.client_states?.['client-001'].volumeModifiers.some(
+					(m) => m.source === 'list_hygiene'
+				)
+			).toBe(false);
 			expect(result.team?.credits).toBe(850); // 1000 - 150
 			expect(result.cost).toBe(150);
 		});
@@ -223,9 +231,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -233,7 +241,17 @@ describe('Client Portfolio Manager', () => {
 			const result = configureOnboarding(team, 'client-001', { warmup: false, listHygiene: true });
 
 			expect(result.success).toBe(true);
-			expect(result.team?.client_states?.['client-001'].has_list_hygiene).toBe(true);
+			// Check list hygiene modifiers were added (volume + spam trap)
+			expect(
+				result.team?.client_states?.['client-001'].volumeModifiers.some(
+					(m) => m.source === 'list_hygiene'
+				)
+			).toBe(true);
+			expect(
+				result.team?.client_states?.['client-001'].spamTrapModifiers.some(
+					(m) => m.source === 'list_hygiene'
+				)
+			).toBe(true);
 			expect(result.team?.credits).toBe(920); // 1000 - 80
 			expect(result.cost).toBe(80);
 		});
@@ -254,9 +272,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -264,8 +282,21 @@ describe('Client Portfolio Manager', () => {
 			const result = configureOnboarding(team, 'client-001', { warmup: true, listHygiene: true });
 
 			expect(result.success).toBe(true);
-			expect(result.team?.client_states?.['client-001'].has_warmup).toBe(true);
-			expect(result.team?.client_states?.['client-001'].has_list_hygiene).toBe(true);
+			// Check warmup modifier was added
+			expect(
+				result.team?.client_states?.['client-001'].volumeModifiers.some((m) => m.source === 'warmup')
+			).toBe(true);
+			// Check list hygiene modifiers were added (volume + spam trap)
+			expect(
+				result.team?.client_states?.['client-001'].volumeModifiers.some(
+					(m) => m.source === 'list_hygiene'
+				)
+			).toBe(true);
+			expect(
+				result.team?.client_states?.['client-001'].spamTrapModifiers.some(
+					(m) => m.source === 'list_hygiene'
+				)
+			).toBe(true);
 			expect(result.team?.credits).toBe(770); // 1000 - 150 - 80
 			expect(result.cost).toBe(230);
 		});
@@ -286,9 +317,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -315,9 +346,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1 // Existing client
+						first_active_round: 1, // Existing client
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -344,9 +375,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -373,9 +404,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -387,7 +418,9 @@ describe('Client Portfolio Manager', () => {
 			expect(result.team?.client_states).not.toBe(team.client_states);
 			// Original team unchanged
 			expect(team.credits).toBe(1000);
-			expect(team.client_states?.['client-001'].has_warmup).toBe(false);
+			expect(
+				team.client_states?.['client-001'].volumeModifiers.some((m) => m.source === 'warmup')
+			).toBe(false);
 		});
 	});
 
@@ -412,21 +445,21 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-002': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-003': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -488,21 +521,21 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-002': {
 						status: 'Paused',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-003': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -564,15 +597,15 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-002': {
 						status: 'Suspended',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -623,9 +656,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Paused',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -671,9 +704,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -700,9 +733,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -736,9 +769,9 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};
@@ -772,15 +805,15 @@ describe('Client Portfolio Manager', () => {
 				client_states: {
 					'client-001': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-002': {
 						status: 'Paused',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				}
 			};

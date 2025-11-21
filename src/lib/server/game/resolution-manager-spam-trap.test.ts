@@ -22,9 +22,9 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}
@@ -66,9 +66,9 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}
@@ -109,9 +109,9 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}
@@ -147,9 +147,9 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}
@@ -183,9 +183,9 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}

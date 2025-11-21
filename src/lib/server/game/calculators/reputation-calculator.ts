@@ -67,7 +67,7 @@ export function calculateReputationChanges(params: ReputationParams): Reputation
 			const clientState = params.clientStates[client.id];
 			if (
 				clientState?.status !== 'Active' ||
-				!clientState?.has_warmup ||
+				!clientState?.volumeModifiers.some((m) => m.source === 'warmup') ||
 				clientState?.first_active_round !== params.currentRound
 			) {
 				continue;

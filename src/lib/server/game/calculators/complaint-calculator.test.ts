@@ -27,9 +27,9 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -56,9 +56,9 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -88,15 +88,15 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					'client-1': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-2': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -125,15 +125,15 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					'client-1': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-2': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -164,15 +164,15 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					'client-1': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-2': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -236,9 +236,9 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -267,9 +267,9 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -298,9 +298,9 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -337,21 +337,21 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					'client-1': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-2': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-3': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -384,15 +384,15 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					'client-1': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-2': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []
@@ -422,9 +422,9 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				techStack: []

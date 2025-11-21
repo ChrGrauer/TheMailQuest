@@ -17,9 +17,9 @@ describe('Revenue Calculator - Iteration 1: Basic Revenue', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			deliveryRate: 1.0 // Iteration 1: no delivery modifier
@@ -42,15 +42,15 @@ describe('Revenue Calculator - Iteration 1: Basic Revenue', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			deliveryRate: 1.0
@@ -71,21 +71,21 @@ describe('Revenue Calculator - Iteration 1: Basic Revenue', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Paused',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-3': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			deliveryRate: 1.0
@@ -105,9 +105,9 @@ describe('Revenue Calculator - Iteration 1: Basic Revenue', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			deliveryRate: 1.0
@@ -140,15 +140,15 @@ describe('Revenue Calculator - Iteration 1: Basic Revenue', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Paused',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Paused',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			deliveryRate: 1.0
@@ -171,9 +171,9 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: true,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					spamTrapModifiers: []
 				}
 			},
 			deliveryRate: 1.0,
@@ -198,9 +198,9 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: true,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					spamTrapModifiers: []
 				}
 			},
 			deliveryRate: 1.0,
@@ -222,9 +222,9 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: true,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					spamTrapModifiers: []
 				}
 			},
 			deliveryRate: 0.8,
@@ -249,21 +249,21 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: true,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-3': {
 					status: 'Active',
-					has_warmup: true,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					spamTrapModifiers: []
 				}
 			},
 			deliveryRate: 1.0,

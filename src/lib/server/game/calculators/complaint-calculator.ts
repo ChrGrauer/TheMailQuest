@@ -38,7 +38,7 @@ export function calculateComplaints(params: ComplaintParams): ComplaintResult {
 
 		// Apply list hygiene reduction (per-client)
 		const clientState = params.clientStates[client.id];
-		if (clientState?.has_list_hygiene) {
+		if (clientState?.volumeModifiers.some((m) => m.source === 'list_hygiene')) {
 			adjustedRate = adjustedRate * (1 - LIST_HYGIENE_COMPLAINT_REDUCTION);
 		}
 

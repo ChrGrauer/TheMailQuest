@@ -49,15 +49,15 @@ describe('Reputation Calculator - Phase 2.2.1: Volume-Weighted Warmup Bonus', ()
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: true,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			volumeData,
@@ -108,15 +108,15 @@ describe('Reputation Calculator - Phase 2.2.1: Volume-Weighted Warmup Bonus', ()
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: true,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			volumeData,
@@ -167,15 +167,15 @@ describe('Reputation Calculator - Phase 2.2.1: Volume-Weighted Warmup Bonus', ()
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: true,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Active',
-					has_warmup: true,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					spamTrapModifiers: []
 				}
 			},
 			volumeData,
@@ -226,15 +226,15 @@ describe('Reputation Calculator - Phase 2.2.1: Volume-Weighted Warmup Bonus', ()
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: 1
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			volumeData,

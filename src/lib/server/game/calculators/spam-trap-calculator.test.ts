@@ -28,9 +28,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -61,9 +61,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -92,9 +92,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -123,9 +123,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -154,9 +154,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -187,9 +187,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: true, // List Hygiene active
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -219,9 +219,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: true,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -253,9 +253,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -286,9 +286,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: true, // List Hygiene reduces to 3%
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -326,15 +326,15 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					'client-1': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-2': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -373,9 +373,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'TRAP-HIT',
@@ -411,9 +411,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'NO-TRAP',
@@ -453,15 +453,15 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					'client-1': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-2': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'MULTI-TRAP',
@@ -494,9 +494,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'SEED-TEST',
@@ -530,9 +530,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'SEED-A',
@@ -547,9 +547,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'SEED-B', // Different room code
@@ -584,15 +584,15 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				clientStates: {
 					'client-1': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					'client-2': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				roomCode: 'TEST-ROOM',

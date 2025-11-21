@@ -22,9 +22,9 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}
@@ -64,15 +64,15 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						},
 						'client-2': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}
@@ -111,21 +111,21 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						},
 						'client-2': {
 							status: 'Paused',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						},
 						'client-3': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}
@@ -164,9 +164,9 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 					clientStates: {
 						'sw-client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				},
@@ -176,9 +176,9 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 					clientStates: {
 						'mm-client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}

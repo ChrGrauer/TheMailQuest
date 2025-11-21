@@ -37,7 +37,7 @@ describe('Feature: Game Phase Management - Business Logic', () => {
 	// ============================================================================
 
 	describe('Scenario: Game transitions to Planning Phase', () => {
-		test('Given resources allocated, When transition to planning completes, Then phase is planning and round is 1', () => {
+		test('Given resources allocated, When transition to planning completes, Then phase is planning and round is 1', async () => {
 			// Given - Create session and allocate resources
 			const facilitatorId = 'facilitator_123';
 			const session = createGameSession(facilitatorId);
@@ -65,7 +65,7 @@ describe('Feature: Game Phase Management - Business Logic', () => {
 			expect(currentSession?.current_round).toBe(0);
 
 			// When - Transition to planning phase
-			const result = transitionPhase({
+			const result = await transitionPhase({
 				roomCode: session.roomCode,
 				toPhase: 'planning'
 			});
@@ -209,7 +209,7 @@ describe('Feature: Game Phase Management - Business Logic', () => {
 	// ============================================================================
 
 	describe('Scenario: Phase transition error handling', () => {
-		test('When transition fails, Then game should remain in current phase', () => {
+		test('When transition fails, Then game should remain in current phase', async () => {
 			// Given
 			const facilitatorId = 'facilitator_123';
 			const session = createGameSession(facilitatorId);
@@ -230,7 +230,7 @@ describe('Feature: Game Phase Management - Business Logic', () => {
 
 			// Session is in lobby - try to transition to planning (should fail)
 			// When
-			const result = transitionPhase({
+			const result = await transitionPhase({
 				roomCode: session.roomCode,
 				toPhase: 'planning'
 			});
@@ -300,7 +300,7 @@ describe('Feature: Game Phase Management - Business Logic', () => {
 	// ============================================================================
 
 	describe('Scenario: Phase transition returns correct data structure', () => {
-		test('When transition succeeds, Then result should contain phase, round, and timestamp info', () => {
+		test('When transition succeeds, Then result should contain phase, round, and timestamp info', async () => {
 			// Given
 			const facilitatorId = 'facilitator_123';
 			const session = createGameSession(facilitatorId);
@@ -323,7 +323,7 @@ describe('Feature: Game Phase Management - Business Logic', () => {
 			allocateResources({ roomCode: session.roomCode });
 
 			// When
-			const result = transitionPhase({
+			const result = await transitionPhase({
 				roomCode: session.roomCode,
 				toPhase: 'planning'
 			});

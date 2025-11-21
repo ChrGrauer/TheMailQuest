@@ -22,9 +22,9 @@ describe('Resolution Manager - Phase 3.3.1: Data Privacy - Satisfaction Not Visi
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}
@@ -61,9 +61,9 @@ describe('Resolution Manager - Phase 3.3.1: Data Privacy - Satisfaction Not Visi
 					clientStates: {
 						'client-1': {
 							status: 'Active',
-							has_warmup: false,
-							has_list_hygiene: false,
-							first_active_round: null
+							first_active_round: null,
+							volumeModifiers: [],
+							spamTrapModifiers: []
 						}
 					}
 				}

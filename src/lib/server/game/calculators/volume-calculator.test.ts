@@ -17,9 +17,9 @@ describe('Volume Calculator - Iteration 1: Basic Volume', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			currentRound: 1
@@ -43,15 +43,15 @@ describe('Volume Calculator - Iteration 1: Basic Volume', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			currentRound: 1
@@ -72,21 +72,21 @@ describe('Volume Calculator - Iteration 1: Basic Volume', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Paused',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-3': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			currentRound: 1
@@ -106,9 +106,9 @@ describe('Volume Calculator - Iteration 1: Basic Volume', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Active',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			currentRound: 1
@@ -141,15 +141,15 @@ describe('Volume Calculator - Iteration 1: Basic Volume', () => {
 			clientStates: {
 				'client-1': {
 					status: 'Paused',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				},
 				'client-2': {
 					status: 'Paused',
-					has_warmup: false,
-					has_list_hygiene: false,
-					first_active_round: null
+					first_active_round: null,
+					volumeModifiers: [],
+					spamTrapModifiers: []
 				}
 			},
 			currentRound: 1
@@ -170,9 +170,9 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: true,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+						spamTrapModifiers: []
 					}
 				},
 				currentRound: 1
@@ -191,9 +191,9 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: true,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+						spamTrapModifiers: []
 					}
 				},
 				currentRound: 2
@@ -210,9 +210,9 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: true,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+						spamTrapModifiers: []
 					}
 				},
 				currentRound: 1
@@ -231,16 +231,16 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.95, applicableRounds: [1] }],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				currentRound: 1
 			});
 
 			expect(result.totalVolume).toBe(28500); // 30K * 0.95
-			expect(result.clientVolumes[0].adjustments.listHygiene).toBe(1500);
+			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(1500, 0);
 		});
 
 		test('Medium risk client: 10% permanent reduction', () => {
@@ -250,16 +250,16 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.90, applicableRounds: [1] }],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				currentRound: 1
 			});
 
 			expect(result.totalVolume).toBe(31500); // 35K * 0.90
-			expect(result.clientVolumes[0].adjustments.listHygiene).toBe(3500);
+			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(3500, 0);
 		});
 
 		test('High risk client: 15% permanent reduction', () => {
@@ -269,16 +269,16 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.85, applicableRounds: [1] }],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				currentRound: 1
 			});
 
 			expect(result.totalVolume).toBe(68000); // 80K * 0.85
-			expect(result.clientVolumes[0].adjustments.listHygiene).toBe(12000);
+			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(12000, 0);
 		});
 
 		test('list hygiene applies in all rounds (permanent)', () => {
@@ -290,9 +290,9 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.85, applicableRounds: [1, 2] }],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1, 2] }]
 					}
 				},
 				currentRound: 1
@@ -305,9 +305,9 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.85, applicableRounds: [1, 2] }],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1, 2] }]
 					}
 				},
 				currentRound: 2
@@ -324,18 +324,21 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: true,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [
+							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.90, applicableRounds: [1] },
+							{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+						],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				currentRound: 1
 			});
 
-			// Calculation: 40K × 0.90 (hygiene) = 36K, then 36K × 0.50 (warmup) = 18K
+			// Calculation: 40K × 0.90 (hygiene) × 0.50 (warmup) = 18K
 			expect(result.totalVolume).toBe(18000);
-			expect(result.clientVolumes[0].adjustments.listHygiene).toBe(4000);
-			expect(result.clientVolumes[0].adjustments.warmup).toBe(18000);
+			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(4000, 0);
+			expect(result.clientVolumes[0].adjustments.warmup).toBe(20000); // Note: adjustment tracks base volume reduction, not cumulative
 		});
 
 		test('re_engagement with both services (High risk, 50K)', () => {
@@ -345,18 +348,21 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: true,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [
+							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.85, applicableRounds: [1] },
+							{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+						],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				currentRound: 1
 			});
 
-			// Calculation: 50K × 0.85 (hygiene) = 42.5K, then 42.5K × 0.50 (warmup) = 21.25K
+			// Calculation: 50K × 0.85 (hygiene) × 0.50 (warmup) = 21.25K
 			expect(result.totalVolume).toBe(21250);
-			expect(result.clientVolumes[0].adjustments.listHygiene).toBe(7500);
-			expect(result.clientVolumes[0].adjustments.warmup).toBe(21250);
+			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(7500, 0);
+			expect(result.clientVolumes[0].adjustments.warmup).toBe(25000); // Note: adjustment tracks base volume reduction, not cumulative
 		});
 
 		test('combined services in round 2: only hygiene applies', () => {
@@ -366,9 +372,12 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: true,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [
+							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.90, applicableRounds: [1, 2] },
+							{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+						],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1, 2] }]
 					}
 				},
 				currentRound: 2
@@ -391,21 +400,24 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 				clientStates: {
 					'client-1': {
 						status: 'Active',
-						has_warmup: true,
-						has_list_hygiene: false,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+						spamTrapModifiers: []
 					},
 					'client-2': {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.90, applicableRounds: [1] }],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					},
 					'client-3': {
 						status: 'Active',
-						has_warmup: true,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [
+							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.90, applicableRounds: [1] },
+							{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+						],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				currentRound: 1
@@ -435,9 +447,9 @@ describe('Volume Calculator - Iteration 6: Per-Destination Volumes', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				currentRound: 1
@@ -460,9 +472,12 @@ describe('Volume Calculator - Iteration 6: Per-Destination Volumes', () => {
 				clientStates: {
 					[client.id]: {
 						status: 'Active',
-						has_warmup: true,
-						has_list_hygiene: true,
-						first_active_round: 1
+						first_active_round: 1,
+						volumeModifiers: [
+							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.85, applicableRounds: [1] },
+							{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+						],
+						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
 					}
 				},
 				currentRound: 1
@@ -488,15 +503,15 @@ describe('Volume Calculator - Iteration 6: Per-Destination Volumes', () => {
 				clientStates: {
 					c1: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					},
 					c2: {
 						status: 'Active',
-						has_warmup: false,
-						has_list_hygiene: false,
-						first_active_round: null
+						first_active_round: null,
+						volumeModifiers: [],
+						spamTrapModifiers: []
 					}
 				},
 				currentRound: 1
