@@ -66,13 +66,14 @@ export function acquireClient(team: ESPTeam, clientId: string): ClientAcquisitio
 	const newCredits = team.credits - client.cost;
 
 	// Initialize client state (US-2.4: Client Basic Management)
+	// Phase 2: Initialize with empty modifier arrays
 	const newClientStates = {
 		...team.client_states,
 		[client.id]: {
 			status: 'Active' as const,
-			has_warmup: false,
-			has_list_hygiene: false,
-			first_active_round: null // New client - not yet activated in a round
+			first_active_round: null, // New client - not yet activated in a round
+			volumeModifiers: [], // Empty array, populated during onboarding or incidents
+			spamTrapModifiers: [] // Empty array, populated during onboarding or incidents
 		}
 	};
 

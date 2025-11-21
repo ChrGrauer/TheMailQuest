@@ -17,8 +17,26 @@ import {
 	LIST_HYGIENE_COST,
 	calculateOnboardingCost,
 	WARMUP_VOLUME_REDUCTION,
+	LIST_HYGIENE_SPAM_TRAP_REDUCTION,
 	getListHygieneVolumeReduction
 } from '$lib/config/client-onboarding';
+
+/**
+ * Phase 2: Helper to check if a volume modifier applies to the current round
+ * Handles special case: -1 means "first active round only"
+ */
+function isModifierApplicable(
+	applicableRounds: number[],
+	currentRound: number,
+	firstActiveRound: number | null
+): boolean {
+	// Handle special case: -1 = first active round only
+	if (applicableRounds.includes(-1)) {
+		return firstActiveRound !== null && firstActiveRound === currentRound;
+	}
+	// Standard case: check if current round is in the list
+	return applicableRounds.includes(currentRound);
+}
 
 /**
  * Result type for toggle status operation
@@ -111,16 +129,19 @@ export function toggleClientStatus(
  *
  * Only available for clients with first_active_round = null
  * Deducts onboarding costs from team credits
+ * Phase 2: Creates VolumeModifier and SpamTrapModifier objects
  *
  * @param team - ESP team
  * @param clientId - Client ID to configure
  * @param options - Onboarding options (warmup, listHygiene)
+ * @param client - Client object (needed for risk level for list hygiene)
  * @returns Result with updated team or error
  */
 export function configureOnboarding(
 	team: ESPTeam,
 	clientId: string,
-	options: OnboardingOptions
+	options: OnboardingOptions,
+	client?: Client
 ): ConfigureOnboardingResult {
 	// Validate client exists
 	if (!team.client_states || !team.client_states[clientId]) {
@@ -152,13 +173,52 @@ export function configureOnboarding(
 		};
 	}
 
+	// Phase 2: Build modifiers based on options
+	const volumeModifiers = [...currentState.volumeModifiers];
+	const spamTrapModifiers = [...currentState.spamTrapModifiers];
+
+	// Warmup: 50% volume reduction in first active round only
+	// Use -1 as sentinel value for "first active round only"
+	if (options.warmup) {
+		volumeModifiers.push({
+			id: `warmup-${clientId}`,
+			source: 'warmup',
+			multiplier: 1.0 - WARMUP_VOLUME_REDUCTION, // 0.5
+			applicableRounds: [-1], // -1 = first active round only
+			description: 'Warm-up active (first round)'
+		});
+	}
+
+	// List Hygiene: Permanent volume reduction + spam trap reduction
+	if (options.listHygiene) {
+		// Volume reduction based on risk level
+		const riskLevel = client?.risk || 'Medium'; // Default to Medium if client not provided
+		const volumeReduction = getListHygieneVolumeReduction(riskLevel);
+		volumeModifiers.push({
+			id: `list_hygiene-${clientId}`,
+			source: 'list_hygiene',
+			multiplier: 1.0 - volumeReduction, // 0.95, 0.90, or 0.85
+			applicableRounds: [1, 2, 3, 4], // All rounds (permanent)
+			description: 'List Hygiene active (permanent)'
+		});
+
+		// Spam trap reduction: 40% reduction = 0.6 multiplier
+		spamTrapModifiers.push({
+			id: `list_hygiene-spam-${clientId}`,
+			source: 'list_hygiene',
+			multiplier: 1.0 - LIST_HYGIENE_SPAM_TRAP_REDUCTION, // 0.6
+			applicableRounds: [1, 2, 3, 4], // All rounds (permanent)
+			description: 'List Hygiene spam trap reduction'
+		});
+	}
+
 	// Create immutable update
 	const updatedClientStates = {
 		...team.client_states,
 		[clientId]: {
 			...currentState,
-			has_warmup: options.warmup,
-			has_list_hygiene: options.listHygiene
+			volumeModifiers,
+			spamTrapModifiers
 		}
 	};
 
@@ -203,12 +263,12 @@ export function getClientWithState(
  *
  * Only includes clients with status = 'Active'
  * Excludes paused and suspended clients
- * Applies warmup and list hygiene factors to match actual resolution calculations
+ * Phase 2: Applies all volume modifiers to match actual resolution calculations
  *
  * @param team - ESP team with client_states
  * @param clients - Array of all Client objects (from marketplace or team's available_clients)
  * @param currentRound - Current game round number
- * @returns Total revenue from active clients (adjusted for warmup and list hygiene)
+ * @returns Total revenue from active clients (adjusted for all volume modifiers)
  */
 export function calculateRevenuePreview(
 	team: ESPTeam,
@@ -227,7 +287,7 @@ export function calculateRevenuePreview(
 		clientMap.set(client.id, client);
 	}
 
-	// Calculate revenue for active clients with warmup and list hygiene factors
+	// Calculate revenue for active clients with all volume modifiers
 	for (const clientId of team.active_clients) {
 		const clientState = team.client_states[clientId];
 		if (clientState && clientState.status === 'Active') {
@@ -235,21 +295,24 @@ export function calculateRevenuePreview(
 			if (client) {
 				let baseRevenue = client.revenue;
 
-				// Apply warmup factor (50% reduction in first active round)
-				let warmupFactor = 1.0;
-				if (clientState.has_warmup && clientState.first_active_round === currentRound) {
-					warmupFactor = 1.0 - WARMUP_VOLUME_REDUCTION; // 0.5 (50% reduction)
+				// Phase 2: Apply all volume modifiers
+				// Since revenue is proportional to volume, use same multiplier logic
+				let cumulativeMultiplier = 1.0;
+
+				for (const modifier of clientState.volumeModifiers) {
+					if (
+						isModifierApplicable(
+							modifier.applicableRounds,
+							currentRound,
+							clientState.first_active_round
+						)
+					) {
+						cumulativeMultiplier *= modifier.multiplier;
+					}
 				}
 
-				// Apply list hygiene factor (permanent volume reduction)
-				let listHygieneFactor = 1.0;
-				if (clientState.has_list_hygiene) {
-					const reductionPercentage = getListHygieneVolumeReduction(client.risk);
-					listHygieneFactor = 1.0 - reductionPercentage; // 0.95, 0.90, or 0.85
-				}
-
-				// Combined revenue with both factors
-				const adjustedRevenue = Math.round(baseRevenue * warmupFactor * listHygieneFactor);
+				// Combined revenue with all modifiers
+				const adjustedRevenue = Math.round(baseRevenue * cumulativeMultiplier);
 				totalRevenue += adjustedRevenue;
 			}
 		}

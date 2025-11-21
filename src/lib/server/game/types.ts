@@ -10,6 +10,7 @@
  * US-2.6.2: Destination Tech Shop (added kingdom, owned_tools, authentication_level, spam_trap_active, esp_metrics)
  * US-3.2: Decision Lock-In (added locked_in, locked_in_at, pending_onboarding_decisions, lock-in interfaces)
  * Phase 1: Incident Cards (added incident_history)
+ * Phase 2: Incident Cards Refactor (added VolumeModifier, SpamTrapModifier; refactored ClientState to use modifier arrays)
  */
 
 import type { IncidentHistoryEntry } from '$lib/types/incident';
@@ -112,14 +113,42 @@ export interface Client {
 }
 
 /**
+ * Volume Modifier
+ * Phase 2: Generic modifier system for volume multipliers
+ * Applied to client volumes during resolution
+ */
+export interface VolumeModifier {
+	id: string; // Unique ID: "warmup-client-001-r2" | "INC-009-r2" | "list_hygiene-client-001-r2"
+	source: string; // "warmup" | "list_hygiene" | "INC-009" | "INC-011" | "INC-015"
+	multiplier: number; // 0.5 (warmup), 0.85 (list hygiene), 1.5 (seasonal), 10 (viral), 2 (black friday)
+	applicableRounds: number[]; // [2, 3] for warmup starting R2
+	description?: string; // For UI display: "Warm-up active" | "Seasonal Traffic Surge"
+}
+
+/**
+ * Spam Trap Modifier
+ * Phase 2: Generic modifier system for spam trap probability multipliers
+ * Applied to spam trap risk during resolution
+ */
+export interface SpamTrapModifier {
+	id: string; // Unique ID: "list_hygiene-client-001-r2" | "INC-009-r2" | "INC-011-r2"
+	source: string; // "list_hygiene" | "INC-009" | "INC-011"
+	multiplier: number; // 0.6 (list hygiene = 40% reduction), 1.2 (INC-009 = 20% increase), 3 (INC-011 = 200% increase)
+	applicableRounds: number[]; // [2, 3] for modifiers starting R2
+	description?: string; // For UI display: "List Hygiene active" | "Viral Campaign risk"
+}
+
+/**
  * US-2.4: Client State
  * Per-team state for an acquired client (status, onboarding config, activation history)
+ * Phase 2 Refactor: Replaced boolean flags with generic modifier arrays
  */
 export interface ClientState {
 	status: 'Active' | 'Paused' | 'Suspended'; // Current status
-	has_warmup: boolean; // Whether warm-up was activated for this client
-	has_list_hygiene: boolean; // Whether list hygiene was activated for this client
 	first_active_round: number | null; // Round when client first became active (null if never activated)
+	// Phase 2: Generic modifier system
+	volumeModifiers: VolumeModifier[]; // All volume multipliers (warmup, list hygiene, incidents)
+	spamTrapModifiers: SpamTrapModifier[]; // All spam trap probability multipliers
 }
 
 /**

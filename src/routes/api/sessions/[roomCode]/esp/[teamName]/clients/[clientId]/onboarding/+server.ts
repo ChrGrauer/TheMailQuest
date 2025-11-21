@@ -72,6 +72,9 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	const team = session.esp_teams[teamIndex];
 	const options: OnboardingOptions = { warmup, listHygiene };
 
+	// Find client (needed for risk level in list hygiene calculation)
+	const client = team.available_clients.find((c) => c.id === clientId);
+
 	// Validate onboarding configuration
 	const validation = validateOnboardingConfig(team, clientId, options);
 	if (!validation.canConfigure) {
@@ -87,8 +90,8 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		);
 	}
 
-	// Configure onboarding
-	const result = configureOnboarding(team, clientId, options);
+	// Configure onboarding (pass client for risk level calculation)
+	const result = configureOnboarding(team, clientId, options, client);
 	if (!result.success || !result.team) {
 		gameLogger.event('client_onboarding_config_failed', {
 			roomCode,

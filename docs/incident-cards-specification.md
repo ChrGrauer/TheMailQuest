@@ -184,9 +184,7 @@ Each incident card contains:
   esp:
     - client_volume_multiplier: 1.5
     - only_affects: ["e-commerce", "retail", "event"]
-  destination:
-    - processing_load: "increased"
-    - can_throttle_free: true
+    - spam_trap_multiplier: 1.2 # for each impacted client without list hygien
   ```
 - **Visual Theme**: Calendar, holiday imagery
 
@@ -216,20 +214,20 @@ Each incident card contains:
 - **Round**: 3
 - **Category**: Market
 - **Rarity**: Rare
-- **Description**: "[Random ESP]'s client goes viral on social media! Email volume increases 10x. Without proper warming, this could be disaster or triumph!"
-- **Educational Note**: Viral success requires infrastructure preparation
+- **Description**: "[Random ESP]'s client goes viral on social media! Email volume increases 10x. Without proper list hygien, this could be disaster or triumph!"
+- **Educational Note**: Viral success requires clean practices preparation
 - **Duration**: This Round
 - **Effects**:
   ```yaml
   esp:
     - random_team_selection: true
     - random_client_volume: "x10"
-    - if_has_warming:
+    - if_has_list_hygien:
       - revenue_bonus: 500
       - reputation_gain: 10
     - else:
-      - reputation_loss: 20
-      - spam_trap_probability: 75
+      - reputation_loss: 10
+      - spam_trap_multiplier: 3 # if no list hygien
   destination:
     - alert: "Massive volume spike detected"
   ```

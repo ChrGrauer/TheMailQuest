@@ -17,6 +17,7 @@
 	import type { Client, ClientState } from '$lib/server/game/types';
 	import { WARMUP_COST, LIST_HYGIENE_COST } from '$lib/config/client-onboarding';
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
+	import { hasWarmup, hasListHygiene } from '$lib/utils/client-state-helpers';
 
 	interface Props {
 		client: Client & ClientState;
@@ -41,9 +42,9 @@
 	}: Props = $props();
 
 	// Local state for onboarding checkboxes
-	// Use pending selections from parent if provided, otherwise use committed values
-	let warmupSelected = $state(initialWarmupSelected ?? client.has_warmup);
-	let listHygieneSelected = $state(initialListHygieneSelected ?? client.has_list_hygiene);
+	// Use pending selections from parent if provided, otherwise check modifiers
+	let warmupSelected = $state(initialWarmupSelected ?? hasWarmup(client));
+	let listHygieneSelected = $state(initialListHygieneSelected ?? hasListHygiene(client));
 
 	// Determine if client is "new" (not yet activated)
 	let isNewClient = $derived(client.first_active_round === null);
@@ -246,16 +247,14 @@
 			<div class="flex gap-6 text-sm">
 				<div class="flex items-center gap-2">
 					<span class="text-gray-600">Has Warm-up History:</span>
-					<span class="font-semibold {client.has_warmup ? 'text-green-600' : 'text-gray-500'}">
-						{client.has_warmup ? 'Yes' : 'No'}
+					<span class="font-semibold {hasWarmup(client) ? 'text-green-600' : 'text-gray-500'}">
+						{hasWarmup(client) ? 'Yes' : 'No'}
 					</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<span class="text-gray-600">Has List Hygiene:</span>
-					<span
-						class="font-semibold {client.has_list_hygiene ? 'text-green-600' : 'text-gray-500'}"
-					>
-						{client.has_list_hygiene ? 'Yes' : 'No'}
+					<span class="font-semibold {hasListHygiene(client) ? 'text-green-600' : 'text-gray-500'}">
+						{hasListHygiene(client) ? 'Yes' : 'No'}
 					</span>
 				</div>
 			</div>

@@ -1,10 +1,11 @@
 /**
  * Spam Trap Calculator
  * US 3.3: Resolution Phase Automation - Iteration 7
+ * Phase 2: Refactored to use generic modifier system
  *
  * Calculates spam trap risk and detection for ESP clients
  * - Base risk from client profiles
- * - List Hygiene reduces risk by 40%
+ * - Generic spam trap modifiers (list hygiene, incident effects)
  * - Spam trap network multiplies risk by 3x at active destinations
  * - Per-client seeded random rolls
  * - Reputation penalty capped at -5 per round
@@ -12,8 +13,29 @@
 
 import type { SpamTrapParams, SpamTrapResult, ClientSpamTrapData } from '../resolution-types';
 import { getSpamTrapRisk } from '$lib/config/client-profiles';
-import { LIST_HYGIENE_SPAM_TRAP_REDUCTION } from '$lib/config/client-onboarding';
 import { SPAM_TRAP_NETWORK_MULTIPLIER } from '$lib/config/metrics-thresholds';
+
+/**
+ * Check if a spam trap modifier applies to the current round
+ * Handles special case: -1 means "first active round only"
+ *
+ * @param applicableRounds - Array of rounds where modifier applies
+ * @param currentRound - Current game round
+ * @param firstActiveRound - Round when client first became active
+ * @returns True if modifier should be applied
+ */
+function isModifierApplicable(
+	applicableRounds: number[],
+	currentRound: number,
+	firstActiveRound: number | null
+): boolean {
+	// Handle special case: -1 = first active round only
+	if (applicableRounds.includes(-1)) {
+		return firstActiveRound !== null && firstActiveRound === currentRound;
+	}
+	// Standard case: check if current round is in the list
+	return applicableRounds.includes(currentRound);
+}
 
 /**
  * Seeded random number generator
@@ -52,13 +74,21 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 		const baseRisk = getSpamTrapRisk(client.type);
 		totalBaseRisk += baseRisk;
 
-		// 2. Apply List Hygiene reduction (40% reduction if active)
+		// 2. Phase 2: Apply all spam trap modifiers
+		// Start with base risk, multiply by all applicable modifiers
 		const clientState = params.clientStates[client.id];
-		const listHygieneActive = clientState?.has_list_hygiene || false;
-		const adjustedRisk = listHygieneActive
-			? baseRisk * (1 - LIST_HYGIENE_SPAM_TRAP_REDUCTION)
-			: baseRisk;
+		let cumulativeMultiplier = 1.0;
 
+		for (const modifier of clientState.spamTrapModifiers) {
+			if (
+				isModifierApplicable(modifier.applicableRounds, params.round, clientState.first_active_round)
+			) {
+				cumulativeMultiplier *= modifier.multiplier;
+			}
+		}
+
+		// Apply cumulative multiplier to base risk
+		const adjustedRisk = baseRisk * cumulativeMultiplier;
 		totalAdjustedRisk += adjustedRisk;
 
 		// 3. Apply spam trap network multiplier per destination

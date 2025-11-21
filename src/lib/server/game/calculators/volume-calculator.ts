@@ -1,24 +1,45 @@
 /**
  * Volume Calculator
  * US 3.3: Resolution Phase Automation - Iteration 1, 5, 6
+ * Phase 2: Refactored to use generic modifier system
  *
  * Calculates email volume for ESP teams
  * Iteration 1: Basic volume calculation (filter active clients, sum volumes)
  * Iteration 5: List hygiene and warmup volume reductions
  * Iteration 6: Per-destination volume distribution
+ * Phase 2: Generic volume modifiers (warmup, list hygiene, incident effects)
  */
 
 import type { VolumeParams, VolumeResult, ClientVolumeData } from '../resolution-types';
-import {
-	getListHygieneVolumeReduction,
-	WARMUP_VOLUME_REDUCTION
-} from '$lib/config/client-onboarding';
+
+/**
+ * Check if a volume modifier applies to the current round
+ * Handles special case: -1 means "first active round only"
+ *
+ * @param applicableRounds - Array of rounds where modifier applies
+ * @param currentRound - Current game round
+ * @param firstActiveRound - Round when client first became active
+ * @returns True if modifier should be applied
+ */
+function isModifierApplicable(
+	applicableRounds: number[],
+	currentRound: number,
+	firstActiveRound: number | null
+): boolean {
+	// Handle special case: -1 = first active round only
+	if (applicableRounds.includes(-1)) {
+		return firstActiveRound !== null && firstActiveRound === currentRound;
+	}
+	// Standard case: check if current round is in the list
+	return applicableRounds.includes(currentRound);
+}
 
 /**
  * Calculate total email volume for a team
  * Iteration 1: Filters active clients
  * Iteration 5: Applies list hygiene and warmup reductions
  * Iteration 6: Distributes volume per destination
+ * Phase 2: Applies all volume modifiers (multiplies them together)
  */
 export function calculateVolume(params: VolumeParams): VolumeResult {
 	// Filter to only active clients
@@ -32,20 +53,24 @@ export function calculateVolume(params: VolumeParams): VolumeResult {
 		let adjustedVolume = client.volume;
 		const adjustments: Record<string, number> = {};
 
-		// 1. List hygiene reduction (permanent, applied first)
-		if (state.has_list_hygiene) {
-			const reductionPercentage = getListHygieneVolumeReduction(client.risk);
-			const reductionAmount = client.volume * reductionPercentage;
-			adjustedVolume -= reductionAmount;
-			adjustments.listHygiene = reductionAmount;
+		// Phase 2: Apply all volume modifiers
+		// Start with base volume, multiply by all applicable modifiers
+		let cumulativeMultiplier = 1.0;
+		const appliedModifiers: string[] = []; // Track which modifiers were applied
+
+		for (const modifier of state.volumeModifiers) {
+			if (
+				isModifierApplicable(modifier.applicableRounds, params.currentRound, state.first_active_round)
+			) {
+				cumulativeMultiplier *= modifier.multiplier;
+				appliedModifiers.push(modifier.source);
+				// Track individual modifier effects for debugging/display
+				adjustments[modifier.source] = client.volume * (1 - modifier.multiplier);
+			}
 		}
 
-		// 2. Warmup reduction (first round only, applied to already-reduced volume)
-		if (state.has_warmup && state.first_active_round === params.currentRound) {
-			const reductionAmount = adjustedVolume * WARMUP_VOLUME_REDUCTION;
-			adjustedVolume -= reductionAmount;
-			adjustments.warmup = reductionAmount;
-		}
+		// Apply cumulative multiplier
+		adjustedVolume = client.volume * cumulativeMultiplier;
 
 		// 3. Distribute volume per destination (Iteration 6)
 		// Fallback to default distribution for clients without the field (backward compatibility)

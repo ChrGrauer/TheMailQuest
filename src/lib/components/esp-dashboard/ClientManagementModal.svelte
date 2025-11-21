@@ -83,7 +83,7 @@
 			clients.forEach((client) => {
 				if (client.first_active_round === null) {
 					// Load from pending decisions if exists, otherwise default to false
-					// Do NOT use client.has_warmup/has_list_hygiene as those may be from
+					// Do NOT use client.volumeModifiers/spamTrapModifiers as those may be from
 					// previous rounds where costs were already paid
 					if (pendingDecisions[client.id]) {
 						onboardingSelections[client.id] = {
