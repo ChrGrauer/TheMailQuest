@@ -6,6 +6,7 @@
  * - Triggers incident and adds to history
  * - Applies incident effects to game state
  * - Broadcasts WebSocket messages to all players
+ * Phase 2: Supports team selection for targeted incidents
  */
 
 import { json } from '@sveltejs/kit';
@@ -67,7 +68,7 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 
 		// 4. Parse request body
 		const body = await request.json();
-		const { incidentId } = body;
+		const { incidentId, selectedTeam } = body;
 
 		if (!incidentId || typeof incidentId !== 'string') {
 			return json(
@@ -83,24 +84,31 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 		}
 
 		// 6. Trigger incident (adds to history)
-		const triggerResult = triggerIncident(session, incidentId);
+		const triggerResult = triggerIncident(session, incidentId, selectedTeam);
 		if (!triggerResult.success) {
 			logger.warn({
 				action: 'incident_trigger_failed',
 				roomCode,
 				incidentId,
+				selectedTeam: selectedTeam || null,
 				error: triggerResult.error
 			});
 			return json({ success: false, error: triggerResult.error }, { status: 400 });
 		}
 
 		// 7. Apply incident effects
-		const effectResult = applyIncidentEffects(session, incident);
+		const effectResult = applyIncidentEffects(
+			session,
+			incident,
+			selectedTeam,
+			triggerResult.affectedClient
+		);
 		if (!effectResult.success) {
 			logger.error({
 				action: 'incident_effects_application_failed',
 				roomCode,
 				incidentId,
+				selectedTeam: selectedTeam || null,
 				error: effectResult.error
 			});
 			return json({ success: false, error: 'Failed to apply incident effects' }, { status: 500 });
@@ -117,7 +125,8 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 				category: incident.category,
 				rarity: incident.rarity,
 				duration: incident.duration,
-				displayDurationMs: 10000 // 10 seconds
+				displayDurationMs: 10000, // 10 seconds
+				affectedTeam: selectedTeam || null // Phase 2: Show which team is affected
 			}
 		});
 
@@ -129,14 +138,16 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 		});
 
 		// 10. Broadcast updated game state
-		// ESP dashboard updates
+		// ESP dashboard updates (Phase 2: Include client_states for modifiers)
 		for (const team of session.esp_teams) {
 			gameWss.broadcastToRoom(roomCode, {
 				type: 'esp_dashboard_update',
 				data: {
 					teamName: team.name,
 					credits: team.credits,
-					reputation: team.reputation
+					reputation: team.reputation,
+					client_states: team.client_states, // Phase 2: Include modifiers
+					locked_in: team.locked_in // Phase 2: Include lock-in status for auto-lock
 				}
 			});
 		}

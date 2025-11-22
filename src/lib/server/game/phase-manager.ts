@@ -150,6 +150,37 @@ export async function transitionPhase(
 		// Record phase start time
 		session.phase_start_time = new Date();
 
+		// Phase 2: Apply pending auto-locks when entering planning phase
+		if (toPhase === 'planning') {
+			// Import gameWss dynamically to avoid circular dependencies
+			const { gameWss } = await import('../websocket');
+
+			for (const team of session.esp_teams) {
+				if (team.pendingAutoLock) {
+					team.locked_in = true;
+					team.locked_in_at = new Date();
+					team.pendingAutoLock = false;
+
+					// Broadcast lock-in confirmation (same format as manual lock-in)
+					gameWss.broadcastToRoom(roomCode, {
+						type: 'lock_in_confirmed',
+						data: {
+							teamName: team.name,
+							role: 'ESP',
+							locked_in: true,
+							locked_in_at: team.locked_in_at
+						}
+					});
+
+					gameLogger.event('pending_auto_lock_applied', {
+						roomCode,
+						teamName: team.name,
+						round: session.current_round
+					});
+				}
+			}
+		}
+
 		// Phase 1: Automatic DMARC Enforcement at Round 3
 		// Trigger INC-010 automatically when entering Round 3 planning phase
 		if (toPhase === 'planning' && session.current_round === 3) {
@@ -196,8 +227,7 @@ export async function transitionPhase(
 								changes: effectResult.changes
 							});
 
-							gameLogger.info({
-								action: 'automatic_incident_triggered',
+							gameLogger.event('automatic_incident_triggered', {
 								roomCode,
 								incidentId: 'INC-010',
 								incidentName: 'DMARC Enforcement',

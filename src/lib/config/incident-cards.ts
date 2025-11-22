@@ -1,6 +1,7 @@
 /**
  * Incident Cards Configuration
  * Phase 1: MVP Foundation - 5 Essential Cards
+ * Phase 2: Advanced Mechanics - 5 Additional Cards
  *
  * Based on docs/incident-cards-specification.md
  */
@@ -34,6 +35,26 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 		]
 	},
 
+	{
+		id: 'INC-003',
+		name: 'Venture Capital Boost',
+		round: [1],
+		category: 'Market',
+		rarity: 'Uncommon',
+		description:
+			'A venture capital firm is looking to invest in promising email service providers. Facilitator: Select one ESP team to receive funding.',
+		educationalNote: 'Market opportunities can provide competitive advantages',
+		duration: 'Immediate',
+		effects: [
+			{
+				target: 'selected_esp',
+				type: 'credits',
+				value: 200,
+				displayMessage: '200 credits from Venture Capital'
+			}
+		]
+	},
+
 	// ============================================================================
 	// ROUND 2: Escalation
 	// ============================================================================
@@ -52,12 +73,69 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 			{
 				target: 'all_esps',
 				type: 'reputation',
-				value: -5 // All ESPs lose 5 reputation across all destinations
+				value: -5, // All ESPs lose 5 reputation across all destinations
+				displayMessage: 'Reputation penalty of -5 from Industry scandal'
 			},
 			{
 				target: 'all_destinations',
 				type: 'budget',
-				value: 100 // All destinations gain 100 budget
+				value: 100, // All destinations gain 100 budget
+				displayMessage: '100 credits following the Industry Scandal'
+			}
+		]
+	},
+
+	{
+		id: 'INC-008',
+		name: 'Authentication Emergency',
+		round: [2],
+		category: 'Security',
+		rarity: 'Common',
+		description:
+			'Major phishing attack exploiting weak email authentication! Destinations crack down on ESPs without proper DKIM setup.',
+		educationalNote: 'Authentication is critical for email security and trust',
+		duration: 'Immediate',
+		effects: [
+			{
+				target: 'conditional_esp',
+				type: 'reputation',
+				value: -10,
+				condition: {
+					type: 'lacks_tech',
+					tech: 'dkim'
+				},
+				displayMessage:
+					'Reputation penalty of -10 following a major phishing attack exploiting weak email authentication (no DKIM)'
+			}
+		]
+	},
+
+	{
+		id: 'INC-009',
+		name: 'Seasonal Traffic Surge',
+		round: [2],
+		category: 'Market',
+		rarity: 'Uncommon',
+		description:
+			"Valentine's Day approaches! E-commerce, retail, and event clients increase volume by 50% this round. Revenue opportunities abound, but infrastructure will be tested.",
+		educationalNote: 'Seasonal events create volume spikes that test infrastructure',
+		duration: 'This Round',
+		effects: [
+			{
+				target: 'all_esps',
+				type: 'client_volume_multiplier',
+				multiplier: 1.5,
+				duration: 'this_round',
+				clientTypes: ['re_engagement', 'aggressive_marketer', 'event_seasonal'],
+				displayMessage: 'Volume increased by Seasonal Traffic Surge'
+			},
+			{
+				target: 'all_esps',
+				type: 'client_spam_trap_multiplier',
+				multiplier: 1.2,
+				duration: 'this_round',
+				clientTypes: ['re_engagement', 'aggressive_marketer', 'event_seasonal'],
+				displayMessage: 'Spamtrap increased by Seasonal Traffic Surge'
 			}
 		]
 	},
@@ -87,6 +165,70 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 		]
 	},
 
+	{
+		id: 'INC-011',
+		name: 'Viral Campaign',
+		round: [3],
+		category: 'Market',
+		rarity: 'Rare',
+		description:
+			'One of your clients content goes VIRAL! Facilitator: Select an ESP. System will randomly pick one of their active clients.',
+		educationalNote:
+			'Viral content creates massive volume spikes - proper infrastructure is critical',
+		duration: 'This Round',
+		effects: [
+			{
+				target: 'selected_client',
+				type: 'client_volume_multiplier',
+				multiplier: 10,
+				duration: 'this_round',
+				displayMessage: 'This client went VIRAL, volume multiplied by 10'
+			},
+			{
+				target: 'selected_client',
+				type: 'reputation',
+				value: 10,
+				condition: {
+					type: 'has_tech',
+					tech: 'list_hygiene'
+				},
+				displayMessage: 'Reputation bonus of +10 as viral cleint was managed smoothly'
+			},
+			{
+				target: 'selected_client',
+				type: 'credits',
+				value: 500,
+				condition: {
+					type: 'has_tech',
+					tech: 'list_hygiene'
+				},
+				displayMessage: 'Extra 500 credits following success of viral client'
+			},
+			{
+				target: 'selected_client',
+				type: 'reputation',
+				value: -10,
+				condition: {
+					type: 'lacks_tech',
+					tech: 'list_hygiene'
+				},
+				displayMessage:
+					'Reputation damage of -10 following viral client as list hygien was not under control'
+			},
+			{
+				target: 'selected_client',
+				type: 'client_spam_trap_multiplier',
+				multiplier: 3,
+				duration: 'this_round',
+				condition: {
+					type: 'lacks_tech',
+					tech: 'list_hygiene'
+				},
+				displayMessage: 'Spam Trap risk increased due to missing list hygien on viral client'
+			}
+		]
+	},
+
 	// ============================================================================
 	// ROUND 4: Endgame
 	// ============================================================================
@@ -112,6 +254,29 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 	},
 
 	{
+		id: 'INC-016',
+		name: 'Legal Reckoning',
+		round: [3, 4],
+		category: 'Regulatory',
+		rarity: 'Uncommon',
+		description:
+			'GDPR violation lawsuit targets one ESP! Massive fines and immediate operational restrictions. Facilitator: Select one ESP to face legal consequences.',
+		educationalNote: 'Legal compliance failures have severe financial and operational consequences',
+		duration: 'Immediate',
+		effects: [
+			{
+				target: 'selected_esp',
+				type: 'credits',
+				value: -400
+			},
+			{
+				target: 'selected_esp',
+				type: 'auto_lock'
+			}
+		]
+	},
+
+	{
 		id: 'INC-018',
 		name: 'Zero-Day Crisis',
 		round: [4],
@@ -125,7 +290,8 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 			{
 				target: 'all_esps',
 				type: 'reputation',
-				value: -10 // All ESPs lose 10 reputation (simplified for Phase 1 - no choice mechanism)
+				value: -10, // All ESPs lose 10 reputation (simplified for Phase 1 - no choice mechanism)
+				displayMessage: 'Reputation damage of -10 due to unpatched critical vulnerability'
 			},
 			{
 				target: 'notification',

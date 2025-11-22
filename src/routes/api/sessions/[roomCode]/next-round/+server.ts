@@ -97,9 +97,12 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 		}
 
 		// Step 5: Clear locked_in state for all teams and destinations
+		// (except teams with pendingAutoLock - they'll be auto-locked in next planning phase)
 		session.esp_teams.forEach((team) => {
-			team.locked_in = false;
-			team.locked_in_at = undefined;
+			if (!team.pendingAutoLock) {
+				team.locked_in = false;
+				team.locked_in_at = undefined;
+			}
 		});
 
 		session.destinations.forEach((dest) => {
@@ -212,6 +215,22 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 				locked_in: false // Explicitly tell all clients they are NOT locked in
 			}
 		});
+
+		// Re-apply auto-locks after phase transition broadcast (for INC-016 pending auto-locks)
+		for (const team of session.esp_teams) {
+			if (team.locked_in && team.pendingAutoLock === false) {
+				// This team was auto-locked during phase transition
+				gameWss.broadcastToRoom(roomCode, {
+					type: 'lock_in_confirmed',
+					data: {
+						teamName: team.name,
+						role: 'ESP',
+						locked_in: true,
+						locked_in_at: team.locked_in_at
+					}
+				});
+			}
+		}
 
 		// Also broadcast game_state_update for backwards compatibility
 		gameWss.broadcastToRoom(roomCode, {

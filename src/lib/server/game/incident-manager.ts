@@ -1,12 +1,15 @@
 /**
  * Incident Manager
  * Phase 1: MVP Foundation
+ * Phase 2: Team/client selection and conditional effects
  *
  * Handles core incident management logic:
  * - Retrieving available incidents for current round
  * - Triggering incidents
  * - Validating incident eligibility
  * - Managing incident history
+ * - Team selection validation (Phase 2)
+ * - Random client selection (Phase 2)
  */
 
 import type { GameSession } from './types';
@@ -86,15 +89,138 @@ export function addToHistory(session: GameSession, incident: IncidentCard): void
 }
 
 /**
+ * Phase 2: Check if incident requires team selection
+ * @param incident - Incident card to check
+ * @returns True if incident requires facilitator to select a team
+ */
+export function requiresTeamSelection(incident: IncidentCard): boolean {
+	return incident.effects.some(
+		(effect) => effect.target === 'selected_esp' || effect.target === 'selected_client'
+	);
+}
+
+/**
+ * Phase 2: Validate team selection
+ * @param session - Game session
+ * @param incident - Incident card being triggered
+ * @param selectedTeam - Team name selected by facilitator (optional)
+ * @returns Object with { valid: boolean, error?: string }
+ */
+export function validateTeamSelection(
+	session: GameSession,
+	incident: IncidentCard,
+	selectedTeam?: string
+): { valid: boolean; error?: string } {
+	// Check if incident requires team selection
+	if (requiresTeamSelection(incident)) {
+		if (!selectedTeam) {
+			return {
+				valid: false,
+				error: 'This incident requires a team selection'
+			};
+		}
+
+		// Check if selected team exists
+		const team = session.esp_teams.find((t) => t.name === selectedTeam);
+		if (!team) {
+			return {
+				valid: false,
+				error: `Team "${selectedTeam}" not found`
+			};
+		}
+
+		// For selected_client effects, check if team has active clients
+		const hasClientEffect = incident.effects.some((effect) => effect.target === 'selected_client');
+		if (hasClientEffect) {
+			if (!team.active_clients || team.active_clients.length === 0) {
+				return {
+					valid: false,
+					error: `Team "${selectedTeam}" has no active clients`
+				};
+			}
+
+			// Check if any active clients exist in client_states
+			const activeClients = team.active_clients.filter(
+				(clientId) => team.client_states?.[clientId]?.status === 'Active'
+			);
+			if (activeClients.length === 0) {
+				return {
+					valid: false,
+					error: `Team "${selectedTeam}" has no active clients`
+				};
+			}
+		}
+	}
+
+	return { valid: true };
+}
+
+/**
+ * Phase 2: Select a random active client from a team
+ * @param session - Game session
+ * @param teamName - Name of the ESP team
+ * @returns Object with { success: boolean, clientId?: string, error?: string }
+ */
+export function selectRandomClientForTeam(
+	session: GameSession,
+	teamName: string
+): { success: boolean; clientId?: string; error?: string } {
+	// Find team
+	const team = session.esp_teams.find((t) => t.name === teamName);
+	if (!team) {
+		return {
+			success: false,
+			error: `Team "${teamName}" not found`
+		};
+	}
+
+	// Get active clients
+	if (!team.active_clients || team.active_clients.length === 0) {
+		return {
+			success: false,
+			error: `Team "${teamName}" has no active clients`
+		};
+	}
+
+	// Filter to only actually active clients (status === 'Active')
+	const activeClients = team.active_clients.filter(
+		(clientId) => team.client_states?.[clientId]?.status === 'Active'
+	);
+
+	if (activeClients.length === 0) {
+		return {
+			success: false,
+			error: `Team "${teamName}" has no active clients`
+		};
+	}
+
+	// Select random client using uniform probability
+	const randomIndex = Math.floor(Math.random() * activeClients.length);
+	const selectedClientId = activeClients[randomIndex];
+
+	return {
+		success: true,
+		clientId: selectedClientId
+	};
+}
+
+/**
  * Trigger an incident card
  * This adds the incident to history but does NOT apply effects.
  * Effects are applied separately by incident-effects-manager.
  *
+ * Phase 2: Added selectedTeam parameter for team selection
+ *
  * @param session - Game session
  * @param incidentId - ID of incident to trigger
+ * @param selectedTeam - Optional team name for selected_esp/selected_client effects
  * @returns Result indicating success or failure
  */
-export function triggerIncident(session: GameSession, incidentId: string): IncidentTriggerResult {
+export function triggerIncident(
+	session: GameSession,
+	incidentId: string,
+	selectedTeam?: string
+): IncidentTriggerResult {
 	const logger = getLogger();
 
 	// Validate incident can be triggered
@@ -142,6 +268,28 @@ export function triggerIncident(session: GameSession, incidentId: string): Incid
 		};
 	}
 
+	// Phase 2: Validate team selection if required
+	const teamValidation = validateTeamSelection(session, incident, selectedTeam);
+	if (!teamValidation.valid) {
+		return {
+			success: false,
+			error: teamValidation.error
+		};
+	}
+
+	// Phase 2: Select random client if needed
+	let selectedClientId: string | undefined;
+	if (selectedTeam && incident.effects.some((effect) => effect.target === 'selected_client')) {
+		const clientSelection = selectRandomClientForTeam(session, selectedTeam);
+		if (!clientSelection.success) {
+			return {
+				success: false,
+				error: clientSelection.error
+			};
+		}
+		selectedClientId = clientSelection.clientId;
+	}
+
 	// Add to history
 	addToHistory(session, incident);
 
@@ -154,7 +302,9 @@ export function triggerIncident(session: GameSession, incidentId: string): Incid
 			incidentName: incident.name,
 			round: session.current_round,
 			phase: session.current_phase,
-			automatic: incident.automatic || false
+			automatic: incident.automatic || false,
+			selectedTeam: selectedTeam || null,
+			selectedClient: selectedClientId || null
 		});
 	});
 
@@ -162,6 +312,7 @@ export function triggerIncident(session: GameSession, incidentId: string): Incid
 	return {
 		success: true,
 		incidentId: incident.id,
-		affectedTeams: session.esp_teams.map((team) => team.name)
+		affectedTeams: selectedTeam ? [selectedTeam] : session.esp_teams.map((team) => team.name),
+		affectedClient: selectedClientId
 	};
 }

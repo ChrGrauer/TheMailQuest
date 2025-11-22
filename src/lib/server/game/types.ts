@@ -35,6 +35,8 @@ export interface ESPTeam {
 	locked_in?: boolean; // Whether team has locked in their decisions for this round
 	locked_in_at?: Date; // Timestamp when team locked in
 	pending_onboarding_decisions?: Record<string, OnboardingOptions>; // Uncommitted onboarding options (key = clientId)
+	// Phase 2: Incident Cards
+	pendingAutoLock?: boolean; // INC-016: Flag to auto-lock at next planning phase start
 }
 
 export interface Destination {

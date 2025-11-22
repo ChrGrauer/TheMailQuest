@@ -1,5 +1,8 @@
 // Incident Cards Type Definitions
 // Phase 1: MVP Foundation - Basic incident system
+// Phase 2: Advanced incident mechanics - conditions, modifiers, team selection
+
+import type { ClientType } from '$lib/server/game/types';
 
 /**
  * Category of an incident card
@@ -22,29 +25,54 @@ export type IncidentDuration = 'Immediate' | 'This Round' | 'Next Round' | 'Perm
 
 /**
  * Target of an incident effect
+ * Phase 2: Added selected_esp, selected_client, conditional_esp
  */
 export type IncidentEffectTarget =
 	| 'all_esps' // All ESP teams
 	| 'all_destinations' // All destination teams
-	| 'notification'; // Just a notification, no state change
+	| 'notification' // Just a notification, no state change
+	| 'selected_esp' // Facilitator picks ESP team
+	| 'selected_client' // System picks random client
+	| 'conditional_esp'; // ESPs matching a condition
 
 /**
  * Type of effect to apply
+ * Phase 2: Added client_volume_multiplier, client_spam_trap_multiplier, auto_lock
  */
 export type IncidentEffectType =
 	| 'reputation' // Modify reputation
 	| 'credits' // Modify ESP credits
 	| 'budget' // Modify destination budget
-	| 'notification'; // Display notification only
+	| 'notification' // Display notification only
+	| 'client_volume_multiplier' // Add volume modifier to clients
+	| 'client_spam_trap_multiplier' // Add spam trap modifier to clients
+	| 'auto_lock'; // Force team lock-in
+
+/**
+ * Phase 2: Condition for conditional effects
+ * Used to filter which teams/clients are affected
+ */
+export interface EffectCondition {
+	type: 'has_tech' | 'lacks_tech' | 'client_type';
+	tech?: string; // Tech ID: 'dkim', 'dmarc', 'spf'
+	clientTypes?: ClientType[]; // For filtering clients by type
+}
 
 /**
  * Single effect of an incident card
+ * Phase 2: Added multiplier, duration, clientTypes, condition, displayMessage
  */
 export interface IncidentEffect {
 	target: IncidentEffectTarget;
 	type: IncidentEffectType;
 	value?: number; // Amount to add/subtract (negative for penalties)
 	message?: string; // Notification message
+	// Phase 2 additions:
+	multiplier?: number; // For volume/spam trap modifiers (0.5, 1.5, 10, etc.)
+	duration?: 'this_round' | 'next_round' | 'permanent'; // How long modifier lasts
+	clientTypes?: ClientType[]; // Filter which client types are affected
+	condition?: EffectCondition; // Condition for applying this effect
+	displayMessage?: string; // User-friendly message for consequences dashboard
 }
 
 /**
@@ -61,6 +89,7 @@ export interface IncidentCard {
 	duration: IncidentDuration;
 	effects: IncidentEffect[];
 	automatic?: boolean; // If true, triggers automatically (e.g., DMARC at Round 3)
+	affectedTeam?: string | null; // Phase 2: Team affected by this incident (added during broadcast)
 }
 
 /**
@@ -76,19 +105,23 @@ export interface IncidentHistoryEntry {
 
 /**
  * Request to trigger an incident
+ * Phase 2: Added selectedTeam for facilitator team selection
  */
 export interface IncidentTriggerRequest {
 	incidentId: string;
+	selectedTeam?: string; // Optional team name for selected_esp/selected_client effects
 }
 
 /**
  * Result of triggering an incident
+ * Phase 2: Added affectedClient for random client selection
  */
 export interface IncidentTriggerResult {
 	success: boolean;
 	error?: string;
 	incidentId?: string;
 	affectedTeams?: string[]; // Names of teams affected
+	affectedClient?: string; // Client ID for selected_client effects
 }
 
 /**
