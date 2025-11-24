@@ -227,6 +227,12 @@ export async function transitionPhase(
 								changes: effectResult.changes
 							});
 
+							// Broadcast updated incident history
+							gameWss.broadcastToRoom(roomCode, {
+								type: 'game_state_update',
+								incident_history: session.incident_history
+							});
+
 							gameLogger.event('automatic_incident_triggered', {
 								roomCode,
 								incidentId: 'INC-010',

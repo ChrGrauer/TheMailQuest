@@ -2,11 +2,13 @@
 	/**
 	 * Incident Selection Modal
 	 * Phase 1: MVP Foundation
+	 * Phase 2: Team selection support
 	 *
 	 * Modal for facilitators to select and trigger incident cards
 	 * - Fetches available incidents for current round
 	 * - Displays incident list with preview
 	 * - Handles triggering via API call
+	 * - Phase 2: Shows team selector when incident requires it
 	 */
 
 	import { fade, scale } from 'svelte/transition';
@@ -28,6 +30,22 @@
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let triggering = $state(false);
+	let triggeredIncidentIds = $state<string[]>([]);
+	// Phase 2: Team selection
+	let espTeams = $state<string[]>([]);
+	let selectedTeam = $state<string | null>(null);
+
+	// Phase 2: Check if selected incident requires team selection
+	let requiresTeamSelection = $derived(
+		selectedIncident?.effects.some(
+			(effect) => effect.target === 'selected_esp' || effect.target === 'selected_client'
+		) ?? false
+	);
+
+	// Helper to check if incident is already triggered
+	function isAlreadyTriggered(incidentId: string): boolean {
+		return triggeredIncidentIds.includes(incidentId);
+	}
 
 	// Fetch available incidents when modal opens
 	$effect(() => {
@@ -35,7 +53,9 @@
 			// Reset state
 			error = null;
 			selectedIncident = null;
+			selectedTeam = null;
 			fetchAvailableIncidents();
+			fetchESPTeams();
 		}
 	});
 
@@ -49,6 +69,7 @@
 
 			if (data.success) {
 				incidents = data.incidents;
+				triggeredIncidentIds = data.triggeredIncidentIds || [];
 			} else {
 				error = data.error || 'Failed to load incidents';
 			}
@@ -60,8 +81,28 @@
 		}
 	}
 
+	// Phase 2: Fetch ESP teams for team selection
+	async function fetchESPTeams() {
+		try {
+			const response = await fetch(`/api/sessions/${roomCode}`);
+			const data = await response.json();
+
+			if (data.success && data.session) {
+				espTeams = data.session.esp_teams.map((team: any) => team.name);
+			}
+		} catch (err) {
+			console.error('Error fetching ESP teams:', err);
+		}
+	}
+
 	async function triggerIncident() {
 		if (!selectedIncident) return;
+
+		// Phase 2: Validate team selection if required
+		if (requiresTeamSelection && !selectedTeam) {
+			error = 'Please select a team for this incident';
+			return;
+		}
 
 		triggering = true;
 		error = null;
@@ -73,7 +114,8 @@
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					incidentId: selectedIncident.id
+					incidentId: selectedIncident.id,
+					selectedTeam: selectedTeam || undefined // Phase 2: Include selected team
 				})
 			});
 
@@ -184,13 +226,16 @@
 							<!-- Incident List -->
 							<div class="grid grid-cols-1 gap-4 mb-4">
 								{#each incidents as incident}
+									{@const alreadyTriggered = isAlreadyTriggered(incident.id)}
 									<button
 										data-testid="drama-incident-{incident.id}"
-										onclick={() => (selectedIncident = incident)}
-										class="text-left p-4 rounded-lg border-2 transition-all {selectedIncident?.id ===
-										incident.id
-											? 'border-emerald-500 bg-emerald-50'
-											: 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}"
+										onclick={() => !alreadyTriggered && (selectedIncident = incident)}
+										disabled={alreadyTriggered}
+										class="text-left p-4 rounded-lg border-2 transition-all {alreadyTriggered
+											? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+											: selectedIncident?.id === incident.id
+												? 'border-emerald-500 bg-emerald-50'
+												: 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}"
 									>
 										<div class="flex items-start justify-between">
 											<div class="flex-1">
@@ -203,13 +248,24 @@
 														{incident.category}
 													</span>
 													<span class="text-xs text-gray-500 font-medium">{incident.rarity}</span>
+													{#if alreadyTriggered}
+														<span
+															class="px-2 py-1 rounded text-xs font-semibold bg-gray-400 text-white"
+														>
+															Already triggered
+														</span>
+													{/if}
 												</div>
-												<h3 class="font-bold text-gray-900">{incident.name}</h3>
-												<p class="text-sm text-gray-600 mt-1 line-clamp-2">
+												<h3 class="font-bold {alreadyTriggered ? 'text-gray-500' : 'text-gray-900'}">
+													{incident.name}
+												</h3>
+												<p
+													class="text-sm {alreadyTriggered ? 'text-gray-400' : 'text-gray-600'} mt-1 line-clamp-2"
+												>
 													{incident.description}
 												</p>
 											</div>
-											{#if selectedIncident?.id === incident.id}
+											{#if selectedIncident?.id === incident.id && !alreadyTriggered}
 												<svg
 													class="w-6 h-6 text-emerald-600 flex-shrink-0 ml-2"
 													fill="currentColor"
@@ -241,6 +297,34 @@
 										</p>
 									</div>
 								</div>
+
+								<!-- Phase 2: Team Selection -->
+								{#if requiresTeamSelection}
+									<div class="mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
+										<label
+											for="team-selector"
+											class="block text-sm font-semibold text-blue-900 mb-2"
+										>
+											Select ESP Team
+										</label>
+										<p class="text-xs text-blue-700 mb-3">
+											This incident requires you to select which ESP team will be affected
+										</p>
+										<select
+											id="team-selector"
+											data-testid="drama-team-selector"
+											bind:value={selectedTeam}
+											class="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+										>
+											<option value={null}>-- Select a team --</option>
+											{#each espTeams as team}
+												<option value={team} data-testid="drama-team-option-{team}">
+													{team}
+												</option>
+											{/each}
+										</select>
+									</div>
+								{/if}
 							{/if}
 						{/if}
 					</div>
@@ -259,7 +343,7 @@
 						<button
 							data-testid="drama-trigger-button"
 							onclick={triggerIncident}
-							disabled={!selectedIncident || triggering}
+							disabled={!selectedIncident || triggering || (requiresTeamSelection && !selectedTeam)}
 							class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
 						>
 							{#if triggering}

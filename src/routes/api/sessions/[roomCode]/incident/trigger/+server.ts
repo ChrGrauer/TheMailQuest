@@ -137,6 +137,12 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 			changes: effectResult.changes
 		});
 
+		// 9.5. Broadcast updated incident history
+		gameWss.broadcastToRoom(roomCode, {
+			type: 'game_state_update',
+			incident_history: session.incident_history
+		});
+
 		// 10. Broadcast updated game state
 		// ESP dashboard updates (Phase 2: Include client_states for modifiers)
 		for (const team of session.esp_teams) {

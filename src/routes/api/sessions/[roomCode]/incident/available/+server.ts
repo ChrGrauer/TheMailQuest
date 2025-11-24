@@ -23,10 +23,16 @@ export const GET: RequestHandler = async ({ params }) => {
 		// Get available incidents for current round
 		const incidents = getAvailableIncidents(session.current_round);
 
+		// Get list of already-triggered incident IDs
+		const triggeredIncidentIds = session.incident_history
+			? session.incident_history.map((entry) => entry.incidentId)
+			: [];
+
 		return json({
 			success: true,
 			incidents,
-			currentRound: session.current_round
+			currentRound: session.current_round,
+			triggeredIncidentIds
 		});
 	} catch (error) {
 		console.error('Error getting available incidents:', error);

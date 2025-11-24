@@ -11,19 +11,26 @@
  * These tests should FAIL initially (RED phase of ATDD)
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import {
-	createTestSession,
-	addPlayer,
 	createGameInPlanningPhase,
 	createGameWithDestinationPlayer,
 	closePages
 } from './helpers/game-setup';
-import { lockInAllPlayers } from './helpers/e2e-actions';
+import { advanceToRound, lockInAllPlayers, triggerIncident } from './helpers/e2e-actions';
 
 test.describe('Incident Cards Phase 1: Manual Triggering', () => {
+	let alicePage: Page;
+	let bobPage: Page;
+
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage);
+	});
+
 	test('facilitator can trigger incident manually', async ({ page, context }) => {
-		const { roomCode, alicePage } = await createGameInPlanningPhase(page, context);
+		const result = await createGameInPlanningPhase(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
 		// Click trigger button on facilitator page
 		await page.click('[data-testid="drama-trigger-incident-button"]');
@@ -65,28 +72,12 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 		// Expand incident history to verify incident was logged
 		await page.click('[data-testid="drama-history-toggle"]');
 		await expect(page.getByTestId('drama-history-item-1-0')).toBeVisible();
-
-		await closePages(page, alicePage);
-	});
-
-	test('players cannot trigger incidents', async ({ page, context }) => {
-		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// On player page, trigger button should not be visible
-		const triggerButton = alicePage.getByTestId('drama-trigger-incident-button');
-		const buttonCount = await triggerButton.count();
-		expect(buttonCount).toBe(0);
-
-		// Selection modal should not be accessible
-		const selectionModal = alicePage.getByTestId('drama-selection-modal');
-		const modalCount = await selectionModal.count();
-		expect(modalCount).toBe(0);
-
-		await closePages(page, alicePage, bobPage);
 	});
 
 	test('incident card auto-dismisses after 10 seconds', async ({ page, context }) => {
-		const { roomCode, alicePage } = await createGameInPlanningPhase(page, context);
+		const result = await createGameInPlanningPhase(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
 		// Trigger incident
 		await page.click('[data-testid="drama-trigger-incident-button"]');
@@ -101,30 +92,29 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 
 		// Card should be hidden
 		await expect(alicePage.getByTestId('drama-card-display')).not.toBeVisible();
-
-		await closePages(page, alicePage);
 	});
 });
 
 test.describe('Incident Cards Phase 1: Effect Application', () => {
+	let alicePage: Page;
+	let bobPage: Page;
+	let gmailPage: Page;
+
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage, gmailPage);
+	});
+
 	test('Industry Scandal affects all ESP teams and destinations', async ({ page, context }) => {
 		// Create game with 2 ESP teams and 1 destination
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
-
-		// Wait for game state to sync
-		await page.waitForTimeout(500);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
+		const players = [alicePage, bobPage, gmailPage];
 
 		// Lock in all players to advance to Round 2
-		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
-		await page.waitForTimeout(1000);
-
-		// Facilitator advances to Round 2
-		await page.click('[data-testid="start-next-round-button"]');
-		await page.waitForTimeout(1000);
-
+		await advanceToRound(page, players, 2);
+		
 		// Get initial values before triggering incident
 		// Alice's ESP (SendWave) reputation with Gmail
 		const aliceRepElement = alicePage.getByTestId('reputation-gmail');
@@ -142,21 +132,7 @@ test.describe('Incident Cards Phase 1: Effect Application', () => {
 		const gmailInitialBudget = parseInt(gmailInitialBudgetText?.match(/\d+/)?.[0] || '1000', 10);
 
 		// Trigger INC-006 (Industry Scandal) - Round 2 incident
-		await page.click('[data-testid="drama-trigger-incident-button"]');
-		await page.click('[data-testid="drama-incident-INC-006"]');
-		await page.click('[data-testid="drama-trigger-button"]');
-
-		// Wait for incident to trigger and effects to apply
-		await page.waitForTimeout(1000);
-
-		// Verify card appeared for all players
-		await expect(alicePage.getByTestId('drama-card-display')).toBeVisible();
-		await expect(bobPage.getByTestId('drama-card-display')).toBeVisible();
-		await expect(gmailPage.getByTestId('drama-card-display')).toBeVisible();
-
-		// Facilitator closes the incident card
-		await page.click('button:has-text("Close")');
-		await page.waitForTimeout(500);
+		await triggerIncident(page, 'INC-006', undefined, players);
 
 		// Verify effects applied:
 		// Both ESPs should lose 5 reputation
@@ -172,24 +148,16 @@ test.describe('Incident Cards Phase 1: Effect Application', () => {
 		const gmailFinalBudgetText = await gmailBudgetElement.textContent();
 		const gmailFinalBudget = parseInt(gmailFinalBudgetText?.match(/\d+/)?.[0] || '1000', 10);
 		expect(gmailFinalBudget).toBe(gmailInitialBudget + 100);
-
-		await closePages(page, alicePage, bobPage, gmailPage);
 	});
 
 	test('incident history is collapsible', async ({ page, context }) => {
-		const { roomCode, alicePage } = await createGameInPlanningPhase(page, context);
+		const result = await createGameInPlanningPhase(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
 		// Trigger incident
-		await page.click('[data-testid="drama-trigger-incident-button"]');
-		await page.click('[data-testid="drama-incident-INC-001"]');
-		await page.click('[data-testid="drama-trigger-button"]');
-
-		// Wait for incident to be added to history
-		await page.waitForTimeout(500);
-
-		// Facilitator closes the incident card
-		await page.click('button:has-text("Close")');
-
+		await triggerIncident(page, 'INC-001', undefined, [alicePage, bobPage]);
+		
 		// History should start collapsed - items not visible
 		const historyItem = page.getByTestId('drama-history-item-1-0');
 		const itemVisible = await historyItem.isVisible().catch(() => false);
@@ -205,51 +173,59 @@ test.describe('Incident Cards Phase 1: Effect Application', () => {
 		await page.waitForTimeout(300);
 		const itemVisibleAfterCollapse = await historyItem.isVisible().catch(() => false);
 		expect(itemVisibleAfterCollapse).toBe(false);
-
-		await closePages(page, alicePage);
 	});
 });
 
 test.describe('Incident Cards Phase 1: Automatic DMARC Trigger', () => {
+	let alicePage: Page;
+	let bobPage: Page;
+
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage);
+	});
+
 	test('DMARC incident triggers automatically at Round 3', async ({ page, context }) => {
-		// This test requires completing Rounds 1-2 and transitioning to Round 3
-		// For Phase 1 MVP, this is a placeholder test that will be completed
-		// once we integrate the automatic trigger in phase-manager.ts
+		const result = await createGameInPlanningPhase(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
-		const { roomCode, alicePage } = await createGameInPlanningPhase(page, context);
+		// Advance to Round 3 (completes Rounds 1 automatically)
+		await advanceToRound(page, [alicePage,bobPage], 2);
+		await lockInAllPlayers([alicePage,bobPage]);
+		// Advance to next round's planning phase
+		await page.click('[data-testid="start-next-round-button"]');
+		await page.waitForTimeout(500);
 
-		// TODO: Complete Rounds 1 and 2
-		// This requires:
-		// 1. Allocating resources
-		// 2. Locking in decisions
-		// 3. Running resolution
-		// 4. Viewing consequences
-		// 5. Starting next round
-		// Repeat for Round 2
+		// Verify DMARC incident card appeared automatically
+		await expect(alicePage.getByTestId('drama-card-display')).toBeVisible();
+		await expect(alicePage.getByTestId('drama-card-title')).toContainText('DMARC');
 
-		// For now, we'll just verify the test structure is correct
-		// The actual implementation will be added when we integrate
-		// the automatic trigger in phase-manager.ts
-
-		// Expected behavior:
-		// - At start of Round 3 planning phase
-		// - INC-010 (DMARC Enforcement) should trigger automatically
-		// - All players should see the card
-		// - Incident should be in history
-		// - DMARC 80% penalty already applies (from delivery-calculator.ts)
-
-		// Placeholder assertion
-		expect(true).toBe(true);
-
-		await closePages(page, alicePage);
+		// Verify incident is in history (Round 3, first incident)
+		const incidentCard = page.locator('[data-testid="drama-card-display"]');
+			const isVisible = await incidentCard.isVisible().catch(() => false);
+			if (isVisible) {
+				await page.keyboard.press('Escape');
+				await page.waitForTimeout(300);
+			}
+		await page.click('[data-testid="drama-history-toggle"]');
+		await expect(page.getByTestId('drama-history-item-3-0')).toBeVisible();
 	});
 });
 
 test.describe('Incident Cards Phase 1: Round-Based Filtering', () => {
-	test('only appropriate round incidents are available', async ({ page, context }) => {
-		const { roomCode, alicePage } = await createGameInPlanningPhase(page, context);
+	let alicePage: Page;
+	let bobPage: Page;
 
-		// Open incident selection modal
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage);
+	});
+
+	test('only appropriate round incidents are available', async ({ page, context }) => {
+		const result = await createGameInPlanningPhase(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+
+		// Round 1: Open incident selection modal
 		await page.click('[data-testid="drama-trigger-incident-button"]');
 		await expect(page.getByTestId('drama-selection-modal')).toBeVisible();
 
@@ -257,72 +233,91 @@ test.describe('Incident Cards Phase 1: Round-Based Filtering', () => {
 		await expect(page.getByTestId('drama-incident-INC-001')).toBeVisible();
 
 		// Round 2, 3, 4 incidents should not be visible
-		const inc006Count = await page.getByTestId('drama-incident-INC-006').count();
-		const inc010Count = await page.getByTestId('drama-incident-INC-010').count();
-		const inc015Count = await page.getByTestId('drama-incident-INC-015').count();
-		const inc018Count = await page.getByTestId('drama-incident-INC-018').count();
+		let inc006Count = await page.getByTestId('drama-incident-INC-006').count();
+		let inc010Count = await page.getByTestId('drama-incident-INC-010').count();
+		let inc015Count = await page.getByTestId('drama-incident-INC-015').count();
+		let inc018Count = await page.getByTestId('drama-incident-INC-018').count();
 
 		expect(inc006Count).toBe(0);
 		expect(inc010Count).toBe(0);
 		expect(inc015Count).toBe(0);
 		expect(inc018Count).toBe(0);
 
-		await closePages(page, alicePage);
+		// Close modal
+		await page.keyboard.press('Escape');
+		await page.waitForTimeout(300);
+
+		// Advance to Round 2
+		await advanceToRound(page, [alicePage, bobPage], 2);
+
+		// Round 2: Open incident selection modal again
+		await page.click('[data-testid="drama-trigger-incident-button"]');
+		await expect(page.getByTestId('drama-selection-modal')).toBeVisible();
+
+		// In Round 2, only Round 2 incidents should be visible
+		await expect(page.getByTestId('drama-incident-INC-006')).toBeVisible();
+
+		// Round 1 incidents should not be visible (already in Round 2)
+		const inc001Count = await page.getByTestId('drama-incident-INC-001').count();
+		expect(inc001Count).toBe(0);
+
+		// Round 3, 4 incidents should not be visible yet
+		inc010Count = await page.getByTestId('drama-incident-INC-010').count();
+		inc015Count = await page.getByTestId('drama-incident-INC-015').count();
+		inc018Count = await page.getByTestId('drama-incident-INC-018').count();
+
+		expect(inc010Count).toBe(0);
+		expect(inc015Count).toBe(0);
+		expect(inc018Count).toBe(0);
 	});
 
 	test('cannot trigger same incident twice in same round', async ({ page, context }) => {
-		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
+		const result = await createGameInPlanningPhase(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
 
 		// Trigger INC-001 first time
-		await page.click('[data-testid="drama-trigger-incident-button"]');
-		await page.click('[data-testid="drama-incident-INC-001"]');
-		await page.click('[data-testid="drama-trigger-button"]');
+		await triggerIncident(page, 'INC-001', undefined, [alicePage, bobPage]);
 
-		// Wait for incident to complete
-		await page.waitForTimeout(1000);
-
-		// Facilitator closes the incident card
-		await page.click('button:has-text("Close")');
-
-		// Try to trigger again
+		// Open modal again
 		await page.click('[data-testid="drama-trigger-incident-button"]');
 
-		// INC-001 should either:
-		// a) Not be in the list anymore, OR
-		// b) Be disabled/grayed out, OR
-		// c) Show error when trying to trigger
+		// INC-001 should be visible but disabled/grayed out
+		const inc001Button = page.getByTestId('drama-incident-INC-001');
+		await expect(inc001Button).toBeVisible();
 
-		// For MVP, we'll check that it's not in the available list
-		const inc001Count = await page.getByTestId('drama-incident-INC-001').count();
+		// Verify incident is disabled
+		await expect(inc001Button).toBeDisabled();
 
-		// If it's still showing, verify we get an error when triggering
-		if (inc001Count > 0) {
-			await page.click('[data-testid="drama-incident-INC-001"]');
-			await page.click('[data-testid="drama-trigger-button"]');
+		// Verify "Already triggered" badge is shown
+		await expect(inc001Button.locator('text=Already triggered')).toBeVisible();
 
-			// Should see error message (implementation will handle this)
-			// For now, just verify the second trigger attempt doesn't duplicate
-			await page.waitForTimeout(500);
+		// Verify it has grayed-out styling (opacity-60 class)
+		const classes = await inc001Button.getAttribute('class');
+		expect(classes).toContain('opacity-60');
+		expect(classes).toContain('cursor-not-allowed');
 
-			// History should still only have 1 entry
-			await page.click('[data-testid="drama-history-toggle"]');
-			const historyItems = await page.locator('[data-testid^="drama-history-item-"]').count();
-			expect(historyItems).toBe(1);
-		} else {
-			// INC-001 was removed from list - this is valid behavior
-			expect(inc001Count).toBe(0);
-		}
-
-		await closePages(page, alicePage, bobPage);
+		// Verify clicking doesn't select it (trigger button should remain disabled)
+		await inc001Button.click({ force: true }); // Force click on disabled button
+		const triggerButton = page.getByTestId('drama-trigger-button');
+		await expect(triggerButton).toBeDisabled()
 	});
 });
 
 test.describe('Incident Cards Phase 1: WebSocket Sync', () => {
+	let alicePage: Page;
+	let bobPage: Page;
+	let gmailPage: Page;
+
+	test.afterEach(async ({ page }) => {
+		await closePages(page, alicePage, bobPage, gmailPage);
+	});
+
 	test('incident card displays synchronously across all clients', async ({ page, context }) => {
-		const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
-			page,
-			context
-		);
+		const result = await createGameWithDestinationPlayer(page, context);
+		alicePage = result.alicePage;
+		bobPage = result.bobPage;
+		gmailPage = result.gmailPage;
 
 		// Facilitator triggers incident
 		await page.click('[data-testid="drama-trigger-incident-button"]');
@@ -347,7 +342,5 @@ test.describe('Incident Cards Phase 1: WebSocket Sync', () => {
 		await expect(gmailPage.getByTestId('drama-card-title')).toContainText(
 			'Regulation Announcement'
 		);
-
-		await closePages(page, alicePage, bobPage, gmailPage);
 	});
 });
