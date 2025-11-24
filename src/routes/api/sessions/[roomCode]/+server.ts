@@ -43,7 +43,8 @@ export const GET: RequestHandler = async ({ params }) => {
 			currentRound: session.current_round,
 			canJoin: joinValidation.canJoin,
 			joinError: joinValidation.reason,
-			slots
+			slots,
+			esp_teams: session.esp_teams || [] // Phase 2: Include ESP teams for incident selection
 		}
 	});
 };

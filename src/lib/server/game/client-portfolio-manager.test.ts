@@ -203,7 +203,9 @@ describe('Client Portfolio Manager', () => {
 			expect(result.success).toBe(true);
 			// Check warmup modifier was added
 			expect(
-				result.team?.client_states?.['client-001'].volumeModifiers.some((m) => m.source === 'warmup')
+				result.team?.client_states?.['client-001'].volumeModifiers.some(
+					(m) => m.source === 'warmup'
+				)
 			).toBe(true);
 			// Check list hygiene modifier was NOT added
 			expect(
@@ -284,7 +286,9 @@ describe('Client Portfolio Manager', () => {
 			expect(result.success).toBe(true);
 			// Check warmup modifier was added
 			expect(
-				result.team?.client_states?.['client-001'].volumeModifiers.some((m) => m.source === 'warmup')
+				result.team?.client_states?.['client-001'].volumeModifiers.some(
+					(m) => m.source === 'warmup'
+				)
 			).toBe(true);
 			// Check list hygiene modifiers were added (volume + spam trap)
 			expect(

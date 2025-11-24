@@ -228,6 +228,7 @@
 <IncidentCardDisplay
 	bind:show={showIncidentCard}
 	incident={currentIncident}
+	affectedTeam={currentIncident?.affectedTeam}
 	onClose={handleIncidentCardClose}
 />
 

@@ -562,7 +562,9 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 					'client-1': {
 						status: 'Active',
 						first_active_round: 1,
-						volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+						volumeModifiers: [
+							{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+						],
 						spamTrapModifiers: []
 					}
 				},

@@ -185,7 +185,7 @@ export function configureOnboarding(
 			source: 'warmup',
 			multiplier: 1.0 - WARMUP_VOLUME_REDUCTION, // 0.5
 			applicableRounds: [-1], // -1 = first active round only
-			description: 'Warm-up active (first round)'
+			description: 'Warm-up active, initial volume reduced'
 		});
 	}
 

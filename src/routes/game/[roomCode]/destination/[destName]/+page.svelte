@@ -603,6 +603,7 @@
 <IncidentCardDisplay
 	bind:show={showIncidentCard}
 	incident={currentIncident}
+	affectedTeam={currentIncident?.affectedTeam}
 	onClose={() => {
 		showIncidentCard = false;
 		currentIncident = null;

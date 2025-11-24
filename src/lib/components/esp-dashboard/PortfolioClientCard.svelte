@@ -246,7 +246,7 @@
 			<div class="text-sm font-semibold text-gray-700 mb-2">Onboarding History</div>
 			<div class="flex gap-6 text-sm">
 				<div class="flex items-center gap-2">
-					<span class="text-gray-600">Has Warm-up History:</span>
+					<span class="text-gray-600">Client was Warmed-up:</span>
 					<span class="font-semibold {hasWarmup(client) ? 'text-green-600' : 'text-gray-500'}">
 						{hasWarmup(client) ? 'Yes' : 'No'}
 					</span>

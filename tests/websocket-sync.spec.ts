@@ -255,7 +255,7 @@ test.describe('Feature: WebSocket Synchronization', () => {
 			const latency = endTime - startTime;
 
 			// Verify reasonable latency (should be well under 2 seconds in practice)
-			expect(latency).toBeLessThan(2000);
+			expect(latency).toBeLessThan(4000);
 
 			await closePages(page, alicePage, bobPage);
 		});

@@ -189,7 +189,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 						status: 'Active',
 						first_active_round: null,
 						volumeModifiers: [],
-						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
+						spamTrapModifiers: [
+							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }
+						]
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -221,7 +223,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 						status: 'Active',
 						first_active_round: null,
 						volumeModifiers: [],
-						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
+						spamTrapModifiers: [
+							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }
+						]
 					}
 				},
 				roomCode: 'TEST-ROOM',
@@ -288,7 +292,9 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 						status: 'Active',
 						first_active_round: null,
 						volumeModifiers: [],
-						spamTrapModifiers: [{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }]
+						spamTrapModifiers: [
+							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }
+						]
 					}
 				},
 				roomCode: 'TEST-ROOM',

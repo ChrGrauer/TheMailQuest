@@ -14,10 +14,21 @@ export interface VolumeParams {
 	currentRound: number;
 }
 
-export interface VolumeAdjustments {
-	listHygiene?: number;
-	warmup?: number;
+/**
+ * Phase 2: Volume adjustment data
+ * Stores both the numeric adjustment and user-friendly description
+ */
+export interface VolumeAdjustment {
+	amount: number; // Adjustment amount (positive = reduction, negative = increase)
+	description: string; // User-friendly message from incident definition or default
 }
+
+/**
+ * Phase 2: Volume adjustments are now dynamic
+ * Key = modifier source (e.g., 'warmup', 'list_hygiene', 'INC-009')
+ * Value = adjustment details (amount and description)
+ */
+export type VolumeAdjustments = Record<string, VolumeAdjustment>;
 
 export interface ClientVolumeData {
 	clientId: string;

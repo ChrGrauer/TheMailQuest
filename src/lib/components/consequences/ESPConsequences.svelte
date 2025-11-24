@@ -28,6 +28,27 @@
 	// currentCredits already includes the revenue, so we subtract it to get the starting value
 	let actualRevenue = $derived(resolutionData?.revenue?.actualRevenue || 0);
 	let startingBudget = $derived(currentCredits - actualRevenue);
+
+	/**
+	 * Get CSS class for modifier message styling
+	 * @param source - Modifier source
+	 * @param adjustment - Adjustment value (positive = reduction, negative = increase)
+	 */
+	function getModifierClass(source: string, adjustment: number): string {
+		const isIncrease = adjustment < 0;
+
+		// Positive modifiers (list hygiene) get emerald color
+		if (source === 'list_hygiene') return 'text-emerald-600';
+
+		// Warmup is neutral (gray)
+		if (source === 'warmup') return 'text-gray-500';
+
+		// Incidents that increase volume get blue
+		if (isIncrease) return 'text-blue-600';
+
+		// Other reductions get gray
+		return 'text-gray-600';
+	}
 </script>
 
 <div
@@ -79,18 +100,15 @@
 											>{clientVolume.adjustedVolume.toLocaleString()} emails</span
 										>
 									</p>
-									{#if clientVolume.adjustments.warmup}
-										<p class="text-gray-500 text-xs" data-testid="warmup-adjustment-message">
-											Initial volume reduced for warmup
-										</p>
-									{/if}
-									{#if clientVolume.adjustments.listHygiene}
-										<p
-											class="text-emerald-600 text-xs"
-											data-testid="list-hygiene-adjustment-message"
-										>
-											Volume reduced with list hygiene
-										</p>
+									{#if clientVolume.adjustments && Object.keys(clientVolume.adjustments).length > 0}
+										{#each Object.entries(clientVolume.adjustments) as [source, adjustment]}
+											<p
+												class="text-xs {getModifierClass(source, adjustment.amount)}"
+												data-testid="{source.replace('_', '-')}-adjustment-message"
+											>
+												{adjustment.description}
+											</p>
+										{/each}
 									{/if}
 								</div>
 							</div>
@@ -212,14 +230,12 @@
 								<div class="mt-2 space-y-1 text-sm text-gray-600">
 									<p>
 										Base Complaint Rate: <span class="font-medium text-gray-900"
-											>{(clientComplaint.baseRate * 100).toFixed(2)}%</span
+											>{clientComplaint.baseRate.toFixed(2)}%</span
 										>
 									</p>
 									{#if clientComplaint.adjustedRate !== clientComplaint.baseRate}
 										<p class="text-emerald-600 text-xs">
-											↓ Adjusted Rate (after reductions): {(
-												clientComplaint.adjustedRate * 100
-											).toFixed(2)}%
+											↓ Adjusted Rate (after reductions): {clientComplaint.adjustedRate.toFixed(2)}%
 										</p>
 									{/if}
 									<p class="text-xs text-gray-500">
@@ -235,12 +251,12 @@
 								<span class="text-gray-700">Adjusted Complaint Rate (overall):</span>
 								<span
 									class="font-semibold text-lg"
-									class:text-emerald-600={resolutionData.complaints.adjustedComplaintRate <= 0.001}
-									class:text-yellow-600={resolutionData.complaints.adjustedComplaintRate > 0.001 &&
-										resolutionData.complaints.adjustedComplaintRate <= 0.005}
-									class:text-red-600={resolutionData.complaints.adjustedComplaintRate > 0.005}
+									class:text-emerald-600={resolutionData.complaints.adjustedComplaintRate <= 0.1}
+									class:text-yellow-600={resolutionData.complaints.adjustedComplaintRate > 0.1 &&
+										resolutionData.complaints.adjustedComplaintRate <= 1.0}
+									class:text-red-600={resolutionData.complaints.adjustedComplaintRate > 1.0}
 								>
-									{(resolutionData.complaints.adjustedComplaintRate * 100).toFixed(2)}%
+									{resolutionData.complaints.adjustedComplaintRate.toFixed(2)}%
 								</span>
 							</div>
 						</div>
@@ -354,11 +370,65 @@
 					Alerts & Notifications
 				</h3>
 
-				<p class="text-gray-500 text-sm italic">Alert system coming soon in a future iteration.</p>
+				<!-- Phase 2: Display Incident Effects -->
+				{#if resolutionData?.reputation?.perDestination || resolutionData?.volume?.clientVolumes}
+					{@const reputationIncidents = resolutionData?.reputation?.perDestination
+						? Object.entries(resolutionData.reputation.perDestination)
+								.flatMap(([destName, repChange]) =>
+									(repChange.breakdown || [])
+										.filter((item) => item.source.startsWith('INC-'))
+										.map((item) => ({
+											incidentId: item.source,
+											destination: destName,
+											type: 'reputation' as const,
+											value: item.value,
+											description: `${item.value > 0 ? '+' : ''}${item.value} reputation`
+										}))
+								)
+						: []}
+					{@const volumeIncidents = resolutionData?.volume?.clientVolumes
+						? resolutionData.volume.clientVolumes
+								.flatMap((cv) =>
+									Object.entries(cv.adjustments || {})
+										.filter(([source]) => source.startsWith('INC-'))
+										.map(([source, adjustment]) => ({
+											incidentId: source,
+											type: 'volume' as const,
+											description: adjustment.description
+										}))
+								)
+						: []}
+					{@const allIncidents = [...reputationIncidents, ...volumeIncidents].filter(
+						(effect, index, self) => index === self.findIndex((e) => e.incidentId === effect.incidentId)
+					)}
 
-				<!-- Placeholder for future alerts -->
-				<div class="mt-4 text-sm text-gray-400">
-					<p>Future features will include:</p>
+					{#if allIncidents.length > 0}
+						<div
+							data-testid="incident-effects-summary"
+							class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg"
+						>
+							<p class="font-semibold text-blue-900 mb-2">Incident Effects This Round</p>
+							<div class="space-y-2 text-sm">
+								{#each allIncidents as effect}
+									<div class="flex items-center justify-between" data-testid="incident-effect-item">
+										<span class="text-blue-800 font-medium">{effect.incidentId}</span>
+										<span
+											class="text-gray-700"
+											class:text-emerald-600={effect.type === 'reputation' && effect.value && effect.value > 0}
+											class:text-red-600={effect.type === 'reputation' && effect.value && effect.value < 0}
+										>
+											{effect.description}
+										</span>
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+				{/if}
+
+				<!-- Future alerts placeholder -->
+				<div class="text-sm text-gray-400">
+					<p>Future alert features will include:</p>
 					<ul class="list-disc list-inside ml-4 mt-2 space-y-1">
 						<li>Low reputation warnings</li>
 						<li>High complaint rate alerts</li>

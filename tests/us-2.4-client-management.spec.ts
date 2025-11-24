@@ -23,6 +23,7 @@ import {
 	openClientManagementModal,
 	closeClientManagementModal
 } from './helpers/client-management';
+import { hasListHygiene, hasWarmup } from '$lib/utils/client-state-helpers';
 
 test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 	let facilitatorPage: Page;
@@ -155,8 +156,8 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 
 		// And: Client state reflects warm-up purchase
 		const clientState = portfolioAfter.team.client_states[clientId];
-		expect(clientState.has_warmup).toBe(true);
-		expect(clientState.has_list_hygiene).toBe(false);
+		expect(hasWarmup(clientState)).toBe(true);
+		expect(hasListHygiene(clientState)).toBe(false);
 	});
 
 	test('2.3: Configure both onboarding options', async () => {
@@ -182,8 +183,8 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 
 		// And: Client state reflects both purchases
 		const clientState = portfolioAfter.team.client_states[clientId];
-		expect(clientState.has_warmup).toBe(true);
-		expect(clientState.has_list_hygiene).toBe(true);
+		expect(hasWarmup(clientState)).toBe(true);
+		expect(hasListHygiene(clientState)).toBe(true);
 	});
 
 	test('2.4: Cannot configure onboarding with insufficient credits', async () => {
@@ -444,8 +445,8 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		const clientState = portfolio.team.client_states[clientId];
 
 		// Then: Onboarding configuration persists
-		expect(clientState.has_warmup).toBe(true);
-		expect(clientState.has_list_hygiene).toBe(true);
+		expect(hasWarmup(clientState)).toBe(true);
+		expect(hasListHygiene(clientState)).toBe(true);
 	});
 
 	test('5.3: Client status persists after page reload', async () => {

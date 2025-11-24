@@ -249,3 +249,60 @@ export async function getAvailableClientIds(
 		{ roomCode, teamName }
 	);
 }
+
+/**
+ * Get available clients with full details from the team's marketplace
+ *
+ * @param page - Player page
+ * @param roomCode - Room code
+ * @param teamName - ESP team name
+ * @returns Array of client objects with full details
+ */
+export async function getAvailableClients(
+	page: Page,
+	roomCode: string,
+	teamName: string
+): Promise<any[]> {
+	return await page.evaluate(
+		async ({ roomCode, teamName }) => {
+			const response = await fetch(`/api/sessions/${roomCode}/esp/${teamName}/clients`);
+			const data = await response.json();
+			if (data.success && data.clients) {
+				return data.clients;
+			}
+			return [];
+		},
+		{ roomCode, teamName }
+	);
+}
+
+/**
+ * Purchase a technical upgrade for a team via API
+ *
+ * @param page - Player page
+ * @param roomCode - Room code
+ * @param teamName - ESP team name
+ * @param upgradeId - Upgrade ID (e.g., 'dkim', 'spf', 'dmarc')
+ * @returns Response from API
+ */
+export async function purchaseTechUpgrade(
+	page: Page,
+	roomCode: string,
+	teamName: string,
+	upgradeId: string
+): Promise<any> {
+	return await page.evaluate(
+		async ({ roomCode, teamName, upgradeId }) => {
+			const response = await fetch(
+				`/api/sessions/${roomCode}/esp/${teamName}/techUpgrades/purchase`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ upgradeId })
+				}
+			);
+			return await response.json();
+		},
+		{ roomCode, teamName, upgradeId }
+	);
+}

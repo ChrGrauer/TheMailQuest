@@ -81,7 +81,11 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 
 		for (const modifier of clientState.spamTrapModifiers) {
 			if (
-				isModifierApplicable(modifier.applicableRounds, params.round, clientState.first_active_round)
+				isModifierApplicable(
+					modifier.applicableRounds,
+					params.round,
+					clientState.first_active_round
+				)
 			) {
 				cumulativeMultiplier *= modifier.multiplier;
 			}

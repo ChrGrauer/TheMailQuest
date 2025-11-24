@@ -172,7 +172,9 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 				'client-1': {
 					status: 'Active',
 					first_active_round: 1,
-					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					volumeModifiers: [
+						{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+					],
 					spamTrapModifiers: []
 				}
 			},
@@ -199,7 +201,9 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 				'client-1': {
 					status: 'Active',
 					first_active_round: 1,
-					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					volumeModifiers: [
+						{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+					],
 					spamTrapModifiers: []
 				}
 			},
@@ -223,7 +227,9 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 				'client-1': {
 					status: 'Active',
 					first_active_round: 1,
-					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					volumeModifiers: [
+						{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+					],
 					spamTrapModifiers: []
 				}
 			},
@@ -250,7 +256,9 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 				'client-1': {
 					status: 'Active',
 					first_active_round: 1,
-					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					volumeModifiers: [
+						{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+					],
 					spamTrapModifiers: []
 				},
 				'client-2': {
@@ -262,7 +270,9 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 				'client-3': {
 					status: 'Active',
 					first_active_round: 1,
-					volumeModifiers: [{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }],
+					volumeModifiers: [
+						{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] }
+					],
 					spamTrapModifiers: []
 				}
 			},

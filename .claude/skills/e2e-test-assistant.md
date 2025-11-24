@@ -188,14 +188,19 @@ First, load critical context files:
 - `createGameWith5ESPTeams(facilitatorPage, context)` - 5 ESP teams for filtering tests
 
 #### From `client-management.ts`:
-- `acquireClient(page, roomCode, teamName, clientId)` - Acquire via API
-- `toggleClientStatus(page, roomCode, teamName, clientId, 'Active'|'Paused')` - Change status
-- `configureOnboarding(page, roomCode, teamName, clientId, warmup, listHygiene)` - Set onboarding
-- `getPortfolio(page, roomCode, teamName)` - Fetch portfolio data
+
+**API-Based Helpers** (bypass UI for fast setup):
+- `acquireClient(page, roomCode, teamName, clientId)` - Acquire client via API
+- `toggleClientStatus(page, roomCode, teamName, clientId, 'Active'|'Paused')` - Change status via API
+- `configureOnboarding(page, roomCode, teamName, clientId, warmup, listHygiene)` - Set onboarding via API
+- `configurePendingOnboarding(page, roomCode, teamName, clientId, warmup, listHygiene)` - Set pending onboarding
+- `getPortfolio(page, roomCode, teamName)` - Fetch portfolio data via API
+- `getAvailableClientIds(page, roomCode, teamName)` - Get marketplace clients via API
+
+**UI-Based Helpers** (for testing user flows):
 - `openClientManagementModal(page)` - Open modal with wait
 - `closeClientManagementModal(page)` - Close modal
 - `waitForClientManagementModal(page)` - Wait for modal ready
-- `getAvailableClientIds(page, roomCode, teamName)` - Get marketplace clients
 
 #### From `e2e-actions.ts`:
 - `waitForDashboardReady(page, 'esp'|'destination', timeout)` - Wait for test API ready
@@ -205,8 +210,131 @@ First, load critical context files:
 - `extractNumeric(locator)` - Parse any numeric value
 - `waitForContentUpdate(locator, expectedPattern, timeout)` - Wait for UI update
 - `lockInAllPlayers(pages, waitTime)` - Lock in multiple players
+- `triggerIncident(facilitatorPage, incidentId, teamName?, waitTime)` - Trigger drama incident (with optional team selection)
+- `advanceToRound(facilitatorPage, playerPages, targetRound)` - Advance game to specific round (assumes starting from Round 1)
 
-### 3. Test ID Validation
+### 3. API-Based Testing vs UI Testing
+
+**Strategy**: Use API helpers for test setup, use UI for testing actual user flows.
+
+#### When to Use API Helpers (✅ Preferred for Setup)
+
+Use API helpers from `client-management.ts` to bypass UI for faster, more reliable test setup:
+
+```typescript
+// ✅ GOOD - Fast API-based setup
+test('should calculate correct revenue after acquisition', async ({ page, context }) => {
+  const { alicePage, roomCode } = await createGameInPlanningPhase(page, context);
+
+  // Setup: Use API to quickly acquire clients
+  const clientIds = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
+  await acquireClient(alicePage, roomCode, 'SendWave', clientIds[0]);
+  await configureOnboarding(alicePage, roomCode, 'SendWave', clientIds[0], false, true);
+
+  // Test: Focus on business logic
+  await lockInAllPlayers([alicePage]);
+  await page.click('[data-testid="start-resolution-button"]');
+  await page.waitForTimeout(2000);
+
+  // Verify revenue calculation
+  const revenue = await alicePage.getByTestId('revenue-earned').textContent();
+  expect(revenue).toContain('150'); // Base revenue calculation
+});
+```
+
+**Benefits:**
+- ⚡ Faster test execution (no UI interactions)
+- 🎯 More focused tests (setup doesn't pollute test intent)
+- 💪 More reliable (no flaky UI waits)
+- 🔧 Easier complex state setup
+
+#### When to Use UI Interactions (✅ For Testing User Flows)
+
+Use UI interactions when testing the actual feature being developed:
+
+```typescript
+// ✅ GOOD - Testing the acquisition UI flow
+test('should show success message after acquiring client', async ({ page, context }) => {
+  const { alicePage } = await createGameInPlanningPhase(page, context);
+
+  // Test the UI flow itself
+  await alicePage.getByTestId('open-client-marketplace').click();
+  await expect(alicePage.getByTestId('client-marketplace-modal')).toBeVisible();
+
+  await alicePage.getByTestId('client-card-0').getByTestId('acquire-button').click();
+
+  // Verify UI feedback
+  await expect(alicePage.getByTestId('success-message')).toBeVisible();
+  await expect(alicePage.getByTestId('success-message')).toContainText('acquired');
+});
+```
+
+#### Mixed Approach Example
+
+```typescript
+test('should update filtering level after ESP loses reputation', async ({ page, context }) => {
+  const { alicePage, gmailPage, roomCode } = await createGameWithDestinationPlayer(page, context);
+
+  // Setup: API-based (fast, not what we're testing)
+  const clientIds = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
+  await acquireClient(alicePage, roomCode, 'SendWave', clientIds[0]);
+
+  // Test: UI-based (what we're actually testing)
+  await gmailPage.getByTestId('open-filtering-controls').click();
+  const filteringSlider = gmailPage.getByTestId('filtering-slider-sendwave');
+  await expect(filteringSlider).toHaveAttribute('data-recommended', 'moderate');
+
+  // Trigger reputation loss somehow...
+  // Then verify UI updates
+  await expect(filteringSlider).toHaveAttribute('data-recommended', 'aggressive');
+});
+```
+
+#### Available API Endpoints (Advanced)
+
+For complex state manipulation not covered by helpers:
+
+**`/api/test/set-team-state`** - Directly set ESP team state (test-only)
+```typescript
+// Direct state manipulation for complex scenarios
+await page.evaluate(async ({ roomCode, teamName, credits }) => {
+  const response = await fetch('/api/test/set-team-state', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      roomCode,
+      teamName,
+      credits,
+      budget: 500,
+      pending_onboarding_decisions: { 'client-1': { warmup: true, list_hygiene: false } }
+    })
+  });
+  return await response.json();
+}, { roomCode: 'ABC123', teamName: 'SendWave', credits: 2000 });
+```
+
+**When to use test endpoints:**
+- Setting up edge cases (e.g., negative credits)
+- Testing specific state transitions
+- Bypassing multiple steps for deep testing
+
+**⚠️ Warning:** Don't overuse test endpoints. They bypass validation and can hide bugs.
+
+#### Decision Flow
+
+```
+Need to set up test state?
+  ↓
+  Is there a helper function? → YES → Use helper
+  ↓ NO
+  Testing UI interaction? → YES → Use UI
+  ↓ NO
+  Complex state needed? → YES → Consider test endpoint
+  ↓ NO
+  Create a helper function (don't repeat yourself)
+```
+
+### 4. Test ID Validation
 
 **Before using any test ID:**
 1. Check if it exists in TEST-IDS-REFERENCE.md
@@ -231,7 +359,7 @@ page.getByTestId('client-portfolio-card')   // Wrong name
 page.getByTestId('filtering_item_sendwave') // Wrong case
 ```
 
-### 4. Resource Cleanup (CRITICAL)
+### 5. Resource Cleanup (CRITICAL)
 
 **ALWAYS use `closePages()` in `afterEach` or at end of test:**
 
@@ -246,7 +374,7 @@ test.afterEach(async () => {
 
 **Common Mistake:** Forgetting to close the facilitator `page` variable.
 
-### 5. Test Structure Template
+### 6. Test Structure Template
 
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -285,7 +413,7 @@ test.describe('Feature Name - Business Logic', () => {
 });
 ```
 
-### 6. Common Patterns
+### 7. Common Patterns
 
 #### Waiting for WebSocket Updates
 ```typescript
@@ -305,6 +433,41 @@ await expect(reputation).toContainText('85'); // After resolution calculation
 
 // ❌ Don't just check visibility
 await expect(reputation).toBeVisible(); // Too generic
+```
+
+#### Triggering Incidents
+```typescript
+// ✅ Use helper for clean, readable code
+await triggerIncident(page, 'INC-003', 'SendWave'); // With team selection
+await triggerIncident(page, 'INC-009'); // Without team selection
+
+// ❌ Don't repeat the 5-line pattern
+await page.click('[data-testid="drama-trigger-incident-button"]');
+await page.click('[data-testid="drama-incident-INC-009"]');
+await page.click('[data-testid="drama-trigger-button"]');
+await page.waitForTimeout(500);
+```
+
+#### Advancing Through Rounds
+```typescript
+// ✅ Use helper for semantic, concise code
+await advanceToRound(page, [alicePage, bobPage], 4); // Advance to Round 4
+await advanceToRound(page, [alicePage], 2); // Advance to Round 2 (single player)
+
+// For consequences phase: advance to round, then lock in once more
+await advanceToRound(page, [alicePage, bobPage], 3);
+await lockInAllPlayers([alicePage, bobPage]); // Now in Round 3 consequences
+
+// ❌ Don't repeat the 15-line pattern
+await lockInAllPlayers([alicePage, bobPage]);
+await page.waitForTimeout(1000);
+await page.click('[data-testid="start-next-round-button"]');
+await page.waitForTimeout(500);
+await lockInAllPlayers([alicePage, bobPage]);
+await page.waitForTimeout(1000);
+await page.click('[data-testid="start-next-round-button"]');
+await page.waitForTimeout(500);
+// ... repeated for each round
 ```
 
 #### Using Test APIs
@@ -401,7 +564,9 @@ When asked to write or review an E2E test:
 2. **Apply Boy Scout Rule** - Scan file for quick wins (cleanup, helpers, test IDs)
 3. **Identify the feature** being tested (not the setup)
 4. **Find similar tests** for pattern reference
-5. **Choose the right helper** for setup
+5. **Choose the right approach** for setup:
+   - Use API helpers for complex state setup (faster, more reliable)
+   - Use UI interactions only when testing the UI itself
 6. **Validate test IDs** against reference
 7. **Focus test on business logic** (calculations, thresholds, rules)
 8. **Ensure cleanup** with closePages()
@@ -423,11 +588,12 @@ When reviewing a test, provide:
 When writing a test, provide:
 
 1. **Test Structure**: Complete test code following template
-2. **Helper Usage**: Which helpers are used and why
-3. **Test IDs Used**: List all test IDs with references to where they're defined
-4. **Business Logic Focus**: Explain what specific business rule is tested
-5. **Cleanup**: Show closePages() usage
-6. **Boy Scout Improvements**: List any additional improvements made to the file
+2. **Setup Approach**: Explain why API helpers or UI interactions were chosen
+3. **Helper Usage**: Which helpers are used and why
+4. **Test IDs Used**: List all test IDs with references to where they're defined
+5. **Business Logic Focus**: Explain what specific business rule is tested
+6. **Cleanup**: Show closePages() usage
+7. **Boy Scout Improvements**: List any additional improvements made to the file
 
 ---
 

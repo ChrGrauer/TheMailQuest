@@ -51,7 +51,7 @@ export function calculateVolume(params: VolumeParams): VolumeResult {
 	const clientVolumes: ClientVolumeData[] = activeClients.map((client) => {
 		const state = params.clientStates[client.id];
 		let adjustedVolume = client.volume;
-		const adjustments: Record<string, number> = {};
+		const adjustments: Record<string, { amount: number; description: string }> = {};
 
 		// Phase 2: Apply all volume modifiers
 		// Start with base volume, multiply by all applicable modifiers
@@ -60,12 +60,19 @@ export function calculateVolume(params: VolumeParams): VolumeResult {
 
 		for (const modifier of state.volumeModifiers) {
 			if (
-				isModifierApplicable(modifier.applicableRounds, params.currentRound, state.first_active_round)
+				isModifierApplicable(
+					modifier.applicableRounds,
+					params.currentRound,
+					state.first_active_round
+				)
 			) {
 				cumulativeMultiplier *= modifier.multiplier;
 				appliedModifiers.push(modifier.source);
-				// Track individual modifier effects for debugging/display
-				adjustments[modifier.source] = client.volume * (1 - modifier.multiplier);
+				// Track individual modifier effects with description for UI display
+				adjustments[modifier.source] = {
+					amount: client.volume * (1 - modifier.multiplier),
+					description: modifier.description || `${modifier.source} volume modifier`
+				};
 			}
 		}
 

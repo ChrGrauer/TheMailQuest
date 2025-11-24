@@ -2,23 +2,25 @@
 	/**
 	 * Incident Card Display
 	 * Phase 1: MVP Foundation
+	 * Phase 2: Fly animation and affected team display
 	 *
 	 * Full-screen modal that displays incident cards to all players
 	 * - Auto-dismisses after 10 seconds
-	 * - Minimal polish (fade-in transition, category colors)
+	 * - Phase 2: Fly-in animation from top, shows affected team
 	 * - Can be dismissed early with Escape key or backdrop click
 	 */
 
-	import { fade } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
 	import type { IncidentCard } from '$lib/types/incident';
 
 	interface Props {
 		show: boolean;
 		incident: IncidentCard | null;
+		affectedTeam?: string | null; // Phase 2: Show which team is affected
 		onClose: () => void;
 	}
 
-	let { show = $bindable(), incident, onClose }: Props = $props();
+	let { show = $bindable(), incident, affectedTeam, onClose }: Props = $props();
 
 	// Auto-dismiss timer
 	let dismissTimer: ReturnType<typeof setTimeout> | null = null;
@@ -102,6 +104,7 @@
 			class="bg-white rounded-xl shadow-2xl max-w-2xl w-full border-4 {getCategoryColor(
 				incident.category
 			)}"
+			transition:fly={{ y: -100, duration: 300 }}
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			tabindex="-1"
@@ -136,6 +139,18 @@
 					{incident.name}
 				</h2>
 			</div>
+
+			<!-- Phase 2: Affected Team Banner -->
+			{#if affectedTeam}
+				<div
+					class="px-6 py-3 bg-yellow-50 border-b border-yellow-200"
+					data-testid="drama-affected-team"
+				>
+					<p class="text-sm font-semibold text-yellow-900">
+						Affects: <span class="text-yellow-700">{affectedTeam}</span>
+					</p>
+				</div>
+			{/if}
 
 			<!-- Body -->
 			<div class="p-6 space-y-4">

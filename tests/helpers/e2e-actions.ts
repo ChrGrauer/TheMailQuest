@@ -154,3 +154,93 @@ export async function lockInAllPlayers(pages: Page[], waitTime = 2000): Promise<
 		await pages[0].waitForTimeout(waitTime);
 	}
 }
+
+/**
+ * Trigger a drama incident from the facilitator dashboard
+ * Handles both simple incidents and incidents requiring team selection
+ *
+ * @param facilitatorPage - Facilitator page
+ * @param incidentId - Incident ID (e.g., 'INC-003', 'INC-009')
+ * @param teamName - Optional team name for incidents that require team selection
+ * @param playerPages - Optional array of player pages to close incident modals on
+ * @param waitTime - Wait time after trigger (default: 500ms)
+ */
+export async function triggerIncident(
+	facilitatorPage: Page,
+	incidentId: string,
+	teamName?: string,
+	playerPages?: Page[],
+	waitTime = 500
+): Promise<void> {
+	await facilitatorPage.click('[data-testid="drama-trigger-incident-button"]');
+	await facilitatorPage.click(`[data-testid="drama-incident-${incidentId}"]`);
+
+	if (teamName) {
+		await facilitatorPage.selectOption('[data-testid="drama-team-selector"]', teamName);
+	}
+
+	await facilitatorPage.click('[data-testid="drama-trigger-button"]');
+	await facilitatorPage.waitForTimeout(waitTime);
+
+	// Wait for incident card modal to appear and then close it on all pages to avoid blocking other interactions
+	// The incident card auto-dismisses after 10s, but we close it immediately
+	const allPages = [facilitatorPage, ...(playerPages || [])];
+
+	for (const page of allPages) {
+		const incidentCard = page.locator('[data-testid="drama-card-display"]');
+		const isVisible = await incidentCard.isVisible().catch(() => false);
+		if (isVisible) {
+			// Press Escape key to close the modal (more reliable than clicking backdrop)
+			await page.keyboard.press('Escape');
+			// Wait for the fade-out animation to complete
+			await page.waitForTimeout(300);
+		}
+	}
+}
+
+/**
+ * Advance game to a specific round by completing planning + consequences cycles
+ * Assumes starting from Round 1 planning phase
+ *
+ * @param facilitatorPage - Facilitator page (for clicking next round button)
+ * @param playerPages - Array of player pages to lock in
+ * @param targetRound - Target round number (e.g., 4 to advance to Round 4)
+ */
+export async function advanceToRound(
+	facilitatorPage: Page,
+	playerPages: Page[],
+	targetRound: number
+): Promise<void> {
+	// Starting from Round 1, advance through (targetRound - 1) complete rounds
+	const roundsToComplete = targetRound - 1;
+
+	for (let i = 0; i < roundsToComplete; i++) {
+		// Close any incident modals before locking in (from automatic incidents)
+		const allPages = [facilitatorPage, ...playerPages];
+		for (const page of allPages) {
+			const incidentCard = page.locator('[data-testid="drama-card-display"]');
+			const isVisible = await incidentCard.isVisible().catch(() => false);
+			if (isVisible) {
+				await page.keyboard.press('Escape');
+				await page.waitForTimeout(300);
+			}
+		}
+
+		// Lock in players (triggers consequences phase, already waits 2000ms)
+		await lockInAllPlayers(playerPages);
+		
+		// Advance to next round's planning phase
+		await facilitatorPage.click('[data-testid="start-next-round-button"]');
+		await facilitatorPage.waitForTimeout(500);
+
+		// Close any incident modals that appeared during round transition (e.g., automatic DMARC warning)
+		for (const page of allPages) {
+			const incidentCard = page.locator('[data-testid="drama-card-display"]');
+			const isVisible = await incidentCard.isVisible().catch(() => false);
+			if (isVisible) {
+				await page.keyboard.press('Escape');
+				await page.waitForTimeout(300);
+			}
+		}
+	}
+}

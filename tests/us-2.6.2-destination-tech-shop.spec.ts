@@ -580,8 +580,7 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			).toContainText('Active');
 
 			// Cleanup
-			await closePages(page, destinationPage);
-			await closePages(page, alicePage, bobPage);
+			await closePages(page, destinationPage, alicePage, bobPage);
 		});
 
 		test('Tool ownership persists across rounds', async ({ page, context }) => {
