@@ -16,6 +16,7 @@ import type {
 	AutoCorrectionLog
 } from '$lib/server/game/types';
 import type { IncidentCard, IncidentHistoryEntry, EffectChanges } from './incident';
+import type { FinalScoreOutput } from '$lib/server/game/final-score-types';
 
 // ============================================================================
 // Server-to-Client Messages
@@ -161,21 +162,25 @@ export interface AutoLockCompleteMessage {
 
 /**
  * Phase transition occurred (e.g., planning -> resolution)
+ * Uses nested 'data' structure for all transition data
  */
 export interface PhaseTransitionMessage {
 	type: 'phase_transition';
-	phase: GamePhase;
-	round: number;
-	message: string;
-	timer_remaining?: number;
-	locked_in?: boolean;
-	incident_history?: IncidentHistoryEntry[];
-	resolution_history?: Array<{
+	data: {
+		phase: GamePhase;
 		round: number;
-		results: any;
-		timestamp: Date;
-	}>;
-	current_round_results?: any; // ResolutionResults (avoiding circular import)
+		message?: string;
+		timer_remaining?: number;
+		locked_in?: boolean;
+		incident_history?: IncidentHistoryEntry[];
+		resolution_history?: Array<{
+			round: number;
+			results: any;
+			timestamp: Date;
+		}>;
+		current_round_results?: any; // ResolutionResults (avoiding circular import)
+		final_scores?: FinalScoreOutput; // US-5.2: Final scores for victory screen
+	};
 }
 
 /**
@@ -196,6 +201,17 @@ export interface IncidentEffectsAppliedMessage {
 	type: 'incident_effects_applied';
 	incidentId: string;
 	changes: EffectChanges;
+}
+
+/**
+ * US-5.2: Final scores calculated - sent when game ends
+ */
+export interface FinalScoresCalculatedMessage {
+	type: 'final_scores_calculated';
+	espResults: FinalScoreOutput['espResults'];
+	winner: FinalScoreOutput['winner'];
+	destinationResults: FinalScoreOutput['destinationResults'];
+	metadata: FinalScoreOutput['metadata'];
 }
 
 // ============================================================================
@@ -249,7 +265,8 @@ export type ServerMessage =
 	| AutoLockCompleteMessage
 	| PhaseTransitionMessage
 	| IncidentTriggeredMessage
-	| IncidentEffectsAppliedMessage;
+	| IncidentEffectsAppliedMessage
+	| FinalScoresCalculatedMessage;
 
 /**
  * All possible WebSocket messages (client-to-server)

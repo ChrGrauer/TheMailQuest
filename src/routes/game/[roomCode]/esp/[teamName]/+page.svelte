@@ -27,9 +27,11 @@
 	import TechnicalShopModal from '$lib/components/esp-dashboard/TechnicalShopModal.svelte';
 	import ClientManagementModal from '$lib/components/esp-dashboard/ClientManagementModal.svelte';
 	import ESPConsequences from '$lib/components/consequences/ESPConsequences.svelte';
+	import VictoryScreen from '$lib/components/victory/VictoryScreen.svelte';
 	import { calculateOnboardingCost } from '$lib/config/client-onboarding';
 	import type { OnboardingOptions } from '$lib/server/game/types';
 	import type { ESPResolutionResult } from '$lib/server/game/resolution-types';
+	import type { FinalScoreOutput } from '$lib/server/game/final-score-types';
 	import type { IncidentCard } from '$lib/types/incident';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 
@@ -96,6 +98,9 @@
 	// Incident state
 	let showIncidentCard = $state(false);
 	let currentIncident = $state<IncidentCard | null>(null);
+
+	// US-5.2: Final scores state
+	let finalScores = $state<FinalScoreOutput | null>(null);
 
 	// Test state for WebSocket status (used by E2E tests)
 	let testWsConnected = $state<boolean | null>(null);
@@ -288,6 +293,17 @@
 			return;
 		}
 
+		// US-5.2: Handle final scores calculated
+		if (data.type === 'final_scores_calculated') {
+			finalScores = {
+				espResults: data.espResults,
+				winner: data.winner,
+				destinationResults: data.destinationResults,
+				metadata: data.metadata
+			};
+			return;
+		}
+
 		if (data.phase) {
 			currentPhase = data.phase;
 		}
@@ -412,6 +428,10 @@
 						resolutionResults = espResults[matchingKey];
 					}
 				}
+			}
+			// US-5.2: Extract final scores from phase transition (finished phase)
+			if (data.data?.final_scores) {
+				finalScores = data.data.final_scores;
 			}
 			// Show transition message
 			if (data.data?.message) {
@@ -690,6 +710,9 @@
 				<p class="text-gray-600">Please wait while we process this round's data</p>
 			</div>
 		</div>
+	{:else if currentPhase === 'finished'}
+		<!-- US-5.2: Victory Screen -->
+		<VictoryScreen {finalScores} />
 	{:else}
 		<!-- Game State Header -->
 		<DashboardHeader

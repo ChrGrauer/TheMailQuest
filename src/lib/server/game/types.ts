@@ -210,6 +210,8 @@ export interface GameSession {
 	// Phase 1: Incident Cards history
 	// Array of triggered incidents for facilitator reference
 	incident_history?: IncidentHistoryEntry[];
+	// US-5.1: Final scores after Round 4 calculation
+	final_scores?: import('./final-score-types').FinalScoreOutput;
 }
 
 /**

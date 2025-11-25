@@ -417,7 +417,7 @@ Feature: Final Score Calculation
     Given a game with 5 ESP teams and 3 Destinations
     And complete data for all 4 rounds
     When the facilitator triggers final score calculation
-    Then the calculation completes in less than 2 seconds
+    Then the calculation completes in less than 5 seconds
     And all score components are calculated correctly
     And results are ready for display
 

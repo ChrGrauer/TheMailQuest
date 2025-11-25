@@ -33,7 +33,9 @@
 	import TechnicalShopModal from '$lib/components/destination-dashboard/TechnicalShopModal.svelte';
 	import FilteringControlsModal from '$lib/components/destination-dashboard/FilteringControlsModal.svelte';
 	import DestinationConsequences from '$lib/components/consequences/DestinationConsequences.svelte';
+	import VictoryScreen from '$lib/components/victory/VictoryScreen.svelte';
 	import type { IncidentCard } from '$lib/types/incident';
+	import type { FinalScoreOutput } from '$lib/server/game/final-score-types';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 
 	// Get params
@@ -81,6 +83,9 @@
 	// Consequences state (US-3.5 Iteration 3)
 	let currentResolution = $state<DestinationResolutionResult | null>(null);
 	let espSatisfactionBreakdown = $state<Record<string, SatisfactionResult> | null>(null);
+
+	// US-5.2: Final scores state
+	let finalScores = $state<FinalScoreOutput | null>(null);
 
 	// Test state variables (for E2E testing) - null means use real value
 	let testWsConnected = $state<boolean | null>(null);
@@ -172,6 +177,17 @@
 			return;
 		}
 
+		// US-5.2: Handle final scores calculated
+		if (update.type === 'final_scores_calculated') {
+			finalScores = {
+				espResults: update.espResults,
+				winner: update.winner,
+				destinationResults: update.destinationResults,
+				metadata: update.metadata
+			};
+			return;
+		}
+
 		if (update.current_round !== undefined) currentRound = update.current_round;
 		if (update.current_phase !== undefined) currentPhase = update.current_phase;
 		// Timer: Use simple value from WebSocket (matches ESP dashboard pattern)
@@ -245,6 +261,10 @@
 					remainingPlayers = 0;
 					autoLockMessage = null;
 				}
+			}
+			// US-5.2: Extract final scores from phase transition (finished phase)
+			if (update.data?.final_scores) {
+				finalScores = update.data.final_scores;
 			}
 			// Show transition message
 			if (update.data?.message) {
@@ -512,6 +532,9 @@
 				{/if}
 			</div>
 		</div>
+	{:else if currentPhase === 'finished'}
+		<!-- US-5.2: Victory Screen -->
+		<VictoryScreen {finalScores} />
 	{:else}
 		<!-- Header -->
 		<DashboardHeader

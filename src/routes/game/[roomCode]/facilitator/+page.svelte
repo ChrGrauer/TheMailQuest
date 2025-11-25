@@ -18,6 +18,9 @@
 	let isStartingRound = $state(false);
 	let error = $state<string | null>(null);
 
+	// Calculate Final Scores button state
+	let isCalculatingScores = $state(false);
+
 	// Incident state
 	let showIncidentSelectionModal = $state(false);
 	let showIncidentCard = $state(false);
@@ -31,6 +34,9 @@
 
 	// Show "Start Next Round" button only during consequences phase of rounds 1-3
 	let showStartButton = $derived(phase === 'consequences' && round >= 1 && round <= 3);
+
+	// Show "Calculate Final Scores" button only during consequences phase of round 4
+	let showFinalScoresButton = $derived(phase === 'consequences' && round === 4);
 
 	// Handle game state updates from WebSocket
 	function handleGameStateUpdate(data: GameStateUpdate | any) {
@@ -168,6 +174,36 @@
 			isStartingRound = false;
 		}
 	}
+
+	/**
+	 * Handle Calculate Final Scores button click
+	 * Calls API endpoint to calculate scores and transition to finished phase
+	 * US-5.1: Final Score Calculation
+	 */
+	async function handleCalculateFinalScores() {
+		isCalculatingScores = true;
+		error = null;
+
+		try {
+			const response = await fetch(`/api/sessions/${roomCode}/calculate-final-scores`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' }
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				error = data.error || 'Failed to calculate final scores';
+				isCalculatingScores = false;
+				return;
+			}
+
+			// Success - phase will update to 'finished' via WebSocket
+			// isCalculatingScores will be reset when phase changes
+		} catch (err) {
+			error = 'Network error. Please try again.';
+			isCalculatingScores = false;
+		}
+	}
 </script>
 
 <div class="container">
@@ -190,6 +226,18 @@
 				class:loading={isStartingRound}
 			>
 				{isStartingRound ? 'Starting...' : 'Start Next Round'}
+			</button>
+		{/if}
+
+		{#if showFinalScoresButton}
+			<button
+				data-testid="calculate-final-scores-button"
+				onclick={handleCalculateFinalScores}
+				disabled={isCalculatingScores}
+				class="final-scores-button"
+				class:loading={isCalculatingScores}
+			>
+				{isCalculatingScores ? 'Calculating...' : 'Calculate Final Scores'}
 			</button>
 		{/if}
 
@@ -275,6 +323,39 @@
 	}
 
 	.start-button.loading {
+		opacity: 0.7;
+	}
+
+	.final-scores-button {
+		padding: 0.75rem 1.5rem;
+		background-color: #f59e0b;
+		color: white;
+		font-weight: 600;
+		border: none;
+		border-radius: 0.5rem;
+		cursor: pointer;
+		font-size: 1rem;
+		margin: 1rem 0;
+		transition: all 0.2s;
+	}
+
+	.final-scores-button:hover:not(:disabled) {
+		background-color: #d97706;
+	}
+
+	.final-scores-button:focus {
+		outline: none;
+		box-shadow:
+			0 0 0 2px white,
+			0 0 0 4px #f59e0b;
+	}
+
+	.final-scores-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.final-scores-button.loading {
 		opacity: 0.7;
 	}
 
