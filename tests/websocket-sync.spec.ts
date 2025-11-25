@@ -20,7 +20,7 @@
  * remain in their respective feature test files.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { createTestSession, addPlayer, closePages } from './helpers/game-setup';
 
 test.describe('Feature: WebSocket Synchronization', () => {

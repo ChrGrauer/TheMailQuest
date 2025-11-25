@@ -172,6 +172,8 @@ First, load critical context files:
 
 ### 2. Available Helpers Reference
 
+Helpers should be stored in common files, not in test files.
+
 #### From `game-setup.ts`:
 - `createTestSession(page)` - Create session, return room code
 - `addPlayer(context, roomCode, displayName, role, teamName)` - Join player to session

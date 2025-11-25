@@ -1,66 +1,26 @@
 /**
  * E2E Tests: US-3.5 Scenario 1.2 - ESP Consequences Screen Structure
- * ATDD RED PHASE: These tests should FAIL initially until implementation is complete
  *
  * Feature: ESP Client Performance Display
  * As an ESP player
  * I want to see how each of my clients performed
  * So that I can understand which clients are helping or hurting my reputation
+ *
+ * REFACTORED: Tests combined to reduce setup overhead.
+ * Original: 6 tests → Refactored: 4 tests (saves ~6s)
  */
 
-import { test, expect } from '@playwright/test';
-import { createGameInPlanningPhase } from './helpers/game-setup';
-import { lockInAllPlayers } from './helpers/e2e-actions';
+import { test, expect } from './fixtures';
+import { createGameInPlanningPhase, closePages } from './helpers';
+import { lockInAllPlayers, acquireAndConfigureClients } from './helpers';
 
 test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
-	test('ESP player sees consequences screen structure', async ({ page, context }) => {
-		// Given: I am logged in as ESP player "Alice" from team "SendWave"
-		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// And: The game transitions to Consequences phase for Round 1
-		// Lock in all players to trigger transition
-		await lockInAllPlayers([alicePage, bobPage]); // Wait for resolution + transition
-
-		// When: I view my consequences screen
-		// (Screen should auto-display on phase transition)
-
-		// Then: I should see a header showing "Round 1 Results"
-		const header = alicePage.locator('[data-testid="consequences-header"]');
-		await expect(header).toBeVisible({ timeout: 5000 });
-		await expect(header).toContainText('Round 1 Results');
-
-		// And: I should see my team name "SendWave" prominently displayed
-		const teamName = alicePage.locator('[data-testid="consequences-team-name"]');
-		await expect(teamName).toBeVisible();
-		await expect(teamName).toContainText('SendWave');
-
-		// And: I should see the following sections:
-		const expectedSections = [
-			{ testId: 'section-client-performance', title: 'Client Performance' },
-			{ testId: 'section-revenue-summary', title: 'Revenue Summary' },
-			{ testId: 'section-reputation-changes', title: 'Reputation Changes' },
-			{ testId: 'section-budget-update', title: 'Budget Update' },
-			{ testId: 'section-alerts-notifications', title: 'Alerts' }
-		];
-
-		for (const section of expectedSections) {
-			const sectionLocator = alicePage.locator(`[data-testid="${section.testId}"]`);
-			await expect(sectionLocator).toBeVisible({
-				timeout: 3000
-			});
-
-			// Verify section has title (flexible text matching)
-			const hasTitle = await sectionLocator.locator(`text=/.*${section.title}.*/i`).count();
-			expect(hasTitle).toBeGreaterThan(0);
-		}
-
-		// And: Each section should have a clear visual container
-		// Check that all 5 sections exist
-		const sections = await alicePage.locator('[data-testid^="section-"]').all();
-		expect(sections.length).toBeGreaterThanOrEqual(5);
-	});
-
-	test('ESP consequences display resolution data', async ({ page, context }) => {
+	/**
+	 * Combined Test A: ESP consequences screen structure and data
+	 * Combines: Screen structure, resolution data display, placeholder sections
+	 * (Previously 3 separate tests)
+	 */
+	test('ESP consequences screen structure and data', async ({ page, context }) => {
 		// Given: ESP has active clients with volume and revenue data
 		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
@@ -84,45 +44,77 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		// Lock in players to trigger consequences
 		await lockInAllPlayers([alicePage, bobPage]);
 
-		// Then: Client Performance section should show client data
-		const clientSection = alicePage.locator('[data-testid="section-client-performance"]');
-		await expect(clientSection).toBeVisible({ timeout: 5000 });
+		// === Screen Structure Assertions ===
 
-		// Should contain some volume/email information
+		// Assert: Header shows "Round 1 Results"
+		const header = alicePage.locator('[data-testid="consequences-header"]');
+		await expect(header).toBeVisible({ timeout: 5000 });
+		await expect(header).toContainText('Round 1 Results');
+
+		// Assert: Team name "SendWave" prominently displayed
+		const teamName = alicePage.locator('[data-testid="consequences-team-name"]');
+		await expect(teamName).toBeVisible();
+		await expect(teamName).toContainText('SendWave');
+
+		// Assert: All 5 sections are visible with appropriate titles
+		const expectedSections = [
+			{ testId: 'section-client-performance', title: 'Client Performance' },
+			{ testId: 'section-revenue-summary', title: 'Revenue Summary' },
+			{ testId: 'section-reputation-changes', title: 'Reputation Changes' },
+			{ testId: 'section-budget-update', title: 'Budget Update' },
+			{ testId: 'section-alerts-notifications', title: 'Alerts' }
+		];
+
+		for (const section of expectedSections) {
+			const sectionLocator = alicePage.locator(`[data-testid="${section.testId}"]`);
+			await expect(sectionLocator).toBeVisible({ timeout: 3000 });
+
+			// Verify section has title (flexible text matching)
+			const hasTitle = await sectionLocator.locator(`text=/.*${section.title}.*/i`).count();
+			expect(hasTitle).toBeGreaterThan(0);
+		}
+
+		// Assert: Each section should have a clear visual container (all 5 sections exist)
+		const sections = await alicePage.locator('[data-testid^="section-"]').all();
+		expect(sections.length).toBeGreaterThanOrEqual(5);
+
+		// === Resolution Data Assertions ===
+
+		// Assert: Client Performance section shows volume/email information
+		const clientSection = alicePage.locator('[data-testid="section-client-performance"]');
 		const hasVolumeInfo =
 			(await clientSection.locator('text=/\\d+.*email/i').count()) > 0 ||
 			(await clientSection.locator('text=/volume/i').count()) > 0;
 		expect(hasVolumeInfo).toBeTruthy();
 
-		// And: Revenue Summary should show total revenue
+		// Assert: Revenue Summary shows total revenue in credits
 		const revenueSection = alicePage.locator('[data-testid="section-revenue-summary"]');
-		await expect(revenueSection).toBeVisible({ timeout: 3000 });
 		await expect(revenueSection).toContainText('credits');
 
-		// And: Budget Update should show budget information
+		// Assert: Budget Update shows budget information
 		const budgetSection = alicePage.locator('[data-testid="section-budget-update"]');
-		await expect(budgetSection).toBeVisible({ timeout: 3000 });
 		await expect(budgetSection).toContainText('credits');
-	});
 
-	test('ESP sees placeholder for unimplemented sections', async ({ page, context }) => {
-		// Given: Game in consequences phase
-		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
+		// === Placeholder/Future Sections Assertions ===
 
-		await lockInAllPlayers([alicePage, bobPage]);
-
-		// Then: Reputation Changes section exists (but may have placeholder)
+		// Assert: Reputation Changes section exists
 		const reputationSection = alicePage.locator('[data-testid="section-reputation-changes"]');
-		await expect(reputationSection).toBeVisible({ timeout: 5000 });
+		await expect(reputationSection).toBeVisible();
 
-		// And: Alerts section exists (but may have placeholder)
+		// Assert: Alerts section exists
 		const alertsSection = alicePage.locator('[data-testid="section-alerts-notifications"]');
-		await expect(alertsSection).toBeVisible({ timeout: 3000 });
+		await expect(alertsSection).toBeVisible();
+
+		await closePages(page, alicePage, bobPage);
 	});
 
+	/**
+	 * Test B: ESP with no clients sees appropriate message
+	 * Different scenario (empty state) - kept separate
+	 */
 	test('ESP with no clients sees appropriate message', async ({ page, context }) => {
 		// Given: ESP with no acquired clients
-		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
+		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 		// Don't acquire any clients
 
@@ -139,45 +131,31 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		await expect(clientSection).toBeVisible({ timeout: 3000 });
 
 		// Should show some indication of no clients (flexible matching)
-		const hasEmptyMessage =
-			(await clientSection.locator('text=/no.*client/i').count()) > 0 ||
-			(await clientSection.locator('text=/empty/i').count()) > 0 ||
-			(await clientSection.locator('text=/available/i').count()) > 0;
-
-		// This is OK if it doesn't explicitly show a message - just shouldn't crash
 		// Main assertion is that the section is visible and doesn't cause errors
+
+		await closePages(page, alicePage, bobPage);
 	});
 
-	test('Phase 3.1.1: Warmup message styling - gray informative text', async ({ page, context }) => {
+	/**
+	 * Test C: Warmup message styling - gray informative text
+	 * Tests specific UI styling for warmup adjustments
+	 */
+	test('Warmup message styling - gray informative text', async ({ page, context }) => {
 		// Given: ESP with a client that has warmup applied
 		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		// Use API helpers to acquire a client and apply warmup
-		const { acquireClient, configureOnboarding, getAvailableClientIds } = await import(
-			'./helpers/client-management'
-		);
-
-		// Get first available client
-		const availableClients = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
-		if (availableClients.length > 0) {
-			const clientId = availableClients[0];
-
-			// Acquire the client
-			await acquireClient(alicePage, roomCode, 'SendWave', clientId);
-			await alicePage.waitForTimeout(500);
-
-			// Apply warmup onboarding option
-			await configureOnboarding(alicePage, roomCode, 'SendWave', clientId, true, false);
-			await alicePage.waitForTimeout(500);
-		}
+		// Use helper to acquire client with warmup enabled
+		const acquiredClients = await acquireAndConfigureClients(alicePage, roomCode, 'SendWave', 1, {
+			warmUp: true,
+			listHygiene: false
+		});
 
 		// Lock in to trigger consequences
 		await lockInAllPlayers([alicePage, bobPage]);
 
-		// Then: Warmup message should be visible
+		// Then: Warmup message should be visible (if warmup was applied)
 		const warmupMessage = alicePage.locator('[data-testid="warmup-adjustment-message"]').first();
 
-		// If warmup was applied, check the message styling
 		if ((await warmupMessage.count()) > 0) {
 			// Message should be visible
 			await expect(warmupMessage).toBeVisible({ timeout: 3000 });
@@ -200,23 +178,20 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 				expect(g).toBeLessThan(150);
 			}
 		}
+
+		await closePages(page, alicePage, bobPage);
 	});
 
-	test('Phase 3.2.1: Spam complaints per-client display', async ({ page, context }) => {
+	/**
+	 * Test D: Spam complaints per-client display
+	 * Tests spam complaint section and per-client data
+	 */
+	test('Spam complaints per-client display', async ({ page, context }) => {
 		// Given: ESP with active clients
 		const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		// Use API helpers to acquire clients
-		const { acquireClient, getAvailableClientIds } = await import('./helpers/client-management');
-
-		// Get first available client
-		const availableClients = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
-		if (availableClients.length > 0) {
-			const clientId = availableClients[0];
-			// Acquire the client
-			await acquireClient(alicePage, roomCode, 'SendWave', clientId);
-			await alicePage.waitForTimeout(500);
-		}
+		// Use helper to acquire a client
+		const acquiredClients = await acquireAndConfigureClients(alicePage, roomCode, 'SendWave', 1);
 
 		// Lock in to trigger consequences
 		await lockInAllPlayers([alicePage, bobPage]);
@@ -244,5 +219,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 			(await firstCard.locator('text=/%/').count()) > 0;
 
 		expect(hasComplaintInfo).toBeTruthy();
+
+		await closePages(page, alicePage, bobPage);
 	});
 });

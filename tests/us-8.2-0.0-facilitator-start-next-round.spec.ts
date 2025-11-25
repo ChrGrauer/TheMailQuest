@@ -8,7 +8,8 @@
  * So that I can control the game pace and ensure players are ready to continue
  */
 
-import { test, expect, type Page, type BrowserContext } from '@playwright/test';
+import { test, expect } from './fixtures';
+import type { Page, BrowserContext } from '@playwright/test';
 import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
 
 /**
@@ -64,11 +65,34 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		await closePages(page, alicePage, bobPage);
 	});
 
-	test.skip('1.2 - Button not visible in Round 4 consequences', async ({ page, context }) => {
-		// NOTE: Skipping this test as it requires advancing through multiple rounds
-		// which is complex and slow. The logic is tested implicitly by the visibility
-		// condition: showStartButton = phase === 'consequences' && round >= 1 && round <= 3
-		// TODO: Consider implementing this test when we have better round advancement helpers
+	test('1.2 - Button not visible in Round 4 consequences (final round)', async ({
+		page,
+		context
+	}) => {
+		// Given: the game is in round 4 consequences (final round)
+		// Use the phase-transitions helper to advance to Round 4
+		const { createGameInRound4Consequences } = await import('./helpers/phase-transitions');
+		const { alicePage, bobPage } = await createGameInRound4Consequences(page, context);
+
+		// Note: createGameInRound4Consequences already leaves facilitator (page) on the
+		// facilitator dashboard with updated state via WebSocket. No need to navigate again.
+
+		// Verify we're in Round 4 consequences (check on facilitator page)
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+			timeout: 5000
+		});
+		await expect(page.locator('text=/Round 4/i')).toBeVisible({ timeout: 3000 });
+
+		// Then: the "Start Next Round" button should NOT be visible
+		// (because Round 4 is the final round)
+		const startButton = page.locator('[data-testid="start-next-round-button"]');
+		await expect(startButton).not.toBeVisible();
+
+		// And: the "Calculate Final Scores" button SHOULD be visible instead
+		const calculateButton = page.locator('[data-testid="calculate-final-scores-button"]');
+		await expect(calculateButton).toBeVisible();
+
+		await closePages(page, alicePage, bobPage);
 	});
 
 	// ========================================================================

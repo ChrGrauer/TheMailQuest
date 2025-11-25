@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { createGameWithDestinationPlayer } from './helpers/game-setup';
+import { test, expect } from './fixtures';
+import { createGameWithDestinationPlayer, closePages } from './helpers/game-setup';
 
 test('Purchase without explicit loading wait', async ({ page, context }) => {
 	const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(page, context);

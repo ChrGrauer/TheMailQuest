@@ -12,7 +12,7 @@
  * Uses Playwright for end-to-end testing
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { createTestSession } from './helpers/game-setup';
 
 test.describe('Feature: Join Game Session - E2E', () => {

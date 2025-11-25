@@ -1,19 +1,17 @@
 /**
  * US-2.2: Client Marketplace E2E Tests
  * Tests marketplace display, filtering, and client acquisition
+ *
+ * Uses Playwright fixtures for automatic setup and cleanup.
  */
 
-import { test, expect } from '@playwright/test';
-import {
-	createGameInPlanningPhase,
-	createGameWith2ESPTeams,
-	closePages
-} from './helpers/game-setup';
+import { test, expect } from './fixtures';
+import { createGameWith2ESPTeams, closePages } from './helpers/game-setup';
 import { openModal, performPurchaseAction, extractBudget } from './helpers/e2e-actions';
 
 test.describe('US-2.2: Client Marketplace', () => {
-	test('Scenario: Marketplace displays client details', async ({ page, context }) => {
-		const { alicePage } = await createGameInPlanningPhase(page, context);
+	test('Scenario: Marketplace displays client details', async ({ planningPhase }) => {
+		const { alicePage } = planningPhase;
 
 		// Open marketplace
 		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
@@ -31,11 +29,11 @@ test.describe('US-2.2: Client Marketplace', () => {
 		await expect(firstCard.getByTestId('client-volume')).toBeVisible();
 		await expect(firstCard.getByTestId('client-risk')).toBeVisible();
 
-		await closePages(page, alicePage);
+		// Cleanup handled by fixture
 	});
 
-	test('Scenario: Filter clients by risk level', async ({ page, context }) => {
-		const { alicePage } = await createGameInPlanningPhase(page, context);
+	test('Scenario: Filter clients by risk level', async ({ planningPhase }) => {
+		const { alicePage } = planningPhase;
 
 		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
 		await alicePage.getByTestId('client-card').first().waitFor({ state: 'visible', timeout: 5000 });
@@ -64,12 +62,12 @@ test.describe('US-2.2: Client Marketplace', () => {
 			}
 		}
 
-		await closePages(page, alicePage);
+		// Cleanup handled by fixture
 	});
 
-	test('Scenario: Successfully acquire a client', async ({ page, context }) => {
+	test('Scenario: Successfully acquire a client', async ({ planningPhase }) => {
 		test.setTimeout(30000); // Increase timeout for API call
-		const { alicePage } = await createGameInPlanningPhase(page, context);
+		const { alicePage } = planningPhase;
 
 		// Wait for dashboard to load and get initial credits
 		const initialCredits = await extractBudget(alicePage, 'budget-current');
@@ -100,11 +98,11 @@ test.describe('US-2.2: Client Marketplace', () => {
 
 		expect(newCredits).toBe(initialCredits - clientCost);
 
-		await closePages(page, alicePage);
+		// Cleanup handled by fixture
 	});
 
-	test('Scenario: Cannot acquire client with insufficient credits', async ({ page, context }) => {
-		const { alicePage } = await createGameInPlanningPhase(page, context);
+	test('Scenario: Cannot acquire client with insufficient credits', async ({ planningPhase }) => {
+		const { alicePage } = planningPhase;
 
 		// Use test API to set low credits
 		await alicePage.evaluate(() => {
@@ -136,12 +134,12 @@ test.describe('US-2.2: Client Marketplace', () => {
 			}
 		}
 
-		await closePages(page, alicePage);
+		// Cleanup handled by fixture
 	});
 
-	test('Scenario: Client remains unavailable after acquisition', async ({ page, context }) => {
+	test('Scenario: Client remains unavailable after acquisition', async ({ planningPhase }) => {
 		test.setTimeout(30000); // Increase timeout for API call
-		const { alicePage } = await createGameInPlanningPhase(page, context);
+		const { alicePage } = planningPhase;
 
 		// Open marketplace and get initial count
 		await openModal(alicePage, 'open-client-marketplace', 'marketplace-modal');
@@ -170,9 +168,10 @@ test.describe('US-2.2: Client Marketplace', () => {
 		const clientNames = await alicePage.getByTestId('client-name').allTextContents();
 		expect(clientNames).not.toContain(clientName);
 
-		await closePages(page, alicePage);
+		// Cleanup handled by fixture
 	});
 
+	// This test needs custom setup (2 ESP teams), so keep using helper
 	test('Scenario: ESP teams have independent client stocks', async ({ page, context }) => {
 		test.setTimeout(30000);
 		const { alicePage, bobPage } = await createGameWith2ESPTeams(page, context);

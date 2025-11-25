@@ -3,7 +3,7 @@
  * Tests tech shop display, purchase flow, dependency enforcement, and integration
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
 import { openModal, waitForDashboardReady, extractBudget } from './helpers/e2e-actions';
 

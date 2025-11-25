@@ -6,8 +6,8 @@
  * Planning phase transitions to Resolution phase
  */
 
-import { test, expect } from '@playwright/test';
-import { createGameInPlanningPhase } from './helpers/game-setup';
+import { test, expect } from './fixtures';
+import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
 import { lockInAllPlayers } from './helpers/e2e-actions';
 
 test.describe('Resolution Execution Trigger', () => {

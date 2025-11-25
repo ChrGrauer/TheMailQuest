@@ -14,7 +14,7 @@
  * Following ATDD methodology - these tests are written BEFORE implementation (RED phase)
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import {
 	createGameWithDestinationPlayer,
 	createGameWith5ESPTeams,

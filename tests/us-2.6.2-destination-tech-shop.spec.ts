@@ -3,7 +3,7 @@
  * Following the feature file scenarios from features/US-2.6.2-tests/destination-tech-shop.feature
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { createGameWithDestination, closePages } from './helpers/game-setup';
 
 // Test helper type for destination dashboard test API

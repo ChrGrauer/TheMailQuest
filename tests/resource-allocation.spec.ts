@@ -12,7 +12,7 @@
  * Uses Playwright for end-to-end testing
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import {
 	createTestSession,
 	addPlayer,

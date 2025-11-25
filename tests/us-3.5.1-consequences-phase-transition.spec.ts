@@ -8,8 +8,8 @@
  * So that I can see the results of my decisions
  */
 
-import { test, expect } from '@playwright/test';
-import { createGameInPlanningPhase } from './helpers/game-setup';
+import { test, expect } from './fixtures';
+import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
 import { lockInAllPlayers } from './helpers/e2e-actions';
 
 test.describe('US-3.5 Scenario 1.1: Transition to Consequences Phase', () => {

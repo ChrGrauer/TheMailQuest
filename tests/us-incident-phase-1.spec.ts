@@ -11,7 +11,8 @@
  * These tests should FAIL initially (RED phase of ATDD)
  */
 
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from './fixtures';
+import type { Page } from '@playwright/test';
 import {
 	createGameInPlanningPhase,
 	createGameWithDestinationPlayer,

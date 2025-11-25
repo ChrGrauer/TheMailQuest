@@ -218,12 +218,7 @@ export async function advanceToRound(
 		// Close any incident modals before locking in (from automatic incidents)
 		const allPages = [facilitatorPage, ...playerPages];
 		for (const page of allPages) {
-			const incidentCard = page.locator('[data-testid="drama-card-display"]');
-			const isVisible = await incidentCard.isVisible().catch(() => false);
-			if (isVisible) {
-				await page.keyboard.press('Escape');
-				await page.waitForTimeout(300);
-			}
+			await closeIncidentModal(page);
 		}
 
 		// Lock in players (triggers consequences phase, already waits 2000ms)
@@ -235,12 +230,86 @@ export async function advanceToRound(
 
 		// Close any incident modals that appeared during round transition (e.g., automatic DMARC warning)
 		for (const page of allPages) {
-			const incidentCard = page.locator('[data-testid="drama-card-display"]');
-			const isVisible = await incidentCard.isVisible().catch(() => false);
-			if (isVisible) {
-				await page.keyboard.press('Escape');
-				await page.waitForTimeout(300);
-			}
+			await closeIncidentModal(page);
 		}
 	}
+}
+
+/**
+ * Close incident modal if visible
+ * Uses Escape key to dismiss, more reliable than clicking backdrop
+ *
+ * @param page - Playwright page object
+ */
+export async function closeIncidentModal(page: Page): Promise<void> {
+	const incidentCard = page.locator('[data-testid="drama-card-display"]');
+	const isVisible = await incidentCard.isVisible().catch(() => false);
+	if (isVisible) {
+		await page.keyboard.press('Escape');
+		await page.waitForTimeout(300);
+	}
+}
+
+/**
+ * Close error banner if visible
+ *
+ * @param page - Playwright page object
+ */
+export async function closeErrorBanner(page: Page): Promise<void> {
+	const errorBanner = page.locator('[data-testid="error-banner"]');
+	const isVisible = await errorBanner.isVisible().catch(() => false);
+	if (isVisible) {
+		const closeButton = errorBanner.locator('[data-testid="close-error-banner"]');
+		if (await closeButton.isVisible().catch(() => false)) {
+			await closeButton.click();
+			await page.waitForTimeout(200);
+		}
+	}
+}
+
+/**
+ * Acquire multiple clients and optionally configure onboarding for them
+ *
+ * @param page - ESP player's page
+ * @param roomCode - Room code
+ * @param teamName - ESP team name
+ * @param count - Number of clients to acquire
+ * @param options - Optional onboarding configuration to apply to all clients
+ * @returns Array of acquired client IDs
+ */
+export async function acquireAndConfigureClients(
+	page: Page,
+	roomCode: string,
+	teamName: string,
+	count: number,
+	options?: { warmUp?: boolean; listHygiene?: boolean }
+): Promise<string[]> {
+	// Dynamically import client-management to avoid circular dependency
+	const { getAvailableClientIds, acquireClient, configureOnboarding } = await import(
+		'./client-management'
+	);
+
+	const availableClients = await getAvailableClientIds(page, roomCode, teamName);
+	const clientsToAcquire = availableClients.slice(0, count);
+	const acquiredIds: string[] = [];
+
+	for (const clientId of clientsToAcquire) {
+		await acquireClient(page, roomCode, teamName, clientId);
+		acquiredIds.push(clientId);
+
+		if (options?.warmUp !== undefined || options?.listHygiene !== undefined) {
+			await configureOnboarding(
+				page,
+				roomCode,
+				teamName,
+				clientId,
+				options.warmUp ?? false,
+				options.listHygiene ?? false
+			);
+		}
+
+		await page.waitForTimeout(300);
+	}
+
+	return acquiredIds;
 }

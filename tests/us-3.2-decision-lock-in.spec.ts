@@ -14,7 +14,7 @@
  * Follows ATDD approach from feature file: features/US-3.2-decision-lock-in.feature
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import {
 	createGameInPlanningPhase,
 	createGameWith5ESPTeams,
