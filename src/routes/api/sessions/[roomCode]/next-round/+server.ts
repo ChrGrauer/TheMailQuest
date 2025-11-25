@@ -213,7 +213,7 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 				message: `Round ${session.current_round} - Planning Phase`,
 				timer_remaining: remaining,
 				locked_in: false, // Explicitly tell all clients they are NOT locked in
-			incident_history: session.incident_history // Include history (especially for auto-triggered incidents)
+				incident_history: session.incident_history // Include history (especially for auto-triggered incidents)
 			}
 		});
 
@@ -241,7 +241,7 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 			timer_duration: 300,
 			timer_remaining: remaining,
 			locked_in: false, // Explicitly tell all clients they are NOT locked in
-		incident_history: session.incident_history // Include history (especially for auto-triggered incidents)
+			incident_history: session.incident_history // Include history (especially for auto-triggered incidents)
 		});
 
 		gameLogger.event('next_round_started', {

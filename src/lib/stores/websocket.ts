@@ -10,6 +10,7 @@
 import { writable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { DestinationDashboardUpdate, ClientState } from '$lib/server/game/types';
+import type { ServerMessage } from '$lib/types/websocket';
 
 export interface LobbyUpdate {
 	espTeams: Array<{ name: string; players: string[] }>;
@@ -129,7 +130,7 @@ function createWebSocketStore() {
 
 				ws.onmessage = (event) => {
 					try {
-						const message = JSON.parse(event.data);
+						const message = JSON.parse(event.data) as ServerMessage;
 
 						switch (message.type) {
 							case 'room_joined':
@@ -182,14 +183,14 @@ function createWebSocketStore() {
 								// US-3.2: Decision Lock-In events
 								// Pass the entire message to gameStateUpdateCallback
 								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback(message as any);
+									gameStateUpdateCallback(message);
 								}
 								break;
 
 							case 'incident_triggered':
 								// Incident Cards Phase 1: Pass incident card to gameStateUpdateCallback
 								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback(message as any);
+									gameStateUpdateCallback(message);
 								}
 								break;
 

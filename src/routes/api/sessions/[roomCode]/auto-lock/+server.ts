@@ -120,11 +120,9 @@ export const POST: RequestHandler = async ({ params }) => {
 		// Broadcast phase transition to all players
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'phase_transition',
-			data: {
-				phase: 'resolution',
-				round: transitionResult.round,
-				message: "Time's up! All decisions locked - Starting Resolution"
-			}
+			phase: 'resolution',
+			round: transitionResult.round,
+			message: "Time's up! All decisions locked - Starting Resolution"
 		});
 
 		// US-3.5: Trigger resolution calculation and consequences transition

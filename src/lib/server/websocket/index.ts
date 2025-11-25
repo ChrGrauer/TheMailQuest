@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import type { Server } from 'http';
 import type { Server as HttpsServer } from 'https';
+import type { ServerMessage, ClientMessage } from '$lib/types/websocket';
 
 // Lazy import logger to avoid $app/environment dependency during Vite config loading
 let gameLogger: any = null;
@@ -97,7 +98,8 @@ class GameWebSocketServer {
 					this.subscribeToRoom(clientId, message.roomCode);
 					this.sendToClient(clientId, {
 						type: 'room_joined',
-						roomCode: message.roomCode
+						roomCode: message.roomCode,
+						message: 'Successfully joined room'
 					});
 					break;
 
@@ -121,7 +123,7 @@ class GameWebSocketServer {
 		}
 	}
 
-	broadcast(message: object) {
+	broadcast(message: ServerMessage) {
 		const data = JSON.stringify(message);
 		let successCount = 0;
 
@@ -134,18 +136,18 @@ class GameWebSocketServer {
 
 		getLogger().then((logger) =>
 			logger.websocket('broadcast', {
-				messageType: (message as any).type,
+				messageType: message.type,
 				clientCount: successCount
 			})
 		);
 	}
 
-	sendToClient(clientId: string, message: object) {
+	sendToClient(clientId: string, message: ServerMessage) {
 		const client = this.clients.get(clientId);
 		if (client && client.ws.readyState === WebSocket.OPEN) {
 			client.ws.send(JSON.stringify(message));
 			getLogger().then((logger) =>
-				logger.websocket('message_sent', { clientId, messageType: (message as any).type })
+				logger.websocket('message_sent', { clientId, messageType: message.type })
 			);
 		}
 	}
@@ -195,7 +197,7 @@ class GameWebSocketServer {
 		client.roomCode = undefined;
 	}
 
-	broadcastToRoom(roomCode: string, message: object): void {
+	broadcastToRoom(roomCode: string, message: ServerMessage): void {
 		// Use global WebSocket broadcaster if available (production mode with server.js)
 		if (typeof global !== 'undefined' && (global as any).wsBroadcastToRoom) {
 			(global as any).wsBroadcastToRoom(roomCode, message);
@@ -225,7 +227,7 @@ class GameWebSocketServer {
 		getLogger().then((logger) =>
 			logger.websocket('broadcast_to_room', {
 				roomCode,
-				messageType: (message as any).type,
+				messageType: message.type,
 				clientCount: successCount
 			})
 		);
