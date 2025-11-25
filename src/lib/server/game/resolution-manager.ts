@@ -11,12 +11,7 @@
  */
 
 import type { GameSession } from './types';
-import type {
-	ResolutionResults,
-	PerDestinationDelivery,
-	DeliveryResult,
-	SatisfactionResult
-} from './resolution-types';
+import type { ResolutionResults, PerDestinationDelivery } from './resolution-types';
 import { calculateVolume } from './calculators/volume-calculator';
 import { calculateDeliverySuccess } from './calculators/delivery-calculator';
 import { calculateRevenue } from './calculators/revenue-calculator';
@@ -147,7 +142,10 @@ export async function executeResolution(
 		const perClientWarmupFactors: Record<string, number> = {};
 		for (const client of activeClients) {
 			const state = team.client_states?.[client.id];
-			if (state?.has_warmup && state.first_active_round === session.current_round) {
+			const hasWarmupThisRound = state?.volumeModifiers?.some(
+				(m) => m.source === 'warmup' && m.applicableRounds.includes(session.current_round)
+			);
+			if (hasWarmupThisRound) {
 				perClientWarmupFactors[client.id] = 0.5; // 50% reduction in first round
 			} else {
 				perClientWarmupFactors[client.id] = 1.0; // No reduction
@@ -203,6 +201,7 @@ export async function executeResolution(
 			techStack: team.owned_tech_upgrades
 		});
 		logger.info('Complaints calculated', {
+			roomCode,
 			teamName: team.name,
 			baseComplaintRate: complaintsResult.baseComplaintRate,
 			adjustedComplaintRate: complaintsResult.adjustedComplaintRate,
@@ -239,6 +238,7 @@ export async function executeResolution(
 			spamTrapNetworkActive
 		});
 		logger.info('Spam traps calculated', {
+			roomCode,
 			teamName: team.name,
 			totalBaseRisk: spamTrapsResult.totalBaseRisk,
 			totalAdjustedRisk: spamTrapsResult.totalAdjustedRisk,
@@ -260,6 +260,7 @@ export async function executeResolution(
 				}
 			}
 			logger.info('Spam trap hit!', {
+				roomCode,
 				teamName: team.name,
 				hitClientIds: spamTrapsResult.hitClientIds,
 				hitDestinations: spamTrapsResult.hitDestinations,
@@ -282,6 +283,7 @@ export async function executeResolution(
 				}
 			}
 			logger.info('Complaint threshold exceeded', {
+				roomCode,
 				teamName: team.name,
 				complaintRate: complaintsResult.thresholdPenalty.complaintRate,
 				threshold: complaintsResult.thresholdPenalty.threshold,
