@@ -40,7 +40,9 @@ import type {
  * @param reputation - Per-kingdom reputation values (Gmail, Outlook, Yahoo)
  * @returns Weighted reputation (0-100) and score (0-50 points)
  */
-export function calculateReputationScore(reputation: Record<string, number>): ReputationScoreResult {
+export function calculateReputationScore(
+	reputation: Record<string, number>
+): ReputationScoreResult {
 	const kingdoms = getKingdomNames();
 	let weightedReputation = 0;
 
@@ -55,7 +57,7 @@ export function calculateReputationScore(reputation: Record<string, number>): Re
 	weightedReputation = Math.round(weightedReputation * 100) / 100;
 
 	// Convert to score: (weightedReputation / 100) × SCORE_WEIGHTS.REPUTATION
-	const score = Math.round(((weightedReputation / 100) * SCORE_WEIGHTS.REPUTATION) * 100) / 100;
+	const score = Math.round((weightedReputation / 100) * SCORE_WEIGHTS.REPUTATION * 100) / 100;
 
 	return {
 		weightedReputation,
@@ -191,9 +193,7 @@ export function determineWinner(espResults: ESPFinalResult[]): WinnerInfo | null
 
 	// Find all ESPs with same top score and weighted reputation (true tie)
 	const winners = sorted.filter(
-		(esp) =>
-			esp.totalScore === topScore &&
-			esp.scoreBreakdown.weightedReputation === topWeightedRep
+		(esp) => esp.totalScore === topScore && esp.scoreBreakdown.weightedReputation === topWeightedRep
 	);
 
 	// Check if tie-breaker was used (multiple ESPs had same score but different weighted rep)
@@ -241,12 +241,12 @@ export function calculateDestinationCollaborativeScore(
 		totalFalsePositives += destStats.falsePositives;
 		totalLegitimateEmails += destStats.legitimateEmails;
 
-		const blockingRate = destStats.totalSpamSent > 0
-			? (destStats.spamBlocked / destStats.totalSpamSent) * 100
-			: 0;
-		const falsePositiveRate = destStats.legitimateEmails > 0
-			? (destStats.falsePositives / destStats.legitimateEmails) * 100
-			: 0;
+		const blockingRate =
+			destStats.totalSpamSent > 0 ? (destStats.spamBlocked / destStats.totalSpamSent) * 100 : 0;
+		const falsePositiveRate =
+			destStats.legitimateEmails > 0
+				? (destStats.falsePositives / destStats.legitimateEmails) * 100
+				: 0;
 
 		perDestination.push({
 			destinationName: destName,
@@ -261,18 +261,20 @@ export function calculateDestinationCollaborativeScore(
 
 	// Industry Protection: (totalSpamBlocked / totalSpamSent) × 40
 	const spamBlockingRate = totalSpamSent > 0 ? totalSpamBlocked / totalSpamSent : 0;
-	const industryProtection = Math.round(spamBlockingRate * DESTINATION_WEIGHTS.INDUSTRY_PROTECTION * 100) / 100;
+	const industryProtection =
+		Math.round(spamBlockingRate * DESTINATION_WEIGHTS.INDUSTRY_PROTECTION * 100) / 100;
 
 	// Coordination Bonus: Postponed - always 0
 	const coordinationBonus = 0;
 
 	// User Satisfaction: (1 - falsePositiveRate) × 20
-	const falsePositiveRate = totalLegitimateEmails > 0
-		? totalFalsePositives / totalLegitimateEmails
-		: 0;
-	const userSatisfaction = Math.round((1 - falsePositiveRate) * DESTINATION_WEIGHTS.USER_SATISFACTION * 100) / 100;
+	const falsePositiveRate =
+		totalLegitimateEmails > 0 ? totalFalsePositives / totalLegitimateEmails : 0;
+	const userSatisfaction =
+		Math.round((1 - falsePositiveRate) * DESTINATION_WEIGHTS.USER_SATISFACTION * 100) / 100;
 
-	const collaborativeScore = Math.round((industryProtection + coordinationBonus + userSatisfaction) * 100) / 100;
+	const collaborativeScore =
+		Math.round((industryProtection + coordinationBonus + userSatisfaction) * 100) / 100;
 	const success = collaborativeScore > DESTINATION_SUCCESS_THRESHOLD;
 
 	return {
@@ -331,7 +333,9 @@ export function aggregateResolutionHistory(
 
 			const reputationByKingdom: Record<string, number> = {};
 			if (espResult.reputation?.perDestination) {
-				for (const [dest, destData] of Object.entries(espResult.reputation.perDestination as Record<string, any>)) {
+				for (const [dest, destData] of Object.entries(
+					espResult.reputation.perDestination as Record<string, any>
+				)) {
 					reputationByKingdom[dest] = destData.newReputation ?? 70;
 				}
 			}
@@ -403,9 +407,7 @@ export function calculateFinalScores(session: GameSession): FinalScoreOutput {
 		const technicalScore = calculateTechnicalScore(totalTechInvestments);
 
 		// Total score
-		const totalScore = Math.round(
-			(repResult.score + revenueScore + technicalScore) * 100
-		) / 100;
+		const totalScore = Math.round((repResult.score + revenueScore + technicalScore) * 100) / 100;
 
 		// Qualification check
 		const qualification = checkQualification(reputation);

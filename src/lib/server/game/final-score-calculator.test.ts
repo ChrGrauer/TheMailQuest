@@ -528,10 +528,26 @@ describe('aggregateResolutionHistory - Multi-Round Data Collection', () => {
 	test('should aggregate reputation history per round', () => {
 		// Given: 4 rounds of resolution history with reputation changes
 		const history = [
-			createMockResolutionHistoryEntry(1, { SendWave: 500 }, { SendWave: { Gmail: 72, Outlook: 68, Yahoo: 65 } }),
-			createMockResolutionHistoryEntry(2, { SendWave: 600 }, { SendWave: { Gmail: 75, Outlook: 70, Yahoo: 68 } }),
-			createMockResolutionHistoryEntry(3, { SendWave: 700 }, { SendWave: { Gmail: 78, Outlook: 73, Yahoo: 70 } }),
-			createMockResolutionHistoryEntry(4, { SendWave: 800 }, { SendWave: { Gmail: 85, Outlook: 78, Yahoo: 72 } })
+			createMockResolutionHistoryEntry(
+				1,
+				{ SendWave: 500 },
+				{ SendWave: { Gmail: 72, Outlook: 68, Yahoo: 65 } }
+			),
+			createMockResolutionHistoryEntry(
+				2,
+				{ SendWave: 600 },
+				{ SendWave: { Gmail: 75, Outlook: 70, Yahoo: 68 } }
+			),
+			createMockResolutionHistoryEntry(
+				3,
+				{ SendWave: 700 },
+				{ SendWave: { Gmail: 78, Outlook: 73, Yahoo: 70 } }
+			),
+			createMockResolutionHistoryEntry(
+				4,
+				{ SendWave: 800 },
+				{ SendWave: { Gmail: 85, Outlook: 78, Yahoo: 72 } }
+			)
 		];
 
 		// When: Aggregating history
