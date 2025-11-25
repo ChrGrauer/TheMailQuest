@@ -63,6 +63,7 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 	let totalAdjustedRisk = 0;
 	const hitClientIds: string[] = [];
 	const hitDestinations = new Set<string>();
+	const hitsPerDestination: Record<string, number> = { Gmail: 0, Outlook: 0, Yahoo: 0 };
 
 	for (const client of params.clients) {
 		const clientVolumeData = params.volumeData.clientVolumes.find(
@@ -124,6 +125,7 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 				trapHit = true;
 				clientHitDestinations.push(dest);
 				hitDestinations.add(dest);
+				hitsPerDestination[dest]++;
 			}
 		}
 
@@ -145,11 +147,26 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 		});
 	}
 
-	// 6. Calculate reputation penalty (capped at -5)
+	// 6. Calculate reputation penalty per destination (capped at -5 each)
 	const trapHitOverall = hitClientIds.length > 0;
-	const uncappedPenalty = hitClientIds.length * -5; // Each hit = -5
-	const reputationPenalty = Math.max(uncappedPenalty, -5); // Cap at -5
-	const cappedAtMax = uncappedPenalty < -5;
+	const perDestinationPenalty: Record<string, number> = {};
+	let cappedAtMax = false;
+
+	for (const dest of ['Gmail', 'Outlook', 'Yahoo']) {
+		const hits = hitsPerDestination[dest];
+		if (hits > 0) {
+			const uncapped = hits * -5;
+			perDestinationPenalty[dest] = Math.max(uncapped, -5); // Cap at -5 per destination
+			if (uncapped < -5) {
+				cappedAtMax = true;
+			}
+		} else {
+			perDestinationPenalty[dest] = 0;
+		}
+	}
+
+	// Total penalty for logging purposes
+	const reputationPenalty = Object.values(perDestinationPenalty).reduce((sum, p) => sum + p, 0);
 
 	return {
 		totalBaseRisk,
@@ -158,6 +175,7 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 		trapHit: trapHitOverall,
 		hitClientIds,
 		hitDestinations: Array.from(hitDestinations),
+		perDestinationPenalty,
 		reputationPenalty,
 		cappedAtMax
 	};

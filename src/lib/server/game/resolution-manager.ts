@@ -246,17 +246,27 @@ export async function executeResolution(
 			reputationPenalty: spamTrapsResult.reputationPenalty
 		});
 
-		// Apply spam trap penalty to all destinations (if trap hit)
+		// Apply spam trap penalty only to destinations where traps were hit
 		if (spamTrapsResult.trapHit) {
 			for (const destination of destinations) {
-				const destChange = reputationResult.perDestination[destination];
-				if (destChange) {
-					destChange.totalChange += spamTrapsResult.reputationPenalty; // Add penalty (negative)
-					const currentRep = team.reputation[destination] || 70;
-					destChange.newReputation = Math.max(
-						0,
-						Math.min(100, Math.round(currentRep + destChange.totalChange))
-					);
+				const destPenalty = spamTrapsResult.perDestinationPenalty[destination] || 0;
+				if (destPenalty !== 0) {
+					const destChange = reputationResult.perDestination[destination];
+					if (destChange) {
+						destChange.totalChange += destPenalty; // Add penalty (negative)
+						const currentRep = team.reputation[destination] || 70;
+						destChange.newReputation = Math.max(
+							0,
+							Math.min(100, Math.round(currentRep + destChange.totalChange))
+						);
+						// Add to breakdown for UI display
+						if (destChange.breakdown) {
+							destChange.breakdown.push({
+								source: 'Spam Trap',
+								value: destPenalty
+							});
+						}
+					}
 				}
 			}
 			logger.info('Spam trap hit!', {
@@ -264,7 +274,8 @@ export async function executeResolution(
 				teamName: team.name,
 				hitClientIds: spamTrapsResult.hitClientIds,
 				hitDestinations: spamTrapsResult.hitDestinations,
-				penalty: spamTrapsResult.reputationPenalty,
+				perDestinationPenalty: spamTrapsResult.perDestinationPenalty,
+				totalPenalty: spamTrapsResult.reputationPenalty,
 				cappedAtMax: spamTrapsResult.cappedAtMax
 			});
 		}

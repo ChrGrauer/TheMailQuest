@@ -172,8 +172,9 @@ export interface SpamTrapResult {
 	trapHit: boolean; // Did any trap get hit at any destination?
 	hitClientIds: string[]; // Which clients hit traps
 	hitDestinations: string[]; // Which destinations had traps hit
-	reputationPenalty: number; // -5 if trap hit (capped), 0 otherwise
-	cappedAtMax: boolean; // Whether penalty was capped at -5
+	perDestinationPenalty: Record<string, number>; // Penalty per destination (capped at -5 each)
+	reputationPenalty: number; // Total penalty (sum of per-destination, for logging)
+	cappedAtMax: boolean; // Whether any destination penalty was capped at -5
 }
 
 /**

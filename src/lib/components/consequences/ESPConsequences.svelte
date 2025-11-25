@@ -272,6 +272,33 @@
 					Reputation Changes
 				</h3>
 
+				<!-- Spam Trap Hit Warning -->
+				{#if resolutionData?.spamTraps?.trapHit}
+					<div
+						data-testid="spam-trap-warning"
+						class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg"
+						role="alert"
+					>
+						<div class="flex items-start gap-2">
+							<span class="text-red-600 text-lg">⚠</span>
+							<div>
+								<p class="font-semibold text-red-800">Spam Trap Hit!</p>
+								<p class="text-sm text-red-700 mt-1">
+									You hit a spam trap at: <span class="font-semibold"
+										>{resolutionData.spamTraps.hitDestinations.join(', ')}</span
+									>
+								</p>
+								<p class="text-xs text-red-600 mt-1">
+									Penalty: {resolutionData.spamTraps.reputationPenalty} reputation
+									{#if resolutionData.spamTraps.cappedAtMax}
+										<span class="italic">(capped at -5 per destination)</span>
+									{/if}
+								</p>
+							</div>
+						</div>
+					</div>
+				{/if}
+
 				{#if resolutionData?.reputation?.perDestination}
 					<div class="space-y-3">
 						{#each Object.entries(resolutionData.reputation.perDestination) as [destName, repChange]}
