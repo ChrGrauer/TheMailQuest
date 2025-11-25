@@ -373,8 +373,8 @@
 				<!-- Phase 2: Display Incident Effects -->
 				{#if resolutionData?.reputation?.perDestination || resolutionData?.volume?.clientVolumes}
 					{@const reputationIncidents = resolutionData?.reputation?.perDestination
-						? Object.entries(resolutionData.reputation.perDestination)
-								.flatMap(([destName, repChange]) =>
+						? Object.entries(resolutionData.reputation.perDestination).flatMap(
+								([destName, repChange]) =>
 									(repChange.breakdown || [])
 										.filter((item) => item.source.startsWith('INC-'))
 										.map((item) => ({
@@ -384,22 +384,22 @@
 											value: item.value,
 											description: `${item.value > 0 ? '+' : ''}${item.value} reputation`
 										}))
-								)
+							)
 						: []}
 					{@const volumeIncidents = resolutionData?.volume?.clientVolumes
-						? resolutionData.volume.clientVolumes
-								.flatMap((cv) =>
-									Object.entries(cv.adjustments || {})
-										.filter(([source]) => source.startsWith('INC-'))
-										.map(([source, adjustment]) => ({
-											incidentId: source,
-											type: 'volume' as const,
-											description: adjustment.description
-										}))
-								)
+						? resolutionData.volume.clientVolumes.flatMap((cv) =>
+								Object.entries(cv.adjustments || {})
+									.filter(([source]) => source.startsWith('INC-'))
+									.map(([source, adjustment]) => ({
+										incidentId: source,
+										type: 'volume' as const,
+										description: adjustment.description
+									}))
+							)
 						: []}
 					{@const allIncidents = [...reputationIncidents, ...volumeIncidents].filter(
-						(effect, index, self) => index === self.findIndex((e) => e.incidentId === effect.incidentId)
+						(effect, index, self) =>
+							index === self.findIndex((e) => e.incidentId === effect.incidentId)
 					)}
 
 					{#if allIncidents.length > 0}
@@ -414,8 +414,12 @@
 										<span class="text-blue-800 font-medium">{effect.incidentId}</span>
 										<span
 											class="text-gray-700"
-											class:text-emerald-600={effect.type === 'reputation' && effect.value && effect.value > 0}
-											class:text-red-600={effect.type === 'reputation' && effect.value && effect.value < 0}
+											class:text-emerald-600={effect.type === 'reputation' &&
+												effect.value &&
+												effect.value > 0}
+											class:text-red-600={effect.type === 'reputation' &&
+												effect.value &&
+												effect.value < 0}
 										>
 											{effect.description}
 										</span>

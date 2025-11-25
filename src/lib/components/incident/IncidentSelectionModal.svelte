@@ -256,11 +256,15 @@
 														</span>
 													{/if}
 												</div>
-												<h3 class="font-bold {alreadyTriggered ? 'text-gray-500' : 'text-gray-900'}">
+												<h3
+													class="font-bold {alreadyTriggered ? 'text-gray-500' : 'text-gray-900'}"
+												>
 													{incident.name}
 												</h3>
 												<p
-													class="text-sm {alreadyTriggered ? 'text-gray-400' : 'text-gray-600'} mt-1 line-clamp-2"
+													class="text-sm {alreadyTriggered
+														? 'text-gray-400'
+														: 'text-gray-600'} mt-1 line-clamp-2"
 												>
 													{incident.description}
 												</p>

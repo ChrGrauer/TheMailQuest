@@ -228,7 +228,7 @@ export async function advanceToRound(
 
 		// Lock in players (triggers consequences phase, already waits 2000ms)
 		await lockInAllPlayers(playerPages);
-		
+
 		// Advance to next round's planning phase
 		await facilitatorPage.click('[data-testid="start-next-round-button"]');
 		await facilitatorPage.waitForTimeout(500);

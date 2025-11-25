@@ -114,7 +114,7 @@ test.describe('Incident Cards Phase 1: Effect Application', () => {
 
 		// Lock in all players to advance to Round 2
 		await advanceToRound(page, players, 2);
-		
+
 		// Get initial values before triggering incident
 		// Alice's ESP (SendWave) reputation with Gmail
 		const aliceRepElement = alicePage.getByTestId('reputation-gmail');
@@ -157,7 +157,7 @@ test.describe('Incident Cards Phase 1: Effect Application', () => {
 
 		// Trigger incident
 		await triggerIncident(page, 'INC-001', undefined, [alicePage, bobPage]);
-		
+
 		// History should start collapsed - items not visible
 		const historyItem = page.getByTestId('drama-history-item-1-0');
 		const itemVisible = await historyItem.isVisible().catch(() => false);
@@ -190,8 +190,8 @@ test.describe('Incident Cards Phase 1: Automatic DMARC Trigger', () => {
 		bobPage = result.bobPage;
 
 		// Advance to Round 3 (completes Rounds 1 automatically)
-		await advanceToRound(page, [alicePage,bobPage], 2);
-		await lockInAllPlayers([alicePage,bobPage]);
+		await advanceToRound(page, [alicePage, bobPage], 2);
+		await lockInAllPlayers([alicePage, bobPage]);
 		// Advance to next round's planning phase
 		await page.click('[data-testid="start-next-round-button"]');
 		await page.waitForTimeout(500);
@@ -202,11 +202,11 @@ test.describe('Incident Cards Phase 1: Automatic DMARC Trigger', () => {
 
 		// Verify incident is in history (Round 3, first incident)
 		const incidentCard = page.locator('[data-testid="drama-card-display"]');
-			const isVisible = await incidentCard.isVisible().catch(() => false);
-			if (isVisible) {
-				await page.keyboard.press('Escape');
-				await page.waitForTimeout(300);
-			}
+		const isVisible = await incidentCard.isVisible().catch(() => false);
+		if (isVisible) {
+			await page.keyboard.press('Escape');
+			await page.waitForTimeout(300);
+		}
 		await page.click('[data-testid="drama-history-toggle"]');
 		await expect(page.getByTestId('drama-history-item-3-0')).toBeVisible();
 	});
@@ -300,7 +300,7 @@ test.describe('Incident Cards Phase 1: Round-Based Filtering', () => {
 		// Verify clicking doesn't select it (trigger button should remain disabled)
 		await inc001Button.click({ force: true }); // Force click on disabled button
 		const triggerButton = page.getByTestId('drama-trigger-button');
-		await expect(triggerButton).toBeDisabled()
+		await expect(triggerButton).toBeDisabled();
 	});
 });
 

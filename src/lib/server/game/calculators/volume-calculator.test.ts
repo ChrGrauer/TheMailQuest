@@ -183,7 +183,7 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 			expect(result.totalVolume).toBe(15000); // 30K * 0.5
 			expect(result.clientVolumes[0].baseVolume).toBe(30000);
 			expect(result.clientVolumes[0].adjustedVolume).toBe(15000);
-			expect(result.clientVolumes[0].adjustments.warmup).toBe(15000);
+			expect(result.clientVolumes[0].adjustments.warmup.amount).toBe(15000);
 		});
 
 		test('no warmup reduction after first active round', () => {
@@ -225,7 +225,7 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 			});
 
 			expect(result.totalVolume).toBe(40000); // 80K * 0.5
-			expect(result.clientVolumes[0].adjustments.warmup).toBe(40000);
+			expect(result.clientVolumes[0].adjustments.warmup.amount).toBe(40000);
 		});
 	});
 
@@ -255,7 +255,7 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 			});
 
 			expect(result.totalVolume).toBe(28500); // 30K * 0.95
-			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(1500, 0);
+			expect(result.clientVolumes[0].adjustments.list_hygiene.amount).toBeCloseTo(1500, 0);
 		});
 
 		test('Medium risk client: 10% permanent reduction', () => {
@@ -278,7 +278,7 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 			});
 
 			expect(result.totalVolume).toBe(31500); // 35K * 0.90
-			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(3500, 0);
+			expect(result.clientVolumes[0].adjustments.list_hygiene.amount).toBeCloseTo(3500, 0);
 		});
 
 		test('High risk client: 15% permanent reduction', () => {
@@ -306,7 +306,7 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 			});
 
 			expect(result.totalVolume).toBe(68000); // 80K * 0.85
-			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(12000, 0);
+			expect(result.clientVolumes[0].adjustments.list_hygiene.amount).toBeCloseTo(12000, 0);
 		});
 
 		test('list hygiene applies in all rounds (permanent)', () => {
@@ -400,8 +400,8 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 
 			// Calculation: 40K × 0.90 (hygiene) × 0.50 (warmup) = 18K
 			expect(result.totalVolume).toBe(18000);
-			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(4000, 0);
-			expect(result.clientVolumes[0].adjustments.warmup).toBe(20000); // Note: adjustment tracks base volume reduction, not cumulative
+			expect(result.clientVolumes[0].adjustments.list_hygiene.amount).toBeCloseTo(4000, 0);
+			expect(result.clientVolumes[0].adjustments.warmup.amount).toBe(20000); // Note: adjustment tracks base volume reduction, not cumulative
 		});
 
 		test('re_engagement with both services (High risk, 50K)', () => {
@@ -431,8 +431,8 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 
 			// Calculation: 50K × 0.85 (hygiene) × 0.50 (warmup) = 21.25K
 			expect(result.totalVolume).toBe(21250);
-			expect(result.clientVolumes[0].adjustments.list_hygiene).toBeCloseTo(7500, 0);
-			expect(result.clientVolumes[0].adjustments.warmup).toBe(25000); // Note: adjustment tracks base volume reduction, not cumulative
+			expect(result.clientVolumes[0].adjustments.list_hygiene.amount).toBeCloseTo(7500, 0);
+			expect(result.clientVolumes[0].adjustments.warmup.amount).toBe(25000); // Note: adjustment tracks base volume reduction, not cumulative
 		});
 
 		test('combined services in round 2: only hygiene applies', () => {
