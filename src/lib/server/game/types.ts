@@ -11,6 +11,7 @@
  * US-3.2: Decision Lock-In (added locked_in, locked_in_at, pending_onboarding_decisions, lock-in interfaces)
  * Phase 1: Incident Cards (added incident_history)
  * Phase 2: Incident Cards Refactor (added VolumeModifier, SpamTrapModifier; refactored ClientState to use modifier arrays)
+ * Phase 5: Incident Choices (added pending_incident_choice to ESPTeam)
  */
 
 import type { IncidentHistoryEntry } from '$lib/types/incident';
@@ -37,6 +38,18 @@ export interface ESPTeam {
 	pending_onboarding_decisions?: Record<string, OnboardingOptions>; // Uncommitted onboarding options (key = clientId)
 	// Phase 2: Incident Cards
 	pendingAutoLock?: boolean; // INC-016: Flag to auto-lock at next planning phase start
+	// Phase 5: Incident Choices
+	pending_incident_choice?: {
+		incidentId: string; // ID of the incident requiring choice
+		choiceId: string; // Currently selected choice option ID
+		confirmed: boolean; // Whether player has clicked "Confirm Choice"
+		effectsApplied?: boolean; // Whether effects have been applied (happens at confirmation)
+		options: Array<{
+			// Stored options for validation (avoids lookup)
+			id: string;
+			effects: Array<{ target: string; type: string; value?: number }>;
+		}>;
+	};
 }
 
 export interface Destination {

@@ -496,3 +496,160 @@ describe('Incident Effects Manager - Error Handling', () => {
 		expect(result.changes.notifications).toBeDefined();
 	});
 });
+
+describe('Incident Effects Manager - Reputation Set (Phase 5)', () => {
+	let session: GameSession;
+
+	beforeEach(() => {
+		session = createTestSession();
+	});
+
+	it('should set reputation to fixed value for selected ESP (INC-020)', () => {
+		// SendWave reputation: Gmail: 75, Outlook: 70, Yahoo: 65
+		const incident: IncidentCard = {
+			id: 'INC-020',
+			name: 'Reputation Reset',
+			round: [4],
+			category: 'Industry',
+			rarity: 'Rare',
+			description: 'Test',
+			educationalNote: 'Test',
+			duration: 'Immediate',
+			effects: [
+				{
+					target: 'selected_esp',
+					type: 'reputation_set',
+					value: 70
+				}
+			]
+		};
+
+		const result = applyIncidentEffects(session, incident, 'SendWave');
+
+		expect(result.success).toBe(true);
+
+		// SendWave reputation should be set to 70 for all destinations
+		expect(session.esp_teams[0].reputation.Gmail).toBe(70);
+		expect(session.esp_teams[0].reputation.Outlook).toBe(70);
+		expect(session.esp_teams[0].reputation.Yahoo).toBe(70);
+
+		// MailMonkey should be unchanged
+		expect(session.esp_teams[1].reputation.Gmail).toBe(80);
+		expect(session.esp_teams[1].reputation.Outlook).toBe(75);
+		expect(session.esp_teams[1].reputation.Yahoo).toBe(70);
+	});
+
+	it('should return detailed changes for reputation_set effect', () => {
+		const incident: IncidentCard = {
+			id: 'INC-020',
+			name: 'Reputation Reset',
+			round: [4],
+			category: 'Industry',
+			rarity: 'Rare',
+			description: 'Test',
+			educationalNote: 'Test',
+			duration: 'Immediate',
+			effects: [
+				{
+					target: 'selected_esp',
+					type: 'reputation_set',
+					value: 70
+				}
+			]
+		};
+
+		// SendWave initial: Gmail: 75, Outlook: 70, Yahoo: 65
+		const result = applyIncidentEffects(session, incident, 'SendWave');
+
+		expect(result.success).toBe(true);
+		expect(result.changes.espChanges['SendWave']).toBeDefined();
+		expect(result.changes.espChanges['SendWave'].reputation).toBeDefined();
+
+		// Changes should reflect delta from original values
+		expect(result.changes.espChanges['SendWave'].reputation?.Gmail).toBe(-5); // 75 -> 70 = -5
+		expect(result.changes.espChanges['SendWave'].reputation?.Outlook).toBe(0); // 70 -> 70 = 0
+		expect(result.changes.espChanges['SendWave'].reputation?.Yahoo).toBe(5); // 65 -> 70 = +5
+	});
+
+	it('should clamp reputation_set value to valid range (0-100)', () => {
+		const incident: IncidentCard = {
+			id: 'TEST',
+			name: 'Test',
+			round: [4],
+			category: 'Industry',
+			rarity: 'Rare',
+			description: 'Test',
+			educationalNote: 'Test',
+			duration: 'Immediate',
+			effects: [
+				{
+					target: 'selected_esp',
+					type: 'reputation_set',
+					value: 150 // Invalid - should be clamped to 100
+				}
+			]
+		};
+
+		applyIncidentEffects(session, incident, 'SendWave');
+
+		// Should be clamped to 100
+		expect(session.esp_teams[0].reputation.Gmail).toBe(100);
+		expect(session.esp_teams[0].reputation.Outlook).toBe(100);
+		expect(session.esp_teams[0].reputation.Yahoo).toBe(100);
+	});
+
+	it('should handle reputation_set with value 0', () => {
+		const incident: IncidentCard = {
+			id: 'TEST',
+			name: 'Test',
+			round: [4],
+			category: 'Industry',
+			rarity: 'Rare',
+			description: 'Test',
+			educationalNote: 'Test',
+			duration: 'Immediate',
+			effects: [
+				{
+					target: 'selected_esp',
+					type: 'reputation_set',
+					value: 0
+				}
+			]
+		};
+
+		applyIncidentEffects(session, incident, 'SendWave');
+
+		// Should be set to 0
+		expect(session.esp_teams[0].reputation.Gmail).toBe(0);
+		expect(session.esp_teams[0].reputation.Outlook).toBe(0);
+		expect(session.esp_teams[0].reputation.Yahoo).toBe(0);
+	});
+
+	it('should fail for selected_esp without selectedTeam parameter', () => {
+		const incident: IncidentCard = {
+			id: 'INC-020',
+			name: 'Reputation Reset',
+			round: [4],
+			category: 'Industry',
+			rarity: 'Rare',
+			description: 'Test',
+			educationalNote: 'Test',
+			duration: 'Immediate',
+			effects: [
+				{
+					target: 'selected_esp',
+					type: 'reputation_set',
+					value: 70
+				}
+			]
+		};
+
+		// Not passing selectedTeam
+		const result = applyIncidentEffects(session, incident);
+
+		// Should fail or skip the effect
+		// Reputation should remain unchanged
+		expect(session.esp_teams[0].reputation.Gmail).toBe(75);
+		expect(session.esp_teams[0].reputation.Outlook).toBe(70);
+	});
+});

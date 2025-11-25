@@ -16,6 +16,10 @@ import { triggerIncident } from '$lib/server/game/incident-manager';
 import { applyIncidentEffects } from '$lib/server/game/incident-effects-manager';
 import { getIncidentById } from '$lib/config/incident-cards';
 import { gameWss } from '$lib/server/websocket';
+import {
+	resolveTargetTeams,
+	initiatePendingChoices
+} from '$lib/server/game/incident-choice-manager';
 
 // Lazy logger import
 let gameLogger: any = null;
@@ -83,7 +87,105 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 			return json({ success: false, error: `Incident ${incidentId} not found` }, { status: 404 });
 		}
 
-		// 6. Trigger incident (adds to history)
+		// 6. Check if this is a choice-based incident (Phase 5)
+		if (incident.choiceConfig) {
+			// 6a. Initialize pending choices for target teams (resolves targets internally)
+			const choiceResult = initiatePendingChoices(session, incident);
+
+			if (!choiceResult.success) {
+				logger.warn({
+					action: 'incident_choice_init_failed',
+					roomCode,
+					incidentId,
+					error: choiceResult.error
+				});
+				return json(
+					{ success: false, error: choiceResult.error || 'Failed to initialize choice' },
+					{ status: 400 }
+				);
+			}
+
+			const targetTeams = choiceResult.targetTeams;
+
+			// 6c. Add to incident history (without effects applied yet)
+			const triggerResult = triggerIncident(session, incidentId, targetTeams[0]); // Use first target for history
+			if (!triggerResult.success) {
+				logger.warn({
+					action: 'incident_trigger_failed',
+					roomCode,
+					incidentId,
+					targetTeams,
+					error: triggerResult.error
+				});
+				return json({ success: false, error: triggerResult.error }, { status: 400 });
+			}
+
+			// 6d. Broadcast incident card to all players
+			gameWss.broadcastToRoom(roomCode, {
+				type: 'incident_triggered',
+				incident: {
+					id: incident.id,
+					name: incident.name,
+					description: incident.description,
+					educationalNote: incident.educationalNote,
+					category: incident.category,
+					rarity: incident.rarity,
+					duration: incident.duration,
+					displayDurationMs: 10000,
+					affectedTeam:
+						incident.choiceConfig.targetSelection === 'all_esps' ? null : targetTeams[0]
+				}
+			});
+
+			// 6e. Broadcast choice required message to target teams
+			gameWss.broadcastToRoom(roomCode, {
+				type: 'incident_choice_required',
+				incidentId: incident.id,
+				incidentName: incident.name,
+				description: incident.description,
+				educationalNote: incident.educationalNote,
+				category: incident.category,
+				options: incident.choiceConfig.options,
+				targetTeams
+			});
+
+			// 6f. Broadcast updated incident history
+			gameWss.broadcastToRoom(roomCode, {
+				type: 'game_state_update',
+				incident_history: session.incident_history
+			});
+
+			// 6g. Broadcast ESP dashboard updates (to show pending choice indicator)
+			for (const team of session.esp_teams) {
+				if (targetTeams.includes(team.name)) {
+					gameWss.broadcastToRoom(roomCode, {
+						type: 'esp_dashboard_update',
+						teamName: team.name,
+						credits: team.credits,
+						reputation: team.reputation
+					});
+				}
+			}
+
+			logger.info({
+				action: 'incident_choice_triggered',
+				roomCode,
+				incidentId: incident.id,
+				incidentName: incident.name,
+				targetSelection: incident.choiceConfig.targetSelection,
+				targetTeams,
+				optionCount: incident.choiceConfig.options.length
+			});
+
+			return json({
+				success: true,
+				incidentId: incident.id,
+				choiceRequired: true,
+				targetTeams
+			});
+		}
+
+		// 7. Non-choice incident: Trigger incident (adds to history)
 		const triggerResult = triggerIncident(session, incidentId, selectedTeam);
 		if (!triggerResult.success) {
 			logger.warn({
@@ -96,7 +198,7 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 			return json({ success: false, error: triggerResult.error }, { status: 400 });
 		}
 
-		// 7. Apply incident effects
+		// 8. Apply incident effects
 		const effectResult = applyIncidentEffects(
 			session,
 			incident,
@@ -114,7 +216,7 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 			return json({ success: false, error: 'Failed to apply incident effects' }, { status: 500 });
 		}
 
-		// 8. Broadcast incident card to all players
+		// 9. Broadcast incident card to all players
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'incident_triggered',
 			incident: {
@@ -130,31 +232,29 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 			}
 		});
 
-		// 9. Broadcast effects applied
+		// 10. Broadcast effects applied
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'incident_effects_applied',
 			incidentId: incident.id,
 			changes: effectResult.changes
 		});
 
-		// 9.5. Broadcast updated incident history
+		// 10.5. Broadcast updated incident history
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'game_state_update',
 			incident_history: session.incident_history
 		});
 
-		// 10. Broadcast updated game state
+		// 11. Broadcast updated game state
 		// ESP dashboard updates (Phase 2: Include client_states for modifiers)
 		for (const team of session.esp_teams) {
 			gameWss.broadcastToRoom(roomCode, {
 				type: 'esp_dashboard_update',
-				data: {
-					teamName: team.name,
-					credits: team.credits,
-					reputation: team.reputation,
-					client_states: team.client_states, // Phase 2: Include modifiers
-					locked_in: team.locked_in // Phase 2: Include lock-in status for auto-lock
-				}
+				teamName: team.name,
+				credits: team.credits,
+				reputation: team.reputation,
+				client_states: team.client_states, // Phase 2: Include modifiers
+				locked_in: team.locked_in // Phase 2: Include lock-in status for auto-lock
 			});
 		}
 
@@ -162,14 +262,12 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 		for (const destination of session.destinations) {
 			gameWss.broadcastToRoom(roomCode, {
 				type: 'destination_dashboard_update',
-				data: {
-					destinationName: destination.name,
-					budget: destination.budget
-				}
+				destinationName: destination.name,
+				budget: destination.budget
 			});
 		}
 
-		// 11. Log successful trigger
+		// 12. Log successful trigger
 		logger.info({
 			action: 'incident_triggered_success',
 			roomCode,
@@ -181,7 +279,7 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 			destinationChanges: Object.keys(effectResult.changes.destinationChanges).length
 		});
 
-		// 12. Return success
+		// 13. Return success
 		return json({
 			success: true,
 			incidentId: incident.id,

@@ -554,6 +554,28 @@ expect(getByTestId('budget-current')).toBeTruthy();
 - Auto-dismisses after 10 seconds in Phase 1 MVP
 - Supports manual dismiss via Escape key or click-outside
 
+### Incident Choice Modal (Phase 5)
+**Location**: `src/lib/components/incident/IncidentChoiceModal.svelte`
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `incident-choice-modal` | `<div>` | Choice modal container (cannot be closed without confirming) |
+| `incident-choice-title` | `<h2>` | Incident name/title |
+| `incident-choice-description` | `<p>` | Incident description |
+| `incident-choice-educational` | `<p>` | Educational note |
+| `incident-choice-option-{id}` | `<button>` | Choice option button (e.g., `incident-choice-option-accept`, `incident-choice-option-patch`) |
+| `incident-choice-option-selected` | `<div>` | Visual indicator for currently selected option |
+| `incident-choice-option-default` | `<span>` | Badge showing "Default" on the default option |
+| `incident-choice-effect-preview` | `<div>` | Preview of selected option's effects |
+| `incident-choice-confirm-button` | `<button>` | Confirm choice button (applies effects immediately) |
+| `incident-choice-confirmed-badge` | `<div>` | Badge showing choice has been confirmed |
+
+**Notes**:
+- Modal cannot be closed without confirming a choice
+- Default option is pre-selected when modal opens
+- **Effects are applied immediately** when player confirms (credits/reputation update instantly)
+- Shows on ESP dashboards only (destinations don't make choices)
+
 ---
 
 ## Maintenance Notes

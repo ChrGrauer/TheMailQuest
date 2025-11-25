@@ -129,7 +129,10 @@
 						>
 							{status.icon}
 						</span>
-						<span class="{status.color} font-bold text-lg">{score}</span>
+						<span
+							data-testid="reputation-{dest.name.toLowerCase()}-score"
+							class="{status.color} font-bold text-lg"
+						>{score}</span>
 					</div>
 				</div>
 

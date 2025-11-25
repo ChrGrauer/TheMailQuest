@@ -276,6 +276,45 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 		]
 	},
 
+	// ============================================================================
+	// ROUND 4: Endgame - Choice-based Cards (Phase 5)
+	// ============================================================================
+
+	{
+		id: 'INC-017',
+		name: 'Acquisition Offer',
+		round: [4],
+		category: 'Market',
+		rarity: 'Rare',
+		description:
+			'BREAKING: Major tech company offers to acquire the highest-reputation ESP! Cash out now for 800 credits and bonus points, or continue competing?',
+		educationalNote: 'High reputation has real monetary value in the market',
+		duration: 'Immediate',
+		effects: [], // Effects applied via choice
+		choiceConfig: {
+			targetSelection: 'highest_reputation',
+			options: [
+				{
+					id: 'accept',
+					label: 'Accept Offer',
+					description:
+						'Take the 800 credits and exit the competition. Your planning phase will be locked.',
+					effects: [
+						{ target: 'self', type: 'credits', value: 800 },
+						{ target: 'self', type: 'auto_lock' }
+					]
+				},
+				{
+					id: 'decline',
+					label: 'Decline Offer',
+					description: 'Continue competing for the win. Gain +5 reputation for confidence.',
+					effects: [{ target: 'self', type: 'reputation', value: 5 }],
+					isDefault: true
+				}
+			]
+		}
+	},
+
 	{
 		id: 'INC-018',
 		name: 'Zero-Day Crisis',
@@ -283,23 +322,63 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 		category: 'Technical',
 		rarity: 'Common',
 		description:
-			'CRITICAL VULNERABILITY in email authentication discovered! All teams must address immediately or face severe reputation damage. Patch cost: 250 credits.',
+			'CRITICAL VULNERABILITY in email authentication discovered! All teams must patch immediately or face severe reputation damage. Patch cost: 150 credits.',
 		educationalNote: 'Security maintenance is an ongoing operational cost',
 		duration: 'Immediate',
-		effects: [
-			{
-				target: 'all_esps',
-				type: 'reputation',
-				value: -10, // All ESPs lose 10 reputation (simplified for Phase 1 - no choice mechanism)
-				displayMessage: 'Reputation damage of -10 due to unpatched critical vulnerability'
-			},
-			{
-				target: 'notification',
-				type: 'notification',
-				message:
-					'Zero-Day vulnerability! All ESPs lose 10 reputation. (Note: Choice mechanism not implemented in Phase 1 MVP - automatic reputation penalty)'
-			}
-		]
+		effects: [], // Effects applied via choice
+		choiceConfig: {
+			targetSelection: 'all_esps',
+			options: [
+				{
+					id: 'patch',
+					label: 'Apply Patch',
+					description: 'Pay 150 credits to patch the vulnerability and protect your reputation.',
+					effects: [{ target: 'self', type: 'credits', value: -150 }],
+					isDefault: true
+				},
+				{
+					id: 'ignore',
+					label: 'Ignore Vulnerability',
+					description: 'Save money but risk reputation damage of -15 across all destinations.',
+					effects: [{ target: 'self', type: 'reputation', value: -15 }]
+				}
+			]
+		}
+	},
+
+	{
+		id: 'INC-020',
+		name: 'Reputation Reset Opportunity',
+		round: [4],
+		category: 'Industry',
+		rarity: 'Rare',
+		description:
+			'Industry amnesty program announced! The lowest-reputation ESP can pay 500 credits to reset their reputation to 70 across all destinations. Fresh start for the final push!',
+		educationalNote: 'Sometimes paying for reputation recovery is a valid strategy',
+		duration: 'Immediate',
+		effects: [], // Effects applied via choice
+		choiceConfig: {
+			targetSelection: 'lowest_reputation',
+			options: [
+				{
+					id: 'accept',
+					label: 'Accept Reset',
+					description:
+						'Pay 500 credits to reset your reputation to 70 across all destinations.',
+					effects: [
+						{ target: 'self', type: 'credits', value: -500 },
+						{ target: 'self', type: 'reputation_set', value: 70 }
+					],
+					isDefault: true
+				},
+				{
+					id: 'decline',
+					label: 'Decline Reset',
+					description: 'Keep your current reputation and save the credits.',
+					effects: []
+				}
+			]
+		}
 	}
 ];
 

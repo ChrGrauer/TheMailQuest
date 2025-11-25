@@ -32,8 +32,9 @@
 	import type { OnboardingOptions } from '$lib/server/game/types';
 	import type { ESPResolutionResult } from '$lib/server/game/resolution-types';
 	import type { FinalScoreOutput } from '$lib/server/game/final-score-types';
-	import type { IncidentCard } from '$lib/types/incident';
+	import type { IncidentCard, IncidentChoiceOption } from '$lib/types/incident';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
+	import IncidentChoiceModal from '$lib/components/incident/IncidentChoiceModal.svelte';
 
 	// Get params from page store
 	let roomCode = $derived($page.params.roomCode || '');
@@ -98,6 +99,16 @@
 	// Incident state
 	let showIncidentCard = $state(false);
 	let currentIncident = $state<IncidentCard | null>(null);
+
+	// Phase 5: Incident choice state
+	let showChoiceModal = $state(false);
+	let choiceIncidentId = $state('');
+	let choiceIncidentName = $state('');
+	let choiceDescription = $state('');
+	let choiceEducationalNote = $state('');
+	let choiceCategory = $state('');
+	let choiceOptions = $state<IncidentChoiceOption[]>([]);
+	let choiceConfirmed = $state(false);
 
 	// US-5.2: Final scores state
 	let finalScores = $state<FinalScoreOutput | null>(null);
@@ -290,6 +301,37 @@
 		if (data.type === 'incident_triggered' && data.incident) {
 			currentIncident = data.incident;
 			showIncidentCard = true;
+			return;
+		}
+
+		// Phase 5: Handle incident_choice_required messages
+		if (data.type === 'incident_choice_required') {
+			// Check if this team is a target for this choice
+			const targetTeams = data.targetTeams || [];
+			const isTarget = targetTeams.some(
+				(t: string) => t.toLowerCase() === teamName.toLowerCase()
+			);
+
+			if (isTarget) {
+				choiceIncidentId = data.incidentId || '';
+				choiceIncidentName = data.incidentName || '';
+				choiceDescription = data.description || '';
+				choiceEducationalNote = data.educationalNote || '';
+				choiceCategory = data.category || '';
+				choiceOptions = data.options || [];
+				choiceConfirmed = false;
+				showChoiceModal = true;
+			}
+			return;
+		}
+
+		// Phase 5: Handle incident_choice_confirmed messages (for updating state)
+		if (data.type === 'incident_choice_confirmed') {
+			// If this is our team's confirmation, update our state
+			if (data.teamName?.toLowerCase() === teamName.toLowerCase()) {
+				// Credits and reputation will be updated via esp_dashboard_update
+				choiceConfirmed = true;
+			}
 			return;
 		}
 
@@ -847,6 +889,24 @@
 		onClose={() => {
 			showIncidentCard = false;
 			currentIncident = null;
+		}}
+	/>
+
+	<!-- Phase 5: Incident Choice Modal -->
+	<IncidentChoiceModal
+		bind:show={showChoiceModal}
+		incidentId={choiceIncidentId}
+		incidentName={choiceIncidentName}
+		description={choiceDescription}
+		educationalNote={choiceEducationalNote}
+		category={choiceCategory}
+		options={choiceOptions}
+		{roomCode}
+		{teamName}
+		onConfirmed={(choiceId, appliedEffects) => {
+			choiceConfirmed = true;
+			// Note: Modal handles its own closing with 500ms delay to show confirmation badge
+			// Credits/reputation will be updated via WebSocket esp_dashboard_update
 		}}
 	/>
 </div>

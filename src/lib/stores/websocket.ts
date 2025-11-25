@@ -194,6 +194,14 @@ function createWebSocketStore() {
 								}
 								break;
 
+							case 'incident_choice_required':
+							case 'incident_choice_confirmed':
+								// Phase 5: Pass choice incidents to gameStateUpdateCallback
+								if (gameStateUpdateCallback) {
+									gameStateUpdateCallback(message);
+								}
+								break;
+
 							default:
 								// Handle other message types
 								break;

@@ -111,7 +111,7 @@ Each incident card contains:
   ```yaml
   esp:
     - random_team_selection: true
-    - reputation_loss: 15 # all destinations
+    - reputation_loss: 10 # all destinations
     - mandatory_payment: 250 # cleanup cost
     - status: "compromised"
   destination:
@@ -265,9 +265,6 @@ Each incident card contains:
     - can_purchase: "certification"
     - cost: 300
     - benefit_reputation: 10
-    - benefit_delivery: 15 # percent
-  destination:
-    - prioritize_certified: true
   ```
 - **Visual Theme**: Certificate, gold seal
 

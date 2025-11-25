@@ -1,6 +1,7 @@
 // Incident Cards Type Definitions
 // Phase 1: MVP Foundation - Basic incident system
 // Phase 2: Advanced incident mechanics - conditions, modifiers, team selection
+// Phase 5: Player choices - incidents requiring player decisions
 
 import type { ClientType } from '$lib/server/game/types';
 
@@ -26,6 +27,7 @@ export type IncidentDuration = 'Immediate' | 'This Round' | 'Next Round' | 'Perm
 /**
  * Target of an incident effect
  * Phase 2: Added selected_esp, selected_client, conditional_esp
+ * Phase 5: Added 'self' for player choice effects
  */
 export type IncidentEffectTarget =
 	| 'all_esps' // All ESP teams
@@ -33,14 +35,17 @@ export type IncidentEffectTarget =
 	| 'notification' // Just a notification, no state change
 	| 'selected_esp' // Facilitator picks ESP team
 	| 'selected_client' // System picks random client
-	| 'conditional_esp'; // ESPs matching a condition
+	| 'conditional_esp' // ESPs matching a condition
+	| 'self'; // Phase 5: The team making the choice (for player choice incidents)
 
 /**
  * Type of effect to apply
  * Phase 2: Added client_volume_multiplier, client_spam_trap_multiplier, auto_lock
+ * Phase 5: Added reputation_set for setting reputation to fixed value
  */
 export type IncidentEffectType =
-	| 'reputation' // Modify reputation
+	| 'reputation' // Modify reputation (add/subtract)
+	| 'reputation_set' // Phase 5: Set reputation to fixed value (for INC-020)
 	| 'credits' // Modify ESP credits
 	| 'budget' // Modify destination budget
 	| 'notification' // Display notification only
@@ -76,6 +81,33 @@ export interface IncidentEffect {
 }
 
 /**
+ * Phase 5: Selection criteria for determining which team(s) see the choice
+ */
+export type TeamSelectionCriteria =
+	| 'highest_reputation' // INC-017: Team with highest avg reputation
+	| 'lowest_reputation' // INC-020: Team with lowest avg reputation
+	| 'all_esps'; // INC-018: All ESP teams must choose
+
+/**
+ * Phase 5: A single choice option available to the player
+ */
+export interface IncidentChoiceOption {
+	id: string; // Unique ID: 'accept', 'decline', 'patch', 'ignore', 'purchase', 'skip'
+	label: string; // Display label: "Accept Offer", "Decline and Continue"
+	description?: string; // Optional longer description shown in modal
+	effects: IncidentEffect[]; // Effects applied if this option is chosen
+	isDefault?: boolean; // If true, this option is pre-selected
+}
+
+/**
+ * Phase 5: Choice configuration for an incident that requires player decisions
+ */
+export interface IncidentChoiceConfig {
+	targetSelection: TeamSelectionCriteria;
+	options: IncidentChoiceOption[];
+}
+
+/**
  * Complete incident card definition
  */
 export interface IncidentCard {
@@ -90,6 +122,7 @@ export interface IncidentCard {
 	effects: IncidentEffect[];
 	automatic?: boolean; // If true, triggers automatically (e.g., DMARC at Round 3)
 	affectedTeam?: string | null; // Phase 2: Team affected by this incident (added during broadcast)
+	choiceConfig?: IncidentChoiceConfig; // Phase 5: Player choice configuration
 }
 
 /**

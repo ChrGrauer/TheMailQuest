@@ -11,6 +11,7 @@
 
 import { getSession, updateActivity } from './session-manager';
 import { gameWss } from '$lib/server/websocket';
+import { applyPendingChoiceEffects } from './incident-choice-manager';
 import type {
 	ESPTeam,
 	Destination,
@@ -85,6 +86,23 @@ export function lockInESPTeam(roomCode: string, teamName: string): LockInResult 
 		if (clientState && clientState.first_active_round === null) {
 			clientState.first_active_round = session.current_round;
 		}
+	}
+
+	// 6c. Apply pending incident choice effects (Phase 5)
+	// Note: Effects are now applied immediately at confirmation, but we still need
+	// to clean up the pending_incident_choice state at lock-in
+	if (team.pending_incident_choice) {
+		const choiceResult = applyPendingChoiceEffects(session, team);
+		getLogger().then((logger) => {
+			logger.info(`Processed incident choice at lock-in for ${teamName}`, {
+				roomCode,
+				teamName,
+				incidentId: team.pending_incident_choice?.incidentId,
+				choiceId: choiceResult.choiceId,
+				effectsAppliedAtConfirmation: !choiceResult.applied,
+				effects: choiceResult.effectsApplied
+			});
+		});
 	}
 
 	// 7. Lock in
@@ -423,6 +441,22 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 				if (clientState && clientState.first_active_round === null) {
 					clientState.first_active_round = session.current_round;
 				}
+			}
+
+			// Apply pending incident choice effects (Phase 5)
+			// Note: Effects are now applied immediately at confirmation
+			if (team.pending_incident_choice) {
+				const choiceResult = applyPendingChoiceEffects(session, team);
+				getLogger().then((logger) => {
+					logger.info(`Auto-lock processed incident choice for ${team.name}`, {
+						roomCode,
+						teamName: team.name,
+						incidentId: team.pending_incident_choice?.incidentId,
+						choiceId: choiceResult.choiceId,
+						effectsAppliedAtConfirmation: !choiceResult.applied,
+						effects: choiceResult.effectsApplied
+					});
+				});
 			}
 
 			// Lock in

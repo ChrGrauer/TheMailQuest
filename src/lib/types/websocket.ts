@@ -15,7 +15,13 @@ import type {
 	ESPDestinationStats,
 	AutoCorrectionLog
 } from '$lib/server/game/types';
-import type { IncidentCard, IncidentHistoryEntry, EffectChanges } from './incident';
+import type {
+	IncidentCard,
+	IncidentHistoryEntry,
+	EffectChanges,
+	IncidentCategory,
+	IncidentChoiceOption
+} from './incident';
 import type { FinalScoreOutput } from '$lib/server/game/final-score-types';
 
 // ============================================================================
@@ -204,6 +210,32 @@ export interface IncidentEffectsAppliedMessage {
 }
 
 /**
+ * Phase 5: Incident requires player choice - sent to affected team(s)
+ */
+export interface IncidentChoiceRequiredMessage {
+	type: 'incident_choice_required';
+	incidentId: string;
+	incidentName: string;
+	description: string;
+	educationalNote: string;
+	category: IncidentCategory;
+	options: IncidentChoiceOption[];
+	targetTeams: string[]; // Which team(s) need to make this choice
+}
+
+/**
+ * Phase 5: Player confirmed their incident choice
+ * Effects are applied immediately at confirmation
+ */
+export interface IncidentChoiceConfirmedMessage {
+	type: 'incident_choice_confirmed';
+	incidentId: string;
+	teamName: string;
+	choiceId: string;
+	appliedEffects?: Array<{ type: string; value?: number }>;
+}
+
+/**
  * US-5.2: Final scores calculated - sent when game ends
  */
 export interface FinalScoresCalculatedMessage {
@@ -266,6 +298,8 @@ export type ServerMessage =
 	| PhaseTransitionMessage
 	| IncidentTriggeredMessage
 	| IncidentEffectsAppliedMessage
+	| IncidentChoiceRequiredMessage
+	| IncidentChoiceConfirmedMessage
 	| FinalScoresCalculatedMessage;
 
 /**

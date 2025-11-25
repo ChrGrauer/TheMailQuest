@@ -237,6 +237,23 @@ export function applyIncidentEffects(
 							targetTeam.reputation[destName] = newReputation;
 							changes.espChanges[selectedTeam].reputation![destName] = effect.value;
 						}
+					} else if (effect.type === 'reputation_set' && effect.value !== undefined) {
+						// Phase 5: Set reputation to fixed value (for INC-020 Reputation Reset)
+						if (!changes.espChanges[selectedTeam]) {
+							changes.espChanges[selectedTeam] = {};
+						}
+						if (!changes.espChanges[selectedTeam].reputation) {
+							changes.espChanges[selectedTeam].reputation = {};
+						}
+
+						const clampedSetValue = clampReputation(effect.value);
+						for (const destName in targetTeam.reputation) {
+							const oldReputation = targetTeam.reputation[destName];
+							targetTeam.reputation[destName] = clampedSetValue;
+							// Track the delta (change) for broadcasting
+							changes.espChanges[selectedTeam].reputation![destName] =
+								clampedSetValue - oldReputation;
+						}
 					} else if (effect.type === 'credits' && effect.value !== undefined) {
 						// Check condition if present
 						if (effect.condition && !evaluateCondition(session, selectedTeam, effect.condition)) {
