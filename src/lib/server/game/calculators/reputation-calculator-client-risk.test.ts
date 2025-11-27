@@ -6,26 +6,18 @@
 
 import { describe, test, expect } from 'vitest';
 import { calculateReputationChanges } from './reputation-calculator';
-import { buildTestClient } from '../test-helpers/client-test-fixtures';
-import type { VolumeResult } from '../resolution-types';
+import { buildTestClient, buildVolumeResult } from '../test-helpers/client-test-fixtures';
 
 // Helper for empty volume data (for Iteration 3 backward compatibility tests)
-const emptyVolumeData: VolumeResult = {
-	activeClients: [],
-	clientVolumes: [],
-	totalVolume: 0
-};
+const emptyVolumeData = buildVolumeResult([], []);
 describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 	describe('Single client risk impact', () => {
 		test('single Low risk client: +2 reputation', () => {
 			const client = buildTestClient('premium_brand');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
-				],
-				totalVolume: 30000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -50,13 +42,10 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 		test('single Medium risk client: -1 reputation', () => {
 			const client = buildTestClient('growing_startup');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 35000, adjustedVolume: 35000, adjustments: {} }
-				],
-				totalVolume: 35000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 35000, adjustedVolume: 35000, adjustments: {} }]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -81,13 +70,10 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 		test('single High risk client: -4 reputation', () => {
 			const client = buildTestClient('aggressive_marketer');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 80000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -116,14 +102,13 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			const premium = buildTestClient('premium_brand', { id: 'client-1' });
 			const aggressive = buildTestClient('aggressive_marketer', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [premium, aggressive],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[premium, aggressive],
+				[
 					{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 110000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -156,14 +141,13 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			const premium = buildTestClient('premium_brand', { id: 'client-1' });
 			const reengagement = buildTestClient('re_engagement', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [premium, reengagement],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[premium, reengagement],
+				[
 					{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 50000, adjustedVolume: 50000, adjustments: {} }
-				],
-				totalVolume: 80000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -197,15 +181,14 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			const client2 = buildTestClient('growing_startup', { id: 'client-2' });
 			const client3 = buildTestClient('event_seasonal', { id: 'client-3' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [client1, client2, client3],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client1, client2, client3],
+				[
 					{ clientId: 'client-1', baseVolume: 35000, adjustedVolume: 35000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 35000, adjustedVolume: 35000, adjustments: {} },
 					{ clientId: 'client-3', baseVolume: 40000, adjustedVolume: 40000, adjustments: {} }
-				],
-				totalVolume: 110000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -243,13 +226,10 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 	describe('Combined tech stack and client risk', () => {
 		test('full auth stack (+10) + Low risk client (+2) = +12 total', () => {
 			const client = buildTestClient('premium_brand');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
-				],
-				totalVolume: 30000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim', 'dmarc'],
@@ -276,14 +256,13 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			const premium = buildTestClient('premium_brand', { id: 'client-1' });
 			const aggressive = buildTestClient('aggressive_marketer', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [premium, aggressive],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[premium, aggressive],
+				[
 					{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 110000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
@@ -317,15 +296,14 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			const client2 = buildTestClient('aggressive_marketer', { id: 'client-2' });
 			const client3 = buildTestClient('re_engagement', { id: 'client-3' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [client1, client2, client3],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client1, client2, client3],
+				[
 					{ clientId: 'client-1', baseVolume: 80000, adjustedVolume: 80000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 80000, adjustedVolume: 80000, adjustments: {} },
 					{ clientId: 'client-3', baseVolume: 50000, adjustedVolume: 50000, adjustments: {} }
-				],
-				totalVolume: 210000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -366,14 +344,13 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			const premium = buildTestClient('premium_brand', { id: 'client-1' });
 			const aggressive = buildTestClient('aggressive_marketer', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [premium, aggressive],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[premium, aggressive],
+				[
 					{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 110000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
@@ -412,13 +389,10 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 	describe('Breakdown tracking', () => {
 		test('breakdown includes both tech and client impact', () => {
 			const client = buildTestClient('premium_brand');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
-				],
-				totalVolume: 30000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
@@ -445,13 +419,10 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 		test('breakdown shows negative client impact', () => {
 			const client = buildTestClient('aggressive_marketer');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 80000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -479,11 +450,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 	describe('Edge cases', () => {
 		test('no active clients: 0 client impact', () => {
-			const volumeData: VolumeResult = {
-				activeClients: [],
-				clientVolumes: [],
-				totalVolume: 0
-			};
+			const volumeData = buildVolumeResult([], []);
 
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
@@ -503,13 +470,10 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			const activeClient = buildTestClient('premium_brand', { id: 'client-1' });
 			const pausedClient = buildTestClient('aggressive_marketer', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [activeClient],
-				clientVolumes: [
-					{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
-				],
-				totalVolume: 30000
-			};
+			const volumeData = buildVolumeResult(
+				[activeClient],
+				[{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -541,18 +505,17 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			const client = buildTestClient('premium_brand', { id: 'client-1' });
 
 			// Volume adjusted due to warmup (50% reduction)
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client],
+				[
 					{
 						clientId: 'client-1',
 						baseVolume: 30000,
 						adjustedVolume: 15000, // 50% reduced by warmup
 						adjustments: { warmup: 15000 }
 					}
-				],
-				totalVolume: 15000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],

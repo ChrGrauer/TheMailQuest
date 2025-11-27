@@ -163,14 +163,14 @@ function createWebSocketStore() {
 							case 'esp_dashboard_update':
 								// US-2.1: ESP Dashboard real-time updates
 								if (espDashboardUpdateCallback) {
-									espDashboardUpdateCallback(message.data);
+									espDashboardUpdateCallback(message as unknown as ESPDashboardUpdate);
 								}
 								break;
 
 							case 'destination_dashboard_update':
 								// US-2.5: Destination Dashboard real-time updates
 								if (destinationDashboardUpdateCallback) {
-									destinationDashboardUpdateCallback(message.data);
+									destinationDashboardUpdateCallback(message as unknown as DestinationDashboardUpdate);
 								}
 								break;
 

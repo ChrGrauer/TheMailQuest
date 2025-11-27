@@ -162,6 +162,7 @@
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			tabindex="-1"
+			role="presentation"
 		>
 			<!-- Header -->
 			<div class="p-6 border-b border-gray-200">

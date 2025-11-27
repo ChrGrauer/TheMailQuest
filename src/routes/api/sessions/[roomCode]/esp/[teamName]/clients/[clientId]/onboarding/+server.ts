@@ -122,11 +122,9 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	// Broadcast WebSocket update
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'esp_dashboard_update',
-		data: {
-			teamName: teamName, // Include team name to filter updates on client side
-			credits: result.team.credits,
-			client_states: result.team.client_states
-		}
+		teamName: teamName, // Include team name to filter updates on client side
+		credits: result.team.credits,
+		client_states: result.team.client_states
 	});
 
 	return json({

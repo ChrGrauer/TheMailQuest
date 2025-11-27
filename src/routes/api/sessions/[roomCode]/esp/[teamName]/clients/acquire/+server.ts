@@ -207,12 +207,10 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	// Broadcast WebSocket update
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'esp_dashboard_update',
-		data: {
-			teamName: teamName, // Include team name to filter updates on client side
-			credits: acquisitionResult.team!.credits,
-			clients: acquisitionResult.team!.active_clients,
-			available_clients_count: availableClientsCount
-		}
+		teamName: teamName, // Include team name to filter updates on client side
+		credits: acquisitionResult.team!.credits,
+		clients: acquisitionResult.team!.active_clients,
+		available_clients_count: availableClientsCount
 	});
 
 	return json({

@@ -6,15 +6,10 @@
 
 import { describe, test, expect } from 'vitest';
 import { calculateReputationChanges } from './reputation-calculator';
-import { buildTestClient } from '../test-helpers/client-test-fixtures';
-import type { VolumeResult } from '../resolution-types';
+import { buildTestClient, buildVolumeResult } from '../test-helpers/client-test-fixtures';
 
 // Helper for empty volume data (for Iteration 3 backward compatibility tests)
-const emptyVolumeData: VolumeResult = {
-	activeClients: [],
-	clientVolumes: [],
-	totalVolume: 0
-};
+const emptyVolumeData = buildVolumeResult([], []);
 
 describe('Reputation Calculator - Iteration 3: Authentication Impact', () => {
 	describe('Tech stack reputation bonuses', () => {

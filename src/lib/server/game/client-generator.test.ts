@@ -81,86 +81,35 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 	});
 
 	describe('Scenario: Apply ±10% variance to client values', () => {
-		test('Given baseline values, When generating clients, Then cost varies within ±10%', () => {
-			// Given
-			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+		const teamName = 'SendWave';
+		const destinations = ['Gmail', 'Outlook', 'Yahoo'];
 
+		test.each([
+			['cost', 'baseCost', true],
+			['revenue', 'baseRevenue', true],
+			['volume', 'baseVolume', true],
+			['spam_rate', 'baseSpamRate', false]
+		])('validates %s varies within ±10% of %s', (clientProp, profileProp, useRounding) => {
 			// When
 			const clients = generateClientStockForTeam(teamName, destinations);
 
 			// Then - Check each client type against its profile
 			CLIENT_PROFILES.forEach((profile) => {
 				const clientsOfType = clients.filter((c) => c.type === profile.type);
+				const baseValue = profile[profileProp as keyof typeof profile] as number;
 
 				clientsOfType.forEach((client) => {
-					const minCost = profile.baseCost * 0.9;
-					const maxCost = profile.baseCost * 1.1;
-					expect(client.cost).toBeGreaterThanOrEqual(Math.floor(minCost));
-					expect(client.cost).toBeLessThanOrEqual(Math.ceil(maxCost));
-				});
-			});
-		});
+					const minValue = baseValue * 0.9;
+					const maxValue = baseValue * 1.1;
+					const clientValue = client[clientProp as keyof typeof client] as number;
 
-		test('Given baseline values, When generating clients, Then revenue varies within ±10%', () => {
-			// Given
-			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
-
-			// When
-			const clients = generateClientStockForTeam(teamName, destinations);
-
-			// Then
-			CLIENT_PROFILES.forEach((profile) => {
-				const clientsOfType = clients.filter((c) => c.type === profile.type);
-
-				clientsOfType.forEach((client) => {
-					const minRevenue = profile.baseRevenue * 0.9;
-					const maxRevenue = profile.baseRevenue * 1.1;
-					expect(client.revenue).toBeGreaterThanOrEqual(Math.floor(minRevenue));
-					expect(client.revenue).toBeLessThanOrEqual(Math.ceil(maxRevenue));
-				});
-			});
-		});
-
-		test('Given baseline values, When generating clients, Then volume varies within ±10%', () => {
-			// Given
-			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
-
-			// When
-			const clients = generateClientStockForTeam(teamName, destinations);
-
-			// Then
-			CLIENT_PROFILES.forEach((profile) => {
-				const clientsOfType = clients.filter((c) => c.type === profile.type);
-
-				clientsOfType.forEach((client) => {
-					const minVolume = profile.baseVolume * 0.9;
-					const maxVolume = profile.baseVolume * 1.1;
-					expect(client.volume).toBeGreaterThanOrEqual(Math.floor(minVolume));
-					expect(client.volume).toBeLessThanOrEqual(Math.ceil(maxVolume));
-				});
-			});
-		});
-
-		test('Given baseline values, When generating clients, Then spam_rate varies within ±10%', () => {
-			// Given
-			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
-
-			// When
-			const clients = generateClientStockForTeam(teamName, destinations);
-
-			// Then
-			CLIENT_PROFILES.forEach((profile) => {
-				const clientsOfType = clients.filter((c) => c.type === profile.type);
-
-				clientsOfType.forEach((client) => {
-					const minSpamRate = profile.baseSpamRate * 0.9;
-					const maxSpamRate = profile.baseSpamRate * 1.1;
-					expect(client.spam_rate).toBeGreaterThanOrEqual(minSpamRate);
-					expect(client.spam_rate).toBeLessThanOrEqual(maxSpamRate);
+					if (useRounding) {
+						expect(clientValue).toBeGreaterThanOrEqual(Math.floor(minValue));
+						expect(clientValue).toBeLessThanOrEqual(Math.ceil(maxValue));
+					} else {
+						expect(clientValue).toBeGreaterThanOrEqual(minValue);
+						expect(clientValue).toBeLessThanOrEqual(maxValue);
+					}
 				});
 			});
 		});
@@ -205,60 +154,27 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 	});
 
 	describe('Scenario: Client availability by round', () => {
-		test('Given client types, When generating, Then Round 1 clients (Growing, Re-engagement, Event) have available_from_round = 1', () => {
-			// Given
-			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+		const teamName = 'SendWave';
+		const destinations = ['Gmail', 'Outlook', 'Yahoo'];
 
-			// When
-			const clients = generateClientStockForTeam(teamName, destinations);
+		test.each([
+			[1, ['growing_startup', 're_engagement', 'event_seasonal'], 9, 'Round 1 (Growing, Re-engagement, Event)'],
+			[2, ['aggressive_marketer'], 2, 'Round 2 (Aggressive)'],
+			[3, ['premium_brand'], 2, 'Round 3 (Premium)']
+		])(
+			'validates %s availability for %s client types (%s)',
+			(expectedRound, clientTypes, expectedCount, _desc) => {
+				// When
+				const clients = generateClientStockForTeam(teamName, destinations);
+				const filteredClients = clients.filter((c) => clientTypes.includes(c.type));
 
-			// Then
-			const round1Types = ['growing_startup', 're_engagement', 'event_seasonal'];
-			const round1Clients = clients.filter((c) => round1Types.includes(c.type));
-
-			expect(round1Clients).toHaveLength(9); // 3 + 3 + 3
-
-			round1Clients.forEach((client) => {
-				expect(client.available_from_round).toBe(1);
-			});
-		});
-
-		test('Given client types, When generating, Then Round 2 clients (Aggressive) have available_from_round = 2', () => {
-			// Given
-			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
-
-			// When
-			const clients = generateClientStockForTeam(teamName, destinations);
-
-			// Then
-			const aggressiveClients = clients.filter((c) => c.type === 'aggressive_marketer');
-
-			expect(aggressiveClients).toHaveLength(2);
-
-			aggressiveClients.forEach((client) => {
-				expect(client.available_from_round).toBe(2);
-			});
-		});
-
-		test('Given client types, When generating, Then Round 3 clients (Premium) have available_from_round = 3', () => {
-			// Given
-			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
-
-			// When
-			const clients = generateClientStockForTeam(teamName, destinations);
-
-			// Then
-			const premiumClients = clients.filter((c) => c.type === 'premium_brand');
-
-			expect(premiumClients).toHaveLength(2);
-
-			premiumClients.forEach((client) => {
-				expect(client.available_from_round).toBe(3);
-			});
-		});
+				// Then
+				expect(filteredClients).toHaveLength(expectedCount);
+				filteredClients.forEach((client) => {
+					expect(client.available_from_round).toBe(expectedRound);
+				});
+			}
+		);
 	});
 
 	describe('Scenario: Client names from predefined list', () => {

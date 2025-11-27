@@ -6,20 +6,16 @@
 
 import { describe, test, expect } from 'vitest';
 import { calculateComplaints } from './complaint-calculator';
-import { buildTestClient } from '../test-helpers/client-test-fixtures';
-import type { VolumeResult } from '../resolution-types';
+import { buildTestClient, buildVolumeResult } from '../test-helpers/client-test-fixtures';
 
 describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 	describe('Single client complaint rates', () => {
 		test('single premium_brand client: 0.5% base rate', () => {
 			const client = buildTestClient('premium_brand');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
-				],
-				totalVolume: 30000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }]
+			);
 
 			const result = calculateComplaints({
 				clients: [client],
@@ -42,13 +38,10 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 
 		test('single aggressive_marketer client: 3% base rate', () => {
 			const client = buildTestClient('aggressive_marketer');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 80000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }]
+			);
 
 			const result = calculateComplaints({
 				clients: [client],
@@ -73,14 +66,13 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 			const premium = buildTestClient('premium_brand', { id: 'client-1' });
 			const aggressive = buildTestClient('aggressive_marketer', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [premium, aggressive],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[premium, aggressive],
+				[
 					{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 110000
-			};
+				]
+			);
 
 			const result = calculateComplaints({
 				clients: [premium, aggressive],
@@ -110,14 +102,13 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 			const premium = buildTestClient('premium_brand', { id: 'client-1' });
 			const reengagement = buildTestClient('re_engagement', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [premium, reengagement],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[premium, reengagement],
+				[
 					{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 50000, adjustedVolume: 50000, adjustments: {} }
-				],
-				totalVolume: 80000
-			};
+				]
+			);
 
 			const result = calculateComplaints({
 				clients: [premium, reengagement],
@@ -149,14 +140,13 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 			const client1 = buildTestClient('premium_brand', { id: 'client-1' });
 			const client2 = buildTestClient('growing_startup', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [client1, client2],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client1, client2],
+				[
 					{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 35000, adjustedVolume: 35000, adjustments: {} }
-				],
-				totalVolume: 65000
-			};
+				]
+			);
 
 			const result = calculateComplaints({
 				clients: [client1, client2],
@@ -196,11 +186,7 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 
 	describe('Edge cases', () => {
 		test('no clients: 0% complaint rate', () => {
-			const volumeData: VolumeResult = {
-				activeClients: [],
-				clientVolumes: [],
-				totalVolume: 0
-			};
+			const volumeData = buildVolumeResult([], []);
 
 			const result = calculateComplaints({
 				clients: [],
@@ -217,18 +203,17 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 			const client = buildTestClient('premium_brand', { id: 'client-1' });
 
 			// Volume adjusted due to warmup (50% reduction)
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client],
+				[
 					{
 						clientId: 'client-1',
 						baseVolume: 30000,
 						adjustedVolume: 15000, // 50% reduced
-						adjustments: { warmup: 15000 }
+						adjustments: { warmup: { amount: 15000, source: 'warmup' } }
 					}
-				],
-				totalVolume: 15000
-			};
+				]
+			);
 
 			const result = calculateComplaints({
 				clients: [client],
@@ -253,13 +238,10 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 	describe('Iteration 7: Complaint Threshold Penalties', () => {
 		test('no penalty below 3% threshold', () => {
 			const client = buildTestClient('premium_brand');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
-				],
-				totalVolume: 30000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }]
+			);
 
 			const result = calculateComplaints({
 				clients: [client],
@@ -284,13 +266,10 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 			// Use all aggressive_marketer to hit exactly 3% complaint rate
 			const client = buildTestClient('aggressive_marketer'); // 3%
 
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 80000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }]
+			);
 
 			const result = calculateComplaints({
 				clients: [client],
@@ -321,15 +300,14 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 			const client2 = buildTestClient('aggressive_marketer', { id: 'client-2' }); // 3%
 			const client3 = buildTestClient('re_engagement', { id: 'client-3' }); // 2.5%
 
-			const volumeData: VolumeResult = {
-				activeClients: [client1, client2, client3],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client1, client2, client3],
+				[
 					{ clientId: 'client-1', baseVolume: 40000, adjustedVolume: 40000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 40000, adjustedVolume: 40000, adjustments: {} },
 					{ clientId: 'client-3', baseVolume: 20000, adjustedVolume: 20000, adjustments: {} }
-				],
-				totalVolume: 100000
-			};
+				]
+			);
 
 			const result = calculateComplaints({
 				clients: [client1, client2, client3],
@@ -369,14 +347,13 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 			const client1 = buildTestClient('aggressive_marketer', { id: 'client-1' });
 			const client2 = buildTestClient('aggressive_marketer', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [client1, client2],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client1, client2],
+				[
 					{ clientId: 'client-1', baseVolume: 50000, adjustedVolume: 50000, adjustments: {} },
 					{ clientId: 'client-2', baseVolume: 50000, adjustedVolume: 50000, adjustments: {} }
-				],
-				totalVolume: 100000
-			};
+				]
+			);
 
 			const result = calculateComplaints({
 				clients: [client1, client2],
@@ -408,13 +385,10 @@ describe('Complaint Calculator - Iteration 4: Basic Complaint Tracking', () => {
 			// If complaint rate is 5%, should use the highest threshold (4.5% / -3)
 			// This tests that the penalty system picks the right tier
 			const client = buildTestClient('aggressive_marketer');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 80000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }]
+			);
 
 			const result = calculateComplaints({
 				clients: [client],

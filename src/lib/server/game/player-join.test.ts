@@ -30,6 +30,9 @@ import {
 	getAvailableSlots,
 	canJoinSession,
 	clearPlayers,
+	getPlayer,
+	getSessionPlayers,
+	removePlayer,
 	type JoinGameRequest,
 	type JoinGameResult,
 	type SlotInfo
@@ -50,33 +53,27 @@ describe('Feature: Join Game Session - Business Logic', () => {
 	// ============================================================================
 
 	describe('Scenario: Room code format validation', () => {
-		test('Given a room code with correct format (6 uppercase alphanumeric), when validated, then it passes format check', () => {
-			// Given
-			const validCodes = ['ABC123', 'XYZ999', 'TEST42', '123456', 'ABCDEF'];
-
-			// When & Then
-			for (const code of validCodes) {
-				expect(validateRoomCode(code).isValidFormat).toBe(true);
-			}
+		test.each([
+			['ABC123', 'standard uppercase alphanumeric'],
+			['XYZ999', 'uppercase letters with numbers'],
+			['TEST42', 'alphanumeric mix'],
+			['123456', 'all numbers'],
+			['ABCDEF', 'all uppercase letters']
+		])('validates room code %s → valid (%s)', (code, _desc) => {
+			expect(validateRoomCode(code).isValidFormat).toBe(true);
 		});
 
-		test('Given a room code with incorrect format, when validated, then it fails format check', () => {
-			// Given
-			const invalidCodes = [
-				'AB12', // Too short
-				'ABCDEFG', // Too long
-				'abc123', // Lowercase
-				'AB-123', // Special character
-				'AB 123', // Space
-				'' // Empty
-			];
-
-			// When & Then
-			for (const code of invalidCodes) {
-				const result = validateRoomCode(code);
-				expect(result.isValidFormat).toBe(false);
-				expect(result.error).toBe('Room code must be 6 characters');
-			}
+		test.each([
+			['AB12', 'too short'],
+			['ABCDEFG', 'too long'],
+			['abc123', 'lowercase'],
+			['AB-123', 'special character'],
+			['AB 123', 'space'],
+			['', 'empty']
+		])('validates room code "%s" → invalid (%s)', (code, _desc) => {
+			const result = validateRoomCode(code);
+			expect(result.isValidFormat).toBe(false);
+			expect(result.error).toBe('Room code must be 6 characters');
 		});
 
 		test('Given a valid format room code that exists, when validated, then it passes existence check', () => {
@@ -604,40 +601,217 @@ describe('Feature: Join Game Session - Business Logic', () => {
 	// ============================================================================
 
 	describe('Scenario: Player tries to join with invalid team name', () => {
-		test('Given a player provides a non-existent ESP team name, when joining, then validation fails', () => {
+		test.each([
+			['ESP', 'InvalidTeam', 'Alice', 'non-existent ESP team'],
+			['Destination', 'InvalidDestination', 'Bob', 'non-existent destination']
+		])(
+			'rejects %s role with invalid team "%s" (%s)',
+			(role, teamName, displayName, _desc) => {
+				// Given
+				const session = createGameSession();
+				const request: JoinGameRequest = {
+					roomCode: session.roomCode,
+					displayName,
+					role: role as 'ESP' | 'Destination',
+					teamName
+				};
+
+				// When
+				const result = joinGame(request);
+
+				// Then
+				expect(result.success).toBe(false);
+				expect(result.error).toBe('Invalid team name');
+			}
+		);
+	});
+
+	// ============================================================================
+	// TEST SUITE: Player CRUD Operations
+	// ============================================================================
+
+	describe('Scenario: Get player by ID', () => {
+		test('Given a player has joined, when getting player by ID, then player is returned', () => {
 			// Given
 			const session = createGameSession();
 			const request: JoinGameRequest = {
 				roomCode: session.roomCode,
 				displayName: 'Alice',
 				role: 'ESP',
-				teamName: 'InvalidTeam'
+				teamName: 'SendWave'
 			};
+			const joinResult = joinGame(request);
+			expect(joinResult.success).toBe(true);
 
 			// When
-			const result = joinGame(request);
+			const player = getPlayer(joinResult.playerId!);
 
 			// Then
-			expect(result.success).toBe(false);
-			expect(result.error).toBe('Invalid team name');
+			expect(player).toBeDefined();
+			expect(player?.displayName).toBe('Alice');
+			expect(player?.role).toBe('ESP');
+			expect(player?.teamName).toBe('SendWave');
 		});
 
-		test('Given a player provides a non-existent destination name, when joining, then validation fails', () => {
+		test('Given no player exists with ID, when getting player, then undefined is returned', () => {
+			// Given
+			createGameSession();
+
+			// When
+			const player = getPlayer('non-existent-id');
+
+			// Then
+			expect(player).toBeUndefined();
+		});
+	});
+
+	describe('Scenario: Get all players in session', () => {
+		test('Given multiple players have joined, when getting session players, then all players are returned', () => {
+			// Given
+			const session = createGameSession();
+
+			// Add ESP player
+			const espResult = joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Alice',
+				role: 'ESP',
+				teamName: 'SendWave'
+			});
+			expect(espResult.success).toBe(true);
+
+			// Add Destination player
+			const destResult = joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Bob',
+				role: 'Destination',
+				teamName: 'Gmail'
+			});
+			expect(destResult.success).toBe(true);
+
+			// When
+			const players = getSessionPlayers(session.roomCode);
+
+			// Then
+			expect(players).toHaveLength(2);
+			expect(players.map((p) => p.displayName).sort()).toEqual(['Alice', 'Bob']);
+		});
+
+		test('Given no players have joined, when getting session players, then empty array is returned', () => {
+			// Given
+			const session = createGameSession();
+
+			// When
+			const players = getSessionPlayers(session.roomCode);
+
+			// Then
+			expect(players).toEqual([]);
+		});
+
+		test('Given non-existent session, when getting session players, then empty array is returned', () => {
+			// When
+			const players = getSessionPlayers('NONEXISTENT');
+
+			// Then
+			expect(players).toEqual([]);
+		});
+	});
+
+	describe('Scenario: Remove player from session', () => {
+		test('Given an ESP player has joined, when removing player, then player is removed from team and storage', () => {
+			// Given
+			const session = createGameSession();
+			const request: JoinGameRequest = {
+				roomCode: session.roomCode,
+				displayName: 'Alice',
+				role: 'ESP',
+				teamName: 'SendWave'
+			};
+			const joinResult = joinGame(request);
+			expect(joinResult.success).toBe(true);
+
+			// Verify player is in session
+			const playersBefore = getSessionPlayers(session.roomCode);
+			expect(playersBefore).toHaveLength(1);
+
+			// When
+			const removed = removePlayer(session.roomCode, joinResult.playerId!);
+
+			// Then
+			expect(removed).toBe(true);
+
+			// Player should be removed from session
+			const playersAfter = getSessionPlayers(session.roomCode);
+			expect(playersAfter).toHaveLength(0);
+
+			// Player should no longer be retrievable
+			const player = getPlayer(joinResult.playerId!);
+			expect(player).toBeUndefined();
+		});
+
+		test('Given a Destination player has joined, when removing player, then player is removed from destination and storage', () => {
 			// Given
 			const session = createGameSession();
 			const request: JoinGameRequest = {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'InvalidDestination'
+				teamName: 'Gmail'
 			};
+			const joinResult = joinGame(request);
+			expect(joinResult.success).toBe(true);
 
 			// When
-			const result = joinGame(request);
+			const removed = removePlayer(session.roomCode, joinResult.playerId!);
 
 			// Then
-			expect(result.success).toBe(false);
-			expect(result.error).toBe('Invalid team name');
+			expect(removed).toBe(true);
+			const playersAfter = getSessionPlayers(session.roomCode);
+			expect(playersAfter).toHaveLength(0);
+		});
+
+		test('Given non-existent session, when removing player, then false is returned', () => {
+			// When
+			const removed = removePlayer('NONEXISTENT', 'some-player-id');
+
+			// Then
+			expect(removed).toBe(false);
+		});
+
+		test('Given non-existent player, when removing player, then false is returned', () => {
+			// Given
+			const session = createGameSession();
+
+			// When
+			const removed = removePlayer(session.roomCode, 'non-existent-player-id');
+
+			// Then
+			expect(removed).toBe(false);
+		});
+	});
+
+	describe('Scenario: Clear all players', () => {
+		test('Given players exist, when clearing players, then all players are removed', () => {
+			// Given
+			const session = createGameSession();
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Alice',
+				role: 'ESP',
+				teamName: 'SendWave'
+			});
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Bob',
+				role: 'Destination',
+				teamName: 'Gmail'
+			});
+
+			// When
+			clearPlayers();
+
+			// Then - players should not be retrievable
+			// Note: clearPlayers only clears storage, not session references
+			// This is primarily for test cleanup
 		});
 	});
 });

@@ -6,31 +6,25 @@
 
 import { describe, test, expect } from 'vitest';
 import { calculateReputationChanges } from './reputation-calculator';
-import { buildTestClient } from '../test-helpers/client-test-fixtures';
-import type { VolumeResult } from '../resolution-types';
+import { buildTestClient, buildVolumeResult } from '../test-helpers/client-test-fixtures';
 
 // Helper for empty volume data (for Iteration 3 backward compatibility tests)
-const emptyVolumeData: VolumeResult = {
-	activeClients: [],
-	clientVolumes: [],
-	totalVolume: 0
-};
+const emptyVolumeData = buildVolumeResult([], []);
 describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 	describe('Single warmed client', () => {
 		test('warmed Low risk client: tech bonus + client impact + warmup bonus', () => {
 			const client = buildTestClient('premium_brand'); // Low risk = +2
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client],
+				[
 					{
 						clientId: client.id,
 						baseVolume: 30000,
 						adjustedVolume: 15000,
 						adjustments: { warmup: 15000 }
 					}
-				],
-				totalVolume: 15000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -58,18 +52,17 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 		test('warmed High risk client: reputation impact mitigated', () => {
 			const client = buildTestClient('aggressive_marketer'); // High risk = -4
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client],
+				[
 					{
 						clientId: client.id,
 						baseVolume: 80000,
 						adjustedVolume: 40000,
 						adjustments: { warmup: 40000 }
 					}
-				],
-				totalVolume: 40000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -96,18 +89,17 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 		test('warmed Medium risk client: net positive reputation', () => {
 			const client = buildTestClient('event_seasonal'); // Medium risk = -1
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client],
+				[
 					{
 						clientId: client.id,
 						baseVolume: 40000,
 						adjustedVolume: 18000,
 						adjustments: { warmup: 18000, listHygiene: 4000 }
 					}
-				],
-				totalVolume: 18000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -140,9 +132,9 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 			const client1 = buildTestClient('premium_brand', { id: 'client-1' });
 			const client2 = buildTestClient('growing_startup', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [client1, client2],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client1, client2],
+				[
 					{
 						clientId: 'client-1',
 						baseVolume: 30000,
@@ -155,9 +147,8 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 						adjustedVolume: 17500,
 						adjustments: { warmup: 17500 }
 					}
-				],
-				totalVolume: 32500
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -196,9 +187,9 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 			const warmed = buildTestClient('premium_brand', { id: 'client-1' });
 			const notWarmed = buildTestClient('aggressive_marketer', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [warmed, notWarmed],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[warmed, notWarmed],
+				[
 					{
 						clientId: 'client-1',
 						baseVolume: 30000,
@@ -206,9 +197,8 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 						adjustments: { warmup: 15000 }
 					},
 					{ clientId: 'client-2', baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
-				],
-				totalVolume: 95000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -245,18 +235,17 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 	describe('Combined tech stack + client risk + warmup', () => {
 		test('full auth stack + warmed Low risk client = +14 reputation', () => {
 			const client = buildTestClient('premium_brand');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client],
+				[
 					{
 						clientId: client.id,
 						baseVolume: 30000,
 						adjustedVolume: 15000,
 						adjustments: { warmup: 15000 }
 					}
-				],
-				totalVolume: 15000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim', 'dmarc'],
@@ -284,18 +273,17 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 		test('re_engagement with warmup + list hygiene + tech', () => {
 			const client = buildTestClient('re_engagement'); // High risk
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client],
+				[
 					{
 						clientId: client.id,
 						baseVolume: 50000,
 						adjustedVolume: 21250,
 						adjustments: { listHygiene: 7500, warmup: 21250 }
 					}
-				],
-				totalVolume: 21250
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
@@ -327,18 +315,17 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 	describe('Multiple destinations', () => {
 		test('warmup bonus applies to all destinations equally', () => {
 			const client = buildTestClient('premium_brand');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client],
+				[
 					{
 						clientId: client.id,
 						baseVolume: 30000,
 						adjustedVolume: 15000,
 						adjustments: { warmup: 15000 }
 					}
-				],
-				totalVolume: 15000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
@@ -373,18 +360,17 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 	describe('Breakdown tracking', () => {
 		test('breakdown includes all three components', () => {
 			const client = buildTestClient('premium_brand');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
+			const volumeData = buildVolumeResult(
+				[client],
+				[
 					{
 						clientId: client.id,
 						baseVolume: 30000,
 						adjustedVolume: 15000,
 						adjustments: { warmup: 15000 }
 					}
-				],
-				totalVolume: 15000
-			};
+				]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
@@ -415,13 +401,10 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 	describe('Edge cases', () => {
 		test('no warmed clients: warmup bonus is 0', () => {
 			const client = buildTestClient('premium_brand');
-			const volumeData: VolumeResult = {
-				activeClients: [client],
-				clientVolumes: [
-					{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
-				],
-				totalVolume: 30000
-			};
+			const volumeData = buildVolumeResult(
+				[client],
+				[{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],
@@ -447,13 +430,10 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 			const activeClient = buildTestClient('premium_brand', { id: 'client-1' });
 			const pausedWarmupClient = buildTestClient('growing_startup', { id: 'client-2' });
 
-			const volumeData: VolumeResult = {
-				activeClients: [activeClient],
-				clientVolumes: [
-					{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
-				],
-				totalVolume: 30000
-			};
+			const volumeData = buildVolumeResult(
+				[activeClient],
+				[{ clientId: 'client-1', baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }]
+			);
 
 			const result = calculateReputationChanges({
 				techStack: [],

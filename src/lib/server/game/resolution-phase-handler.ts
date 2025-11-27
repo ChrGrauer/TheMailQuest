@@ -23,12 +23,13 @@ import { gameLogger } from '../logger';
 
 /**
  * Broadcast function type for WebSocket messages
+ * Message fields are at root level per type definitions (no nested 'data' wrapper)
  */
 export type BroadcastFunction = (
 	roomCode: string,
 	message: {
 		type: string;
-		data?: any;
+		[key: string]: any;
 	}
 ) => void;
 
@@ -100,11 +101,9 @@ export function handleResolutionPhase(
 				for (const team of session.esp_teams) {
 					broadcast(roomCode, {
 						type: 'esp_dashboard_update',
-						data: {
-							teamName: team.name,
-							credits: team.credits,
-							reputation: team.reputation
-						}
+						teamName: team.name,
+						credits: team.credits,
+						reputation: team.reputation
 					});
 
 					gameLogger.info('Broadcast ESP dashboard update after resolution', {

@@ -118,12 +118,10 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		// Also broadcast updated team state (credits, reputation may have changed)
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'esp_dashboard_update',
-			data: {
-				teamName: team.name, // Use proper casing from session
-				credits: team.credits,
-				reputation: team.reputation,
-				locked_in: team.locked_in
-			}
+			teamName: team.name, // Use proper casing from session
+			credits: team.credits,
+			reputation: team.reputation,
+			locked_in: team.locked_in
 		});
 
 		logger.info({

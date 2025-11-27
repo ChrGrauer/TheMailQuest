@@ -71,11 +71,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	if (session && result.updatedTeam) {
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'esp_dashboard_update',
-			data: {
-				teamName: teamName, // Include team name to filter updates on client side
-				credits: result.updatedTeam.credits,
-				owned_tech_upgrades: result.updatedTeam.owned_tech_upgrades
-			}
+			teamName: teamName, // Include team name to filter updates on client side
+			credits: result.updatedTeam.credits,
+			owned_tech_upgrades: result.updatedTeam.owned_tech_upgrades
 		});
 
 		gameLogger.event('tech_purchase_broadcast', {

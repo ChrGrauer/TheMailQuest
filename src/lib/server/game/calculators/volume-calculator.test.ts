@@ -230,84 +230,43 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 	});
 
 	describe('List hygiene volume reduction', () => {
-		test('Low risk client: 5% permanent reduction', () => {
-			const client = buildTestClient('premium_brand'); // Low risk, 30K
-			const result = calculateVolume({
-				clients: [client],
-				clientStates: {
-					[client.id]: {
-						status: 'Active',
-						first_active_round: 1,
-						volumeModifiers: [
-							{
-								id: 'list_hygiene',
-								source: 'list_hygiene',
-								multiplier: 0.95,
-								applicableRounds: [1]
-							}
-						],
-						spamTrapModifiers: [
-							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }
-						]
-					}
-				},
-				currentRound: 1
-			});
+		test.each([
+			['premium_brand', 'Low', 0.95, 28500, 1500],
+			['growing_startup', 'Medium', 0.9, 31500, 3500],
+			['aggressive_marketer', 'High', 0.85, 68000, 12000]
+		] as const)(
+			'%s (%s risk): applies permanent reduction with multiplier %s',
+			(clientType, _riskLevel, multiplier, expectedVolume, expectedReduction) => {
+				const client = buildTestClient(clientType);
+				const result = calculateVolume({
+					clients: [client],
+					clientStates: {
+						[client.id]: {
+							status: 'Active',
+							first_active_round: 1,
+							volumeModifiers: [
+								{
+									id: 'list_hygiene',
+									source: 'list_hygiene',
+									multiplier,
+									applicableRounds: [1]
+								}
+							],
+							spamTrapModifiers: [
+								{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }
+							]
+						}
+					},
+					currentRound: 1
+				});
 
-			expect(result.totalVolume).toBe(28500); // 30K * 0.95
-			expect(result.clientVolumes[0].adjustments.list_hygiene.amount).toBeCloseTo(1500, 0);
-		});
-
-		test('Medium risk client: 10% permanent reduction', () => {
-			const client = buildTestClient('growing_startup'); // Medium risk, 35K
-			const result = calculateVolume({
-				clients: [client],
-				clientStates: {
-					[client.id]: {
-						status: 'Active',
-						first_active_round: 1,
-						volumeModifiers: [
-							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.9, applicableRounds: [1] }
-						],
-						spamTrapModifiers: [
-							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }
-						]
-					}
-				},
-				currentRound: 1
-			});
-
-			expect(result.totalVolume).toBe(31500); // 35K * 0.90
-			expect(result.clientVolumes[0].adjustments.list_hygiene.amount).toBeCloseTo(3500, 0);
-		});
-
-		test('High risk client: 15% permanent reduction', () => {
-			const client = buildTestClient('aggressive_marketer'); // High risk, 80K
-			const result = calculateVolume({
-				clients: [client],
-				clientStates: {
-					[client.id]: {
-						status: 'Active',
-						first_active_round: 1,
-						volumeModifiers: [
-							{
-								id: 'list_hygiene',
-								source: 'list_hygiene',
-								multiplier: 0.85,
-								applicableRounds: [1]
-							}
-						],
-						spamTrapModifiers: [
-							{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }
-						]
-					}
-				},
-				currentRound: 1
-			});
-
-			expect(result.totalVolume).toBe(68000); // 80K * 0.85
-			expect(result.clientVolumes[0].adjustments.list_hygiene.amount).toBeCloseTo(12000, 0);
-		});
+				expect(result.totalVolume).toBe(expectedVolume);
+				expect(result.clientVolumes[0].adjustments.list_hygiene.amount).toBeCloseTo(
+					expectedReduction,
+					0
+				);
+			}
+		);
 
 		test('list hygiene applies in all rounds (permanent)', () => {
 			const client = buildTestClient('aggressive_marketer');

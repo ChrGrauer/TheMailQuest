@@ -6,15 +6,10 @@
 
 import { describe, test, expect } from 'vitest';
 import { calculateReputationChanges } from './reputation-calculator';
-import { buildTestClient } from '../test-helpers/client-test-fixtures';
-import type { VolumeResult } from '../resolution-types';
+import { buildTestClient, buildVolumeResult } from '../test-helpers/client-test-fixtures';
 
 // Helper for empty volume data (for Iteration 3 backward compatibility tests)
-const emptyVolumeData: VolumeResult = {
-	activeClients: [],
-	clientVolumes: [],
-	totalVolume: 0
-};
+const emptyVolumeData = buildVolumeResult([], []);
 describe('Reputation Calculator - Phase 2.2.1: Volume-Weighted Warmup Bonus', () => {
 	test('small warmed client + large unwarmed client: warmup bonus proportional to warmed volume', () => {
 		const warmed = buildTestClient('premium_brand', { id: 'client-1' }); // Low risk +2
