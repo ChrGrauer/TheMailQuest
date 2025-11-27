@@ -37,6 +37,9 @@
 	import type { IncidentCard } from '$lib/types/incident';
 	import type { FinalScoreOutput } from '$lib/server/game/final-score-types';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
+	// Composables
+	import { useDestinationModals, useDestinationIncident } from '$lib/composables/destination-dashboard';
+	import { useGameState, useWebSocketStatus, useLockInState } from '$lib/composables/shared';
 
 	// Get params
 	const roomCode = $page.params.roomCode;
@@ -49,36 +52,30 @@
 	// Dashboard data
 	let destinationName = $state('');
 	let budget = $state(0);
-	let currentRound = $state(1);
-	let currentPhase = $state('planning');
-	let timerDuration = $state(300);
-	let timerRemaining = $state(300);
-	let timerRunning = $state(false);
 	let espStats = $state<ESPDestinationStats[]>([]);
 	let collaborationsCount = $state(0);
 	let ownedTech = $state<string[]>([]);
 	let spamLevel = $state(0);
 
+	// Game state (via composable)
+	const gameState = useGameState();
+
 	// Tech Shop state (US-2.6.2)
-	let showTechShop = $state(false);
 	let kingdom = $state<'Gmail' | 'Outlook' | 'Yahoo'>('Gmail');
 	let authenticationLevel = $state(0);
 	let ownedTools = $state<string[]>([]);
 
 	// Filtering Controls state (US-2.6.1)
-	let showFilteringControls = $state(false);
 	let filteringPolicies = $state<Record<string, FilteringPolicy>>({});
 
-	// Incident state
-	let showIncidentCard = $state(false);
-	let currentIncident = $state<IncidentCard | null>(null);
+	// UI state (via composable)
+	const modals = useDestinationModals();
 
-	// Lock-in state (US-3.2)
-	let isLockedIn = $state(false);
-	let lockedInAt = $state<Date | null>(null);
-	let remainingPlayers = $state(0);
-	let autoLockMessage = $state<string | null>(null);
-	let phaseTransitionMessage = $state<string | null>(null);
+	// Incident state (via composable)
+	const incidentState = useDestinationIncident();
+
+	// Lock-in state (US-3.2) (via composable)
+	const lockInState = useLockInState();
 
 	// Consequences state (US-3.5 Iteration 3)
 	let currentResolution = $state<DestinationResolutionResult | null>(null);
@@ -87,20 +84,11 @@
 	// US-5.2: Final scores state
 	let finalScores = $state<FinalScoreOutput | null>(null);
 
-	// Test state variables (for E2E testing) - null means use real value
-	let testWsConnected = $state<boolean | null>(null);
-	let testWsError = $state<string | null>(null);
-
-	// Derived values
-	let wsConnected = $derived(
-		testWsConnected !== null ? testWsConnected : $websocketStore.connected
-	);
-	let wsError = $derived(testWsError !== null ? testWsError : $websocketStore.error);
-
-	// Timer display
-	let timerDisplay = $derived(
-		`${Math.floor(timerRemaining / 60)}:${String(timerRemaining % 60).padStart(2, '0')}`
-	);
+	// WebSocket status (via composable with test override support)
+	const wsStatus = useWebSocketStatus(() => ({
+		connected: $websocketStore.connected,
+		error: $websocketStore.error
+	}));
 
 	// ESP teams data for Filtering Controls modal (US-2.6.1)
 	let espTeamsForFiltering = $derived(
@@ -140,18 +128,19 @@
 			// Filtering Controls state (US-2.6.1)
 			filteringPolicies = data.destination.filtering_policies || {};
 
-			// Lock-in state (US-3.2)
-			isLockedIn = data.destination.locked_in || false;
-			lockedInAt = data.destination.locked_in_at ? new Date(data.destination.locked_in_at) : null;
+			// Lock-in state (US-3.2) via composable
+			lockInState.isLockedIn = data.destination.locked_in || false;
+			lockInState.lockedInAt = data.destination.locked_in_at
+				? new Date(data.destination.locked_in_at)
+				: null;
 
-			currentRound = data.game.current_round;
-			currentPhase = data.game.current_phase;
-			remainingPlayers = data.game.remaining_players || 0; // US-3.2
+			// Game state via composable
+			gameState.currentRound = data.game.current_round;
+			gameState.currentPhase = data.game.current_phase;
+			lockInState.remainingPlayers = data.game.remaining_players || 0; // US-3.2
 
 			if (data.game.timer) {
-				timerDuration = data.game.timer.duration;
-				timerRemaining = data.game.timer.remaining;
-				timerRunning = data.game.timer.isRunning;
+				gameState.timerSeconds = data.game.timer.remaining;
 			}
 
 			espStats = data.espStats || [];
@@ -170,10 +159,9 @@
 
 	// Handle game state updates from WebSocket
 	function handleGameStateUpdate(update: any) {
-		// Handle incident_triggered messages
+		// Handle incident_triggered messages (via incidentState composable)
 		if (update.type === 'incident_triggered' && update.incident) {
-			currentIncident = update.incident;
-			showIncidentCard = true;
+			incidentState.showIncident(update.incident);
 			return;
 		}
 
@@ -188,14 +176,15 @@
 			return;
 		}
 
-		if (update.current_round !== undefined) currentRound = update.current_round;
-		if (update.current_phase !== undefined) currentPhase = update.current_phase;
+		// Game state updates via composable
+		if (update.current_round !== undefined) gameState.currentRound = update.current_round;
+		if (update.current_phase !== undefined) gameState.currentPhase = update.current_phase;
 		// Timer: Use simple value from WebSocket (matches ESP dashboard pattern)
 		if (update.timer_remaining !== undefined) {
-			timerRemaining = update.timer_remaining;
+			gameState.timerSeconds = update.timer_remaining;
 		}
 
-		// US-3.2: Handle WebSocket lock-in events
+		// US-3.2: Handle WebSocket lock-in events (via lockInState composable)
 		const messageType = update.type;
 
 		if (messageType === 'lock_in_confirmed') {
@@ -207,10 +196,10 @@
 			if (isForThisDestination) {
 				// This destination has successfully locked in
 				if (update.data?.locked_in !== undefined) {
-					isLockedIn = update.data.locked_in;
+					lockInState.isLockedIn = update.data.locked_in;
 				}
 				if (update.data?.locked_in_at) {
-					lockedInAt = new Date(update.data.locked_in_at);
+					lockInState.lockedInAt = new Date(update.data.locked_in_at);
 				}
 			}
 		}
@@ -218,27 +207,27 @@
 		if (messageType === 'player_locked_in') {
 			// Any player locked in - update remaining count
 			if (update.data?.remaining_players !== undefined) {
-				remainingPlayers = update.data.remaining_players;
+				lockInState.remainingPlayers = update.data.remaining_players;
 			}
 		}
 
 		if (messageType === 'auto_lock_warning') {
 			// 15-second warning before auto-lock
 			if (update.data?.message) {
-				autoLockMessage = update.data.message;
+				lockInState.autoLockMessage = update.data.message;
 			}
 		}
 
 		if (messageType === 'auto_lock_complete') {
 			// Auto-lock completed
-			autoLockMessage = update.data?.message || "Time's up! Decisions locked automatically";
+			lockInState.autoLockMessage = update.data?.message || "Time's up! Decisions locked automatically";
 		}
 
 		if (messageType === 'phase_transition') {
 			// Phase transition (e.g., to resolution)
-			const previousRound = currentRound;
+			const previousRound = gameState.currentRound;
 			if (update.data?.phase) {
-				currentPhase = update.data.phase;
+				gameState.currentPhase = update.data.phase;
 				// Refetch data when transitioning to consequences to get resolution results
 				if (update.data.phase === 'consequences') {
 					fetchDashboardData();
@@ -250,29 +239,23 @@
 				}
 			}
 			if (update.data?.round !== undefined) {
-				currentRound = update.data.round;
+				gameState.currentRound = update.data.round;
 			}
 			// Update lock-in state when transitioning phases (US-8.2-0.0: Start Next Round)
 			if (update.data?.locked_in !== undefined) {
-				isLockedIn = update.data.locked_in;
+				lockInState.isLockedIn = update.data.locked_in;
 				if (!update.data.locked_in) {
-					// Reset lock-in timestamp when unlocking
-					lockedInAt = null;
-					remainingPlayers = 0;
-					autoLockMessage = null;
+					// Reset lock-in state via composable
+					lockInState.resetLockIn();
 				}
 			}
 			// US-5.2: Extract final scores from phase transition (finished phase)
 			if (update.data?.final_scores) {
 				finalScores = update.data.final_scores;
 			}
-			// Show transition message
+			// Show transition message via composable (auto-clears after timeout)
 			if (update.data?.message) {
-				phaseTransitionMessage = update.data.message;
-				// Clear transition message after 5 seconds
-				setTimeout(() => {
-					phaseTransitionMessage = null;
-				}, 5000);
+				lockInState.showPhaseTransition(update.data.message);
 			}
 		}
 	}
@@ -300,9 +283,9 @@
 		// Filtering Controls updates (US-2.6.1)
 		if (update.filtering_policies !== undefined) filteringPolicies = update.filtering_policies;
 
-		// Lock-in updates (US-3.2)
-		if (update.locked_in !== undefined) isLockedIn = update.locked_in;
-		if (update.locked_in_at) lockedInAt = new Date(update.locked_in_at);
+		// Lock-in updates (US-3.2) via composable
+		if (update.locked_in !== undefined) lockInState.isLockedIn = update.locked_in;
+		if (update.locked_in_at) lockInState.lockedInAt = new Date(update.locked_in_at);
 	}
 
 	// Timer: No client-side countdown needed - values come from WebSocket updates
@@ -313,9 +296,9 @@
 		// TODO: Open coordination panel modal (US-2.7)
 	}
 
-	// Handle tech shop click (US-2.6.2)
+	// Handle tech shop click (US-2.6.2) via composable
 	function handleTechShopClick() {
-		showTechShop = true;
+		modals.openTechShop();
 	}
 
 	// Handle tool purchase (US-2.6.2)
@@ -325,9 +308,9 @@
 		// (Removed optimistic updates to fix double deduction bug)
 	}
 
-	// Handle filtering controls click (US-2.6.1)
+	// Handle filtering controls click (US-2.6.1) via composable
 	function handleFilteringControlsClick() {
-		showFilteringControls = true;
+		modals.openFilteringControls();
 	}
 
 	// Handle retry after error (US-2.6.1)
@@ -353,10 +336,9 @@
 				return;
 			}
 
-			// Update local state (WebSocket will also send updates)
-			isLockedIn = true;
-			lockedInAt = new Date();
-			remainingPlayers = data.remaining_players || 0;
+			// Update local state via composable (WebSocket will also send updates)
+			lockInState.setLockedIn(true);
+			lockInState.remainingPlayers = data.remaining_players || 0;
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to lock in decisions';
 		}
@@ -400,20 +382,20 @@
 				},
 				setCoordinationCount: (count: number) => (collaborationsCount = count),
 				setOwnedTech: (value: string[]) => (ownedTech = value),
-				setRound: (value: number) => (currentRound = value),
-				setPhase: (value: string) => (currentPhase = value),
-				setTimer: (value: number) => (timerRemaining = value),
+				setRound: (value: number) => (gameState.currentRound = value),
+				setPhase: (value: string) => (gameState.currentPhase = value),
+				setTimer: (value: number) => (gameState.timerSeconds = value),
 				setWsStatus: (connected: boolean, errorMsg?: string) => {
-					testWsConnected = connected;
-					testWsError = connected ? null : errorMsg || 'Connection lost';
+					// For testing WebSocket connection states - use composable
+					wsStatus.setTestStatus(connected, errorMsg);
 				},
 				setError: (errorMsg: string | null) => (error = errorMsg),
 				setLoading: (isLoading: boolean) => (loading = isLoading),
 
-				// Tech Shop test API (US-2.6.2)
-				openTechShop: () => (showTechShop = true),
-				closeTechShop: () => (showTechShop = false),
-				getTechShopOpen: () => showTechShop,
+				// Tech Shop test API (US-2.6.2) via composable
+				openTechShop: () => modals.openTechShop(),
+				closeTechShop: () => modals.closeTechShop(),
+				getTechShopOpen: () => modals.showTechShop,
 				getOwnedTools: () => ownedTools,
 				setOwnedTools: (value: string[]) => (ownedTools = value),
 				getAuthLevel: () => authenticationLevel,
@@ -421,22 +403,21 @@
 				getKingdom: () => kingdom,
 				setKingdom: (value: 'Gmail' | 'Outlook' | 'Yahoo') => (kingdom = value),
 
-				// Filtering Controls test API (US-2.6.1)
-				openFilteringControls: () => (showFilteringControls = true),
-				closeFilteringControls: () => (showFilteringControls = false),
-				getFilteringControlsOpen: () => showFilteringControls,
+				// Filtering Controls test API (US-2.6.1) via composable
+				openFilteringControls: () => modals.openFilteringControls(),
+				closeFilteringControls: () => modals.closeFilteringControls(),
+				getFilteringControlsOpen: () => modals.showFilteringControls,
 				getFilteringPolicies: () => filteringPolicies,
 				setFilteringPolicies: (value: Record<string, FilteringPolicy>) =>
 					(filteringPolicies = value),
 
-				// Lock-in test API (US-3.2)
+				// Lock-in test API (US-3.2) via composable
 				setLockedIn: (locked: boolean) => {
-					isLockedIn = locked;
-					lockedInAt = locked ? new Date() : null;
+					lockInState.setLockedIn(locked);
 				},
-				setRemainingPlayers: (count: number) => (remainingPlayers = count),
-				setAutoLockMessage: (msg: string | null) => (autoLockMessage = msg),
-				getCurrentPhase: () => currentPhase
+				setRemainingPlayers: (count: number) => (lockInState.remainingPlayers = count),
+				setAutoLockMessage: (msg: string | null) => (lockInState.autoLockMessage = msg),
+				getCurrentPhase: () => gameState.currentPhase
 			};
 		}
 	});
@@ -473,15 +454,15 @@
 	</div>
 {/if}
 
-<!-- WebSocket Status Indicator (only when disconnected) -->
-{#if !wsConnected && wsError}
+<!-- WebSocket Status Indicator (only when disconnected) - via wsStatus composable -->
+{#if !wsStatus.connected && wsStatus.error}
 	<div class="fixed top-0 left-0 right-0 z-40 mt-12">
 		<div
 			data-testid="ws-status"
 			class="bg-amber-50 border-b-2 border-amber-200 py-2 px-6 flex items-center justify-center gap-2 text-amber-800 text-sm"
 		>
 			<span class="animate-pulse">⚠️</span>
-			<span>Connection lost: {wsError}. Attempting to reconnect...</span>
+			<span>Connection lost: {wsStatus.error}. Attempting to reconnect...</span>
 		</div>
 	</div>
 {/if}
@@ -498,16 +479,16 @@
 				<p class="mt-4 text-gray-600 font-semibold">Loading dashboard...</p>
 			</div>
 		</div>
-	{:else if currentPhase === 'consequences'}
+	{:else if gameState.currentPhase === 'consequences'}
 		<!-- US-3.5: Consequences Phase Display -->
 		<DestinationConsequences
 			{destinationName}
-			{currentRound}
+			currentRound={gameState.currentRound}
 			{budget}
 			resolution={currentResolution}
 			{espSatisfactionBreakdown}
 		/>
-	{:else if currentPhase === 'resolution'}
+	{:else if gameState.currentPhase === 'resolution'}
 		<!-- US-3.5: Resolution Loading Screen -->
 		<div class="flex items-center justify-center min-h-screen">
 			<div
@@ -520,19 +501,19 @@
 				<h2 class="text-2xl font-bold text-gray-900 mb-2">Calculating Round Results...</h2>
 				<p class="text-gray-600">Please wait while we process this round's data</p>
 
-				<!-- Auto-lock Message (if present) - US-3.2 -->
-				{#if autoLockMessage}
+				<!-- Auto-lock Message (if present) - US-3.2 via lockInState composable -->
+				{#if lockInState.autoLockMessage}
 					<div
 						data-testid="auto-lock-message"
 						class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-sm"
 						role="alert"
 					>
-						{autoLockMessage}
+						{lockInState.autoLockMessage}
 					</div>
 				{/if}
 			</div>
 		</div>
-	{:else if currentPhase === 'finished'}
+	{:else if gameState.currentPhase === 'finished'}
 		<!-- US-5.2: Victory Screen -->
 		<VictoryScreen {finalScores} />
 	{:else}
@@ -540,11 +521,11 @@
 		<DashboardHeader
 			entityName={destinationName}
 			currentBudget={budget}
-			{currentRound}
-			totalRounds={4}
-			timerSeconds={timerRemaining}
+			currentRound={gameState.currentRound}
+			totalRounds={gameState.totalRounds}
+			timerSeconds={gameState.timerSeconds}
 			theme="blue"
-			{isLockedIn}
+			isLockedIn={lockInState.isLockedIn}
 		/>
 
 		<!-- Dashboard Content (Planning Phase) -->
@@ -561,7 +542,7 @@
 			<div data-testid="dashboard-layout" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 				<!-- ESP Statistics (full width) -->
 				<div class="lg:col-span-2">
-					<ESPStatisticsOverview {espStats} {currentRound} />
+					<ESPStatisticsOverview {espStats} currentRound={gameState.currentRound} />
 				</div>
 
 				<!-- Technical Infrastructure -->
@@ -577,31 +558,31 @@
 
 			<!-- Lock In Button -->
 			<LockInButton
-				phase={currentPhase}
-				{isLockedIn}
-				{remainingPlayers}
-				{autoLockMessage}
+				phase={gameState.currentPhase}
+				isLockedIn={lockInState.isLockedIn}
+				remainingPlayers={lockInState.remainingPlayers}
+				autoLockMessage={lockInState.autoLockMessage}
 				onLockIn={handleLockIn}
 			/>
 
-			<!-- Phase Transition Message (US-3.2) -->
-			{#if phaseTransitionMessage}
+			<!-- Phase Transition Message (US-3.2) via lockInState composable -->
+			{#if lockInState.phaseTransitionMessage}
 				<div
 					data-testid="phase-transition-message"
 					role="alert"
 					class="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 text-sm font-semibold"
 				>
-					{phaseTransitionMessage}
+					{lockInState.phaseTransitionMessage}
 				</div>
 			{/if}
 		</div>
 	{/if}
 </div>
 
-<!-- Tech Shop Modal (US-2.6.2) -->
+<!-- Tech Shop Modal (US-2.6.2) via modals composable -->
 <TechnicalShopModal
-	bind:show={showTechShop}
-	{isLockedIn}
+	bind:show={modals.showTechShop}
+	isLockedIn={lockInState.isLockedIn}
 	{roomCode}
 	{destName}
 	{kingdom}
@@ -610,10 +591,10 @@
 	onToolPurchased={handleToolPurchase}
 />
 
-<!-- Filtering Controls Modal (US-2.6.1) -->
+<!-- Filtering Controls Modal (US-2.6.1) via modals composable -->
 <FilteringControlsModal
-	bind:show={showFilteringControls}
-	{isLockedIn}
+	bind:show={modals.showFilteringControls}
+	isLockedIn={lockInState.isLockedIn}
 	{roomCode}
 	{destName}
 	espTeams={espTeamsForFiltering}
@@ -622,13 +603,10 @@
 	onRetry={handleRetry}
 />
 
-<!-- Incident Card Display -->
+<!-- Incident Card Display via incidentState composable -->
 <IncidentCardDisplay
-	bind:show={showIncidentCard}
-	incident={currentIncident}
-	affectedTeam={currentIncident?.affectedTeam}
-	onClose={() => {
-		showIncidentCard = false;
-		currentIncident = null;
-	}}
+	bind:show={incidentState.showIncidentCard}
+	incident={incidentState.currentIncident}
+	affectedTeam={incidentState.currentIncident?.affectedTeam}
+	onClose={() => incidentState.hideIncident()}
 />

@@ -81,12 +81,10 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	if (result.updatedDestination) {
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'destination_dashboard_update',
-			data: {
-				destinationName: destName,
-				budget: result.updatedDestination.budget,
-				owned_tools: result.updatedDestination.owned_tools,
-				authentication_level: result.updatedDestination.authentication_level
-			}
+			destinationName: destName,
+			budget: result.updatedDestination.budget,
+			owned_tools: result.updatedDestination.owned_tools,
+			authentication_level: result.updatedDestination.authentication_level
 		});
 	}
 

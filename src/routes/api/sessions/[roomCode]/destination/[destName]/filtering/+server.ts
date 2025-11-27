@@ -90,10 +90,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	if (result.filtering_policies) {
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'destination_dashboard_update',
-			data: {
-				destinationName: destName,
-				filtering_policies: result.filtering_policies
-			}
+			destinationName: destName,
+			filtering_policies: result.filtering_policies
 		});
 	}
 

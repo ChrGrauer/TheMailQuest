@@ -27,6 +27,9 @@ import {
 } from './helpers/e2e-actions';
 import { getAvailableClients, acquireClient, configureOnboarding } from './helpers/client-management';
 
+// Increase timeout for these complex multi-player tests (default is 20s)
+test.setTimeout(40000);
+
 test.describe('INC-017: Acquisition Offer', () => {
 	let alicePage: Page;
 	let bobPage: Page;

@@ -35,6 +35,9 @@
 	import type { IncidentCard, IncidentChoiceOption } from '$lib/types/incident';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 	import IncidentChoiceModal from '$lib/components/incident/IncidentChoiceModal.svelte';
+	// Composables
+	import { useModalManager, useLockInState, useIncidentState } from '$lib/composables/esp-dashboard';
+	import { useGameState, useWebSocketStatus } from '$lib/composables/shared';
 
 	// Get params from page store
 	let roomCode = $derived($page.params.roomCode || '');
@@ -60,11 +63,8 @@
 	let availableClientsCount = $state(0);
 	let ownedTech = $state<string[]>([]);
 
-	// Game state
-	let currentRound = $state(1);
-	let totalRounds = $state(4);
-	let currentPhase = $state('planning');
-	let timerSeconds = $state(300);
+	// Game state (via composable)
+	const gameState = useGameState();
 
 	// US-3.5: Resolution results for consequences display
 	let resolutionResults = $state<ESPResolutionResult | undefined>();
@@ -76,12 +76,8 @@
 		actualTeamName = teamName;
 	});
 
-	// Lock-in state (US-3.2)
-	let isLockedIn = $state(false);
-	let lockedInAt = $state<Date | null>(null);
-	let remainingPlayers = $state(0);
-	let autoLockMessage = $state<string | null>(null);
-	let phaseTransitionMessage = $state<string | null>(null);
+	// Lock-in state (US-3.2) (via composable)
+	const lockInState = useLockInState();
 	let pendingOnboardingDecisions = $state<Record<string, OnboardingOptions>>({});
 
 	// Destinations with weights
@@ -91,37 +87,20 @@
 		{ name: 'Yahoo', weight: 20 }
 	]);
 
-	// UI state
-	let showMarketplace = $state(false);
-	let showTechShop = $state(false);
-	let showClientManagement = $state(false);
+	// UI state (via composable)
+	const modals = useModalManager();
 
-	// Incident state
-	let showIncidentCard = $state(false);
-	let currentIncident = $state<IncidentCard | null>(null);
-
-	// Phase 5: Incident choice state
-	let showChoiceModal = $state(false);
-	let choiceIncidentId = $state('');
-	let choiceIncidentName = $state('');
-	let choiceDescription = $state('');
-	let choiceEducationalNote = $state('');
-	let choiceCategory = $state('');
-	let choiceOptions = $state<IncidentChoiceOption[]>([]);
-	let choiceConfirmed = $state(false);
+	// Incident state (via composable)
+	const incidentState = useIncidentState();
 
 	// US-5.2: Final scores state
 	let finalScores = $state<FinalScoreOutput | null>(null);
 
-	// Test state for WebSocket status (used by E2E tests)
-	let testWsConnected = $state<boolean | null>(null);
-	let testWsError = $state<string | null>(null);
-
-	// WebSocket connection status (use test values if set)
-	let wsConnected = $derived(
-		testWsConnected !== null ? testWsConnected : $websocketStore.connected
-	);
-	let wsError = $derived(testWsError !== null ? testWsError : $websocketStore.error);
+	// WebSocket status (via composable with test override support)
+	const wsStatus = useWebSocketStatus(() => ({
+		connected: $websocketStore.connected,
+		error: $websocketStore.error
+	}));
 
 	/**
 	 * Calculate total pending onboarding costs
@@ -183,19 +162,19 @@
 			ownedTech = data.team.owned_tech_upgrades || []; // US-2.3
 			actualTeamName = data.team.name; // Store actual team name with proper capitalization
 
-			// Update lock-in state (US-3.2)
-			isLockedIn = data.team.locked_in || false;
-			lockedInAt = data.team.locked_in_at ? new Date(data.team.locked_in_at) : null;
+			// Update lock-in state (US-3.2) via composable
+			lockInState.isLockedIn = data.team.locked_in || false;
+			lockInState.lockedInAt = data.team.locked_in_at ? new Date(data.team.locked_in_at) : null;
 			pendingOnboardingDecisions = data.team.pending_onboarding_decisions || {};
 
-			// Update game state
-			currentRound = data.game.current_round || 1;
-			currentPhase = data.game.current_phase || 'planning';
-			remainingPlayers = data.game.remaining_players || 0; // US-3.2
+			// Update game state via composable
+			gameState.currentRound = data.game.current_round || 1;
+			gameState.currentPhase = data.game.current_phase || 'planning';
+			lockInState.remainingPlayers = data.game.remaining_players || 0; // US-3.2
 
-			// Update timer
+			// Update timer via composable
 			if (data.game.timer) {
-				timerSeconds = data.game.timer.remaining || 300;
+				gameState.timerSeconds = data.game.timer.remaining || 300;
 			}
 
 			// Update destinations
@@ -279,13 +258,13 @@
 			pendingCosts = update.pending_costs;
 		}
 
-		// US-3.2: Lock-in updates
+		// US-3.2: Lock-in updates via composable
 		if (update.locked_in !== undefined) {
-			isLockedIn = update.locked_in;
+			lockInState.isLockedIn = update.locked_in;
 		}
 
 		if (update.locked_in_at) {
-			lockedInAt = new Date(update.locked_in_at);
+			lockInState.lockedInAt = new Date(update.locked_in_at);
 		}
 
 		if (update.pending_onboarding_decisions) {
@@ -297,14 +276,13 @@
 	 * Handle game state updates (phase, round, timer)
 	 */
 	function handleGameStateUpdate(data: any) {
-		// Handle incident_triggered messages
+		// Handle incident_triggered messages (via incidentState composable)
 		if (data.type === 'incident_triggered' && data.incident) {
-			currentIncident = data.incident;
-			showIncidentCard = true;
+			incidentState.showIncident(data.incident);
 			return;
 		}
 
-		// Phase 5: Handle incident_choice_required messages
+		// Phase 5: Handle incident_choice_required messages (via incidentState composable)
 		if (data.type === 'incident_choice_required') {
 			// Check if this team is a target for this choice
 			const targetTeams = data.targetTeams || [];
@@ -313,14 +291,14 @@
 			);
 
 			if (isTarget) {
-				choiceIncidentId = data.incidentId || '';
-				choiceIncidentName = data.incidentName || '';
-				choiceDescription = data.description || '';
-				choiceEducationalNote = data.educationalNote || '';
-				choiceCategory = data.category || '';
-				choiceOptions = data.options || [];
-				choiceConfirmed = false;
-				showChoiceModal = true;
+				incidentState.showChoice({
+					incidentId: data.incidentId || '',
+					incidentName: data.incidentName || '',
+					description: data.description || '',
+					educationalNote: data.educationalNote || '',
+					category: data.category || '',
+					options: data.options || []
+				});
 			}
 			return;
 		}
@@ -330,7 +308,7 @@
 			// If this is our team's confirmation, update our state
 			if (data.teamName?.toLowerCase() === teamName.toLowerCase()) {
 				// Credits and reputation will be updated via esp_dashboard_update
-				choiceConfirmed = true;
+				incidentState.confirmChoice();
 			}
 			return;
 		}
@@ -347,15 +325,15 @@
 		}
 
 		if (data.phase) {
-			currentPhase = data.phase;
+			gameState.currentPhase = data.phase;
 		}
 
 		if (data.round !== undefined) {
-			currentRound = data.round;
+			gameState.currentRound = data.round;
 		}
 
 		if (data.timer_remaining !== undefined) {
-			timerSeconds = data.timer_remaining;
+			gameState.timerSeconds = data.timer_remaining;
 		}
 
 		// US-3.2: Handle WebSocket lock-in events
@@ -369,10 +347,10 @@
 			if (isForThisTeam) {
 				// This team has successfully locked in
 				if (data.data?.locked_in !== undefined) {
-					isLockedIn = data.data.locked_in;
+					lockInState.isLockedIn = data.data.locked_in;
 				}
 				if (data.data?.locked_in_at) {
-					lockedInAt = new Date(data.data.locked_in_at);
+					lockInState.lockedInAt = new Date(data.data.locked_in_at);
 				}
 			}
 		}
@@ -380,14 +358,14 @@
 		if (messageType === 'player_locked_in') {
 			// Any player locked in - update remaining count
 			if (data.data?.remaining_players !== undefined) {
-				remainingPlayers = data.data.remaining_players;
+				lockInState.remainingPlayers = data.data.remaining_players;
 			}
 		}
 
 		if (messageType === 'auto_lock_warning') {
 			// 15-second warning before auto-lock
 			if (data.data?.message) {
-				autoLockMessage = data.data.message;
+				lockInState.autoLockMessage = data.data.message;
 			}
 		}
 
@@ -406,7 +384,7 @@
 					})
 					.join('\n');
 
-				autoLockMessage =
+				lockInState.autoLockMessage =
 					"Time's up! Some onboarding options were removed to fit your budget:\n" + details;
 			}
 		}
@@ -414,35 +392,25 @@
 		if (messageType === 'auto_lock_complete') {
 			// Auto-lock completed (for players without corrections)
 			// Only set message if we don't already have a correction message
-			if (!autoLockMessage || !autoLockMessage.includes('removed')) {
-				autoLockMessage = data.data?.message || "Time's up! Decisions locked automatically";
+			if (!lockInState.autoLockMessage || !lockInState.autoLockMessage.includes('removed')) {
+				lockInState.autoLockMessage = data.data?.message || "Time's up! Decisions locked automatically";
 			}
 		}
 
 		if (messageType === 'phase_transition') {
-			// Phase transition (e.g., to resolution)
+			// Phase transition (e.g., to resolution) - via composables
 			if (data.data?.phase) {
-				currentPhase = data.data.phase;
+				gameState.currentPhase = data.data.phase;
 			}
 			if (data.data?.round !== undefined) {
-				currentRound = data.data.round;
+				gameState.currentRound = data.data.round;
 			}
 			// Update lock-in state when transitioning phases (US-8.2-0.0: Start Next Round)
 			if (data.data?.locked_in !== undefined) {
-				isLockedIn = data.data.locked_in;
+				lockInState.isLockedIn = data.data.locked_in;
 				if (!data.data.locked_in) {
-					// Reset lock-in timestamp when unlocking
-					lockedInAt = null;
-					remainingPlayers = 0;
-					// Only clear autoLockMessage if it's not a correction/completion message
-					// (preserve for display in consequences phase)
-					if (
-						autoLockMessage &&
-						!autoLockMessage.includes('removed') &&
-						!autoLockMessage.includes("Time's up")
-					) {
-						autoLockMessage = null;
-					}
+					// Reset lock-in state when unlocking (composable handles message clearing logic)
+					lockInState.resetLockIn();
 				}
 			}
 			// US-3.5: Capture resolution results for consequences display
@@ -475,21 +443,17 @@
 			if (data.data?.final_scores) {
 				finalScores = data.data.final_scores;
 			}
-			// Show transition message
+			// Show transition message (composable handles auto-clear timeout)
 			if (data.data?.message) {
-				phaseTransitionMessage = data.data.message;
-				// Clear transition message after 5 seconds
-				setTimeout(() => {
-					phaseTransitionMessage = null;
-				}, 5000);
+				lockInState.showPhaseTransition(data.data.message);
 			}
 			// Clear auto-lock warning message when phase changes (keep correction and completion messages)
 			if (
-				autoLockMessage &&
-				!autoLockMessage.includes('removed') &&
-				!autoLockMessage.includes("Time's up")
+				lockInState.autoLockMessage &&
+				!lockInState.autoLockMessage.includes('removed') &&
+				!lockInState.autoLockMessage.includes("Time's up")
 			) {
-				autoLockMessage = null;
+				lockInState.autoLockMessage = null;
 			}
 		}
 	}
@@ -515,18 +479,18 @@
 	}
 
 	/**
-	 * Quick action handlers
+	 * Quick action handlers (via modals composable)
 	 */
 	function handleMarketplaceClick() {
-		showMarketplace = true;
+		modals.openMarketplace();
 	}
 
 	function handleTechShopClick() {
-		showTechShop = true;
+		modals.openTechShop();
 	}
 
 	function handleClientManagementClick() {
-		showClientManagement = true;
+		modals.openClientManagement();
 	}
 
 	/**
@@ -547,10 +511,9 @@
 				return;
 			}
 
-			// Update local state (WebSocket will also send updates)
-			isLockedIn = true;
-			lockedInAt = new Date();
-			remainingPlayers = data.remaining_players || 0;
+			// Update local state via composable (WebSocket will also send updates)
+			lockInState.setLockedIn(true);
+			lockInState.remainingPlayers = data.remaining_players || 0;
 		} catch (err) {
 			error = (err as Error).message;
 		}
@@ -615,10 +578,10 @@
 					(reputation = { ...reputation, ...value }),
 				setClients: (value: typeof clients) => (clients = value),
 				setOwnedTech: (value: string[]) => (ownedTech = value),
-				setRound: (value: number) => (currentRound = value),
-				setPhase: (value: string) => (currentPhase = value),
-				setTimer: (value: number) => (timerSeconds = value),
-				setTimerSeconds: (value: number) => (timerSeconds = value), // Alias for setTimer (US-3.2)
+				setRound: (value: number) => (gameState.currentRound = value),
+				setPhase: (value: string) => (gameState.currentPhase = value),
+				setTimer: (value: number) => (gameState.timerSeconds = value),
+				setTimerSeconds: (value: number) => (gameState.timerSeconds = value), // Alias for setTimer (US-3.2)
 				triggerAutoLock: async () => {
 					// US-3.2: Simulate auto-lock at timer expiry
 					try {
@@ -628,9 +591,8 @@
 						});
 						if (response.ok) {
 							const data = await response.json();
-							isLockedIn = true;
-							lockedInAt = new Date(data.locked_in_at);
-							remainingPlayers = data.remaining_players || 0;
+							lockInState.setLockedIn(true, new Date(data.locked_in_at));
+							lockInState.remainingPlayers = data.remaining_players || 0;
 							// autoLockMessage will be set via WebSocket (auto_lock_corrections or auto_lock_complete)
 						}
 					} catch (err) {
@@ -638,17 +600,16 @@
 					}
 				},
 				setWsStatus: (connected: boolean, errorMsg?: string) => {
-					// For testing WebSocket connection states - use local test variables
-					testWsConnected = connected;
-					testWsError = connected ? null : errorMsg || 'Connection lost';
+					// For testing WebSocket connection states - use composable
+					wsStatus.setTestStatus(connected, errorMsg);
 				},
 				setError: (errorMsg: string | null) => (error = errorMsg),
 				setLoading: (isLoading: boolean) => (loading = isLoading),
-				// US-2.4: Client Management Modal
-				openClientManagement: () => (showClientManagement = true),
-				closeClientManagement: () => (showClientManagement = false),
+				// US-2.4: Client Management Modal (via composable)
+				openClientManagement: () => modals.openClientManagement(),
+				closeClientManagement: () => modals.closeClientManagement(),
 				get isClientManagementOpen() {
-					return showClientManagement;
+					return modals.showClientManagement;
 				},
 				// US-3.2: Lock-in test API
 				setSpentCredits: (value: number) => {
@@ -667,18 +628,17 @@
 					pendingCosts = value;
 				},
 				setLockedIn: (locked: boolean) => {
-					isLockedIn = locked;
-					lockedInAt = locked ? new Date() : null;
+					lockInState.setLockedIn(locked);
 				},
-				setRemainingPlayers: (count: number) => (remainingPlayers = count),
-				setAutoLockMessage: (msg: string | null) => (autoLockMessage = msg),
-				getCurrentPhase: () => currentPhase,
+				setRemainingPlayers: (count: number) => (lockInState.remainingPlayers = count),
+				setAutoLockMessage: (msg: string | null) => (lockInState.autoLockMessage = msg),
+				getCurrentPhase: () => gameState.currentPhase,
 				getCredits: () => credits,
 				getPendingOnboarding: () => pendingOnboardingDecisions,
-				getIsLockedIn: () => isLockedIn,
-				getAutoLockMessage: () => autoLockMessage,
+				getIsLockedIn: () => lockInState.isLockedIn,
+				getAutoLockMessage: () => lockInState.autoLockMessage,
 				getRevenue: () => resolutionResults?.revenue?.actualRevenue || 0,
-				openPortfolioModal: () => (showClientManagement = true)
+				openPortfolioModal: () => modals.openClientManagement()
 			};
 		}
 	});
@@ -732,16 +692,16 @@
 				{/if}
 			</div>
 		</div>
-	{:else if currentPhase === 'consequences'}
+	{:else if gameState.currentPhase === 'consequences'}
 		<!-- US-3.5: Consequences Phase Display -->
 		<ESPConsequences
 			teamName={actualTeamName}
 			resolutionData={resolutionResults}
-			{currentRound}
+			currentRound={gameState.currentRound}
 			currentCredits={credits}
-			autoCorrectionMessage={autoLockMessage}
+			autoCorrectionMessage={lockInState.autoLockMessage}
 		/>
-	{:else if currentPhase === 'resolution'}
+	{:else if gameState.currentPhase === 'resolution'}
 		<!-- US-3.5: Resolution Loading Screen -->
 		<div class="max-w-7xl mx-auto px-4 py-8">
 			<div data-testid="resolution-loading" class="bg-white rounded-xl shadow-md p-12 text-center">
@@ -752,7 +712,7 @@
 				<p class="text-gray-600">Please wait while we process this round's data</p>
 			</div>
 		</div>
-	{:else if currentPhase === 'finished'}
+	{:else if gameState.currentPhase === 'finished'}
 		<!-- US-5.2: Victory Screen -->
 		<VictoryScreen {finalScores} />
 	{:else}
@@ -761,26 +721,26 @@
 			entityName={teamName}
 			currentBudget={credits}
 			pendingCosts={totalPendingCosts}
-			{currentRound}
-			{totalRounds}
-			{timerSeconds}
+			currentRound={gameState.currentRound}
+			totalRounds={gameState.totalRounds}
+			timerSeconds={gameState.timerSeconds}
 			theme="emerald"
-			{isLockedIn}
+			isLockedIn={lockInState.isLockedIn}
 		/>
 
 		<!-- Main Dashboard Content (Planning Phase) -->
 		<div class="max-w-7xl mx-auto px-4 py-8">
-			<!-- WebSocket Connection Status -->
+			<!-- WebSocket Connection Status (via wsStatus composable) -->
 			<div data-testid="ws-status" class="mb-4 text-sm">
-				{#if wsConnected}
+				{#if wsStatus.connected}
 					<span class="text-green-600 flex items-center gap-2">
 						<span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
 						Connected
 					</span>
-				{:else if wsError}
+				{:else if wsStatus.error}
 					<span class="text-red-600 flex items-center gap-2">
 						<span class="w-2 h-2 bg-red-600 rounded-full"></span>
-						Disconnected - {wsError}
+						Disconnected - {wsStatus.error}
 					</span>
 				{:else}
 					<span class="text-gray-500 flex items-center gap-2">
@@ -794,7 +754,7 @@
 			<div class="mb-8">
 				<QuickActions
 					activeClientsCount={clients.length}
-					missingMandatoryTech={currentRound >= 2 && !ownedTech.includes('dmarc')}
+					missingMandatoryTech={gameState.currentRound >= 2 && !ownedTech.includes('dmarc')}
 					{availableClientsCount}
 					onMarketplaceClick={handleMarketplaceClick}
 					onTechShopClick={handleTechShopClick}
@@ -810,7 +770,7 @@
 			<!-- Full-width Sections -->
 			<div class="space-y-6 mb-6">
 				<!-- Technical Infrastructure -->
-				<TechnicalInfrastructure {ownedTech} {currentRound} onTechShopClick={handleTechShopClick} />
+				<TechnicalInfrastructure {ownedTech} currentRound={gameState.currentRound} onTechShopClick={handleTechShopClick} />
 
 				<!-- Client Portfolio -->
 				<ClientPortfolio
@@ -822,89 +782,86 @@
 
 			<!-- Lock In Button -->
 			<LockInButton
-				phase={currentPhase}
+				phase={gameState.currentPhase}
 				pendingDecisions={pendingDecisionsCount}
 				{budgetExceeded}
 				{excessAmount}
-				{isLockedIn}
-				{remainingPlayers}
+				isLockedIn={lockInState.isLockedIn}
+				remainingPlayers={lockInState.remainingPlayers}
 				onLockIn={handleLockIn}
 			/>
 
 			<!-- Phase Transition Message (US-3.2) -->
-			{#if phaseTransitionMessage}
+			{#if lockInState.phaseTransitionMessage}
 				<div
 					data-testid="phase-transition-message"
 					role="alert"
 					class="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 text-sm font-semibold"
 				>
-					{phaseTransitionMessage}
+					{lockInState.phaseTransitionMessage}
 				</div>
 			{/if}
 		</div>
 	{/if}
 
-	<!-- Client Marketplace Modal -->
+	<!-- Client Marketplace Modal (via modals composable) -->
 	<ClientMarketplaceModal
-		show={showMarketplace}
-		{isLockedIn}
-		onClose={() => (showMarketplace = false)}
+		show={modals.showMarketplace}
+		isLockedIn={lockInState.isLockedIn}
+		onClose={() => modals.closeMarketplace()}
 		{roomCode}
 		{teamName}
 		currentCredits={credits}
-		{currentRound}
+		currentRound={gameState.currentRound}
 		{ownedTech}
 		overallReputation={calculateOverallReputation(reputation, destinations)}
 		onClientAcquired={handleClientAcquired}
 	/>
 
-	<!-- Technical Shop Modal -->
+	<!-- Technical Shop Modal (via modals composable) -->
 	<TechnicalShopModal
-		show={showTechShop}
-		{isLockedIn}
-		onClose={() => (showTechShop = false)}
+		show={modals.showTechShop}
+		isLockedIn={lockInState.isLockedIn}
+		onClose={() => modals.closeTechShop()}
 		{roomCode}
 		{teamName}
 		currentCredits={credits}
-		{currentRound}
+		currentRound={gameState.currentRound}
 		onUpgradePurchased={handleUpgradePurchased}
 	/>
 
-	<!-- Client Management Modal -->
+	<!-- Client Management Modal (via modals composable) -->
 	<ClientManagementModal
-		bind:show={showClientManagement}
-		{isLockedIn}
-		onClose={() => (showClientManagement = false)}
+		bind:show={modals.showClientManagement}
+		isLockedIn={lockInState.isLockedIn}
+		onClose={() => modals.closeClientManagement()}
 		{roomCode}
 		{teamName}
 		currentCredits={credits}
-		{currentRound}
+		currentRound={gameState.currentRound}
 	/>
 
-	<!-- Incident Card Display -->
+	<!-- Incident Card Display (via incidentState composable) -->
 	<IncidentCardDisplay
-		bind:show={showIncidentCard}
-		incident={currentIncident}
-		affectedTeam={currentIncident?.affectedTeam}
-		onClose={() => {
-			showIncidentCard = false;
-			currentIncident = null;
-		}}
+		bind:show={incidentState.showIncidentCard}
+		incident={incidentState.currentIncident}
+		affectedTeam={incidentState.currentIncident?.affectedTeam}
+		onClose={() => incidentState.hideIncident()}
 	/>
 
-	<!-- Phase 5: Incident Choice Modal -->
+	<!-- Phase 5: Incident Choice Modal (via incidentState composable) -->
 	<IncidentChoiceModal
-		bind:show={showChoiceModal}
-		incidentId={choiceIncidentId}
-		incidentName={choiceIncidentName}
-		description={choiceDescription}
-		educationalNote={choiceEducationalNote}
-		category={choiceCategory}
-		options={choiceOptions}
+		bind:show={incidentState.showChoiceModal}
+		incidentId={incidentState.choiceIncidentId}
+		incidentName={incidentState.choiceIncidentName}
+		description={incidentState.choiceDescription}
+		educationalNote={incidentState.choiceEducationalNote}
+		category={incidentState.choiceCategory}
+		options={incidentState.choiceOptions}
 		{roomCode}
 		{teamName}
 		onConfirmed={(choiceId, appliedEffects) => {
-			choiceConfirmed = true;
+			incidentState.confirmChoice();
 			// Note: Modal handles its own closing with 500ms delay to show confirmation badge
 			// Credits/reputation will be updated via WebSocket esp_dashboard_update
 		}}
