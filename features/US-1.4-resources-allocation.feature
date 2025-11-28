@@ -52,15 +52,6 @@ Feature: Resources Allocation and Game Start
       | ESP Reputation     | {}    |
       | User Satisfaction  | 100   |
 
-  Scenario: Shared destination budget pool is created
-    Given 2 or more Destination players have joined the game
-    When the resource allocation process starts
-    Then a shared destination budget pool should be created with:
-      | Resource | Value |
-      | Credits  | 150   |
-    And the shared pool should be accessible to all destinations
-    And the shared pool usage should require majority vote
-
   # ============================================================================
   # GAME STATE TRANSITION
   # ============================================================================
@@ -124,7 +115,6 @@ Feature: Resources Allocation and Game Start
       | field         | description                    |
       | esp_teams     | array of ESP team resources    |
       | destinations  | array of destination resources |
-      | shared_pool   | shared budget value (150)      |
     And each client should update their local state
     And each client should acknowledge receipt within 2 seconds
 
@@ -226,7 +216,6 @@ Feature: Resources Allocation and Game Start
       | Resource allocation started for room ABC123|
       | Allocated 1000 credits to ESP team SendWave|
       | Allocated 500 credits to destination Gmail |
-      | Created shared pool with 150 credits       |
       | Game transitioned to phase: planning       |
       | Resource allocation completed successfully |
     And the total allocation time should be logged
@@ -288,7 +277,6 @@ Feature: Resources Allocation and Game Start
       | phase_start_time | <timestamp>    |
       | esp_teams        | <team_data>    |
       | destinations     | <dest_data>    |
-      | shared_pool      | 150            |
     And the state should be queryable by all game components
 
   Scenario: Player can reconnect and resume after allocation
@@ -308,7 +296,6 @@ Feature: Resources Allocation and Game Start
   # What we're testing:
   # - Starting resources distribution (ESP: 1000 credits, 70 reputation)
   # - Starting resources distribution (Destinations: kingdom-specific budgets)
-  # - Shared destination pool creation (150 credits)
   # - Game state transition (lobby → resource_allocation → planning)
   # - Timer initialization and start (5 minutes = 300 seconds)
   # - Automatic player redirections to appropriate dashboards
@@ -343,7 +330,6 @@ Feature: Resources Allocation and Game Start
   #   - Gmail: 500 credits
   #   - Outlook: 350 credits
   #   - Yahoo: 200 credits
-  #   - Shared Pool: 150 credits
   #
   # Timer Configuration:
   #   - Planning Phase: 5 minutes (300 seconds)

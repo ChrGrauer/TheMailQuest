@@ -6,7 +6,6 @@
  * Handles allocation of starting resources to ESP teams and destinations
  * - ESP Teams: credits, reputation per destination, client marketplace stock
  * - Destinations: budgets
- * - Shared pool creation
  * - Configuration validation
  * - Rollback mechanism
  */
@@ -30,7 +29,6 @@ const DEFAULT_CONFIGURATION: GameConfiguration = {
 		Outlook: 350,
 		Yahoo: 200
 	},
-	shared_pool_credits: 150,
 	planning_phase_duration: 300 // 5 minutes
 };
 
@@ -89,7 +87,6 @@ export function validateConfiguration(config?: GameConfiguration): Configuration
 	if (
 		config.esp_starting_credits === undefined ||
 		config.esp_starting_reputation === undefined ||
-		config.shared_pool_credits === undefined ||
 		config.planning_phase_duration === undefined
 	) {
 		return {
@@ -110,7 +107,6 @@ export function validateConfiguration(config?: GameConfiguration): Configuration
 	if (
 		config.esp_starting_credits < 0 ||
 		config.esp_starting_reputation < 0 ||
-		config.shared_pool_credits < 0 ||
 		config.planning_phase_duration < 0
 	) {
 		return {
@@ -238,18 +234,6 @@ export function allocateResources(request: ResourceAllocationRequest): ResourceA
 			}
 		}
 
-		// Create shared pool if 2+ destinations
-		const activeDestinationCount = session.destinations.filter((d) => d.players.length > 0).length;
-		if (activeDestinationCount >= 2) {
-			session.shared_pool = gameConfig.shared_pool_credits;
-
-			gameLogger.event('shared_pool_created', {
-				roomCode,
-				credits: session.shared_pool,
-				destinationCount: activeDestinationCount
-			});
-		}
-
 		// Update activity
 		updateActivity(roomCode);
 
@@ -257,8 +241,7 @@ export function allocateResources(request: ResourceAllocationRequest): ResourceA
 		gameLogger.event('resource_allocation_completed', {
 			roomCode,
 			espTeamsAllocated: session.esp_teams.filter((t) => t.players.length > 0).length,
-			destinationsAllocated: session.destinations.filter((d) => d.players.length > 0).length,
-			sharedPool: session.shared_pool || 0
+			destinationsAllocated: session.destinations.filter((d) => d.players.length > 0).length
 		});
 
 		return {
@@ -322,9 +305,6 @@ export function rollbackAllocation(request: RollbackRequest): RollbackResult {
 			destination.esp_reputation = {};
 			destination.user_satisfaction = 100;
 		}
-
-		// Remove shared pool
-		session.shared_pool = undefined;
 
 		gameLogger.event('resource_allocation_rolled_back', {
 			roomCode,

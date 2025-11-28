@@ -233,48 +233,6 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 	});
 
 	// ============================================================================
-	// SHARED DESTINATION BUDGET POOL
-	// ============================================================================
-
-	describe('Scenario: Shared destination budget pool is created', () => {
-		test('Given 2 or more Destination players joined, When allocation starts, Then shared pool created with 150 credits', () => {
-			// Given
-			const facilitatorId = 'facilitator_123';
-			const session = createGameSession(facilitatorId);
-
-			joinGame({
-				roomCode: session.roomCode,
-				displayName: 'Alice',
-				role: 'ESP',
-				teamName: 'SendWave'
-			});
-
-			joinGame({
-				roomCode: session.roomCode,
-				displayName: 'Grace',
-				role: 'Destination',
-				teamName: 'Gmail'
-			});
-
-			joinGame({
-				roomCode: session.roomCode,
-				displayName: 'Henry',
-				role: 'Destination',
-				teamName: 'Outlook'
-			});
-
-			startGame({ roomCode: session.roomCode, facilitatorId });
-
-			// When
-			allocateResources({ roomCode: session.roomCode });
-
-			// Then
-			const updatedSession = getSession(session.roomCode);
-			expect(updatedSession?.shared_pool).toBe(150);
-		});
-	});
-
-	// ============================================================================
 	// CONFIGURATION VALIDATION
 	// ============================================================================
 
@@ -291,7 +249,6 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			expect(validation.config?.destination_budgets.Gmail).toBe(500);
 			expect(validation.config?.destination_budgets.Outlook).toBe(350);
 			expect(validation.config?.destination_budgets.Yahoo).toBe(200);
-			expect(validation.config?.shared_pool_credits).toBe(150);
 			expect(validation.config?.planning_phase_duration).toBe(300);
 		});
 
@@ -305,7 +262,6 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 					Outlook: 400,
 					Yahoo: 250
 				},
-				shared_pool_credits: 200,
 				planning_phase_duration: 300
 			};
 
@@ -365,7 +321,6 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 					Outlook: 350,
 					Yahoo: 200
 				},
-				shared_pool_credits: 150,
 				planning_phase_duration: 300
 			};
 

@@ -66,12 +66,11 @@ export function validateStatusToggle(
 
 	const currentState = team.client_states[clientId];
 
-	// Cannot toggle suspended clients
+	// US-2.7: Cannot toggle suspended clients - suspension is permanent
 	if (currentState.status === 'Suspended') {
 		return {
 			canToggle: false,
-			reason:
-				'Cannot toggle suspended client. The client is locked due to severe reputation damage.'
+			reason: 'Suspended clients cannot be reactivated'
 		};
 	}
 

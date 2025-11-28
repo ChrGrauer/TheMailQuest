@@ -227,37 +227,37 @@
 		if (messageType === 'lock_in_confirmed') {
 			// Only process if this message is for THIS destination
 			const isForThisDestination =
-				update.data?.role === 'Destination' &&
-				update.data?.destinationName?.toLowerCase() === destName.toLowerCase();
+				update.role === 'Destination' &&
+				update.destinationName?.toLowerCase() === destName.toLowerCase();
 
 			if (isForThisDestination) {
 				// This destination has successfully locked in
-				if (update.data?.locked_in !== undefined) {
-					lockInState.isLockedIn = update.data.locked_in;
+				if (update.locked_in !== undefined) {
+					lockInState.isLockedIn = update.locked_in;
 				}
-				if (update.data?.locked_in_at) {
-					lockInState.lockedInAt = new Date(update.data.locked_in_at);
+				if (update.locked_in_at) {
+					lockInState.lockedInAt = new Date(update.locked_in_at);
 				}
 			}
 		}
 
 		if (messageType === 'player_locked_in') {
 			// Any player locked in - update remaining count
-			if (update.data?.remaining_players !== undefined) {
-				lockInState.remainingPlayers = update.data.remaining_players;
+			if (update.remaining_players !== undefined) {
+				lockInState.remainingPlayers = update.remaining_players;
 			}
 		}
 
 		if (messageType === 'auto_lock_warning') {
 			// 15-second warning before auto-lock
-			if (update.data?.message) {
-				lockInState.autoLockMessage = update.data.message;
+			if (update.message) {
+				lockInState.autoLockMessage = update.message;
 			}
 		}
 
 		if (messageType === 'auto_lock_complete') {
 			// Auto-lock completed
-			lockInState.autoLockMessage = update.data?.message || "Time's up! Decisions locked automatically";
+			lockInState.autoLockMessage = update.message || "Time's up! Decisions locked automatically";
 		}
 
 		if (messageType === 'phase_transition') {

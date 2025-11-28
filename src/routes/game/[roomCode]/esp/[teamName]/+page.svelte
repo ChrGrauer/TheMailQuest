@@ -392,41 +392,41 @@
 		if (messageType === 'lock_in_confirmed') {
 			// Only process if this message is for THIS ESP team
 			const isForThisTeam =
-				data.data?.role === 'ESP' && data.data?.teamName?.toLowerCase() === teamName.toLowerCase();
+				data.role === 'ESP' && data.teamName?.toLowerCase() === teamName.toLowerCase();
 
 			if (isForThisTeam) {
 				// This team has successfully locked in
-				if (data.data?.locked_in !== undefined) {
-					lockInState.isLockedIn = data.data.locked_in;
+				if (data.locked_in !== undefined) {
+					lockInState.isLockedIn = data.locked_in;
 				}
-				if (data.data?.locked_in_at) {
-					lockInState.lockedInAt = new Date(data.data.locked_in_at);
+				if (data.locked_in_at) {
+					lockInState.lockedInAt = new Date(data.locked_in_at);
 				}
 			}
 		}
 
 		if (messageType === 'player_locked_in') {
 			// Any player locked in - update remaining count
-			if (data.data?.remaining_players !== undefined) {
-				lockInState.remainingPlayers = data.data.remaining_players;
+			if (data.remaining_players !== undefined) {
+				lockInState.remainingPlayers = data.remaining_players;
 			}
 		}
 
 		if (messageType === 'auto_lock_warning') {
 			// 15-second warning before auto-lock
-			if (data.data?.message) {
-				lockInState.autoLockMessage = data.data.message;
+			if (data.message) {
+				lockInState.autoLockMessage = data.message;
 			}
 		}
 
 		if (messageType === 'auto_lock_corrections') {
 			// Auto-correction feedback when onboarding options removed
 			// Only process if this message is for THIS ESP team
-			const isForThisTeam = data.data?.teamName?.toLowerCase() === teamName.toLowerCase();
+			const isForThisTeam = data.teamName?.toLowerCase() === teamName.toLowerCase();
 
-			if (isForThisTeam && data.data?.corrections) {
+			if (isForThisTeam && data.corrections) {
 				// Format corrections into user-friendly message
-				const corrections = data.data.corrections;
+				const corrections = data.corrections;
 				const details = corrections
 					.map((c: any) => {
 						const optionName = c.optionType === 'warmUp' ? 'warm-up' : 'list hygiene';
@@ -443,7 +443,7 @@
 			// Auto-lock completed (for players without corrections)
 			// Only set message if we don't already have a correction message
 			if (!lockInState.autoLockMessage || !lockInState.autoLockMessage.includes('removed')) {
-				lockInState.autoLockMessage = data.data?.message || "Time's up! Decisions locked automatically";
+				lockInState.autoLockMessage = data.message || "Time's up! Decisions locked automatically";
 			}
 		}
 

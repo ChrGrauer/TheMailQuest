@@ -106,8 +106,7 @@ describe('Client Portfolio Validator', () => {
 			const result = validateStatusToggle(team, 'client-001', 'Active');
 
 			expect(result.canToggle).toBe(false);
-			expect(result.reason).toContain('suspended');
-			expect(result.reason?.toLowerCase()).toContain('cannot');
+			expect(result.reason).toBe('Suspended clients cannot be reactivated');
 		});
 
 		it('should prevent toggle to Suspended status', () => {

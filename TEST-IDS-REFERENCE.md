@@ -296,6 +296,27 @@ This document catalogs all `data-testid` attributes used across the frontend for
 | `coordination-status` | `<div>` | Container for coordination status section |
 | `collaborations-count` | `<div>` | Count of active collaborations |
 
+### CoordinationPanelModal (US-2.7)
+**Location**: `src/lib/components/destination-dashboard/CoordinationPanelModal.svelte`
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `coordination-panel-modal` | `<div>` | Modal container |
+| `close-coordination-panel` | `<button>` | Close button |
+| `view-only-banner` | `<div>` | View-only mode notification (when locked in) |
+| `joint-investigation-section` | `<section>` | Joint investigation voting section |
+| `esp-target-{espName}` | `<div>` | ESP target card (espName lowercase, e.g., `esp-target-sendwave`) |
+| `vote-button-{espName}` | `<button>` | Vote button per ESP (lowercase, e.g., `vote-button-bluepost`) |
+| `vote-count-{espName}` | `<span>` | Vote count display (e.g., "1/3") per ESP |
+| `voters-{espName}` | `<span>` | List of voter names per ESP |
+| `investigation-cost-info` | `<div>` | Cost info display ("50 credits per voting destination") |
+| `budget-insufficient-message` | `<div>` | Warning when budget < 50 credits |
+| `pending-costs` | `<div>` | Pending investigation cost display (in dashboard header) |
+| `auto-correction-message` | `<div>` | Notification when vote auto-removed at lock-in |
+
+**Data Attributes:**
+- `data-selected="true|false"` on `esp-target-{espName}` - indicates current selection state
+
 ### DestinationToolCard
 **Location**: `src/lib/components/destination-dashboard/DestinationToolCard.svelte`
 
@@ -479,6 +500,8 @@ expect(getByTestId('budget-current')).toBeTruthy();
 | `section-reputation-changes` | `<section>` | Reputation changes section container |
 | `section-budget-update` | `<section>` | Budget update section container |
 | `section-alerts-notifications` | `<section>` | Alerts and notifications section container |
+| `investigation-message` | `<div>` | Investigation alert shown to investigated ESP (US-2.7) |
+| `client-status-{clientId}` | `<span>` | Client status badge by ID (shows "Suspended" when applicable) |
 
 ### DestinationConsequences Component
 **Location**: `src/lib/components/consequences/DestinationConsequences.svelte`
@@ -494,8 +517,13 @@ expect(getByTestId('budget-current')).toBeTruthy();
 | `false-positive-volume` | `<span>` | False positive volume metric |
 | `section-user-satisfaction` | `<section>` | User satisfaction section container |
 | `section-revenue-summary` | `<section>` | Revenue summary section container |
+| `revenue-earned` |  `<span>` | Revenue earned this round |
 | `section-budget-update` | `<section>` | Budget update section container |
 | `section-esp-behavior` | `<section>` | ESP behavior alerts section container |
+| `investigation-result-section` | `<section>` | Investigation results section (US-2.7) |
+| `investigation-target` | `<span>` | Name of investigated ESP |
+| `investigation-result-message` | `<p>` | Result message ("Bad practices found" or "No violations detected") |
+| `suspended-client-name` | `<span>` | Name of suspended client (if any) |
 
 ### Phase-Specific Screens
 **Location**: ESP and Destination dashboard pages

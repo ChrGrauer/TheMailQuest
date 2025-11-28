@@ -93,12 +93,10 @@ export const POST: RequestHandler = async ({ params }) => {
 	// Broadcast lock-in confirmation to the team
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'lock_in_confirmed',
-		data: {
-			teamName,
-			role: 'ESP',
-			locked_in: true,
-			locked_in_at: result.locked_in_at
-		}
+		teamName,
+		role: 'ESP',
+		locked_in: true,
+		locked_in_at: result.locked_in_at!
 	});
 
 	// Broadcast updated credits and cleared pending decisions
@@ -112,12 +110,10 @@ export const POST: RequestHandler = async ({ params }) => {
 	// Broadcast player_locked_in to all players in room
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'player_locked_in',
-		data: {
-			playerName: teamName,
-			role: 'ESP',
-			remaining_players: result.remaining_players,
-			all_locked: result.all_locked
-		}
+		playerName: teamName,
+		role: 'ESP',
+		remaining_players: result.remaining_players ?? 0,
+		all_locked: result.all_locked ?? false
 	});
 
 	// If all players locked, transition to resolution phase

@@ -78,6 +78,11 @@ export const GET: RequestHandler = async ({ params }) => {
 	// Calculate remaining players count (US-3.2)
 	const remainingPlayersCount = getRemainingPlayersCount(session);
 
+	// US-2.7: Get investigations targeting this team
+	const investigationsAgainstTeam = (session.investigation_history || []).filter(
+		(inv) => inv.targetEsp === team.name
+	);
+
 	// Prepare dashboard data
 	const dashboardData = {
 		success: true,
@@ -111,7 +116,8 @@ export const GET: RequestHandler = async ({ params }) => {
 		destinations: session.destinations.map((dest) => ({
 			name: dest.name,
 			weight: getDestinationWeight(dest.name)
-		}))
+		})),
+		investigationHistory: investigationsAgainstTeam // US-2.7: Investigations against this team
 	};
 
 	gameLogger.event('esp_dashboard_fetch_success', {

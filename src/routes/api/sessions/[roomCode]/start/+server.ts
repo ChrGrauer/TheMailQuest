@@ -128,8 +128,7 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 				.map((d) => ({
 					name: d.name,
 					budget: d.budget
-				})),
-			shared_pool: session.shared_pool || 0
+				}))
 		});
 
 		// Step 7: Broadcast game_state_update message

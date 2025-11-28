@@ -73,14 +73,12 @@ export const POST: RequestHandler = async ({ params }) => {
 
 				gameWss.broadcastToRoom(roomCode, {
 					type: 'auto_lock_corrections',
-					data: {
-						teamName,
-						corrections: corrections.map((c) => ({
-							clientName: c.clientName,
-							optionType: c.optionType,
-							costSaved: c.costSaved
-						}))
-					}
+					teamName,
+					corrections: corrections.map((c) => ({
+						clientName: c.clientName,
+						optionType: c.optionType,
+						costSaved: c.costSaved
+					}))
 				});
 			}
 		}
@@ -88,9 +86,7 @@ export const POST: RequestHandler = async ({ params }) => {
 		// Broadcast auto-lock completion to ALL players (for those without corrections)
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'auto_lock_complete',
-			data: {
-				message: "Time's up! Decisions locked automatically"
-			}
+			message: "Time's up! Decisions locked automatically"
 		});
 
 		gameLogger.info('Auto-lock completed - transitioning to resolution', { roomCode });
@@ -120,9 +116,11 @@ export const POST: RequestHandler = async ({ params }) => {
 		// Broadcast phase transition to all players
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'phase_transition',
-			phase: 'resolution',
-			round: transitionResult.round,
-			message: "Time's up! All decisions locked - Starting Resolution"
+			data: {
+				phase: 'resolution',
+				round: transitionResult.round,
+				message: "Time's up! All decisions locked - Starting Resolution"
+			}
 		});
 
 		// US-3.5: Trigger resolution calculation and consequences transition

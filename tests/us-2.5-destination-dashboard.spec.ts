@@ -255,35 +255,6 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 	});
 
 	// ============================================================================
-	// SECTION 4: COORDINATION STATUS DISPLAY
-	// ============================================================================
-
-	test.describe('Coordination Status', () => {
-		test('Scenario: Dashboard shows coordination status when no collaborations exist', async ({
-			page,
-			context
-		}) => {
-			// Given: I am logged in as a Destination player
-			// And: I have no active collaborations with other destinations
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
-				page,
-				context
-			);
-
-			// When: I view the Inter-Destination Coordination card
-			const coordCard = gmailPage.locator('[data-testid="coordination-status"]');
-			await expect(coordCard).toBeVisible({ timeout: 5000 });
-
-			// Then: I should see "Active Collaborations: 0"
-			const collabCount = coordCard.locator('[data-testid="collaborations-count"]');
-			await expect(collabCount).toContainText('0');
-
-			await closePages(page, gmailPage);
-			await closePages(page, alicePage, bobPage);
-		});
-	});
-
-	// ============================================================================
 	// SECTION 6: MULTI-PLAYER & DATA ISOLATION
 	// ============================================================================
 
