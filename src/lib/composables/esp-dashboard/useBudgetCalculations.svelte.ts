@@ -33,7 +33,9 @@ export interface BudgetCalculationsResult {
  * @param input Budget calculation inputs (reactive)
  * @returns Derived budget values
  */
-export function useBudgetCalculations(input: () => BudgetCalculationsInput): BudgetCalculationsResult {
+export function useBudgetCalculations(
+	input: () => BudgetCalculationsInput
+): BudgetCalculationsResult {
 	const { credits, pendingOnboardingDecisions } = $derived(input());
 
 	const totalPendingCosts = $derived.by(() => {

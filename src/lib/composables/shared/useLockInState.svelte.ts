@@ -50,7 +50,7 @@ export function useLockInState(): LockInStateResult {
 
 	function setLockedIn(locked: boolean, timestamp?: Date) {
 		isLockedIn = locked;
-		lockedInAt = locked ? (timestamp || new Date()) : null;
+		lockedInAt = locked ? timestamp || new Date() : null;
 	}
 
 	function setRemainingPlayers(count: number) {

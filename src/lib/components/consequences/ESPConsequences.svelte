@@ -453,8 +453,8 @@
 									data-testid="client-status-{investigation.result.suspendedClient.clientId}"
 									class="text-xs text-red-700 mt-1"
 								>
-									Status: <span class="font-semibold">Suspended</span> - This client will no
-									more generate volume or revenue.
+									Status: <span class="font-semibold">Suspended</span> - This client will no more generate
+									volume or revenue.
 								</p>
 							</div>
 						{/if}

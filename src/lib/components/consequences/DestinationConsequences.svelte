@@ -425,18 +425,17 @@
 						{#if participatedInvestigation.result.violationFound && participatedInvestigation.result.suspendedClient}
 							<div class="mt-3 p-3 bg-white/50 rounded border border-green-200">
 								<p class="text-sm font-medium text-green-900">
-									Client Suspended: <span
-										data-testid="suspended-client-name"
-										class="font-semibold"
+									Client Suspended: <span data-testid="suspended-client-name" class="font-semibold"
 										>{participatedInvestigation.result.suspendedClient.clientName}</span
 									>
 								</p>
 								<p class="text-xs text-green-700 mt-1">
 									Risk Level: {participatedInvestigation.result.suspendedClient.riskLevel} • Missing
-									Protection: {participatedInvestigation.result.suspendedClient.missingProtection ===
-									'both'
+									Protection: {participatedInvestigation.result.suspendedClient
+										.missingProtection === 'both'
 										? 'Warm-up & List Hygiene'
-										: participatedInvestigation.result.suspendedClient.missingProtection === 'warmup'
+										: participatedInvestigation.result.suspendedClient.missingProtection ===
+											  'warmup'
 											? 'Warm-up'
 											: 'List Hygiene'}
 								</p>

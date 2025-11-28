@@ -253,7 +253,12 @@ describe('Volume Calculator - Iteration 5: Risk Mitigation Services', () => {
 								}
 							],
 							spamTrapModifiers: [
-								{ id: 'list_hygiene', source: 'list_hygiene', multiplier: 0.6, applicableRounds: [1] }
+								{
+									id: 'list_hygiene',
+									source: 'list_hygiene',
+									multiplier: 0.6,
+									applicableRounds: [1]
+								}
 							]
 						}
 					},

@@ -179,13 +179,16 @@ export function lockInDestination(roomCode: string, destinationName: string): Lo
 			destination.pending_investigation_vote = undefined;
 			voteAutoRemoved = true;
 			getLogger().then((logger) => {
-				logger.info(`Auto-removed investigation vote for ${destination.name} - insufficient budget`, {
-					roomCode,
-					destinationName: destination.name,
-					removedVote: removedVoteTarget,
-					budget: destination.budget,
-					requiredBudget: INVESTIGATION_COST
-				});
+				logger.info(
+					`Auto-removed investigation vote for ${destination.name} - insufficient budget`,
+					{
+						roomCode,
+						destinationName: destination.name,
+						removedVote: removedVoteTarget,
+						budget: destination.budget,
+						requiredBudget: INVESTIGATION_COST
+					}
+				);
 			});
 		} else {
 			// Some other validation error - return error
@@ -594,13 +597,16 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 					voteRemoved = true;
 
 					getLogger().then((logger) => {
-						logger.info(`Auto-removed investigation vote for ${destination.name} - insufficient budget`, {
-							roomCode,
-							destinationName: destination.name,
-							removedVote,
-							budget: destination.budget,
-							requiredBudget: INVESTIGATION_COST
-						});
+						logger.info(
+							`Auto-removed investigation vote for ${destination.name} - insufficient budget`,
+							{
+								roomCode,
+								destinationName: destination.name,
+								removedVote,
+								budget: destination.budget,
+								requiredBudget: INVESTIGATION_COST
+							}
+						);
 					});
 				}
 				// Note: Cost NOT charged here - will be charged at resolution if investigation triggers
@@ -634,10 +640,13 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 
 			getLogger().then((logger) => {
 				if (voteRemoved) {
-					logger.info(`Auto-locked player: ${destination.name} (vote removed - insufficient budget)`, {
-						roomCode,
-						destinationName: destination.name
-					});
+					logger.info(
+						`Auto-locked player: ${destination.name} (vote removed - insufficient budget)`,
+						{
+							roomCode,
+							destinationName: destination.name
+						}
+					);
 				} else {
 					logger.info(`Auto-locked player: ${destination.name} (valid)`, {
 						roomCode,

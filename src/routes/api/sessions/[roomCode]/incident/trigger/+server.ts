@@ -132,8 +132,7 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 					rarity: incident.rarity,
 					duration: incident.duration,
 					displayDurationMs: 10000,
-					affectedTeam:
-						incident.choiceConfig.targetSelection === 'all_esps' ? null : targetTeams[0]
+					affectedTeam: incident.choiceConfig.targetSelection === 'all_esps' ? null : targetTeams[0]
 				}
 			});
 

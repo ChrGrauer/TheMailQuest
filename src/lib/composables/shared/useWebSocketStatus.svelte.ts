@@ -58,7 +58,7 @@ export function useWebSocketStatus(
 
 	function setTestStatus(connectedValue: boolean, errorMsg?: string) {
 		testConnected = connectedValue;
-		testError = connectedValue ? null : (errorMsg || 'Connection lost');
+		testError = connectedValue ? null : errorMsg || 'Connection lost';
 	}
 
 	function clearTestStatus() {

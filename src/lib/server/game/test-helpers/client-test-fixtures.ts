@@ -120,7 +120,8 @@ export function buildVolumeResult(
 	}));
 
 	// Calculate total volume if not provided
-	const total = totalVolume ?? clientVolumesWithDest.reduce((sum, cv) => sum + cv.adjustedVolume, 0);
+	const total =
+		totalVolume ?? clientVolumesWithDest.reduce((sum, cv) => sum + cv.adjustedVolume, 0);
 
 	// Aggregate per-destination volumes
 	const perDestination = {

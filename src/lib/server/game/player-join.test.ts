@@ -604,26 +604,23 @@ describe('Feature: Join Game Session - Business Logic', () => {
 		test.each([
 			['ESP', 'InvalidTeam', 'Alice', 'non-existent ESP team'],
 			['Destination', 'InvalidDestination', 'Bob', 'non-existent destination']
-		])(
-			'rejects %s role with invalid team "%s" (%s)',
-			(role, teamName, displayName, _desc) => {
-				// Given
-				const session = createGameSession();
-				const request: JoinGameRequest = {
-					roomCode: session.roomCode,
-					displayName,
-					role: role as 'ESP' | 'Destination',
-					teamName
-				};
+		])('rejects %s role with invalid team "%s" (%s)', (role, teamName, displayName, _desc) => {
+			// Given
+			const session = createGameSession();
+			const request: JoinGameRequest = {
+				roomCode: session.roomCode,
+				displayName,
+				role: role as 'ESP' | 'Destination',
+				teamName
+			};
 
-				// When
-				const result = joinGame(request);
+			// When
+			const result = joinGame(request);
 
-				// Then
-				expect(result.success).toBe(false);
-				expect(result.error).toBe('Invalid team name');
-			}
-		);
+			// Then
+			expect(result.success).toBe(false);
+			expect(result.error).toBe('Invalid team name');
+		});
 	});
 
 	// ============================================================================

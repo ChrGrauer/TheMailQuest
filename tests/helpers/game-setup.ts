@@ -500,7 +500,15 @@ export async function createGameWith3DestinationsAnd3ESPs(
 		{ timeout: 10000 }
 	);
 
-	return { roomCode, sendWavePage, mailMonkeyPage, bluePostPage, gmailPage, outlookPage, yahooPage };
+	return {
+		roomCode,
+		sendWavePage,
+		mailMonkeyPage,
+		bluePostPage,
+		gmailPage,
+		outlookPage,
+		yahooPage
+	};
 }
 
 /**

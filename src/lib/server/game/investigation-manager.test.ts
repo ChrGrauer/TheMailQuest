@@ -657,9 +657,24 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			];
 			bluePostTeam.active_clients = ['client-bad', 'client-worse', 'client-worst'];
 			bluePostTeam.client_states = {
-				'client-bad': { status: 'Active', first_active_round: 1, volumeModifiers: [], spamTrapModifiers: [] },
-				'client-worse': { status: 'Active', first_active_round: 1, volumeModifiers: [], spamTrapModifiers: [] },
-				'client-worst': { status: 'Active', first_active_round: 1, volumeModifiers: [], spamTrapModifiers: [] }
+				'client-bad': {
+					status: 'Active',
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
+				},
+				'client-worse': {
+					status: 'Active',
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
+				},
+				'client-worst': {
+					status: 'Active',
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
+				}
 			};
 
 			// When
@@ -716,9 +731,24 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			];
 			bluePostTeam.active_clients = ['client-paused', 'client-suspended', 'client-safe'];
 			bluePostTeam.client_states = {
-				'client-paused': { status: 'Paused', first_active_round: 1, volumeModifiers: [], spamTrapModifiers: [] },
-				'client-suspended': { status: 'Suspended', first_active_round: 1, volumeModifiers: [], spamTrapModifiers: [] },
-				'client-safe': { status: 'Active', first_active_round: 1, volumeModifiers: [], spamTrapModifiers: [] }
+				'client-paused': {
+					status: 'Paused',
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
+				},
+				'client-suspended': {
+					status: 'Suspended',
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
+				},
+				'client-safe': {
+					status: 'Active',
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
+				}
 			};
 
 			// When
@@ -875,7 +905,12 @@ async function createGameWithESPClient(config: ClientConfig) {
 	bluePostTeam.available_clients = [testClient as any];
 	bluePostTeam.active_clients = ['test-client-1'];
 	bluePostTeam.client_states = {
-		'test-client-1': { status: 'Active', first_active_round: 1, volumeModifiers: [], spamTrapModifiers: [] }
+		'test-client-1': {
+			status: 'Active',
+			first_active_round: 1,
+			volumeModifiers: [],
+			spamTrapModifiers: []
+		}
 	};
 
 	return { session, gmailDest, bluePostTeam };

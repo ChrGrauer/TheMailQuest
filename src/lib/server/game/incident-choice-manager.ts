@@ -10,7 +10,11 @@
  */
 
 import type { GameSession, ESPTeam } from './types';
-import type { IncidentCard, TeamSelectionCriteria, IncidentChoiceOption } from '$lib/types/incident';
+import type {
+	IncidentCard,
+	TeamSelectionCriteria,
+	IncidentChoiceOption
+} from '$lib/types/incident';
 
 /**
  * Calculate average reputation across all destinations for a team
@@ -141,9 +145,7 @@ export function initiatePendingChoices(
 
 	// Set pending choice for each target team
 	for (const teamName of targetTeams) {
-		const team = session.esp_teams.find(
-			(t) => t.name.toLowerCase() === teamName.toLowerCase()
-		);
+		const team = session.esp_teams.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
 		if (team) {
 			team.pending_incident_choice = {
 				incidentId: incident.id,
@@ -171,9 +173,7 @@ export function confirmAndApplyChoice(
 	choiceId: string
 ): { success: boolean; error?: string; appliedEffects?: Array<{ type: string; value?: number }> } {
 	// Find team
-	const team = session.esp_teams.find(
-		(t) => t.name.toLowerCase() === teamName.toLowerCase()
-	);
+	const team = session.esp_teams.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
 	if (!team) {
 		return { success: false, error: `Team ${teamName} not found` };
 	}
@@ -239,7 +239,13 @@ export function setPendingChoice(
 export function applyPendingChoiceEffects(
 	session: GameSession,
 	team: ESPTeam
-): { success: boolean; error?: string; applied: boolean; choiceId?: string; effectsApplied?: Array<{ type: string; value?: number }> } {
+): {
+	success: boolean;
+	error?: string;
+	applied: boolean;
+	choiceId?: string;
+	effectsApplied?: Array<{ type: string; value?: number }>;
+} {
 	// Check team has pending choice
 	if (!team.pending_incident_choice) {
 		return { success: false, error: `Team ${team.name} has no pending choice`, applied: false };
@@ -247,7 +253,11 @@ export function applyPendingChoiceEffects(
 
 	// Check choice is confirmed
 	if (!team.pending_incident_choice.confirmed) {
-		return { success: false, error: `Choice for team ${team.name} is not confirmed`, applied: false };
+		return {
+			success: false,
+			error: `Choice for team ${team.name} is not confirmed`,
+			applied: false
+		};
 	}
 
 	const { choiceId, options, effectsApplied: alreadyApplied } = team.pending_incident_choice;

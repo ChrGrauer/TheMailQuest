@@ -243,11 +243,12 @@ async function handleInvestigation(
 						clientId: investigationResult.suspendedClient.id,
 						clientName: investigationResult.suspendedClient.name,
 						riskLevel: investigationResult.suspendedClient.riskLevel as 'Low' | 'Medium' | 'High',
-						missingProtection: investigationResult.suspendedClient.missingProtection === 'warmUp'
-							? 'warmup'
-							: investigationResult.suspendedClient.missingProtection === 'listHygiene'
-								? 'list_hygiene'
-								: 'both',
+						missingProtection:
+							investigationResult.suspendedClient.missingProtection === 'warmUp'
+								? 'warmup'
+								: investigationResult.suspendedClient.missingProtection === 'listHygiene'
+									? 'list_hygiene'
+									: 'both',
 						spamRate: investigationResult.suspendedClient.spamRate
 					}
 				: undefined

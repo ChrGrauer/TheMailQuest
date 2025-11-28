@@ -65,9 +65,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		}
 
 		// 4. Find the team (case-insensitive comparison)
-		const team = session.esp_teams.find(
-			(t) => t.name.toLowerCase() === teamName.toLowerCase()
-		);
+		const team = session.esp_teams.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
 		if (!team) {
 			logger.warn({
 				action: 'incident_choice_team_not_found',

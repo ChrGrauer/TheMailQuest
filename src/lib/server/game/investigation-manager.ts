@@ -333,9 +333,7 @@ export function runInvestigation(params: RunInvestigationParams): InvestigationR
 	}
 
 	// Find ESP team
-	const espTeam = session.esp_teams.find(
-		(e) => e.name.toLowerCase() === targetEsp.toLowerCase()
-	);
+	const espTeam = session.esp_teams.find((e) => e.name.toLowerCase() === targetEsp.toLowerCase());
 	if (!espTeam) {
 		return {
 			violationFound: false,
@@ -346,10 +344,7 @@ export function runInvestigation(params: RunInvestigationParams): InvestigationR
 	// Get active clients only (not paused or suspended)
 	const activeClients = espTeam.available_clients.filter((client) => {
 		const state = espTeam.client_states?.[client.id];
-		return (
-			espTeam.active_clients.includes(client.id) &&
-			state?.status === 'Active'
-		);
+		return espTeam.active_clients.includes(client.id) && state?.status === 'Active';
 	});
 
 	// Find HIGH-risk clients with violations (missing warmup OR listHygiene)

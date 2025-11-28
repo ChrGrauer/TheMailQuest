@@ -12,7 +12,12 @@
 
 import { test, expect } from './fixtures';
 import type { Page } from '@playwright/test';
-import { createTestSession, addPlayer, closePages, createGameWithDestinationPlayer } from './helpers';
+import {
+	createTestSession,
+	addPlayer,
+	closePages,
+	createGameWithDestinationPlayer
+} from './helpers';
 import { lockInAllPlayers } from './helpers';
 
 test.describe('US-3.5: Destination Consequences Screen', () => {

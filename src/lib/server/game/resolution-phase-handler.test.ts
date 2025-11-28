@@ -306,9 +306,9 @@ describe('Resolution Phase Handler', () => {
 			await vi.runAllTimersAsync();
 
 			// Should not have esp_dashboard_update broadcasts (only phase_transition)
-			const espDashboardCalls = vi.mocked(mockBroadcast).mock.calls.filter(
-				(call) => call[1].type === 'esp_dashboard_update'
-			);
+			const espDashboardCalls = vi
+				.mocked(mockBroadcast)
+				.mock.calls.filter((call) => call[1].type === 'esp_dashboard_update');
 			expect(espDashboardCalls).toHaveLength(0);
 		});
 
@@ -391,9 +391,9 @@ describe('Resolution Phase Handler', () => {
 
 			await vi.runAllTimersAsync();
 
-			const phaseTransitionCalls = vi.mocked(mockBroadcast).mock.calls.filter(
-				(call) => call[1].type === 'phase_transition'
-			);
+			const phaseTransitionCalls = vi
+				.mocked(mockBroadcast)
+				.mock.calls.filter((call) => call[1].type === 'phase_transition');
 			expect(phaseTransitionCalls).toHaveLength(0);
 		});
 	});

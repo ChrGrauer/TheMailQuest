@@ -25,7 +25,11 @@ import {
 	triggerIncident,
 	advanceToRound
 } from './helpers/e2e-actions';
-import { getAvailableClients, acquireClient, configureOnboarding } from './helpers/client-management';
+import {
+	getAvailableClients,
+	acquireClient,
+	configureOnboarding
+} from './helpers/client-management';
 
 // Increase timeout for these complex multi-player tests (default is 20s)
 test.setTimeout(40000);

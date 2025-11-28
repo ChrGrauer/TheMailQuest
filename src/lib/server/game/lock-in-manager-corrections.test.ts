@@ -37,10 +37,7 @@ import {
 } from './lock-in-manager';
 
 // US-2.7: Investigation manager
-import {
-	castInvestigationVote,
-	INVESTIGATION_COST
-} from './investigation-manager';
+import { castInvestigationVote, INVESTIGATION_COST } from './investigation-manager';
 
 describe('Feature: Decision Lock-In - Business Logic', () => {
 	beforeEach(() => {

@@ -11,7 +11,12 @@
 import { test, expect, type Page } from './fixtures';
 import { createGameWith3DestinationsAnd3ESPs, closePages } from './helpers/game-setup';
 import { lockInAllPlayers, extractBudget } from './helpers/e2e-actions';
-import { getAvailableClients, acquireClient, configureOnboarding, getPortfolio } from './helpers/client-management';
+import {
+	getAvailableClients,
+	acquireClient,
+	configureOnboarding,
+	getPortfolio
+} from './helpers/client-management';
 
 // ============================================================================
 // API HELPERS (for non-UI sections where API is faster/cleaner)
@@ -432,7 +437,14 @@ test.describe('US-2.7: Coordination Panel', () => {
 			await acquireClient(bluePostPage, roomCode, 'BluePost', reEngagementClient.id);
 
 			// Configure without warmup (violation condition for HIGH-risk)
-			await configureOnboarding(bluePostPage, roomCode, 'BluePost', reEngagementClient.id, false, false);
+			await configureOnboarding(
+				bluePostPage,
+				roomCode,
+				'BluePost',
+				reEngagementClient.id,
+				false,
+				false
+			);
 			await bluePostPage.waitForTimeout(500);
 
 			// And: Gmail and Outlook vote to investigate BluePost (2/3 threshold met)
@@ -477,7 +489,7 @@ test.describe('US-2.7: Coordination Panel', () => {
 
 			// Then: the client should appear as suspended in BluePost's portfolio
 			const portfolio = await getPortfolio(bluePostPage, roomCode, 'BluePost');
-			
+
 			// Then: Client status is suspended
 			expect(portfolio.team.client_states[reEngagementClient.id].status).toBe('Suspended');
 		});
@@ -756,9 +768,7 @@ test.describe('US-2.7: Coordination Panel', () => {
 			);
 
 			// And: SendWave (not investigated) should NOT see investigation message
-			await expect(
-				sendWavePage.locator('[data-testid="investigation-message"]')
-			).not.toBeVisible();
+			await expect(sendWavePage.locator('[data-testid="investigation-message"]')).not.toBeVisible();
 		});
 	});
 

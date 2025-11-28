@@ -22,7 +22,10 @@
 		options: IncidentChoiceOption[];
 		roomCode: string;
 		teamName: string;
-		onConfirmed?: (choiceId: string, appliedEffects: Array<{ type: string; value?: number }>) => void;
+		onConfirmed?: (
+			choiceId: string,
+			appliedEffects: Array<{ type: string; value?: number }>
+		) => void;
 	}
 
 	let {
@@ -88,7 +91,9 @@
 	}
 
 	// Get effect preview text
-	function getEffectPreview(effects: Array<{ target: string; type: string; value?: number }>): string[] {
+	function getEffectPreview(
+		effects: Array<{ target: string; type: string; value?: number }>
+	): string[] {
 		return effects.map((effect) => {
 			const value = effect.value ?? 0;
 			const sign = value >= 0 ? '+' : '';
@@ -234,7 +239,10 @@
 									{/if}
 									<!-- Effect Preview -->
 									{#if option.effects.length > 0}
-										<div class="mt-2 flex flex-wrap gap-2" data-testid="incident-choice-effect-preview">
+										<div
+											class="mt-2 flex flex-wrap gap-2"
+											data-testid="incident-choice-effect-preview"
+										>
 											{#each getEffectPreview(option.effects) as effect}
 												<span
 													class="text-xs px-2 py-1 rounded-full {effect.startsWith('+')
@@ -284,13 +292,14 @@
 			<div class="px-6 py-4 bg-gray-50 rounded-b-xl border-t border-gray-200">
 				<div class="flex items-center justify-between">
 					{#if confirmed}
-						<p class="text-sm text-emerald-600 font-semibold" data-testid="incident-choice-confirmed-badge">
+						<p
+							class="text-sm text-emerald-600 font-semibold"
+							data-testid="incident-choice-confirmed-badge"
+						>
 							Choice confirmed! Effects applied.
 						</p>
 					{:else}
-						<p class="text-sm text-amber-600">
-							You must confirm a choice to continue.
-						</p>
+						<p class="text-sm text-amber-600">You must confirm a choice to continue.</p>
 					{/if}
 
 					<button

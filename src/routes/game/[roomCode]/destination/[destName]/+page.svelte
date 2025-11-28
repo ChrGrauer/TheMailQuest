@@ -40,7 +40,10 @@
 	import type { InvestigationHistoryEntry, InvestigationResult } from '$lib/server/game/types';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 	// Composables
-	import { useDestinationModals, useDestinationIncident } from '$lib/composables/destination-dashboard';
+	import {
+		useDestinationModals,
+		useDestinationIncident
+	} from '$lib/composables/destination-dashboard';
 	import { useGameState, useWebSocketStatus, useLockInState } from '$lib/composables/shared';
 	// Config
 	import { INVESTIGATION_COST } from '$lib/config/investigation';
@@ -112,9 +115,7 @@
 	);
 
 	// ESP teams data for Coordination Panel modal (US-2.7)
-	let espTeamsForCoordination = $derived(
-		espStats.map((esp) => ({ name: esp.espName }))
-	);
+	let espTeamsForCoordination = $derived(espStats.map((esp) => ({ name: esp.espName })));
 
 	// Available budget accounting for pending investigation vote (US-2.7)
 	let availableBudget = $derived(myInvestigationVote ? budget - INVESTIGATION_COST : budget);
@@ -202,7 +203,8 @@
 		if (update.type === 'investigation_vote_update') {
 			investigationVotes = update.votes || {};
 			// Update myVote based on the votes
-			const destNameCapitalized = destinationName || destName.charAt(0).toUpperCase() + destName.slice(1).toLowerCase();
+			const destNameCapitalized =
+				destinationName || destName.charAt(0).toUpperCase() + destName.slice(1).toLowerCase();
 			for (const [espName, voters] of Object.entries(investigationVotes)) {
 				if ((voters as string[]).includes(destNameCapitalized)) {
 					myInvestigationVote = espName;

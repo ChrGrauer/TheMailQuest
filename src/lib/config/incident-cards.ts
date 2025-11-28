@@ -363,8 +363,7 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 				{
 					id: 'accept',
 					label: 'Accept Reset',
-					description:
-						'Pay 500 credits to reset your reputation to 70 across all destinations.',
+					description: 'Pay 500 credits to reset your reputation to 70 across all destinations.',
 					effects: [
 						{ target: 'self', type: 'credits', value: -500 },
 						{ target: 'self', type: 'reputation_set', value: 70 }

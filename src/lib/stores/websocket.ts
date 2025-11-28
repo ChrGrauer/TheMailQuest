@@ -170,7 +170,9 @@ function createWebSocketStore() {
 							case 'destination_dashboard_update':
 								// US-2.5: Destination Dashboard real-time updates
 								if (destinationDashboardUpdateCallback) {
-									destinationDashboardUpdateCallback(message as unknown as DestinationDashboardUpdate);
+									destinationDashboardUpdateCallback(
+										message as unknown as DestinationDashboardUpdate
+									);
 								}
 								break;
 

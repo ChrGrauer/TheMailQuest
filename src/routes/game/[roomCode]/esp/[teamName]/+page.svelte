@@ -37,7 +37,11 @@
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 	import IncidentChoiceModal from '$lib/components/incident/IncidentChoiceModal.svelte';
 	// Composables
-	import { useModalManager, useLockInState, useIncidentState } from '$lib/composables/esp-dashboard';
+	import {
+		useModalManager,
+		useLockInState,
+		useIncidentState
+	} from '$lib/composables/esp-dashboard';
 	import { useGameState, useWebSocketStatus } from '$lib/composables/shared';
 
 	// Get params from page store
@@ -336,9 +340,7 @@
 		if (data.type === 'incident_choice_required') {
 			// Check if this team is a target for this choice
 			const targetTeams = data.targetTeams || [];
-			const isTarget = targetTeams.some(
-				(t: string) => t.toLowerCase() === teamName.toLowerCase()
-			);
+			const isTarget = targetTeams.some((t: string) => t.toLowerCase() === teamName.toLowerCase());
 
 			if (isTarget) {
 				incidentState.showChoice({
@@ -821,7 +823,11 @@
 			<!-- Full-width Sections -->
 			<div class="space-y-6 mb-6">
 				<!-- Technical Infrastructure -->
-				<TechnicalInfrastructure {ownedTech} currentRound={gameState.currentRound} onTechShopClick={handleTechShopClick} />
+				<TechnicalInfrastructure
+					{ownedTech}
+					currentRound={gameState.currentRound}
+					onTechShopClick={handleTechShopClick}
+				/>
 
 				<!-- Client Portfolio -->
 				<ClientPortfolio

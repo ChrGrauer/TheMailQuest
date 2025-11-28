@@ -4,10 +4,7 @@
  * Re-exports all shared composables and utilities.
  */
 
-export {
-	calculateOverallReputation,
-	type Destination
-} from './useReputationCalculator';
+export { calculateOverallReputation, type Destination } from './useReputationCalculator';
 
 export {
 	useGameState,
@@ -22,13 +19,6 @@ export {
 	type WebSocketStatusInput
 } from './useWebSocketStatus.svelte';
 
-export {
-	formatTimerDisplay,
-	getTimerUrgency,
-	getTimerColorClass
-} from './useTimerDisplay';
+export { formatTimerDisplay, getTimerUrgency, getTimerColorClass } from './useTimerDisplay';
 
-export {
-	useLockInState,
-	type LockInStateResult
-} from './useLockInState.svelte';
+export { useLockInState, type LockInStateResult } from './useLockInState.svelte';

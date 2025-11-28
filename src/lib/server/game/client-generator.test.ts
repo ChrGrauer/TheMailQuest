@@ -158,7 +158,12 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 		const destinations = ['Gmail', 'Outlook', 'Yahoo'];
 
 		test.each([
-			[1, ['growing_startup', 're_engagement', 'event_seasonal'], 9, 'Round 1 (Growing, Re-engagement, Event)'],
+			[
+				1,
+				['growing_startup', 're_engagement', 'event_seasonal'],
+				9,
+				'Round 1 (Growing, Re-engagement, Event)'
+			],
 			[2, ['aggressive_marketer'], 2, 'Round 2 (Aggressive)'],
 			[3, ['premium_brand'], 2, 'Round 3 (Premium)']
 		])(
