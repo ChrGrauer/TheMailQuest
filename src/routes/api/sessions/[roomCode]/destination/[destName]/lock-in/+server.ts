@@ -1,5 +1,5 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { lockInDestination, checkAllPlayersLockedIn } from '$lib/server/game/lock-in-manager';
+import { lockInDestination } from '$lib/server/game/lock-in-manager';
 import { getSession } from '$lib/server/game/session-manager';
 import { transitionPhase } from '$lib/server/game/phase-manager';
 import { handleResolutionPhase } from '$lib/server/game/resolution-phase-handler';
@@ -94,23 +94,19 @@ export const POST: RequestHandler = async ({ params }) => {
 	// Broadcast lock-in confirmation to the destination
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'lock_in_confirmed',
-		data: {
-			destinationName: destName,
-			role: 'Destination',
-			locked_in: true,
-			locked_in_at: result.locked_in_at
-		}
+		destinationName: destName,
+		role: 'Destination',
+		locked_in: true,
+		locked_in_at: result.locked_in_at!
 	});
 
 	// Broadcast player_locked_in to all players in room
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'player_locked_in',
-		data: {
-			playerName: destName,
-			role: 'Destination',
-			remaining_players: result.remaining_players,
-			all_locked: result.all_locked
-		}
+		playerName: destName,
+		role: 'Destination',
+		remaining_players: result.remaining_players ?? 0,
+		all_locked: result.all_locked ?? false
 	});
 
 	// If all players locked, transition to resolution phase
@@ -129,14 +125,14 @@ export const POST: RequestHandler = async ({ params }) => {
 				type: 'phase_transition',
 				data: {
 					phase: 'resolution',
-					round: transitionResult.round,
+					round: transitionResult.round ?? session.current_round,
 					message: 'All players locked in - Starting Resolution'
 				}
 			});
 
 			// US-3.5: Trigger resolution calculation and consequences transition
 			handleResolutionPhase(session, roomCode, (roomCode, message) => {
-				gameWss.broadcastToRoom(roomCode, message);
+				gameWss.broadcastToRoom(roomCode, message as any);
 			});
 		}
 	}
@@ -146,6 +142,9 @@ export const POST: RequestHandler = async ({ params }) => {
 		locked_in: true,
 		locked_in_at: result.locked_in_at,
 		remaining_players: result.remaining_players,
-		all_locked: result.all_locked
+		all_locked: result.all_locked,
+		// US-2.7: Vote auto-removal info
+		vote_auto_removed: result.vote_auto_removed,
+		removed_vote_target: result.removed_vote_target
 	});
 };

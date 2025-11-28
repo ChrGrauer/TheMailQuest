@@ -459,6 +459,51 @@ export async function createGameWith5ESPTeams(
 }
 
 /**
+ * Create a game with 3 destination players and ESP teams
+ * Used for coordination panel/investigation voting tests (needs 3 destinations for 2/3 threshold)
+ * Gmail, Outlook, Yahoo destinations + SendWave, MailMonkey, BluePost ESPs
+ */
+export async function createGameWith3DestinationsAnd3ESPs(
+	facilitatorPage: Page,
+	context: BrowserContext
+): Promise<{
+	roomCode: string;
+	sendWavePage: Page;
+	mailMonkeyPage: Page;
+	bluePostPage: Page;
+	gmailPage: Page;
+	outlookPage: Page;
+	yahooPage: Page;
+}> {
+	const roomCode = await createTestSession(facilitatorPage);
+	const sendWavePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+	const mailMonkeyPage = await addPlayer(context, roomCode, 'Bob', 'ESP', 'MailMonkey');
+	const bluePostPage = await addPlayer(context, roomCode, 'Charlie', 'ESP', 'BluePost');
+	const gmailPage = await addPlayer(context, roomCode, 'Grace', 'Destination', 'Gmail');
+	const outlookPage = await addPlayer(context, roomCode, 'Henry', 'Destination', 'Outlook');
+	const yahooPage = await addPlayer(context, roomCode, 'Iris', 'Destination', 'Yahoo');
+	await facilitatorPage.waitForTimeout(500);
+
+	// Start game
+	const startGameButton = facilitatorPage.getByRole('button', { name: /start game/i });
+	await startGameButton.click();
+
+	// Wait for all destination players to be redirected to their dashboards
+	await gmailPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });
+	await outlookPage.waitForURL(`/game/${roomCode}/destination/outlook`, { timeout: 10000 });
+	await yahooPage.waitForURL(`/game/${roomCode}/destination/yahoo`, { timeout: 10000 });
+
+	// Wait for destination dashboards to be ready
+	await gmailPage.waitForFunction(
+		() => (window as any).__destinationDashboardTest?.ready === true,
+		{},
+		{ timeout: 10000 }
+	);
+
+	return { roomCode, sendWavePage, mailMonkeyPage, bluePostPage, gmailPage, outlookPage, yahooPage };
+}
+
+/**
  * Create a game with 3 ESP teams and destination player
  * Alice=SendWave, Bob=MailMonkey, Charlie=BluePost, Gmail=Destination
  */

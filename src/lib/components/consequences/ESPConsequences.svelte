@@ -12,6 +12,7 @@
 	 */
 
 	import type { ESPResolutionResult } from '$lib/server/game/resolution-types';
+	import type { InvestigationHistoryEntry } from '$lib/server/game/types';
 
 	interface Props {
 		teamName: string;
@@ -19,10 +20,17 @@
 		currentRound: number;
 		currentCredits: number;
 		autoCorrectionMessage?: string | null;
+		investigation?: InvestigationHistoryEntry; // US-2.7: Investigation against this team
 	}
 
-	let { teamName, resolutionData, currentRound, currentCredits, autoCorrectionMessage }: Props =
-		$props();
+	let {
+		teamName,
+		resolutionData,
+		currentRound,
+		currentCredits,
+		autoCorrectionMessage,
+		investigation
+	}: Props = $props();
 
 	// Calculate starting budget (before revenue was added)
 	// currentCredits already includes the revenue, so we subtract it to get the starting value
@@ -388,7 +396,73 @@
 				<p class="text-xs text-gray-500 mt-4 italic">Budget has been updated for the next round.</p>
 			</section>
 
-			<!-- Section 6: Alerts & Notifications -->
+			<!-- Section 6: Investigation Penalty (US-2.7) -->
+			{#if investigation}
+				<section
+					data-testid="section-investigation-penalty"
+					class="bg-white rounded-xl shadow-md p-6 lg:col-span-2"
+				>
+					<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-red-500 pb-2">
+						Investigation Result
+					</h3>
+
+					<div
+						data-testid="investigation-penalty-card"
+						class="p-4 rounded-lg border-l-4"
+						class:bg-red-50={investigation.result.violationFound}
+						class:border-red-500={investigation.result.violationFound}
+						class:bg-yellow-50={!investigation.result.violationFound}
+						class:border-yellow-500={!investigation.result.violationFound}
+					>
+						<div class="flex items-start justify-between">
+							<div>
+								<p data-testid="investigation-message" class="font-semibold text-gray-900">
+									Investigation launched against you
+								</p>
+								<p class="text-sm text-gray-600 mt-1">
+									Initiated by: {investigation.voters.join(', ')}
+								</p>
+							</div>
+							<span
+								class="px-3 py-1 text-xs font-semibold rounded"
+								class:bg-red-200={investigation.result.violationFound}
+								class:text-red-800={investigation.result.violationFound}
+								class:bg-yellow-200={!investigation.result.violationFound}
+								class:text-yellow-800={!investigation.result.violationFound}
+							>
+								{investigation.result.violationFound ? 'Violation Found' : 'No Violation'}
+							</span>
+						</div>
+
+						<p
+							class="mt-3 text-sm"
+							class:text-red-700={investigation.result.violationFound}
+							class:text-yellow-700={!investigation.result.violationFound}
+						>
+							{investigation.result.message}
+						</p>
+
+						{#if investigation.result.violationFound && investigation.result.suspendedClient}
+							<div class="mt-3 p-3 bg-white/50 rounded border border-red-200">
+								<p class="text-sm font-medium text-red-900">
+									Client Suspended: <span class="font-semibold"
+										>{investigation.result.suspendedClient.clientName}</span
+									>
+								</p>
+								<p
+									data-testid="client-status-{investigation.result.suspendedClient.clientId}"
+									class="text-xs text-red-700 mt-1"
+								>
+									Status: <span class="font-semibold">Suspended</span> - This client will no
+									more generate volume or revenue.
+								</p>
+							</div>
+						{/if}
+					</div>
+				</section>
+			{/if}
+
+			<!-- Section 7: Alerts & Notifications -->
 			<section
 				data-testid="section-alerts-notifications"
 				class="bg-white rounded-xl shadow-md p-6 lg:col-span-2"

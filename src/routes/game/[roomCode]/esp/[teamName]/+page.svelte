@@ -33,6 +33,7 @@
 	import type { ESPResolutionResult } from '$lib/server/game/resolution-types';
 	import type { FinalScoreOutput } from '$lib/server/game/final-score-types';
 	import type { IncidentCard, IncidentChoiceOption } from '$lib/types/incident';
+	import type { InvestigationHistoryEntry } from '$lib/server/game/types';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 	import IncidentChoiceModal from '$lib/components/incident/IncidentChoiceModal.svelte';
 	// Composables
@@ -95,6 +96,14 @@
 
 	// US-5.2: Final scores state
 	let finalScores = $state<FinalScoreOutput | null>(null);
+
+	// US-2.7: Investigation history (investigations against this team)
+	let investigationHistory = $state<InvestigationHistoryEntry[]>([]);
+
+	// US-2.7: Get current round's investigation against this team
+	let currentRoundInvestigation = $derived(
+		investigationHistory.find((inv) => inv.round === gameState.currentRound)
+	);
 
 	// WebSocket status (via composable with test override support)
 	const wsStatus = useWebSocketStatus(() => ({
@@ -180,6 +189,27 @@
 			// Update destinations
 			if (data.destinations) {
 				destinations = data.destinations;
+			}
+
+			// US-2.7: Update investigation history
+			if (data.investigationHistory) {
+				investigationHistory = data.investigationHistory;
+			}
+
+			// US-3.5: Extract resolution results for consequences display (on page refresh)
+			if (data.game.resolution_history && data.game.current_round) {
+				const currentRoundEntry = data.game.resolution_history.find(
+					(entry: any) => entry.round === data.game.current_round
+				);
+				if (currentRoundEntry?.results?.espResults) {
+					const espResults = currentRoundEntry.results.espResults;
+					const matchingKey = Object.keys(espResults).find(
+						(key) => key.toLowerCase() === teamName.toLowerCase()
+					);
+					if (matchingKey) {
+						resolutionResults = espResults[matchingKey];
+					}
+				}
 			}
 
 			loading = false;
@@ -279,6 +309,26 @@
 		// Handle incident_triggered messages (via incidentState composable)
 		if (data.type === 'incident_triggered' && data.incident) {
 			incidentState.showIncident(data.incident);
+			return;
+		}
+
+		// US-2.7: Handle investigation_result messages (only for investigations targeting this team)
+		if (data.type === 'investigation_result') {
+			if (data.targetEsp?.toLowerCase() === teamName.toLowerCase()) {
+				// Add to investigation history
+				const newEntry: InvestigationHistoryEntry = {
+					round: data.round,
+					targetEsp: data.targetEsp,
+					voters: data.voters || [],
+					result: {
+						violationFound: data.violationFound,
+						message: data.message,
+						suspendedClient: data.suspendedClient
+					},
+					timestamp: new Date()
+				};
+				investigationHistory = [...investigationHistory, newEntry];
+			}
 			return;
 		}
 
@@ -700,6 +750,7 @@
 			currentRound={gameState.currentRound}
 			currentCredits={credits}
 			autoCorrectionMessage={lockInState.autoLockMessage}
+			investigation={currentRoundInvestigation}
 		/>
 	{:else if gameState.currentPhase === 'resolution'}
 		<!-- US-3.5: Resolution Loading Screen -->

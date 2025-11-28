@@ -202,6 +202,27 @@ function createWebSocketStore() {
 								}
 								break;
 
+							case 'investigation_vote_update':
+								// US-2.7: Pass investigation vote updates to gameStateUpdateCallback
+								if (gameStateUpdateCallback) {
+									gameStateUpdateCallback(message as any);
+								}
+								break;
+
+							case 'investigation_result':
+								// US-2.7: Pass investigation result to gameStateUpdateCallback
+								if (gameStateUpdateCallback) {
+									gameStateUpdateCallback(message as any);
+								}
+								break;
+
+							case 'final_scores_calculated':
+								// US-5.2: Pass final scores to gameStateUpdateCallback
+								if (gameStateUpdateCallback) {
+									gameStateUpdateCallback(message as any);
+								}
+								break;
+
 							default:
 								// Handle other message types
 								break;

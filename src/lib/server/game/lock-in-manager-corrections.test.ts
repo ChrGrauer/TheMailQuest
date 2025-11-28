@@ -1,5 +1,6 @@
 /**
  * US-3.2: Decision Lock-In - Unit Tests
+ * US-2.7: Coordination Panel - Lock-In Integration
  *
  * Tests lock-in business logic including:
  * - Lock-in for ESP teams and Destinations
@@ -7,6 +8,7 @@
  * - Auto-correction algorithm (warm-up priority, then list hygiene)
  * - Player lock state tracking
  * - Transition conditions to Resolution Phase
+ * - US-2.7: Investigation vote budget charging and auto-removal
  *
  * Uses ATDD approach following Gherkin scenarios from feature file
  */
@@ -28,10 +30,17 @@ import {
 	autoLockAllPlayers,
 	checkAllPlayersLockedIn,
 	getRemainingPlayersCount,
+	validateDestinationLockIn,
 	type LockInResult,
 	type LockInValidation,
 	type AutoCorrectionLog
 } from './lock-in-manager';
+
+// US-2.7: Investigation manager
+import {
+	castInvestigationVote,
+	INVESTIGATION_COST
+} from './investigation-manager';
 
 describe('Feature: Decision Lock-In - Business Logic', () => {
 	beforeEach(() => {
@@ -198,6 +207,148 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			expect(sendWave?.locked_in).toBe(true);
 			expect(mailMonkey?.locked_in).toBe(true);
 			expect(gmail?.locked_in).toBe(true);
+		});
+	});
+
+	// ============================================================================
+	// US-2.7: INVESTIGATION VOTE LOCK-IN INTEGRATION
+	// ============================================================================
+
+	describe('US-2.7: Destination lock-in with investigation vote', () => {
+		test('Given destination with investigation vote, When lock-in succeeds, Then 50 credits are charged', async () => {
+			// Given
+			const facilitatorId = 'facilitator_123';
+			const session = createGameSession(facilitatorId);
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Alice',
+				role: 'ESP',
+				teamName: 'SendWave'
+			});
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Grace',
+				role: 'Destination',
+				teamName: 'Gmail'
+			});
+
+			startGame({ roomCode: session.roomCode, facilitatorId });
+			allocateResources({ roomCode: session.roomCode });
+			await transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
+
+			// Gmail votes to investigate SendWave
+			castInvestigationVote({
+				roomCode: session.roomCode,
+				destinationName: 'Gmail',
+				targetEsp: 'SendWave'
+			});
+
+			const preLockSession = getSession(session.roomCode);
+			const preLockBudget = preLockSession?.destinations.find((d) => d.name === 'Gmail')?.budget;
+
+			// When
+			const result = lockInDestination(session.roomCode, 'Gmail');
+
+			// Then
+			expect(result.success).toBe(true);
+			const postLockSession = getSession(session.roomCode);
+			const gmail = postLockSession?.destinations.find((d) => d.name === 'Gmail');
+			expect(gmail?.budget).toBe(preLockBudget! - INVESTIGATION_COST);
+		});
+
+		test('Given destination with insufficient budget for vote, When validating lock-in, Then validation fails', async () => {
+			// Given
+			const facilitatorId = 'facilitator_123';
+			const session = createGameSession(facilitatorId);
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Alice',
+				role: 'ESP',
+				teamName: 'SendWave'
+			});
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Grace',
+				role: 'Destination',
+				teamName: 'Gmail'
+			});
+
+			startGame({ roomCode: session.roomCode, facilitatorId });
+			allocateResources({ roomCode: session.roomCode });
+			await transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
+
+			// Gmail votes to investigate SendWave
+			castInvestigationVote({
+				roomCode: session.roomCode,
+				destinationName: 'Gmail',
+				targetEsp: 'SendWave'
+			});
+
+			// Set Gmail's budget to 30 (less than 50 investigation cost)
+			const currentSession = getSession(session.roomCode);
+			const gmail = currentSession?.destinations.find((d) => d.name === 'Gmail');
+			gmail!.budget = 30;
+
+			// When
+			const validation = validateDestinationLockIn(gmail!);
+
+			// Then
+			expect(validation.isValid).toBe(false);
+			expect(validation.error).toContain('investigation vote');
+		});
+
+		test('Given destination with insufficient budget at auto-lock, When auto-lock runs, Then vote is removed and lock-in proceeds', async () => {
+			// Given
+			const facilitatorId = 'facilitator_123';
+			const session = createGameSession(facilitatorId);
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Alice',
+				role: 'ESP',
+				teamName: 'SendWave'
+			});
+
+			joinGame({
+				roomCode: session.roomCode,
+				displayName: 'Grace',
+				role: 'Destination',
+				teamName: 'Gmail'
+			});
+
+			startGame({ roomCode: session.roomCode, facilitatorId });
+			allocateResources({ roomCode: session.roomCode });
+			await transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
+
+			// Gmail votes to investigate SendWave
+			castInvestigationVote({
+				roomCode: session.roomCode,
+				destinationName: 'Gmail',
+				targetEsp: 'SendWave'
+			});
+
+			// Set Gmail's budget to 30 (less than 50 investigation cost)
+			const currentSession = getSession(session.roomCode);
+			const gmail = currentSession?.destinations.find((d) => d.name === 'Gmail');
+			gmail!.budget = 30;
+
+			// When - Auto-lock all players
+			autoLockAllPlayers(session.roomCode);
+
+			// Then - Gmail is locked in
+			const postLockSession = getSession(session.roomCode);
+			const lockedGmail = postLockSession?.destinations.find((d) => d.name === 'Gmail');
+			expect(lockedGmail?.locked_in).toBe(true);
+
+			// And - Vote was auto-removed
+			expect(lockedGmail?.pending_investigation_vote).toBeUndefined();
+
+			// And - Budget unchanged (vote was removed, not charged)
+			expect(lockedGmail?.budget).toBe(30);
 		});
 	});
 });

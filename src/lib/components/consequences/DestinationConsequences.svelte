@@ -15,6 +15,7 @@
 		DestinationResolutionResult,
 		SatisfactionResult
 	} from '$lib/server/game/resolution-types';
+	import type { InvestigationHistoryEntry } from '$lib/server/game/types';
 	import { formatVolume } from '$lib/config/metrics-thresholds';
 
 	interface Props {
@@ -23,10 +24,33 @@
 		budget: number;
 		resolution?: DestinationResolutionResult; // US-3.3 Iteration 6.1 data
 		espSatisfactionBreakdown?: Record<string, SatisfactionResult>; // Per-ESP satisfaction for behavior analysis
+		investigationHistory?: InvestigationHistoryEntry[]; // US-2.7: Investigation results
 	}
 
-	let { destinationName, currentRound, budget, resolution, espSatisfactionBreakdown }: Props =
-		$props();
+	let {
+		destinationName,
+		currentRound,
+		budget,
+		resolution,
+		espSatisfactionBreakdown,
+		investigationHistory = []
+	}: Props = $props();
+
+	// US-2.7: Get this round's investigation results
+	let currentRoundInvestigations = $derived(
+		investigationHistory.filter((inv) => inv.round === currentRound)
+	);
+
+	// US-2.7: Get the investigation for this round (all destinations see results, not just voters)
+	let currentRoundInvestigation = $derived(currentRoundInvestigations[0] || null);
+
+	// US-2.7: Check if this destination voted in the investigation (for display purposes)
+	let thisDestinationVoted = $derived(
+		currentRoundInvestigation?.voters.includes(destinationName) ?? false
+	);
+
+	// US-2.7: For backward compatibility - alias to the investigation result
+	let participatedInvestigation = $derived(currentRoundInvestigation);
 
 	// Calculate starting budget (before revenue was added)
 	// budget already includes the revenue, so we subtract it to get the starting value
@@ -242,7 +266,7 @@
 						<!-- Total Revenue (Highlighted) -->
 						<div class="bg-blue-50 border-2 border-blue-400 rounded-lg p-4">
 							<p class="text-sm text-gray-600 mb-1">Total Revenue Earned</p>
-							<p class="font-bold text-blue-600 text-4xl">
+							<p data-testid="revenue-earned" class="font-bold text-blue-600 text-4xl">
 								{resolution.revenue.totalRevenue} credits
 							</p>
 						</div>
@@ -332,7 +356,9 @@
 							</div>
 							<div class="flex justify-between items-center pt-2 border-t-2 border-gray-300">
 								<span class="font-semibold text-gray-900">New Budget:</span>
-								<span class="font-bold text-blue-600 text-xl">{budget} credits</span>
+								<span data-testid="budget-current" class="font-bold text-blue-600 text-xl"
+									>{budget} credits</span
+								>
 							</div>
 						</div>
 					</div>
@@ -345,7 +371,93 @@
 				{/if}
 			</section>
 
-			<!-- Section 5: ESP Behavior Analysis -->
+			<!-- Section 5: Investigation Results (US-2.7) -->
+			{#if participatedInvestigation}
+				<section
+					data-testid="investigation-result-section"
+					class="bg-white rounded-xl shadow-md p-6 lg:col-span-2"
+				>
+					<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-blue-500 pb-2">
+						Investigation Results
+					</h3>
+
+					<div
+						data-testid="investigation-result-card"
+						class="p-4 rounded-lg border-l-4"
+						class:bg-green-50={participatedInvestigation.result.violationFound}
+						class:border-green-500={participatedInvestigation.result.violationFound}
+						class:bg-gray-50={!participatedInvestigation.result.violationFound}
+						class:border-gray-400={!participatedInvestigation.result.violationFound}
+					>
+						<div class="flex items-start justify-between">
+							<div>
+								<p class="font-semibold text-gray-900">
+									Investigation of <span data-testid="investigation-target" class="text-blue-600"
+										>{participatedInvestigation.targetEsp}</span
+									>
+								</p>
+								<p class="text-sm text-gray-600 mt-1">
+									Coordinated with: {participatedInvestigation.voters.join(', ')}
+								</p>
+							</div>
+							<span
+								class="px-3 py-1 text-xs font-semibold rounded"
+								class:bg-green-200={participatedInvestigation.result.violationFound}
+								class:text-green-800={participatedInvestigation.result.violationFound}
+								class:bg-gray-200={!participatedInvestigation.result.violationFound}
+								class:text-gray-700={!participatedInvestigation.result.violationFound}
+							>
+								{participatedInvestigation.result.violationFound
+									? 'Violation Found'
+									: 'No Violation'}
+							</span>
+						</div>
+
+						<p
+							data-testid="investigation-result-message"
+							class="mt-3 text-sm"
+							class:text-green-700={participatedInvestigation.result.violationFound}
+							class:text-gray-600={!participatedInvestigation.result.violationFound}
+						>
+							{participatedInvestigation.result.message}
+						</p>
+
+						{#if participatedInvestigation.result.violationFound && participatedInvestigation.result.suspendedClient}
+							<div class="mt-3 p-3 bg-white/50 rounded border border-green-200">
+								<p class="text-sm font-medium text-green-900">
+									Client Suspended: <span
+										data-testid="suspended-client-name"
+										class="font-semibold"
+										>{participatedInvestigation.result.suspendedClient.clientName}</span
+									>
+								</p>
+								<p class="text-xs text-green-700 mt-1">
+									Risk Level: {participatedInvestigation.result.suspendedClient.riskLevel} • Missing
+									Protection: {participatedInvestigation.result.suspendedClient.missingProtection ===
+									'both'
+										? 'Warm-up & List Hygiene'
+										: participatedInvestigation.result.suspendedClient.missingProtection === 'warmup'
+											? 'Warm-up'
+											: 'List Hygiene'}
+								</p>
+							</div>
+						{/if}
+
+						<!-- Credit deduction info (only for voters) -->
+						{#if thisDestinationVoted}
+							<p class="mt-3 text-xs text-gray-500">
+								50 credits were deducted from your budget for participating in this investigation.
+							</p>
+						{:else}
+							<p class="mt-3 text-xs text-gray-500">
+								You did not participate in this investigation (no credits deducted).
+							</p>
+						{/if}
+					</div>
+				</section>
+			{/if}
+
+			<!-- Section 6: ESP Behavior Analysis -->
 			<section
 				data-testid="section-esp-behavior"
 				class="bg-white rounded-xl shadow-md p-6 lg:col-span-2"

@@ -101,11 +101,20 @@ export const GET: RequestHandler = async ({ params }) => {
 			return calculateESPStatsForDestination(esp, destination, session, espSatisfactionBreakdown);
 		});
 
-	// Count active collaborations (placeholder for now - will be implemented in US-2.7)
-	const collaborationsCount = 0;
-
 	// Calculate remaining players count (US-3.2)
 	const remainingPlayersCount = getRemainingPlayersCount(session);
+
+	// US-2.7: Compile investigation votes from all destinations
+	const investigationVotes: Record<string, string[]> = {};
+	for (const dest of session.destinations) {
+		if (dest.pending_investigation_vote?.espName) {
+			const espName = dest.pending_investigation_vote.espName;
+			if (!investigationVotes[espName]) {
+				investigationVotes[espName] = [];
+			}
+			investigationVotes[espName].push(dest.name);
+		}
+	}
 
 	// Prepare dashboard data
 	const dashboardData = {
@@ -124,7 +133,9 @@ export const GET: RequestHandler = async ({ params }) => {
 			filtering_policies: destination.filtering_policies || {},
 			// US-3.2: Lock-in state
 			locked_in: destination.locked_in || false,
-			locked_in_at: destination.locked_in_at || null
+			locked_in_at: destination.locked_in_at || null,
+			// US-2.7: Investigation vote
+			pending_investigation_vote: destination.pending_investigation_vote || null
 		},
 		game: {
 			roomCode: session.roomCode,
@@ -141,10 +152,12 @@ export const GET: RequestHandler = async ({ params }) => {
 			resolution_history: session.resolution_history || [] // US-3.5: Resolution history for all rounds
 		},
 		espStats,
-		collaborations_count: collaborationsCount,
 		// US-3.5 Iteration 3: Current round resolution data for consequences display
 		currentResolution,
-		espSatisfactionBreakdown
+		espSatisfactionBreakdown,
+		// US-2.7: Investigation voting data
+		investigationVotes,
+		investigationHistory: session.investigation_history || []
 	};
 
 	gameLogger.event('destination_dashboard_fetch_success', {

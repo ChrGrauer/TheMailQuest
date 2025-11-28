@@ -2,12 +2,13 @@
  * Game Session Type Definitions
  * US-1.1: Create Game Session
  * US-1.3: Game Lobby Management (added facilitatorId)
- * US-1.4: Resources Allocation (added resources, timer, shared_pool, phase_start_time)
+ * US-1.4: Resources Allocation (added resources, timer, phase_start_time)
  * US-2.2: Client Marketplace (added Client, ClientType, ClientRequirements, available_clients)
  * US-2.4: Client Basic Management (added ClientState, client_states, Suspended status)
  * US-2.5: Destination Dashboard (added destination fields, ESPDestinationStats, DestinationDashboardUpdate)
  * US-2.6.1: Destination Filtering Controls (added FilteringLevel, FilteringPolicy, FilteringPolicyUpdateResult)
  * US-2.6.2: Destination Tech Shop (added kingdom, owned_tools, authentication_level, spam_trap_active, esp_metrics)
+ * US-2.7: Coordination Panel (added pending_investigation_vote, investigation_history, InvestigationHistoryEntry)
  * US-3.2: Decision Lock-In (added locked_in, locked_in_at, pending_onboarding_decisions, lock-in interfaces)
  * Phase 1: Incident Cards (added incident_history)
  * Phase 2: Incident Cards Refactor (added VolumeModifier, SpamTrapModifier; refactored ClientState to use modifier arrays)
@@ -81,6 +82,10 @@ export interface Destination {
 	// US-3.2: Decision lock-in fields
 	locked_in?: boolean; // Whether destination has locked in their decisions for this round
 	locked_in_at?: Date; // Timestamp when destination locked in
+	// US-2.7: Coordination Panel - Investigation voting
+	pending_investigation_vote?: {
+		espName: string; // ESP team name being voted against
+	};
 }
 
 /**
@@ -210,7 +215,6 @@ export interface GameSession {
 	createdAt: Date;
 	lastActivity: Date;
 	// US-1.4: Resource allocation fields
-	shared_pool?: number; // Shared destination budget pool
 	phase_start_time?: Date; // When current phase started
 	timer?: GameTimer; // Phase timer
 	// US-3.5: Resolution history for all rounds (max 4)
@@ -223,6 +227,8 @@ export interface GameSession {
 	// Phase 1: Incident Cards history
 	// Array of triggered incidents for facilitator reference
 	incident_history?: IncidentHistoryEntry[];
+	// US-2.7: Coordination Panel - Investigation history
+	investigation_history?: InvestigationHistoryEntry[];
 	// US-5.1: Final scores after Round 4 calculation
 	final_scores?: import('./final-score-types').FinalScoreOutput;
 }
@@ -235,7 +241,6 @@ export interface GameConfiguration {
 	esp_starting_credits: number;
 	esp_starting_reputation: number;
 	destination_budgets: Record<string, number>; // { Gmail: 500, Outlook: 350, Yahoo: 200 }
-	shared_pool_credits: number;
 	planning_phase_duration: number; // in seconds
 }
 
@@ -277,7 +282,6 @@ export interface DestinationDashboardUpdate {
 	esp_stats?: ESPDestinationStats[];
 	spam_level?: number;
 	technical_stack?: string[];
-	collaborations_count?: number;
 	// US-2.6.1: Filtering policy updates
 	filtering_policies?: Record<string, FilteringPolicy>;
 	// US-2.6.2: Tool ownership updates
@@ -328,6 +332,8 @@ export interface LockInResult {
 	remaining_players?: number; // Number of players still not locked in
 	all_locked?: boolean; // Whether all players are now locked in
 	corrections?: AutoCorrectionLog[]; // Auto-corrections made (if any)
+	vote_auto_removed?: boolean; // US-2.7: Investigation vote auto-removed due to insufficient budget
+	removed_vote_target?: string; // US-2.7: ESP name that was the target of the removed vote
 }
 
 /**
@@ -339,4 +345,44 @@ export interface AutoCorrectionLog {
 	clientName: string; // Client name for logging
 	optionType: 'warmUp' | 'listHygiene'; // Type of option removed
 	costSaved: number; // Credits saved (150 for warm-up, 80 for list hygiene)
+}
+
+/**
+ * US-2.7: Investigation History Entry
+ * Records a completed investigation for the coordination panel history
+ */
+export interface InvestigationHistoryEntry {
+	round: number; // Round when investigation occurred
+	targetEsp: string; // ESP team that was investigated
+	voters: string[]; // Destination names that voted (e.g., ['Gmail', 'Outlook'])
+	result: InvestigationResult; // Outcome of the investigation
+	timestamp: Date; // When investigation completed
+}
+
+/**
+ * US-2.7: Investigation Result
+ * Outcome of an investigation against an ESP
+ */
+export interface InvestigationResult {
+	violationFound: boolean; // Whether a violation was detected
+	suspendedClient?: {
+		// Only present if violationFound is true
+		clientId: string;
+		clientName: string;
+		riskLevel: 'Low' | 'Medium' | 'High';
+		missingProtection: 'warmup' | 'list_hygiene' | 'both'; // What was missing
+		spamRate: number;
+	};
+	message: string; // Human-readable result (e.g., "Bad practices found" or "No violations detected")
+}
+
+/**
+ * US-2.7: Investigation Vote Result
+ * Result of casting or removing an investigation vote
+ */
+export interface InvestigationVoteResult {
+	success: boolean;
+	error?: string;
+	currentVotes?: Record<string, string[]>; // ESP name -> list of destination voters
+	reservedCredits?: number; // Credits reserved for this vote (50)
 }

@@ -18,7 +18,13 @@
 import { executeResolution } from './resolution-manager';
 import { applyResolutionToGameState } from './resolution-application-manager';
 import { transitionPhase } from './phase-manager';
-import type { GameSession } from './types';
+import {
+	checkInvestigationTrigger,
+	runInvestigation,
+	clearInvestigationVotes,
+	INVESTIGATION_COST
+} from './investigation-manager';
+import type { GameSession, InvestigationHistoryEntry } from './types';
 import { gameLogger } from '../logger';
 
 /**
@@ -115,6 +121,9 @@ export function handleResolutionPhase(
 				}
 			}
 
+			// US-2.7: Check and execute investigation if triggered
+			const investigationResult = await handleInvestigation(session, roomCode, broadcast);
+
 			// Auto-transition to consequences phase after brief delay
 			setTimeout(async () => {
 				const consequencesResult = await transitionPhase({
@@ -159,4 +168,120 @@ export function handleResolutionPhase(
 			});
 		}
 	})();
+}
+
+/**
+ * US-2.7: Handle investigation trigger and resolution
+ *
+ * Called during resolution phase to:
+ * 1. Check if investigation should trigger (2/3 destinations voted for same ESP)
+ * 2. If triggered, charge credits to voters and run investigation
+ * 3. Store investigation results in session history
+ * 4. Clear investigation votes for next round
+ */
+async function handleInvestigation(
+	session: GameSession,
+	roomCode: string,
+	broadcast: BroadcastFunction
+): Promise<InvestigationHistoryEntry | null> {
+	// Check if investigation should trigger
+	const triggerResult = checkInvestigationTrigger(roomCode);
+
+	if (!triggerResult.triggered || !triggerResult.targetEsp || !triggerResult.voters) {
+		// No investigation - just clear votes for next round
+		clearInvestigationVotes(roomCode);
+
+		gameLogger.info('No investigation triggered this round', {
+			roomCode,
+			round: session.current_round
+		});
+
+		return null;
+	}
+
+	gameLogger.info('Investigation triggered', {
+		roomCode,
+		round: session.current_round,
+		targetEsp: triggerResult.targetEsp,
+		voters: triggerResult.voters
+	});
+
+	// Charge investigation cost to voters
+	for (const voterName of triggerResult.voters) {
+		const destination = session.destinations.find(
+			(d) => d.name.toLowerCase() === voterName.toLowerCase()
+		);
+		if (destination) {
+			destination.budget -= INVESTIGATION_COST;
+
+			gameLogger.info('Investigation cost charged', {
+				roomCode,
+				destination: voterName,
+				cost: INVESTIGATION_COST,
+				remainingBudget: destination.budget
+			});
+		}
+	}
+
+	// Run the investigation
+	const investigationResult = runInvestigation({
+		roomCode,
+		targetEsp: triggerResult.targetEsp,
+		voters: triggerResult.voters
+	});
+
+	// Create history entry - map to InvestigationResult type
+	const historyEntry: InvestigationHistoryEntry = {
+		round: session.current_round,
+		targetEsp: triggerResult.targetEsp,
+		voters: triggerResult.voters,
+		result: {
+			violationFound: investigationResult.violationFound,
+			message: investigationResult.message,
+			suspendedClient: investigationResult.suspendedClient
+				? {
+						clientId: investigationResult.suspendedClient.id,
+						clientName: investigationResult.suspendedClient.name,
+						riskLevel: investigationResult.suspendedClient.riskLevel as 'Low' | 'Medium' | 'High',
+						missingProtection: investigationResult.suspendedClient.missingProtection === 'warmUp'
+							? 'warmup'
+							: investigationResult.suspendedClient.missingProtection === 'listHygiene'
+								? 'list_hygiene'
+								: 'both',
+						spamRate: investigationResult.suspendedClient.spamRate
+					}
+				: undefined
+		},
+		timestamp: new Date()
+	};
+
+	// Store in session history
+	if (!session.investigation_history) {
+		session.investigation_history = [];
+	}
+	session.investigation_history.push(historyEntry);
+
+	gameLogger.info('Investigation completed and stored in history', {
+		roomCode,
+		round: session.current_round,
+		targetEsp: triggerResult.targetEsp,
+		violationFound: investigationResult.violationFound,
+		suspendedClient: investigationResult.suspendedClient?.name
+	});
+
+	// Broadcast investigation result to all clients
+	broadcast(roomCode, {
+		type: 'investigation_result',
+		round: session.current_round,
+		targetEsp: triggerResult.targetEsp,
+		voters: triggerResult.voters,
+		violationFound: investigationResult.violationFound,
+		suspendedClient: investigationResult.suspendedClient,
+		message: investigationResult.message
+	});
+
+	// Clear votes for next round
+	clearInvestigationVotes(roomCode);
+
+	return historyEntry;
 }

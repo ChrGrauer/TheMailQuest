@@ -1,5 +1,6 @@
 /**
  * US-3.2: Decision Lock-In Manager
+ * US-2.7: Coordination Panel - Investigation Vote Budget Handling
  *
  * Business logic for locking in player decisions during Planning Phase:
  * - Lock-in for ESP teams and Destinations
@@ -7,11 +8,13 @@
  * - Auto-correction algorithm (Priority 1: warm-up, Priority 2: list hygiene)
  * - Player lock state tracking
  * - Auto-lock when timer expires
+ * - US-2.7: Investigation vote budget charging and auto-removal
  */
 
 import { getSession, updateActivity } from './session-manager';
 import { gameWss } from '$lib/server/websocket';
 import { applyPendingChoiceEffects } from './incident-choice-manager';
+import { INVESTIGATION_COST } from './investigation-manager';
 import type {
 	ESPTeam,
 	Destination,
@@ -138,6 +141,7 @@ export function lockInESPTeam(roomCode: string, teamName: string): LockInResult 
 
 /**
  * Lock in a Destination's decisions
+ * US-2.7: Charges investigation vote cost if destination has voted
  */
 export function lockInDestination(roomCode: string, destinationName: string): LockInResult {
 	// 1. Get session
@@ -162,18 +166,45 @@ export function lockInDestination(roomCode: string, destinationName: string): Lo
 		return { success: false, error: 'Destination is already locked in.' };
 	}
 
-	// 5. Lock in (no budget validation needed for destinations)
+	// 5. US-2.7: Validate budget if destination has investigation vote
+	// Note: Budget is only reserved at lock-in, actual charge happens at resolution
+	// if investigation triggers (2/3 consensus reached)
+	let voteAutoRemoved = false;
+	let removedVoteTarget: string | undefined;
+	const validation = validateDestinationLockIn(destination);
+	if (!validation.isValid) {
+		// Auto-remove the vote if budget insufficient, then proceed with lock-in
+		if (destination.pending_investigation_vote) {
+			removedVoteTarget = destination.pending_investigation_vote.espName;
+			destination.pending_investigation_vote = undefined;
+			voteAutoRemoved = true;
+			getLogger().then((logger) => {
+				logger.info(`Auto-removed investigation vote for ${destination.name} - insufficient budget`, {
+					roomCode,
+					destinationName: destination.name,
+					removedVote: removedVoteTarget,
+					budget: destination.budget,
+					requiredBudget: INVESTIGATION_COST
+				});
+			});
+		} else {
+			// Some other validation error - return error
+			return { success: false, error: validation.error };
+		}
+	}
+
+	// 6. Lock in (investigation vote cost charged at resolution if triggered)
 	destination.locked_in = true;
 	destination.locked_in_at = new Date();
 
-	// 6. Update activity
+	// 8. Update activity
 	updateActivity(roomCode);
 
-	// 7. Check if all players locked
+	// 9. Check if all players locked
 	const remainingCount = getRemainingPlayersCount(session);
 	const allLocked = checkAllPlayersLockedIn(session);
 
-	// 8. Log event
+	// 10. Log event
 	getLogger().then((logger) => {
 		logger.info(`Player ${destinationName} locked in decisions`, {
 			roomCode,
@@ -183,13 +214,15 @@ export function lockInDestination(roomCode: string, destinationName: string): Lo
 		logger.info(`Dashboard set to read-only for ${destinationName}`, { roomCode, destinationName });
 	});
 
-	// 9. Return success
+	// 11. Return success
 	return {
 		success: true,
 		locked_in: true,
 		locked_in_at: destination.locked_in_at,
 		remaining_players: remainingCount,
-		all_locked: allLocked
+		all_locked: allLocked,
+		vote_auto_removed: voteAutoRemoved,
+		removed_vote_target: removedVoteTarget
 	};
 }
 
@@ -224,6 +257,32 @@ export function validateLockIn(team: ESPTeam): LockInValidation {
 	return {
 		isValid: true,
 		pendingCosts,
+		budgetExceeded: false
+	};
+}
+
+/**
+ * US-2.7: Validate if a Destination can lock in their decisions
+ * Checks if investigation vote cost would exceed budget
+ */
+export function validateDestinationLockIn(destination: Destination): LockInValidation {
+	// Calculate investigation vote cost
+	const voteCost = destination.pending_investigation_vote ? INVESTIGATION_COST : 0;
+
+	// Check if budget is sufficient for vote
+	if (voteCost > 0 && destination.budget < voteCost) {
+		return {
+			isValid: false,
+			error: `Insufficient budget for investigation vote. Requires ${INVESTIGATION_COST} credits.`,
+			pendingCosts: voteCost,
+			budgetExceeded: true,
+			excessAmount: voteCost - destination.budget
+		};
+	}
+
+	return {
+		isValid: true,
+		pendingCosts: voteCost,
 		budgetExceeded: false
 	};
 }
@@ -522,6 +581,31 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 	// Auto-lock Destinations
 	for (const destination of session.destinations) {
 		if (!destination.locked_in) {
+			// US-2.7: Check if destination has investigation vote and sufficient budget
+			// Note: Budget is only reserved at lock-in, actual charge happens at resolution
+			// if investigation triggers (2/3 consensus reached)
+			let voteRemoved = false;
+			if (destination.pending_investigation_vote) {
+				const validation = validateDestinationLockIn(destination);
+				if (!validation.isValid) {
+					// Auto-remove vote if budget insufficient
+					const removedVote = destination.pending_investigation_vote.espName;
+					destination.pending_investigation_vote = undefined;
+					voteRemoved = true;
+
+					getLogger().then((logger) => {
+						logger.info(`Auto-removed investigation vote for ${destination.name} - insufficient budget`, {
+							roomCode,
+							destinationName: destination.name,
+							removedVote,
+							budget: destination.budget,
+							requiredBudget: INVESTIGATION_COST
+						});
+					});
+				}
+				// Note: Cost NOT charged here - will be charged at resolution if investigation triggers
+			}
+
 			destination.locked_in = true;
 			destination.locked_in_at = new Date();
 
@@ -549,10 +633,17 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 			});
 
 			getLogger().then((logger) => {
-				logger.info(`Auto-locked player: ${destination.name} (valid)`, {
-					roomCode,
-					destinationName: destination.name
-				});
+				if (voteRemoved) {
+					logger.info(`Auto-locked player: ${destination.name} (vote removed - insufficient budget)`, {
+						roomCode,
+						destinationName: destination.name
+					});
+				} else {
+					logger.info(`Auto-locked player: ${destination.name} (valid)`, {
+						roomCode,
+						destinationName: destination.name
+					});
+				}
 			});
 		}
 	}

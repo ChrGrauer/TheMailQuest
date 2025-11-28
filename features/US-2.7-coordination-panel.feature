@@ -124,6 +124,22 @@ Feature: US-2.7 Coordination Panel (Destination)
     Then no clients should be suspended
     And the investigation result should be "No violations detected"
 
+  Scenario: Spam rate tie results in random selection
+    Given "BluePost" has the following clients:
+      | client_name | risk_level | has_warmup | has_list_hygiene | spam_rate | status |
+      | Bad Actor A | high       | false      | true             | 3.0       | active |
+      | Bad Actor B | high       | true       | false            | 3.0       | active |
+    And an investigation is launched against "BluePost"
+    When the investigation resolution runs
+    Then exactly one of "Bad Actor A" or "Bad Actor B" should be suspended (random)
+
+  Scenario: Investigation against ESP with empty portfolio
+    Given "BluePost" has no clients
+    And an investigation is launched against "BluePost"
+    When the investigation resolution runs
+    Then no clients should be suspended
+    And the investigation result should be "No violations detected"
+
   # ============================================================================
   # SECTION 4: SUSPENSION PERMANENCE
   # ============================================================================
@@ -204,10 +220,31 @@ Feature: US-2.7 Coordination Panel (Destination)
     And all ESP targets should show "0/3 votes"
 
   # ============================================================================
-  # SECTION 8: PHASE RESTRICTIONS AND EDGE CASES
+  # SECTION 8: BUDGET RESERVATION
   # ============================================================================
 
-  Scenario Outline: Voting only available before lock-in during planning phase
+  Scenario: Display budget reservation for investigation vote
+    Given I am Destination player "Grace" from "Gmail"
+    And I have 500 credits budget
+    When I vote to investigate "BluePost"
+    Then I should see my budget display as "450 available (50 reserved)"
+    And the reservation display should match ESP onboarding pattern
+
+  Scenario: Vote automatically removed if budget insufficient at lock-in
+    Given I am Destination player "Grace" from "Gmail"
+    And I have 100 credits budget
+    And I vote to investigate "BluePost" (reserved: 50 credits)
+    And I purchase tools totaling 80 credits
+    When I attempt to lock in my decisions
+    Then my investigation vote should be automatically removed
+    And I should see notification "Investigation vote removed - insufficient budget"
+    And lock-in should proceed with tool purchases only
+
+  # ============================================================================
+  # SECTION 9: PHASE RESTRICTIONS AND EDGE CASES
+  # ============================================================================
+
+  Scenario: Voting only available before lock-in during planning phase
     Given the game is in planning phase
     And Destination player "Grace" from "Gmail" has locked-in their decisions
     When Destination player "Grace" from "Gmail" opens the Coordination Panel

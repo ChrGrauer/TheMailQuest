@@ -32,14 +32,18 @@
 	import TechnicalInfrastructure from '$lib/components/destination-dashboard/TechnicalInfrastructure.svelte';
 	import TechnicalShopModal from '$lib/components/destination-dashboard/TechnicalShopModal.svelte';
 	import FilteringControlsModal from '$lib/components/destination-dashboard/FilteringControlsModal.svelte';
+	import CoordinationPanelModal from '$lib/components/destination-dashboard/CoordinationPanelModal.svelte';
 	import DestinationConsequences from '$lib/components/consequences/DestinationConsequences.svelte';
 	import VictoryScreen from '$lib/components/victory/VictoryScreen.svelte';
 	import type { IncidentCard } from '$lib/types/incident';
 	import type { FinalScoreOutput } from '$lib/server/game/final-score-types';
+	import type { InvestigationHistoryEntry, InvestigationResult } from '$lib/server/game/types';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 	// Composables
 	import { useDestinationModals, useDestinationIncident } from '$lib/composables/destination-dashboard';
 	import { useGameState, useWebSocketStatus, useLockInState } from '$lib/composables/shared';
+	// Config
+	import { INVESTIGATION_COST } from '$lib/config/investigation';
 
 	// Get params
 	const roomCode = $page.params.roomCode;
@@ -53,7 +57,6 @@
 	let destinationName = $state('');
 	let budget = $state(0);
 	let espStats = $state<ESPDestinationStats[]>([]);
-	let collaborationsCount = $state(0);
 	let ownedTech = $state<string[]>([]);
 	let spamLevel = $state(0);
 
@@ -84,6 +87,13 @@
 	// US-5.2: Final scores state
 	let finalScores = $state<FinalScoreOutput | null>(null);
 
+	// US-2.7: Investigation voting state
+	let investigationVotes = $state<Record<string, string[]>>({}); // ESP name -> voter names
+	let myInvestigationVote = $state<string | null>(null);
+	let investigationHistory = $state<InvestigationHistoryEntry[]>([]);
+	let showCoordinationPanel = $state(false);
+	let autoCorrectionMessage = $state<string | null>(null); // For vote auto-removal notifications
+
 	// WebSocket status (via composable with test override support)
 	const wsStatus = useWebSocketStatus(() => ({
 		connected: $websocketStore.connected,
@@ -100,6 +110,14 @@
 			spamRate: esp.spamComplaintRate
 		}))
 	);
+
+	// ESP teams data for Coordination Panel modal (US-2.7)
+	let espTeamsForCoordination = $derived(
+		espStats.map((esp) => ({ name: esp.espName }))
+	);
+
+	// Available budget accounting for pending investigation vote (US-2.7)
+	let availableBudget = $derived(myInvestigationVote ? budget - INVESTIGATION_COST : budget);
 
 	// Fetch dashboard data from API
 	async function fetchDashboardData() {
@@ -144,11 +162,15 @@
 			}
 
 			espStats = data.espStats || [];
-			collaborationsCount = data.collaborations_count || 0;
 
 			// US-3.5 Iteration 3: Store resolution data for consequences phase
 			currentResolution = data.currentResolution || null;
 			espSatisfactionBreakdown = data.espSatisfactionBreakdown || null;
+
+			// US-2.7: Investigation state
+			investigationVotes = data.investigationVotes || {};
+			myInvestigationVote = data.destination.pending_investigation_vote?.espName || null;
+			investigationHistory = data.investigationHistory || [];
 
 			loading = false;
 		} catch (err) {
@@ -173,6 +195,21 @@
 				destinationResults: update.destinationResults,
 				metadata: update.metadata
 			};
+			return;
+		}
+
+		// US-2.7: Handle investigation vote updates
+		if (update.type === 'investigation_vote_update') {
+			investigationVotes = update.votes || {};
+			// Update myVote based on the votes
+			const destNameCapitalized = destinationName || destName.charAt(0).toUpperCase() + destName.slice(1).toLowerCase();
+			for (const [espName, voters] of Object.entries(investigationVotes)) {
+				if ((voters as string[]).includes(destNameCapitalized)) {
+					myInvestigationVote = espName;
+					return;
+				}
+			}
+			myInvestigationVote = null;
 			return;
 		}
 
@@ -272,8 +309,6 @@
 		if (update.esp_stats !== undefined) espStats = update.esp_stats;
 		if (update.spam_level !== undefined) spamLevel = update.spam_level;
 		if (update.technical_stack !== undefined) ownedTech = update.technical_stack;
-		if (update.collaborations_count !== undefined)
-			collaborationsCount = update.collaborations_count;
 
 		// Tech Shop updates (US-2.6.2)
 		if (update.owned_tools !== undefined) ownedTools = update.owned_tools;
@@ -286,14 +321,64 @@
 		// Lock-in updates (US-3.2) via composable
 		if (update.locked_in !== undefined) lockInState.isLockedIn = update.locked_in;
 		if (update.locked_in_at) lockInState.lockedInAt = new Date(update.locked_in_at);
+
+		// US-2.7: Investigation vote updates
+		if (update.investigation_votes !== undefined) {
+			investigationVotes = update.investigation_votes;
+		}
+		if (update.pending_investigation_vote !== undefined) {
+			myInvestigationVote = update.pending_investigation_vote?.espName || null;
+		}
 	}
 
 	// Timer: No client-side countdown needed - values come from WebSocket updates
 	// This matches the ESP dashboard pattern for consistent timer behavior
 
-	// Handle coordination panel click (placeholder for US-2.7)
+	// Handle coordination panel click (US-2.7)
 	function handleCoordinationClick() {
-		// TODO: Open coordination panel modal (US-2.7)
+		showCoordinationPanel = true;
+	}
+
+	/**
+	 * Handle investigation vote change (US-2.7)
+	 * @param espName - ESP to vote for, or null to remove vote
+	 */
+	async function handleVoteChange(espName: string | null) {
+		const endpoint = `/api/sessions/${roomCode}/destination/${destName}/investigation/vote`;
+
+		try {
+			if (espName) {
+				// POST to cast vote
+				const res = await fetch(endpoint, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ targetEsp: espName })
+				});
+				const data = await res.json();
+				if (!data.success) {
+					throw new Error(data.error || 'Failed to cast vote');
+				}
+				// Update local state (WebSocket will also send update)
+				myInvestigationVote = espName;
+				if (data.votes) {
+					investigationVotes = data.votes;
+				}
+			} else {
+				// DELETE to remove vote
+				const res = await fetch(endpoint, { method: 'DELETE' });
+				const data = await res.json();
+				if (!data.success) {
+					throw new Error(data.error || 'Failed to remove vote');
+				}
+				// Update local state
+				myInvestigationVote = null;
+				if (data.votes) {
+					investigationVotes = data.votes;
+				}
+			}
+		} catch (err) {
+			throw err; // Let the modal handle the error display
+		}
 	}
 
 	// Handle tech shop click (US-2.6.2) via composable
@@ -321,6 +406,7 @@
 	/**
 	 * Handle lock-in click
 	 * US-3.2: Lock in decisions for this destination
+	 * US-2.7: Handle investigation vote auto-removal if budget insufficient
 	 */
 	async function handleLockIn() {
 		try {
@@ -334,6 +420,12 @@
 				// Show error if lock-in failed
 				error = data.error || 'Failed to lock in decisions';
 				return;
+			}
+
+			// US-2.7: Handle vote auto-removal notification
+			if (data.vote_auto_removed) {
+				myInvestigationVote = null;
+				autoCorrectionMessage = `Your investigation vote against ${data.removed_vote_target} was automatically removed due to insufficient budget.`;
 			}
 
 			// Update local state via composable (WebSocket will also send updates)
@@ -380,7 +472,6 @@
 					}
 					espStats = updated;
 				},
-				setCoordinationCount: (count: number) => (collaborationsCount = count),
 				setOwnedTech: (value: string[]) => (ownedTech = value),
 				setRound: (value: number) => (gameState.currentRound = value),
 				setPhase: (value: string) => (gameState.currentPhase = value),
@@ -487,6 +578,7 @@
 			{budget}
 			resolution={currentResolution}
 			{espSatisfactionBreakdown}
+			{investigationHistory}
 		/>
 	{:else if gameState.currentPhase === 'resolution'}
 		<!-- US-3.5: Resolution Loading Screen -->
@@ -520,7 +612,8 @@
 		<!-- Header -->
 		<DashboardHeader
 			entityName={destinationName}
-			currentBudget={budget}
+			currentBudget={availableBudget}
+			pendingCosts={myInvestigationVote ? INVESTIGATION_COST : 0}
 			currentRound={gameState.currentRound}
 			totalRounds={gameState.totalRounds}
 			timerSeconds={gameState.timerSeconds}
@@ -528,11 +621,21 @@
 			isLockedIn={lockInState.isLockedIn}
 		/>
 
+		<!-- US-2.7: Auto-correction message for vote removal -->
+		{#if autoCorrectionMessage}
+			<div
+				data-testid="auto-correction-message"
+				class="mx-4 mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-800 text-sm"
+				role="alert"
+			>
+				⚠️ {autoCorrectionMessage}
+			</div>
+		{/if}
+
 		<!-- Dashboard Content (Planning Phase) -->
 		<div class="container mx-auto px-4 py-6 max-w-7xl">
 			<!-- Quick Actions -->
 			<DestinationQuickActions
-				{collaborationsCount}
 				onCoordinationClick={handleCoordinationClick}
 				onTechShopClick={handleTechShopClick}
 				onFilteringClick={handleFilteringControlsClick}
@@ -552,7 +655,11 @@
 
 				<!-- Coordination Status -->
 				<div>
-					<CoordinationStatus {collaborationsCount} onCoordinationClick={handleCoordinationClick} />
+					<CoordinationStatus
+						onCoordinationClick={handleCoordinationClick}
+						myVote={myInvestigationVote}
+						currentVotes={investigationVotes}
+					/>
 				</div>
 			</div>
 
@@ -601,6 +708,20 @@
 	{filteringPolicies}
 	dashboardError={error}
 	onRetry={handleRetry}
+/>
+
+<!-- Coordination Panel Modal (US-2.7) -->
+<CoordinationPanelModal
+	bind:show={showCoordinationPanel}
+	isLockedIn={lockInState.isLockedIn}
+	{roomCode}
+	{destName}
+	currentBudget={availableBudget}
+	espTeams={espTeamsForCoordination}
+	currentVotes={investigationVotes}
+	myVote={myInvestigationVote}
+	{investigationHistory}
+	onVoteChange={handleVoteChange}
 />
 
 <!-- Incident Card Display via incidentState composable -->

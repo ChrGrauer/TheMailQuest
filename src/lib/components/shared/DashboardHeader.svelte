@@ -141,7 +141,7 @@
 						{forecastBudget.toLocaleString()}
 						<span class="text-sm text-gray-400">credits</span>
 					</div>
-					<div class="text-xs text-orange-600 mt-0.5">
+					<div data-testid="pending-costs" class="text-xs text-orange-600 mt-0.5">
 						-{pendingCosts.toLocaleString()} pending
 					</div>
 				</div>

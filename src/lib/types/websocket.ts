@@ -66,7 +66,6 @@ export interface ResourcesAllocatedMessage {
 		name: string;
 		budget: number;
 	}>;
-	shared_pool: number;
 }
 
 /**
@@ -246,6 +245,38 @@ export interface FinalScoresCalculatedMessage {
 	metadata: FinalScoreOutput['metadata'];
 }
 
+/**
+ * US-2.7: Investigation vote updated - real-time sync across destinations
+ * Broadcast to all destinations when any vote changes
+ */
+export interface InvestigationVoteUpdateMessage {
+	type: 'investigation_vote_update';
+	votes: Record<string, string[]>; // ESP name -> list of destination voters
+	voterName: string; // Which destination changed their vote
+	action: 'voted' | 'removed'; // What action was taken
+	targetEsp?: string; // Which ESP was voted for (only if action='voted')
+}
+
+/**
+ * US-2.7: Investigation result - broadcast when investigation is resolved
+ * Sent to all clients when an investigation completes during resolution phase
+ */
+export interface InvestigationResultMessage {
+	type: 'investigation_result';
+	round: number;
+	targetEsp: string;
+	voters: string[];
+	violationFound: boolean;
+	suspendedClient?: {
+		clientId: string;
+		clientName: string;
+		riskLevel: 'Low' | 'Medium' | 'High';
+		missingProtection: 'warmup' | 'listHygiene' | 'both';
+		spamRate: number;
+	};
+	message: string;
+}
+
 // ============================================================================
 // Client-to-Server Messages
 // ============================================================================
@@ -300,7 +331,9 @@ export type ServerMessage =
 	| IncidentEffectsAppliedMessage
 	| IncidentChoiceRequiredMessage
 	| IncidentChoiceConfirmedMessage
-	| FinalScoresCalculatedMessage;
+	| FinalScoresCalculatedMessage
+	| InvestigationVoteUpdateMessage
+	| InvestigationResultMessage;
 
 /**
  * All possible WebSocket messages (client-to-server)
