@@ -316,8 +316,8 @@
 			return;
 		}
 
-		// US-2.7: Handle investigation_result messages (only for investigations targeting this team)
-		if (data.type === 'investigation_result') {
+		// US-2.7: Handle investigation updates (result events targeting this team)
+		if (data.type === 'investigation_update' && data.event === 'result') {
 			if (data.targetEsp?.toLowerCase() === teamName.toLowerCase()) {
 				// Add to investigation history
 				const newEntry: InvestigationHistoryEntry = {

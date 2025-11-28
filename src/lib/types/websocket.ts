@@ -246,27 +246,21 @@ export interface FinalScoresCalculatedMessage {
 }
 
 /**
- * US-2.7: Investigation vote updated - real-time sync across destinations
- * Broadcast to all destinations when any vote changes
+ * US-2.7: Investigation update - unified type for vote changes and results
+ * Uses 'event' field to distinguish between vote updates and investigation results
  */
-export interface InvestigationVoteUpdateMessage {
-	type: 'investigation_vote_update';
-	votes: Record<string, string[]>; // ESP name -> list of destination voters
-	voterName: string; // Which destination changed their vote
-	action: 'voted' | 'removed'; // What action was taken
-	targetEsp?: string; // Which ESP was voted for (only if action='voted')
-}
-
-/**
- * US-2.7: Investigation result - broadcast when investigation is resolved
- * Sent to all clients when an investigation completes during resolution phase
- */
-export interface InvestigationResultMessage {
-	type: 'investigation_result';
-	round: number;
-	targetEsp: string;
-	voters: string[];
-	violationFound: boolean;
+export interface InvestigationUpdateMessage {
+	type: 'investigation_update';
+	event: 'vote' | 'result';
+	// Vote event fields
+	votes?: Record<string, string[]>; // ESP name -> list of destination voters
+	voterName?: string; // Which destination changed their vote
+	action?: 'voted' | 'removed'; // What action was taken
+	// Result event fields
+	round?: number;
+	targetEsp?: string; // Used by both: vote target or investigation target
+	voters?: string[]; // Destinations who voted for investigation
+	violationFound?: boolean;
 	suspendedClient?: {
 		clientId: string;
 		clientName: string;
@@ -274,7 +268,7 @@ export interface InvestigationResultMessage {
 		missingProtection: 'warmup' | 'listHygiene' | 'both';
 		spamRate: number;
 	};
-	message: string;
+	message?: string;
 }
 
 // ============================================================================
@@ -332,8 +326,7 @@ export type ServerMessage =
 	| IncidentChoiceRequiredMessage
 	| IncidentChoiceConfirmedMessage
 	| FinalScoresCalculatedMessage
-	| InvestigationVoteUpdateMessage
-	| InvestigationResultMessage;
+	| InvestigationUpdateMessage;
 
 /**
  * All possible WebSocket messages (client-to-server)

@@ -204,15 +204,8 @@ function createWebSocketStore() {
 								}
 								break;
 
-							case 'investigation_vote_update':
-								// US-2.7: Pass investigation vote updates to gameStateUpdateCallback
-								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback(message as any);
-								}
-								break;
-
-							case 'investigation_result':
-								// US-2.7: Pass investigation result to gameStateUpdateCallback
+							case 'investigation_update':
+								// US-2.7: Pass investigation updates (vote or result) to gameStateUpdateCallback
 								if (gameStateUpdateCallback) {
 									gameStateUpdateCallback(message as any);
 								}

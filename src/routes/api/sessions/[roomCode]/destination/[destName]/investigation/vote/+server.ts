@@ -49,7 +49,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
 		// Broadcast vote update to all clients in the room
 		gameWss.broadcastToRoom(roomCode, {
-			type: 'investigation_vote_update',
+			type: 'investigation_update',
+			event: 'vote',
 			votes: result.currentVotes!,
 			voterName: destName,
 			action: 'voted',
@@ -107,7 +108,8 @@ export const DELETE: RequestHandler = async ({ params }) => {
 
 		// Broadcast vote update to all clients in the room
 		gameWss.broadcastToRoom(roomCode, {
-			type: 'investigation_vote_update',
+			type: 'investigation_update',
+			event: 'vote',
 			votes: result.currentVotes!,
 			voterName: destName,
 			action: 'removed',

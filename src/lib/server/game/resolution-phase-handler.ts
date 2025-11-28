@@ -272,7 +272,8 @@ async function handleInvestigation(
 
 	// Broadcast investigation result to all clients
 	broadcast(roomCode, {
-		type: 'investigation_result',
+		type: 'investigation_update',
+		event: 'result',
 		round: session.current_round,
 		targetEsp: triggerResult.targetEsp,
 		voters: triggerResult.voters,

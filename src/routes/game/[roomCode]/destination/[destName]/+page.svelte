@@ -199,8 +199,8 @@
 			return;
 		}
 
-		// US-2.7: Handle investigation vote updates
-		if (update.type === 'investigation_vote_update') {
+		// US-2.7: Handle investigation updates (vote events)
+		if (update.type === 'investigation_update' && update.event === 'vote') {
 			investigationVotes = update.votes || {};
 			// Update myVote based on the votes
 			const destNameCapitalized =
