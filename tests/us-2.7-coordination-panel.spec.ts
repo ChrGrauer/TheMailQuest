@@ -79,6 +79,7 @@ test.describe('US-2.7: Coordination Panel', () => {
 	// ============================================================================
 	// SECTION 1: INVESTIGATION VOTING INTERFACE
 	// ============================================================================
+	test.describe.configure({ mode: 'serial' });
 
 	test.describe('Section 1: Investigation Voting Interface', () => {
 		let gmailPage: Page,
