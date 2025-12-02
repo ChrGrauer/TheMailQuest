@@ -13,12 +13,14 @@ import {
 	determineWinner,
 	calculateDestinationCollaborativeScore,
 	aggregateResolutionHistory,
-	calculateFinalScores
+	calculateFinalScores,
+	calculateCoordinationBonus
 } from './final-score-calculator';
 import { buildTestSession, buildTestTeam } from './test-helpers/game-session-builder';
 import { buildTestClient } from './test-helpers/client-test-fixtures';
 import type { ESPFinalResult } from './final-score-types';
 import type { ResolutionResults } from './resolution-types';
+import type { InvestigationHistoryEntry } from './types';
 
 // ============================================================================
 // Scenario 2: Reputation Score Calculation
@@ -405,13 +407,13 @@ describe('calculateDestinationCollaborativeScore - Industry Protection', () => {
 
 		// Then: Industry Protection = (18000/23000) × 40 = 31.30
 		expect(result.scoreBreakdown.industryProtection).toBeCloseTo(31.3, 1);
-		// Coordination Bonus = 0 (feature postponed)
+		// Coordination Bonus = 0 (no investigation history provided)
 		expect(result.scoreBreakdown.coordinationBonus).toBe(0);
 		// User Satisfaction = (1 - 450/45000) × 40 = (1 - 0.01) × 40 = 39.60
 		expect(result.scoreBreakdown.userSatisfaction).toBeCloseTo(39.6, 1);
 		// Total = 31.30 + 0 + 39.60 = 70.90
 		expect(result.collaborativeScore).toBeCloseTo(70.9, 1);
-		// Still below 80 threshold (need excellent spam blocking)
+		// Still below 80 threshold (need coordination bonus or better spam blocking)
 		expect(result.success).toBe(false);
 	});
 
@@ -728,8 +730,260 @@ describe('Data Validation and Edge Cases', () => {
 });
 
 // ============================================================================
+// Scenario 7b: Coordination Bonus Calculation (US-2.7)
+// ============================================================================
+
+describe('calculateCoordinationBonus - Investigation-Based Bonus', () => {
+	test('should return 10 points for single investigation', () => {
+		// Given: One investigation entry
+		const history = createMockInvestigationHistory([
+			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] }
+		]);
+
+		// When: Calculating coordination bonus
+		const result = calculateCoordinationBonus(history);
+
+		// Then: 1 investigation × 10 = 10 points
+		expect(result).toBe(10);
+	});
+
+	test('should return 20 points for two investigations', () => {
+		// Given: Two investigation entries
+		const history = createMockInvestigationHistory([
+			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] },
+			{ round: 3, targetEsp: 'MailMonkey', voters: ['Gmail', 'Yahoo'] }
+		]);
+
+		// When: Calculating coordination bonus
+		const result = calculateCoordinationBonus(history);
+
+		// Then: 2 investigations × 10 = 20 points
+		expect(result).toBe(20);
+	});
+
+	test('should return 30 points for three investigations (typical max)', () => {
+		// Given: Three investigation entries
+		const history = createMockInvestigationHistory([
+			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] },
+			{ round: 3, targetEsp: 'MailMonkey', voters: ['Gmail', 'Yahoo'] },
+			{ round: 4, targetEsp: 'BluePost', voters: ['Outlook', 'Yahoo'] }
+		]);
+
+		// When: Calculating coordination bonus
+		const result = calculateCoordinationBonus(history);
+
+		// Then: 3 investigations × 10 = 30 points
+		expect(result).toBe(30);
+	});
+
+	test('should return 40 points for four investigations (absolute max)', () => {
+		// Given: Four investigation entries (one per round)
+		const history = createMockInvestigationHistory([
+			{ round: 1, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] },
+			{ round: 2, targetEsp: 'MailMonkey', voters: ['Gmail', 'Yahoo'] },
+			{ round: 3, targetEsp: 'BluePost', voters: ['Outlook', 'Yahoo'] },
+			{ round: 4, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook', 'Yahoo'] }
+		]);
+
+		// When: Calculating coordination bonus
+		const result = calculateCoordinationBonus(history);
+
+		// Then: 4 investigations × 10 = 40 points
+		expect(result).toBe(40);
+	});
+
+	test('should return 0 points for empty investigation history', () => {
+		// Given: Empty investigation history
+		const history: InvestigationHistoryEntry[] = [];
+
+		// When: Calculating coordination bonus
+		const result = calculateCoordinationBonus(history);
+
+		// Then: 0 points
+		expect(result).toBe(0);
+	});
+
+	test('should return 0 points for undefined investigation history', () => {
+		// Given: Undefined investigation history
+		const history = undefined;
+
+		// When: Calculating coordination bonus
+		const result = calculateCoordinationBonus(history);
+
+		// Then: 0 points
+		expect(result).toBe(0);
+	});
+});
+
+// ============================================================================
+// Scenario 7c: Collaborative Score with Coordination Bonus
+// ============================================================================
+
+describe('calculateDestinationCollaborativeScore - With Coordination Bonus', () => {
+	const baseStats = {
+		Gmail: {
+			spamBlocked: 8000,
+			totalSpamSent: 10000,
+			falsePositives: 200,
+			legitimateEmails: 20000
+		},
+		Outlook: {
+			spamBlocked: 6000,
+			totalSpamSent: 8000,
+			falsePositives: 150,
+			legitimateEmails: 15000
+		},
+		Yahoo: {
+			spamBlocked: 4000,
+			totalSpamSent: 5000,
+			falsePositives: 100,
+			legitimateEmails: 10000
+		}
+	};
+
+	test('should include coordination bonus in collaborative score', () => {
+		// Given: Stats + 1 investigation
+		const history = createMockInvestigationHistory([
+			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] }
+		]);
+
+		// When: Calculating collaborative score with investigation history
+		const result = calculateDestinationCollaborativeScore(baseStats, history);
+
+		// Then: Industry Protection ~31.30 + Coordination 10 + User Satisfaction ~39.60 = ~80.90
+		expect(result.scoreBreakdown.coordinationBonus).toBe(10);
+		expect(result.collaborativeScore).toBeCloseTo(80.9, 1);
+	});
+
+	test('should cross success threshold with coordination bonus', () => {
+		// Given: Stats that produce ~71 points without coordination
+		// Adding investigation history to push over 80
+		const history = createMockInvestigationHistory([
+			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] }
+		]);
+
+		// When: Calculating collaborative score
+		const result = calculateDestinationCollaborativeScore(baseStats, history);
+
+		// Then: Score crosses 80 threshold, success = true
+		expect(result.collaborativeScore).toBeGreaterThan(80);
+		expect(result.success).toBe(true);
+	});
+
+	test('should clamp collaborative score at 100', () => {
+		// Given: Stats that produce high scores + many investigations
+		const perfectStats = {
+			Gmail: {
+				spamBlocked: 10000,
+				totalSpamSent: 10000,
+				falsePositives: 0,
+				legitimateEmails: 20000
+			},
+			Outlook: {
+				spamBlocked: 8000,
+				totalSpamSent: 8000,
+				falsePositives: 0,
+				legitimateEmails: 15000
+			},
+			Yahoo: {
+				spamBlocked: 5000,
+				totalSpamSent: 5000,
+				falsePositives: 0,
+				legitimateEmails: 10000
+			}
+		};
+		// 4 investigations = 40 points bonus
+		// Industry Protection = 40 (100% blocked) + User Satisfaction = 40 (0 FP) + Coordination = 40
+		// Raw score = 120, should be clamped to 100
+		const history = createMockInvestigationHistory([
+			{ round: 1, targetEsp: 'ESP1', voters: ['Gmail', 'Outlook'] },
+			{ round: 2, targetEsp: 'ESP2', voters: ['Gmail', 'Yahoo'] },
+			{ round: 3, targetEsp: 'ESP3', voters: ['Outlook', 'Yahoo'] },
+			{ round: 4, targetEsp: 'ESP4', voters: ['Gmail', 'Outlook', 'Yahoo'] }
+		]);
+
+		// When: Calculating collaborative score
+		const result = calculateDestinationCollaborativeScore(perfectStats, history);
+
+		// Then: Score should be clamped at 100
+		expect(result.collaborativeScore).toBe(100);
+		expect(result.success).toBe(true);
+	});
+
+	test('should maintain backward compatibility without investigation history', () => {
+		// Given: Stats only, no investigation history
+		// When: Calculating collaborative score (no second parameter)
+		const result = calculateDestinationCollaborativeScore(baseStats);
+
+		// Then: Coordination bonus should be 0
+		expect(result.scoreBreakdown.coordinationBonus).toBe(0);
+		// And: Score should match original calculation
+		expect(result.scoreBreakdown.industryProtection).toBeCloseTo(31.3, 1);
+		expect(result.scoreBreakdown.userSatisfaction).toBeCloseTo(39.6, 1);
+	});
+});
+
+// ============================================================================
+// Scenario 7d: Full Integration with Investigation History
+// ============================================================================
+
+describe('calculateFinalScores - With Investigation History', () => {
+	test('should include coordination bonus in destination results', () => {
+		// Given: A completed game session with investigation history
+		const session = buildTestSession({
+			roomCode: 'COORD-01',
+			currentRound: 4,
+			currentPhase: 'consequences' as 'planning' | 'resolution',
+			teams: [
+				{
+					name: 'SendBolt',
+					reputation: { Gmail: 90, Outlook: 88, Yahoo: 85 },
+					credits: 1000,
+					techStack: ['spf', 'dkim', 'dmarc']
+				}
+			]
+		});
+
+		// Add resolution history
+		session.resolution_history = [
+			createMockResolutionHistoryEntry(1, { SendBolt: 500 }),
+			createMockResolutionHistoryEntry(2, { SendBolt: 500 }),
+			createMockResolutionHistoryEntry(3, { SendBolt: 500 }),
+			createMockResolutionHistoryEntry(4, { SendBolt: 500 })
+		];
+
+		// Add investigation history (2 investigations)
+		session.investigation_history = createMockInvestigationHistory([
+			{ round: 2, targetEsp: 'SendBolt', voters: ['Gmail', 'Outlook'] },
+			{ round: 3, targetEsp: 'SendBolt', voters: ['Gmail', 'Yahoo'] }
+		]);
+
+		// When: Calculating final scores
+		const result = calculateFinalScores(session);
+
+		// Then: Destination results should include coordination bonus
+		expect(result.destinationResults.scoreBreakdown.coordinationBonus).toBe(20);
+	});
+});
+
+// ============================================================================
 // Helper Functions for Tests
 // ============================================================================
+
+function createMockInvestigationHistory(
+	entries: Array<{ round: number; targetEsp: string; voters: string[] }>
+): InvestigationHistoryEntry[] {
+	return entries.map((entry) => ({
+		round: entry.round,
+		targetEsp: entry.targetEsp,
+		voters: entry.voters,
+		result: {
+			violationFound: false,
+			message: 'Mock investigation - no violation found'
+		},
+		timestamp: new Date()
+	}));
+}
 
 function createMockESPResult(
 	name: string,

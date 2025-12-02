@@ -16,7 +16,7 @@ import {
 	getKingdomNames
 } from '$lib/config/final-scoring';
 import { TECHNICAL_UPGRADES } from '$lib/config/technical-upgrades';
-import type { GameSession } from './types';
+import type { GameSession, InvestigationHistoryEntry } from './types';
 import type {
 	ESPScoreBreakdown,
 	ESPFinalResult,
@@ -219,13 +219,31 @@ interface DestinationInputStats {
 }
 
 /**
+ * Calculate coordination bonus based on investigation history
+ * Each triggered investigation awards 10 points
+ *
+ * @param investigationHistory - Array of completed investigations
+ * @returns Coordination bonus points (10 per investigation)
+ */
+export function calculateCoordinationBonus(
+	investigationHistory: InvestigationHistoryEntry[] | undefined
+): number {
+	if (!investigationHistory || investigationHistory.length === 0) {
+		return 0;
+	}
+	return investigationHistory.length * DESTINATION_WEIGHTS.COORDINATION_BONUS;
+}
+
+/**
  * Calculate destination collaborative score
  *
  * @param stats - Per-destination stats (Gmail, Outlook, Yahoo)
+ * @param investigationHistory - Optional investigation history for coordination bonus
  * @returns Collaborative score result with breakdown
  */
 export function calculateDestinationCollaborativeScore(
-	stats: Record<string, DestinationInputStats>
+	stats: Record<string, DestinationInputStats>,
+	investigationHistory?: InvestigationHistoryEntry[]
 ): DestinationCollaborativeResult {
 	// Aggregate across all destinations
 	let totalSpamBlocked = 0;
@@ -264,17 +282,18 @@ export function calculateDestinationCollaborativeScore(
 	const industryProtection =
 		Math.round(spamBlockingRate * DESTINATION_WEIGHTS.INDUSTRY_PROTECTION * 100) / 100;
 
-	// Coordination Bonus: Postponed - always 0
-	const coordinationBonus = 0;
+	// Coordination Bonus: Based on triggered investigations
+	const coordinationBonus = calculateCoordinationBonus(investigationHistory);
 
-	// User Satisfaction: (1 - falsePositiveRate) × 20
+	// User Satisfaction: (1 - falsePositiveRate) × 40
 	const falsePositiveRate =
 		totalLegitimateEmails > 0 ? totalFalsePositives / totalLegitimateEmails : 0;
 	const userSatisfaction =
 		Math.round((1 - falsePositiveRate) * DESTINATION_WEIGHTS.USER_SATISFACTION * 100) / 100;
 
-	const collaborativeScore =
-		Math.round((industryProtection + coordinationBonus + userSatisfaction) * 100) / 100;
+	// Calculate raw score and clamp at 100
+	const rawScore = industryProtection + coordinationBonus + userSatisfaction;
+	const collaborativeScore = Math.min(100, Math.round(rawScore * 100) / 100);
 	const success = collaborativeScore > DESTINATION_SUCCESS_THRESHOLD;
 
 	return {
@@ -444,8 +463,11 @@ export function calculateFinalScores(session: GameSession): FinalScoreOutput {
 	// Determine winner
 	const winner = determineWinner(espResults);
 
-	// Calculate destination collaborative score
-	const destinationResults = calculateDestinationCollaborativeScore(aggregated.destinationStats);
+	// Calculate destination collaborative score (with coordination bonus from investigations)
+	const destinationResults = calculateDestinationCollaborativeScore(
+		aggregated.destinationStats,
+		session.investigation_history
+	);
 
 	// Check if all ESPs are disqualified
 	const allDisqualified = espResults.every((esp) => !esp.qualified);

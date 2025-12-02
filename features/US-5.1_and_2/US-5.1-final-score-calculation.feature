@@ -220,15 +220,15 @@ Feature: Final Score Calculation
     And the Coordination Bonus is calculated as:
       """
       Total coordinated actions = 2 + 2 + 2 = 6
-      Coordination Bonus = 6 × 10 = 60 points (placeholder - not yet implemented)
+      Coordination Bonus = 6 × 10 = 60 points
       """
     And the User Satisfaction score is calculated as:
       """
       False positive rate = (200 + 150 + 100) / (20000 + 15000 + 10000)
                           = 450 / 45000 = 0.01
-      User Satisfaction = (1 - 0.01) × 20 = 19.80 points
+      User Satisfaction = (1 - 0.01) × 40 = 39.60 points
       """
-    And the collaborative score is: "31.30 + 60 + 19.80 = 111.10"
+    And the collaborative score is: "31.30 + 60 + 39.60 = 130.90 (clamped to 100)"
     And Destinations succeed because score > 80
     And a success message is displayed: "Destinations succeeded in protecting users while allowing legitimate mail"
 
@@ -241,8 +241,8 @@ Feature: Final Score Calculation
     When the system calculates the destination collaborative score
     Then the Industry Protection score is: "(9000 / 23000) × 40 = 15.65"
     And the Coordination Bonus is: "0 × 10 = 0"
-    And the User Satisfaction score is: "(1 - 0.0267) × 20 = 19.47"
-    And the collaborative score is: "15.65 + 0 + 19.47 = 35.12"
+    And the User Satisfaction score is: "(1 - 0.0267) × 40 = 38.93"
+    And the collaborative score is: "15.65 + 0 + 38.93 = 54.58"
     And Destinations fail because score ≤ 80
     And a failure message is displayed: "Destinations failed - Users dissatisfied with email industry, turning to other communication channels"
 
