@@ -1,19 +1,54 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { onMount, onDestroy } from 'svelte';
-	import { websocketStore, type GameStateUpdate } from '$lib/stores/websocket';
+	import {
+		websocketStore,
+		type GameStateUpdate,
+		type ESPDashboardUpdate
+	} from '$lib/stores/websocket';
 	import type { IncidentCard, IncidentHistoryEntry } from '$lib/types/incident';
+	import type { Client, ClientState } from '$lib/server/game/types';
 	import IncidentTriggerButton from '$lib/components/incident/IncidentTriggerButton.svelte';
 	import IncidentSelectionModal from '$lib/components/incident/IncidentSelectionModal.svelte';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
 	import IncidentHistory from '$lib/components/incident/IncidentHistory.svelte';
+	import { TECHNICAL_UPGRADES } from '$lib/config/technical-upgrades';
+	import { DESTINATION_TOOLS } from '$lib/config/destination-technical-upgrades';
+
+	// US-8.2-0.2: Types for metrics data
+	interface ESPMetrics {
+		name: string;
+		budget: number;
+		reputation: Record<string, number>;
+		ownedTechUpgrades: string[];
+		activeClients: string[];
+		availableClients: Client[];
+		clientStates: Record<string, ClientState>;
+	}
+
+	interface DestinationMetrics {
+		name: string;
+		kingdom: string;
+		budget: number;
+		ownedTools: string[];
+		espMetrics: Record<string, { user_satisfaction: number; spam_level: number }>;
+	}
+
+	// Props from server load
+	let { data } = $props();
 
 	const roomCode = $page.params.roomCode;
 
-	let round = $state(1);
-	let phase = $state('planning');
+	// Initialize from server data
+	let round = $state(data?.initialData?.currentRound ?? 1);
+	let phase = $state(data?.initialData?.currentPhase ?? 'planning');
 	let timerRemaining = $state(300);
 	let isPaused = $state(false);
+
+	// US-8.2-0.2: Metrics state
+	let espTeams = $state<ESPMetrics[]>(data?.initialData?.espTeams ?? []);
+	let destinations = $state<DestinationMetrics[]>(data?.initialData?.destinations ?? []);
+	let resolutionHistory = $state<any[]>(data?.initialData?.resolutionHistory ?? []);
 
 	// Start Next Round button state
 	let isStartingRound = $state(false);
@@ -169,12 +204,90 @@
 		currentIncident = null;
 	}
 
+	// US-8.2-0.2: Handle ESP dashboard updates for real-time metrics
+	function handleESPDashboardUpdate(update: ESPDashboardUpdate) {
+		if (!update.teamName) return;
+
+		espTeams = espTeams.map((esp) => {
+			if (esp.name !== update.teamName) return esp;
+
+			return {
+				...esp,
+				budget: update.credits ?? esp.budget,
+				reputation: update.reputation ?? esp.reputation,
+				ownedTechUpgrades: update.owned_tech_upgrades ?? esp.ownedTechUpgrades
+			};
+		});
+	}
+
+	// US-8.2-0.2: Get spam rate for ESP from resolution history
+	function getSpamRate(espName: string): string {
+		if (resolutionHistory.length === 0) return 'N/A';
+
+		const latestResolution = resolutionHistory[resolutionHistory.length - 1];
+		const espResult = latestResolution?.results?.espResults?.[espName];
+
+		if (!espResult?.complaints?.adjustedComplaintRate) return 'N/A';
+
+		return `${espResult.complaints.adjustedComplaintRate.toFixed(1)}%`;
+	}
+
+	// US-8.2-0.2: Get clients breakdown by type
+	function getClientsByType(
+		activeClients: string[],
+		availableClients: Client[],
+		clientStates: Record<string, ClientState>
+	): string {
+		if (activeClients.length === 0) return 'None';
+
+		const typeCounts: Record<string, number> = {};
+		const typeLabels: Record<string, string> = {
+			premium_brand: 'Premium',
+			growing_startup: 'Startup',
+			re_engagement: 'Re-engage',
+			aggressive_marketer: 'Aggressive',
+			event_seasonal: 'Event'
+		};
+
+		// Count clients by type
+		for (const clientId of activeClients) {
+			const client = availableClients.find((c) => c.id === clientId);
+			if (client) {
+				const label = typeLabels[client.type] || client.type;
+				typeCounts[label] = (typeCounts[label] || 0) + 1;
+			}
+		}
+
+		// Format as "X Premium, Y Startup, ..."
+		return (
+			Object.entries(typeCounts)
+				.map(([type, count]) => `${count} ${type}`)
+				.join(', ') || 'None'
+		);
+	}
+
+	// US-8.2-0.2: Get destination user satisfaction
+	function getDestinationSatisfaction(dest: DestinationMetrics): string {
+		// Check resolution history for satisfaction data
+		if (resolutionHistory.length === 0) return 'N/A';
+
+		const latestResolution = resolutionHistory[resolutionHistory.length - 1];
+		const destResult = latestResolution?.results?.destinationResults?.[dest.name];
+
+		if (destResult?.aggregatedSatisfaction !== undefined) {
+			return `${Math.round(destResult.aggregatedSatisfaction)}%`;
+		}
+
+		return 'N/A';
+	}
+
 	onMount(() => {
 		// Connect to WebSocket for real-time game state updates
 		websocketStore.connect(
 			roomCode,
 			() => {}, // Lobby updates not needed for facilitator
-			handleGameStateUpdate
+			handleGameStateUpdate,
+			handleESPDashboardUpdate // US-8.2-0.2: Listen for ESP dashboard updates
 		);
 
 		// Fetch incident history
@@ -516,9 +629,111 @@
 		</div>
 	{/if}
 
-	<p class="placeholder-notice">
-		This is a placeholder dashboard. Full implementation coming in future user stories.
-	</p>
+	<!-- US-8.2-0.2: ESP Metrics Table -->
+	<section class="metrics-section">
+		<h2>ESP Teams</h2>
+		<div class="table-container">
+			<table data-testid="esp-metrics-table" class="metrics-table">
+				<thead>
+					<tr>
+						<th>Team</th>
+						<th>Budget</th>
+						<th>Gmail Rep</th>
+						<th>Outlook Rep</th>
+						<th>Yahoo Rep</th>
+						<th>Spam Rate</th>
+						<th>Clients</th>
+						<th>Tech Tools</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each espTeams as esp}
+						<tr data-testid="esp-row-{esp.name}">
+							<td class="team-name">{esp.name}</td>
+							<td data-testid="esp-budget">{esp.budget}</td>
+							<td data-testid="esp-rep-Gmail">{esp.reputation?.Gmail ?? 70}</td>
+							<td data-testid="esp-rep-Outlook">{esp.reputation?.Outlook ?? 70}</td>
+							<td data-testid="esp-rep-Yahoo">{esp.reputation?.Yahoo ?? 70}</td>
+							<td data-testid="esp-spam-rate">{getSpamRate(esp.name)}</td>
+							<td data-testid="esp-clients"
+								>{getClientsByType(esp.activeClients, esp.availableClients, esp.clientStates)}</td
+							>
+							<td data-testid="esp-tech-tools" class="tech-tools-cell">
+								{#each TECHNICAL_UPGRADES as tech}
+									<span
+										data-testid="tech-{tech.id}"
+										data-owned={esp.ownedTechUpgrades.includes(tech.id) ? 'true' : 'false'}
+										class="tech-badge"
+										class:owned={esp.ownedTechUpgrades.includes(tech.id)}
+									>
+										{tech.id === 'content-filtering'
+											? 'Content'
+											: tech.id === 'advanced-monitoring'
+												? 'Monitor'
+												: tech.id.toUpperCase()}
+										{esp.ownedTechUpgrades.includes(tech.id) ? '✓' : '✗'}
+									</span>
+								{/each}
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<!-- US-8.2-0.2: Destination Metrics Table -->
+	<section class="metrics-section">
+		<h2>Destinations</h2>
+		<div class="table-container">
+			<table data-testid="destination-metrics-table" class="metrics-table">
+				<thead>
+					<tr>
+						<th>Destination</th>
+						<th>Budget</th>
+						<th>User Satisfaction</th>
+						<th>Tech Tools</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each destinations as dest}
+						<tr data-testid="dest-row-{dest.name}">
+							<td class="dest-name">{dest.name}</td>
+							<td data-testid="dest-budget">{dest.budget}</td>
+							<td data-testid="dest-satisfaction">{getDestinationSatisfaction(dest)}</td>
+							<td data-testid="dest-tech-tools" class="tech-tools-cell">
+								{#each Object.values(DESTINATION_TOOLS) as tool}
+									<span
+										data-testid="tool-{tool.id}"
+										data-owned={dest.ownedTools.includes(tool.id) ? 'true' : 'false'}
+										class="tech-badge"
+										class:owned={dest.ownedTools.includes(tool.id)}
+									>
+										{tool.id === 'content_analysis_filter'
+											? 'Content'
+											: tool.id === 'auth_validator_l1'
+												? 'Auth L1'
+												: tool.id === 'auth_validator_l2'
+													? 'Auth L2'
+													: tool.id === 'auth_validator_l3'
+														? 'Auth L3'
+														: tool.id === 'ml_system'
+															? 'ML'
+															: tool.id === 'spam_trap_network'
+																? 'Trap'
+																: tool.id === 'volume_throttling'
+																	? 'Throttle'
+																	: tool.id}
+										{dest.ownedTools.includes(tool.id) ? '✓' : '✗'}
+									</span>
+								{/each}
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	</section>
 </div>
 
 <!-- Incident Selection Modal -->
@@ -658,16 +873,97 @@
 		color: #991b1b;
 	}
 
-	.placeholder-notice {
-		margin-top: 2rem;
-		padding: 1rem;
-		background-color: #f3f4f6;
-		border-radius: 0.5rem;
-		color: #6b7280;
-	}
-
 	.incident-history-section {
 		margin: 1.5rem 0;
+	}
+
+	/* US-8.2-0.2: Metrics tables */
+	.metrics-section {
+		margin: 2rem 0;
+	}
+
+	.metrics-section h2 {
+		font-size: 1.25rem;
+		font-weight: 600;
+		margin-bottom: 1rem;
+		color: #1f2937;
+	}
+
+	.table-container {
+		overflow-x: auto;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+	}
+
+	.metrics-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.875rem;
+	}
+
+	.metrics-table th,
+	.metrics-table td {
+		padding: 0.75rem 1rem;
+		text-align: left;
+		border-bottom: 1px solid #e5e7eb;
+	}
+
+	.metrics-table th {
+		background-color: #f9fafb;
+		font-weight: 600;
+		color: #374151;
+		white-space: nowrap;
+	}
+
+	.metrics-table tbody tr:hover {
+		background-color: #f9fafb;
+	}
+
+	.metrics-table tbody tr:last-child td {
+		border-bottom: none;
+	}
+
+	.team-name,
+	.dest-name {
+		font-weight: 500;
+	}
+
+	.tech-tools-cell {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+
+	.tech-badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.125rem 0.375rem;
+		font-size: 0.75rem;
+		border-radius: 0.25rem;
+		background-color: #fee2e2;
+		color: #991b1b;
+	}
+
+	.tech-badge.owned {
+		background-color: #dcfce7;
+		color: #166534;
+	}
+
+	/* Responsive: collapse to single column on mobile */
+	@media (max-width: 768px) {
+		.metrics-table {
+			font-size: 0.75rem;
+		}
+
+		.metrics-table th,
+		.metrics-table td {
+			padding: 0.5rem;
+		}
+
+		.tech-badge {
+			font-size: 0.625rem;
+			padding: 0.0625rem 0.25rem;
+		}
 	}
 
 	/* US-8.2-0.1: Timer container with paused indicator */
