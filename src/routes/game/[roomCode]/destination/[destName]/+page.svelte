@@ -182,6 +182,15 @@
 
 	// Handle game state updates from WebSocket
 	function handleGameStateUpdate(update: any) {
+		// US-8.2-0.1: Handle timer_update messages
+		if (update.type === 'timer_update') {
+			gameState.isPaused = update.isPaused;
+			if (update.remainingTime !== undefined) {
+				gameState.timerSeconds = update.remainingTime;
+			}
+			return;
+		}
+
 		// Handle incident_triggered messages (via incidentState composable)
 		if (update.type === 'incident_triggered' && update.incident) {
 			incidentState.showIncident(update.incident);
@@ -622,6 +631,18 @@
 			theme="blue"
 			isLockedIn={lockInState.isLockedIn}
 		/>
+
+		<!-- US-8.2-0.1: Game Paused Banner -->
+		{#if gameState.isPaused}
+			<div
+				data-testid="game-paused-banner"
+				class="bg-amber-100 border-b border-amber-300 px-4 py-3 text-center"
+				role="alert"
+			>
+				<span class="text-amber-800 font-semibold">⏸ Game Paused</span>
+				<span class="text-amber-700 ml-2">The facilitator has paused the game</span>
+			</div>
+		{/if}
 
 		<!-- US-2.7: Auto-correction message for vote removal -->
 		{#if autoCorrectionMessage}

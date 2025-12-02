@@ -271,6 +271,18 @@ export interface InvestigationUpdateMessage {
 	message?: string;
 }
 
+/**
+ * US-8.2-0.1: Timer update - unified message for pause, resume, and extend actions
+ * Broadcast to all players when facilitator controls timer
+ */
+export interface TimerUpdateMessage {
+	type: 'timer_update';
+	isPaused: boolean;
+	remainingTime: number;
+	action: 'pause' | 'resume' | 'extend';
+	addedSeconds?: number; // Only for 'extend' action
+}
+
 // ============================================================================
 // Client-to-Server Messages
 // ============================================================================
@@ -326,7 +338,8 @@ export type ServerMessage =
 	| IncidentChoiceRequiredMessage
 	| IncidentChoiceConfirmedMessage
 	| FinalScoresCalculatedMessage
-	| InvestigationUpdateMessage;
+	| InvestigationUpdateMessage
+	| TimerUpdateMessage;
 
 /**
  * All possible WebSocket messages (client-to-server)

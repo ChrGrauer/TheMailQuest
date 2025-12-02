@@ -13,6 +13,7 @@
 	let round = $state(1);
 	let phase = $state('planning');
 	let timerRemaining = $state(300);
+	let isPaused = $state(false);
 
 	// Start Next Round button state
 	let isStartingRound = $state(false);
@@ -20,6 +21,16 @@
 
 	// Calculate Final Scores button state
 	let isCalculatingScores = $state(false);
+
+	// US-8.2-0.1: Timer control button states
+	let isPausingResuming = $state(false);
+	let isExtending = $state(false);
+	let isEndingPhase = $state(false);
+	let isEndingGame = $state(false);
+
+	// Confirmation dialog state
+	let showConfirmDialog = $state(false);
+	let confirmDialogAction = $state<'endPhase' | 'endGame' | null>(null);
 
 	// Incident state
 	let showIncidentSelectionModal = $state(false);
@@ -38,8 +49,26 @@
 	// Show "Calculate Final Scores" button only during consequences phase of round 4
 	let showFinalScoresButton = $derived(phase === 'consequences' && round === 4);
 
+	// US-8.2-0.1: Button visibility conditions
+	let showPauseResumeButton = $derived(phase === 'planning');
+	let showExtendButton = $derived(phase === 'planning');
+	let showEndPhaseButton = $derived(phase === 'planning');
+	let showEndGameEarlyButton = $derived(phase === 'consequences' && round >= 1 && round <= 3);
+
 	// Handle game state updates from WebSocket
 	function handleGameStateUpdate(data: GameStateUpdate | any) {
+		// US-8.2-0.1: Handle timer_update messages
+		if (data.type === 'timer_update') {
+			isPaused = data.isPaused;
+			if (data.remainingTime !== undefined) {
+				timerRemaining = data.remainingTime;
+			}
+			// Reset button states
+			isPausingResuming = false;
+			isExtending = false;
+			return;
+		}
+
 		// Handle incident_triggered messages
 		if (data.type === 'incident_triggered' && data.incident) {
 			currentIncident = data.incident;
@@ -51,8 +80,11 @@
 		if (data.type === 'phase_transition' && data.data) {
 			if (data.data.phase !== undefined) {
 				phase = data.data.phase;
-				// Reset loading state when phase changes
+				// Reset loading states when phase changes
 				isStartingRound = false;
+				isEndingPhase = false;
+				isEndingGame = false;
+				isPaused = false;
 			}
 			if (data.data.round !== undefined) {
 				round = data.data.round;
@@ -73,11 +105,18 @@
 		}
 		if (data.phase !== undefined) {
 			phase = data.phase;
-			// Reset loading state when phase changes
+			// Reset loading states when phase changes
 			isStartingRound = false;
+			isEndingPhase = false;
+			isEndingGame = false;
+			isPaused = false;
 		}
 		if (data.timer_remaining !== undefined) {
 			timerRemaining = data.timer_remaining;
+		}
+		// Handle isPaused state from game_state_update
+		if (data.isPaused !== undefined) {
+			isPaused = data.isPaused;
 		}
 		// Update incident history if present
 		if (data.incident_history !== undefined) {
@@ -204,6 +243,159 @@
 			isCalculatingScores = false;
 		}
 	}
+
+	/**
+	 * US-8.2-0.1: Handle Pause/Resume button click
+	 */
+	async function handlePauseResume() {
+		isPausingResuming = true;
+		error = null;
+
+		try {
+			const action = isPaused ? 'resume' : 'pause';
+			const response = await fetch(`/api/sessions/${roomCode}/timer`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ action })
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				error = data.error || `Failed to ${action} game`;
+				isPausingResuming = false;
+				return;
+			}
+
+			// Success - state will update via WebSocket
+		} catch (err) {
+			error = 'Network error. Please try again.';
+			isPausingResuming = false;
+		}
+	}
+
+	/**
+	 * US-8.2-0.1: Handle Extend Timer button click
+	 */
+	async function handleExtendTimer() {
+		isExtending = true;
+		error = null;
+
+		try {
+			const response = await fetch(`/api/sessions/${roomCode}/timer`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ action: 'extend', seconds: 60 })
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				error = data.error || 'Failed to extend timer';
+				isExtending = false;
+				return;
+			}
+
+			// Success - state will update via WebSocket
+		} catch (err) {
+			error = 'Network error. Please try again.';
+			isExtending = false;
+		}
+	}
+
+	/**
+	 * US-8.2-0.1: Open confirmation dialog for End Phase
+	 */
+	function handleEndPhaseClick() {
+		confirmDialogAction = 'endPhase';
+		showConfirmDialog = true;
+	}
+
+	/**
+	 * US-8.2-0.1: Open confirmation dialog for End Game Early
+	 */
+	function handleEndGameEarlyClick() {
+		confirmDialogAction = 'endGame';
+		showConfirmDialog = true;
+	}
+
+	/**
+	 * US-8.2-0.1: Handle confirmation dialog cancel
+	 */
+	function handleConfirmCancel() {
+		showConfirmDialog = false;
+		confirmDialogAction = null;
+	}
+
+	/**
+	 * US-8.2-0.1: Handle confirmation dialog confirm
+	 */
+	async function handleConfirmAction() {
+		if (confirmDialogAction === 'endPhase') {
+			await executeEndPhase();
+		} else if (confirmDialogAction === 'endGame') {
+			await executeEndGame();
+		}
+		showConfirmDialog = false;
+		confirmDialogAction = null;
+	}
+
+	/**
+	 * US-8.2-0.1: Execute End Phase action
+	 * Triggers auto-lock and phase transition
+	 */
+	async function executeEndPhase() {
+		isEndingPhase = true;
+		error = null;
+
+		try {
+			// First auto-lock all players
+			const autoLockResponse = await fetch(`/api/sessions/${roomCode}/auto-lock`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' }
+			});
+
+			if (!autoLockResponse.ok) {
+				const data = await autoLockResponse.json();
+				error = data.error || 'Failed to end phase';
+				isEndingPhase = false;
+				return;
+			}
+
+			// Phase transition will happen automatically after auto-lock
+			// isEndingPhase will be reset when phase changes via WebSocket
+		} catch (err) {
+			error = 'Network error. Please try again.';
+			isEndingPhase = false;
+		}
+	}
+
+	/**
+	 * US-8.2-0.1: Execute End Game Early action
+	 * Calculates final scores and transitions to finished phase
+	 */
+	async function executeEndGame() {
+		isEndingGame = true;
+		error = null;
+
+		try {
+			const response = await fetch(`/api/sessions/${roomCode}/calculate-final-scores`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ forceEarly: true })
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				error = data.error || 'Failed to end game';
+				isEndingGame = false;
+				return;
+			}
+
+			// Success - phase will update to 'finished' via WebSocket
+		} catch (err) {
+			error = 'Network error. Please try again.';
+			isEndingGame = false;
+		}
+	}
 </script>
 
 <div class="container">
@@ -211,12 +403,78 @@
 	<p>Room Code: {roomCode}</p>
 	<p>Round {round} - <span data-testid="current-phase">{phase}</span> Phase</p>
 
-	<div data-testid="game-timer" class="timer">
-		{timerDisplay}
+	<div class="timer-container">
+		<div data-testid="game-timer" class="timer">
+			{timerDisplay}
+		</div>
+		{#if isPaused}
+			<span data-testid="timer-paused-indicator" class="paused-indicator">PAUSED</span>
+		{/if}
 	</div>
 
 	<!-- Facilitator Actions -->
 	<div class="actions-panel">
+		<!-- US-8.2-0.1: Timer Controls (planning phase only) -->
+		{#if showPauseResumeButton}
+			{#if isPaused}
+				<button
+					data-testid="resume-game-button"
+					onclick={handlePauseResume}
+					disabled={isPausingResuming}
+					class="control-button resume-button"
+					class:loading={isPausingResuming}
+				>
+					{isPausingResuming ? 'Resuming...' : 'Resume Game'}
+				</button>
+			{:else}
+				<button
+					data-testid="pause-game-button"
+					onclick={handlePauseResume}
+					disabled={isPausingResuming}
+					class="control-button pause-button"
+					class:loading={isPausingResuming}
+				>
+					{isPausingResuming ? 'Pausing...' : 'Pause Game'}
+				</button>
+			{/if}
+		{/if}
+
+		{#if showExtendButton}
+			<button
+				data-testid="extend-timer-button"
+				onclick={handleExtendTimer}
+				disabled={isExtending}
+				class="control-button extend-button"
+				class:loading={isExtending}
+			>
+				{isExtending ? 'Extending...' : 'Extend Timer (+60s)'}
+			</button>
+		{/if}
+
+		{#if showEndPhaseButton}
+			<button
+				data-testid="end-phase-button"
+				onclick={handleEndPhaseClick}
+				disabled={isEndingPhase}
+				class="control-button end-phase-button"
+				class:loading={isEndingPhase}
+			>
+				{isEndingPhase ? 'Ending Phase...' : 'End Current Phase'}
+			</button>
+		{/if}
+
+		{#if showEndGameEarlyButton}
+			<button
+				data-testid="end-game-early-button"
+				onclick={handleEndGameEarlyClick}
+				disabled={isEndingGame}
+				class="control-button end-game-button"
+				class:loading={isEndingGame}
+			>
+				{isEndingGame ? 'Ending Game...' : 'End Game Early'}
+			</button>
+		{/if}
+
 		{#if showStartButton}
 			<button
 				data-testid="start-next-round-button"
@@ -279,6 +537,38 @@
 	affectedTeam={currentIncident?.affectedTeam}
 	onClose={handleIncidentCardClose}
 />
+
+<!-- US-8.2-0.1: Confirmation Dialog -->
+{#if showConfirmDialog}
+	<div class="modal-backdrop" role="dialog" aria-modal="true" tabindex="-1">
+		<div data-testid="confirmation-dialog" class="confirmation-dialog">
+			<h3>
+				{#if confirmDialogAction === 'endPhase'}
+					End Planning Phase?
+				{:else}
+					End Game Early?
+				{/if}
+			</h3>
+			<p>
+				{#if confirmDialogAction === 'endPhase'}
+					Are you sure you want to end the planning phase early? All players who haven't locked in
+					will be auto-locked with their current decisions.
+				{:else}
+					Are you sure you want to end the game early? This will calculate final scores and end the
+					game.
+				{/if}
+			</p>
+			<div class="dialog-actions">
+				<button data-testid="cancel-button" onclick={handleConfirmCancel} class="cancel-button">
+					Cancel
+				</button>
+				<button data-testid="confirm-button" onclick={handleConfirmAction} class="confirm-button">
+					Confirm
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <style>
 	.container {
@@ -378,5 +668,171 @@
 
 	.incident-history-section {
 		margin: 1.5rem 0;
+	}
+
+	/* US-8.2-0.1: Timer container with paused indicator */
+	.timer-container {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin: 1rem 0;
+	}
+
+	.paused-indicator {
+		display: inline-block;
+		padding: 0.25rem 0.75rem;
+		background-color: #fef3c7;
+		color: #92400e;
+		font-weight: 600;
+		font-size: 0.875rem;
+		border-radius: 0.25rem;
+		animation: pulse 2s infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.5;
+		}
+	}
+
+	/* US-8.2-0.1: Control buttons */
+	.actions-panel {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin: 1rem 0;
+	}
+
+	.control-button {
+		padding: 0.5rem 1rem;
+		font-weight: 500;
+		border: none;
+		border-radius: 0.375rem;
+		cursor: pointer;
+		font-size: 0.875rem;
+		transition: all 0.2s;
+	}
+
+	.control-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.control-button.loading {
+		opacity: 0.7;
+	}
+
+	.pause-button {
+		background-color: #fbbf24;
+		color: #78350f;
+	}
+
+	.pause-button:hover:not(:disabled) {
+		background-color: #f59e0b;
+	}
+
+	.resume-button {
+		background-color: #34d399;
+		color: #064e3b;
+	}
+
+	.resume-button:hover:not(:disabled) {
+		background-color: #10b981;
+	}
+
+	.extend-button {
+		background-color: #60a5fa;
+		color: #1e3a5f;
+	}
+
+	.extend-button:hover:not(:disabled) {
+		background-color: #3b82f6;
+	}
+
+	.end-phase-button {
+		background-color: #f97316;
+		color: white;
+	}
+
+	.end-phase-button:hover:not(:disabled) {
+		background-color: #ea580c;
+	}
+
+	.end-game-button {
+		background-color: #ef4444;
+		color: white;
+	}
+
+	.end-game-button:hover:not(:disabled) {
+		background-color: #dc2626;
+	}
+
+	/* US-8.2-0.1: Confirmation dialog */
+	.modal-backdrop {
+		position: fixed;
+		inset: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 50;
+	}
+
+	.confirmation-dialog {
+		background-color: white;
+		padding: 1.5rem;
+		border-radius: 0.5rem;
+		max-width: 400px;
+		width: 90%;
+		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+	}
+
+	.confirmation-dialog h3 {
+		margin: 0 0 1rem 0;
+		font-size: 1.125rem;
+		font-weight: 600;
+	}
+
+	.confirmation-dialog p {
+		margin: 0 0 1.5rem 0;
+		color: #4b5563;
+	}
+
+	.dialog-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.5rem;
+	}
+
+	.cancel-button {
+		padding: 0.5rem 1rem;
+		background-color: #e5e7eb;
+		color: #374151;
+		border: none;
+		border-radius: 0.375rem;
+		cursor: pointer;
+		font-weight: 500;
+	}
+
+	.cancel-button:hover {
+		background-color: #d1d5db;
+	}
+
+	.confirm-button {
+		padding: 0.5rem 1rem;
+		background-color: #ef4444;
+		color: white;
+		border: none;
+		border-radius: 0.375rem;
+		cursor: pointer;
+		font-weight: 500;
+	}
+
+	.confirm-button:hover {
+		background-color: #dc2626;
 	}
 </style>

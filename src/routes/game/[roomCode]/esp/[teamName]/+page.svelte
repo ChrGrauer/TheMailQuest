@@ -310,6 +310,15 @@
 	 * Handle game state updates (phase, round, timer)
 	 */
 	function handleGameStateUpdate(data: any) {
+		// US-8.2-0.1: Handle timer_update messages
+		if (data.type === 'timer_update') {
+			gameState.isPaused = data.isPaused;
+			if (data.remainingTime !== undefined) {
+				gameState.timerSeconds = data.remainingTime;
+			}
+			return;
+		}
+
 		// Handle incident_triggered messages (via incidentState composable)
 		if (data.type === 'incident_triggered' && data.incident) {
 			incidentState.showIncident(data.incident);
@@ -780,6 +789,18 @@
 			theme="emerald"
 			isLockedIn={lockInState.isLockedIn}
 		/>
+
+		<!-- US-8.2-0.1: Game Paused Banner -->
+		{#if gameState.isPaused}
+			<div
+				data-testid="game-paused-banner"
+				class="bg-amber-100 border-b border-amber-300 px-4 py-3 text-center"
+				role="alert"
+			>
+				<span class="text-amber-800 font-semibold">⏸ Game Paused</span>
+				<span class="text-amber-700 ml-2">The facilitator has paused the game</span>
+			</div>
+		{/if}
 
 		<!-- Main Dashboard Content (Planning Phase) -->
 		<div class="max-w-7xl mx-auto px-4 py-8">

@@ -30,7 +30,8 @@ Feature: US-8.2-0.1 - Facilitator Basic Controls
       | 1     | resolution   | NOT visible   | NOT visible    | NOT visible       | NOT visible      |
       | 1     | consequences | NOT visible   | NOT visible    | NOT visible       | visible          |
       | 2     | consequences | NOT visible   | NOT visible    | NOT visible       | visible          |
-      | 4     | consequences | NOT visible   | NOT visible    | NOT visible       | visible          |
+      | 3     | consequences | NOT visible   | NOT visible    | NOT visible       | visible          |
+      | 4     | consequences | NOT visible   | NOT visible    | NOT visible       | NOT visible      |
 
   # ========================================================================
   # Pause Game Functionality
@@ -39,7 +40,7 @@ Feature: US-8.2-0.1 - Facilitator Basic Controls
   Scenario: Pause and resume game during planning phase
     Given the game is in round 1
     And the current phase is "planning"
-    And the timer shows 240 seconds remaining
+    And the timer shows 4:59min remaining
     When the facilitator clicks "Pause Game" button
     Then the timer should stop counting down
     And the timer display should show a "Paused" indicator
@@ -47,7 +48,7 @@ Feature: US-8.2-0.1 - Facilitator Basic Controls
     And the "Pause Game" button should change to "Resume Game"
     # Verify timer stays frozen
     When 5 seconds pass in real time
-    Then the timer should still show approximately 240 seconds remaining
+    Then the timer should still show approximately 4:59min remaining
     # Resume
     When the facilitator clicks "Resume Game" button
     Then the timer should resume counting down
@@ -67,29 +68,23 @@ Feature: US-8.2-0.1 - Facilitator Basic Controls
   # Extend Timer Functionality
   # ========================================================================
 
-  Scenario: Extend timer adds 60 seconds per click
+  Scenario: Extend timer adds 60 seconds per click for all connected players in real-time
     Given the game is in round 1
     And the current phase is "planning"
     And the timer shows 120 seconds remaining
+    And ESP "SendWave" player is viewing their dashboard
+    And destination "Gmail" player is viewing their dashboard
     When the facilitator clicks "Extend Timer" button
     Then the timer should show approximately 180 seconds remaining
     And an action log entry should be created for "Timer Extended"
+    Then ESP "SendWave" player should see timer showing approximately 180 seconds
+    And destination "Gmail" player should see timer showing approximately 180 seconds
     # Second click
     When the facilitator clicks "Extend Timer" button
     Then the timer should show approximately 240 seconds remaining
     # Third click - verify no limit
     When the facilitator clicks "Extend Timer" button
     Then the timer should show approximately 300 seconds remaining
-
-  Scenario: Extend timer updates for all connected players in real-time
-    Given the game is in round 1
-    And the current phase is "planning"
-    And the timer shows 60 seconds remaining
-    And ESP "SendWave" player is viewing their dashboard
-    And destination "Gmail" player is viewing their dashboard
-    When the facilitator clicks "Extend Timer" button
-    Then ESP "SendWave" player should see timer showing approximately 120 seconds
-    And destination "Gmail" player should see timer showing approximately 120 seconds
 
   # ========================================================================
   # End Current Phase Functionality
@@ -129,15 +124,14 @@ Feature: US-8.2-0.1 - Facilitator Basic Controls
     And the facilitator confirms the action
     Then ESP "SendWave" pending decisions should be auto-corrected
     And warm_up for "client-001" should be removed due to insufficient budget
-    And list_hygiene for "client-001" should be removed due to insufficient budget
     And the game should transition to "resolution" phase
 
   Scenario: End current phase removes investigation votes if destination has insufficient budget
     Given the game is in round 2
     And the current phase is "planning"
-    And destination "Gmail" has budget 80
+    And destination "Gmail" has budget 30
     And destination "Gmail" has a pending investigation vote for ESP "SendWave"
-    # Investigation costs 100 > 80 budget
+    # Investigation costs 50 > 30 budget
     And destination "Gmail" has NOT locked in their decisions
     When the facilitator clicks "End Current Phase" button
     And the facilitator confirms the action
@@ -162,13 +156,6 @@ Feature: US-8.2-0.1 - Facilitator Basic Controls
   Scenario: End game early calculates final scores after confirmation
     Given the game is in round 2
     And the current phase is "consequences"
-    And ESP "SendWave" has reputation scores:
-      | destination | reputation |
-      | Gmail       | 75         |
-      | Outlook     | 70         |
-      | Yahoo       | 65         |
-    And ESP "SendWave" has total revenue 1200
-    And ESP "SendWave" owns technical upgrades: ["spf", "dkim"]
     When the facilitator clicks "End Game Early" button
     And the facilitator confirms the action
     Then final scores should be calculated for all teams

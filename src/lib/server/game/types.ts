@@ -203,6 +203,10 @@ export interface GameTimer {
 	remaining: number; // Remaining time in seconds
 	startedAt: Date; // When the timer started
 	isRunning: boolean; // Whether timer is currently running
+	// US-8.2-0.1: Pause/Resume support
+	isPaused?: boolean; // Whether timer is paused
+	pausedAt?: Date; // When the timer was paused
+	pausedRemaining?: number; // Remaining time captured when paused
 }
 
 export interface GameSession {

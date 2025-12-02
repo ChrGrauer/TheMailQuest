@@ -49,6 +49,28 @@ export interface TimerStopResult {
 	error?: string;
 }
 
+// US-8.2-0.1: Pause/Resume/Extend types
+export interface TimerPauseResult {
+	success: boolean;
+	error?: string;
+	isPaused?: boolean;
+	remainingTime?: number;
+}
+
+export interface TimerResumeResult {
+	success: boolean;
+	error?: string;
+	isPaused?: boolean;
+	remainingTime?: number;
+}
+
+export interface TimerExtendResult {
+	success: boolean;
+	error?: string;
+	remainingTime?: number;
+	addedSeconds?: number;
+}
+
 export interface TimerConfig {
 	duration: number;
 }
@@ -373,4 +395,235 @@ export function updateTimerRemaining(
 	}
 
 	return true;
+}
+
+// ============================================================================
+// US-8.2-0.1: PAUSE/RESUME/EXTEND FUNCTIONS
+// ============================================================================
+
+/**
+ * Pause the timer
+ * US-8.2-0.1: Facilitator can pause game during planning phase
+ *
+ * @param roomCode The room code
+ * @returns Result indicating success or error
+ */
+export function pauseTimer(roomCode: string): TimerPauseResult {
+	const roomValidation = validateRoomCode(roomCode);
+	if (!roomValidation.isValidFormat || !roomValidation.exists) {
+		return {
+			success: false,
+			error: roomValidation.error || 'Room not found'
+		};
+	}
+
+	const session = roomValidation.session!;
+
+	if (!session.timer) {
+		return {
+			success: false,
+			error: 'No timer found for this session'
+		};
+	}
+
+	if (session.timer.isPaused) {
+		return {
+			success: false,
+			error: 'Timer is already paused'
+		};
+	}
+
+	if (!session.timer.isRunning) {
+		return {
+			success: false,
+			error: 'Timer is not running'
+		};
+	}
+
+	try {
+		// Calculate current remaining time
+		const remaining = calculateRemainingTime(roomCode) || 0;
+
+		// Update timer state
+		session.timer.isPaused = true;
+		session.timer.pausedAt = new Date();
+		session.timer.pausedRemaining = remaining;
+		session.timer.remaining = remaining;
+		session.timer.isRunning = false;
+
+		// Update activity
+		updateActivity(roomCode);
+
+		// Log pause
+		gameLogger.event('timer_paused', {
+			roomCode,
+			phase: session.current_phase,
+			remainingTime: remaining
+		});
+
+		return {
+			success: true,
+			isPaused: true,
+			remainingTime: remaining
+		};
+	} catch (error) {
+		gameLogger.error(error as Error, {
+			context: 'pauseTimer',
+			roomCode
+		});
+
+		return {
+			success: false,
+			error: 'Failed to pause timer'
+		};
+	}
+}
+
+/**
+ * Resume the timer
+ * US-8.2-0.1: Facilitator can resume game after pausing
+ *
+ * @param roomCode The room code
+ * @returns Result indicating success or error
+ */
+export function resumeTimer(roomCode: string): TimerResumeResult {
+	const roomValidation = validateRoomCode(roomCode);
+	if (!roomValidation.isValidFormat || !roomValidation.exists) {
+		return {
+			success: false,
+			error: roomValidation.error || 'Room not found'
+		};
+	}
+
+	const session = roomValidation.session!;
+
+	if (!session.timer) {
+		return {
+			success: false,
+			error: 'No timer found for this session'
+		};
+	}
+
+	if (!session.timer.isPaused) {
+		return {
+			success: false,
+			error: 'Timer is not paused'
+		};
+	}
+
+	try {
+		const remaining = session.timer.pausedRemaining || session.timer.remaining;
+
+		// Update timer state - restart from paused remaining time
+		session.timer.isPaused = false;
+		session.timer.pausedAt = undefined;
+		session.timer.pausedRemaining = undefined;
+		session.timer.duration = remaining; // Set duration to remaining so calculations work
+		session.timer.remaining = remaining;
+		session.timer.startedAt = new Date();
+		session.timer.isRunning = true;
+
+		// Update activity
+		updateActivity(roomCode);
+
+		// Log resume
+		gameLogger.event('timer_resumed', {
+			roomCode,
+			phase: session.current_phase,
+			remainingTime: remaining
+		});
+
+		return {
+			success: true,
+			isPaused: false,
+			remainingTime: remaining
+		};
+	} catch (error) {
+		gameLogger.error(error as Error, {
+			context: 'resumeTimer',
+			roomCode
+		});
+
+		return {
+			success: false,
+			error: 'Failed to resume timer'
+		};
+	}
+}
+
+/**
+ * Extend the timer by adding seconds
+ * US-8.2-0.1: Facilitator can extend timer during planning phase
+ *
+ * @param roomCode The room code
+ * @param seconds Number of seconds to add (default: 60)
+ * @returns Result indicating success or error
+ */
+export function extendTimer(roomCode: string, seconds: number = 60): TimerExtendResult {
+	const roomValidation = validateRoomCode(roomCode);
+	if (!roomValidation.isValidFormat || !roomValidation.exists) {
+		return {
+			success: false,
+			error: roomValidation.error || 'Room not found'
+		};
+	}
+
+	const session = roomValidation.session!;
+
+	if (!session.timer) {
+		return {
+			success: false,
+			error: 'No timer found for this session'
+		};
+	}
+
+	try {
+		let newRemaining: number;
+
+		if (session.timer.isPaused) {
+			// If paused, add to paused remaining
+			const current = session.timer.pausedRemaining || session.timer.remaining;
+			newRemaining = current + seconds;
+			session.timer.pausedRemaining = newRemaining;
+			session.timer.remaining = newRemaining;
+		} else if (session.timer.isRunning) {
+			// If running, add to duration and recalculate
+			const currentRemaining = calculateRemainingTime(roomCode) || 0;
+			newRemaining = currentRemaining + seconds;
+			session.timer.duration = session.timer.duration + seconds;
+			session.timer.remaining = newRemaining;
+		} else {
+			return {
+				success: false,
+				error: 'Timer is not active'
+			};
+		}
+
+		// Update activity
+		updateActivity(roomCode);
+
+		// Log extension
+		gameLogger.event('timer_extended', {
+			roomCode,
+			phase: session.current_phase,
+			addedSeconds: seconds,
+			newRemainingTime: newRemaining
+		});
+
+		return {
+			success: true,
+			remainingTime: newRemaining,
+			addedSeconds: seconds
+		};
+	} catch (error) {
+		gameLogger.error(error as Error, {
+			context: 'extendTimer',
+			roomCode
+		});
+
+		return {
+			success: false,
+			error: 'Failed to extend timer'
+		};
+	}
 }

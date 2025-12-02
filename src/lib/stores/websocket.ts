@@ -218,6 +218,13 @@ function createWebSocketStore() {
 								}
 								break;
 
+							case 'timer_update':
+								// US-8.2-0.1: Pass timer updates (pause, resume, extend) to gameStateUpdateCallback
+								if (gameStateUpdateCallback) {
+									gameStateUpdateCallback(message as any);
+								}
+								break;
+
 							default:
 								// Handle other message types
 								break;

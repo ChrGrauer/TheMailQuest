@@ -14,6 +14,8 @@ export interface GameStateResult {
 	currentPhase: GamePhase | string;
 	/** Remaining seconds on the timer */
 	timerSeconds: number;
+	/** Whether the timer is paused (US-8.2-0.1) */
+	isPaused: boolean;
 	/** Whether we're in planning phase */
 	isPlanning: boolean;
 	/** Whether we're in resolution phase */
@@ -61,6 +63,7 @@ export function useGameState(config: GameStateConfig = {}): GameStateResult {
 	let totalRounds = $state(configTotalRounds);
 	let currentPhase = $state<GamePhase | string>(initialPhase);
 	let timerSeconds = $state(initialTimer);
+	let isPaused = $state(false);
 
 	const isPlanning = $derived(currentPhase === 'planning');
 	const isResolution = $derived(currentPhase === 'resolution');
@@ -109,6 +112,12 @@ export function useGameState(config: GameStateConfig = {}): GameStateResult {
 		},
 		set timerSeconds(value: number) {
 			timerSeconds = value;
+		},
+		get isPaused() {
+			return isPaused;
+		},
+		set isPaused(value: boolean) {
+			isPaused = value;
 		},
 		get isPlanning() {
 			return isPlanning;

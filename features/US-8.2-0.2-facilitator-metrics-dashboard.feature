@@ -21,7 +21,7 @@ Feature: US-8.2-0.2 - Facilitator Metrics Dashboard
     Then the header should display room code "METR01"
     And the header should display "Round 2 / 4"
     And the header should display current phase "planning"
-    And the header should display the remaining timer
+    And the header should display the remaining timer updated in real time
 
   Scenario: Dashboard layout structure with controls and metrics sections
     When the facilitator views the facilitator dashboard
@@ -186,7 +186,7 @@ Feature: US-8.2-0.2 - Facilitator Metrics Dashboard
     Given the game is in round 1
     And the current phase is "planning"
     When the facilitator views the facilitator dashboard
-    Then the spam rate for all ESPs should show "N/A" or "0%"
+    Then the spam rate for all ESPs should show "N/A"
 
   # ========================================================================
   # All Teams Displayed

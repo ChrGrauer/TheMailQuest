@@ -10,11 +10,12 @@ import type { RequestHandler } from './$types';
  * POST /api/sessions/[roomCode]/calculate-final-scores
  * Calculate final scores after Round 4 and transition to finished phase
  * US-5.1: Final Score Calculation
+ * US-8.2-0.1: End Game Early (forceEarly=true)
  *
  * Requirements:
  * - Only facilitator can call this endpoint
  * - Current phase must be "consequences"
- * - Current round must be 4
+ * - Current round must be 4 (OR forceEarly=true for US-8.2-0.1 End Game Early)
  *
  * Actions:
  * 1. Calculate final scores for all ESPs
@@ -24,8 +25,17 @@ import type { RequestHandler } from './$types';
  * 5. Transition to finished phase
  * 6. Broadcast results to all players
  */
-export const POST: RequestHandler = async ({ params, cookies }) => {
+export const POST: RequestHandler = async ({ params, cookies, request }) => {
 	const { roomCode } = params;
+
+	// US-8.2-0.1: Parse optional forceEarly flag for End Game Early
+	let forceEarly = false;
+	try {
+		const body = await request.json();
+		forceEarly = body.forceEarly === true;
+	} catch {
+		// No body or invalid JSON - forceEarly defaults to false
+	}
 
 	try {
 		// Step 1: Validate facilitator
@@ -76,8 +86,8 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 			);
 		}
 
-		// Step 4: Validate round number (must be Round 4)
-		if (session.current_round !== 4) {
+		// Step 4: Validate round number (must be Round 4, OR forceEarly for End Game Early)
+		if (session.current_round !== 4 && !forceEarly) {
 			return json(
 				{
 					error: 'Can only calculate final scores after Round 4',
@@ -85,6 +95,12 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 				},
 				{ status: 400 }
 			);
+		}
+
+		// US-8.2-0.1: End Game Early is only allowed in R1-R3 consequences
+		if (forceEarly && session.current_round === 4) {
+			// If R4, just use the normal flow without the forceEarly flag
+			forceEarly = false;
 		}
 
 		// Step 5: Calculate final scores
