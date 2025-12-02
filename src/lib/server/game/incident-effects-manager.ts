@@ -177,6 +177,7 @@ function applyAutoLock(session: GameSession, teamName: string): boolean {
 		team.locked_in_at = new Date();
 	} else {
 		// Set pending auto-lock for next planning phase
+		// The lock will be applied when transitioning to the next planning phase
 		team.pendingAutoLock = true;
 	}
 

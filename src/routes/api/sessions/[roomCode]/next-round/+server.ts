@@ -97,12 +97,10 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 		}
 
 		// Step 5: Clear locked_in state for all teams and destinations
-		// (except teams with pendingAutoLock - they'll be auto-locked in next planning phase)
+		// (pendingAutoLock teams will be re-locked after phase transition broadcast)
 		session.esp_teams.forEach((team) => {
-			if (!team.pendingAutoLock) {
-				team.locked_in = false;
-				team.locked_in_at = undefined;
-			}
+			team.locked_in = false;
+			team.locked_in_at = undefined;
 		});
 
 		session.destinations.forEach((dest) => {
@@ -218,17 +216,25 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 		});
 
 		// Re-apply auto-locks after phase transition broadcast (for INC-016 pending auto-locks)
+		// This must happen AFTER phase_transition so clients receive messages in correct order:
+		// 1. phase_transition (resets lock state) -> 2. lock_in_confirmed (sets lock state)
 		for (const team of session.esp_teams) {
-			if (team.locked_in && team.pendingAutoLock === false) {
-				// This team was auto-locked during phase transition
+			if (team.pendingAutoLock === true) {
+				// Clear the pending flag (state was already updated in transitionPhase)
+				team.pendingAutoLock = false;
+
 				gameWss.broadcastToRoom(roomCode, {
 					type: 'lock_in_confirmed',
-					data: {
-						teamName: team.name,
-						role: 'ESP',
-						locked_in: true,
-						locked_in_at: team.locked_in_at
-					}
+					teamName: team.name,
+					role: 'ESP',
+					locked_in: true,
+					locked_in_at: team.locked_in_at
+				});
+
+				gameLogger.info('Applied pending auto-lock from INC-016', {
+					roomCode,
+					teamName: team.name,
+					round: session.current_round
 				});
 			}
 		}

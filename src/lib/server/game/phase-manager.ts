@@ -151,26 +151,16 @@ export async function transitionPhase(
 		session.phase_start_time = new Date();
 
 		// Phase 2: Apply pending auto-locks when entering planning phase
+		// NOTE: We only update state here. The caller (e.g., next-round/+server.ts)
+		// is responsible for broadcasting lock_in_confirmed AFTER the phase_transition
+		// message to ensure correct message ordering on the client.
 		if (toPhase === 'planning') {
-			// Import gameWss dynamically to avoid circular dependencies
-			const { gameWss } = await import('../websocket');
-
 			for (const team of session.esp_teams) {
 				if (team.pendingAutoLock) {
 					team.locked_in = true;
 					team.locked_in_at = new Date();
-					team.pendingAutoLock = false;
-
-					// Broadcast lock-in confirmation (same format as manual lock-in)
-					gameWss.broadcastToRoom(roomCode, {
-						type: 'lock_in_confirmed',
-						data: {
-							teamName: team.name,
-							role: 'ESP',
-							locked_in: true,
-							locked_in_at: team.locked_in_at
-						}
-					});
+					// Don't clear pendingAutoLock here - let the caller broadcast and then clear it
+					// This way the caller knows which teams need lock_in_confirmed broadcasts
 
 					gameLogger.event('pending_auto_lock_applied', {
 						roomCode,

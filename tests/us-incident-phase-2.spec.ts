@@ -264,7 +264,7 @@ test.describe('INC-016: Legal Reckoning', () => {
 	});
 
 	test('auto-lock applies at next planning phase if not in planning', async ({ page, context }) => {
-		test.setTimeout(30000); // Increase timeout as this test advances through multiple rounds
+		test.setTimeout(45000); // Increase timeout as this test advances through multiple rounds
 
 		// This test verifies pendingAutoLock flag behavior
 		// Trigger INC-016 during consequences phase, verify lock is applied at start of next planning phase
@@ -278,15 +278,28 @@ test.describe('INC-016: Legal Reckoning', () => {
 		// Wait for transition to consequences phase
 		await page.waitForTimeout(3000);
 
+		// Verify we're in consequences phase before triggering incident
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+			timeout: 5000
+		});
+
 		// Now in Round 3 consequences phase - trigger INC-016 on Alice
 		await triggerIncident(page, 'INC-016', 'SendWave', [alicePage, bobPage]);
 
+		// Verify ESP page is showing consequences view before we click next round
+		await expect(alicePage.getByTestId('esp-consequences')).toBeVisible({ timeout: 5000 });
+
 		// Advance to Round 4 planning phase
 		await page.click('[data-testid="start-next-round-button"]');
-		await page.waitForTimeout(2000);
+
+		// Wait for ESP page to transition from consequences to planning view
+		await expect(alicePage.getByTestId('esp-consequences')).toBeHidden({ timeout: 10000 });
+
+		// Small wait for WebSocket messages to be fully processed
+		await page.waitForTimeout(500);
 
 		// Verify Alice is auto-locked at the start of Round 4
-		await expect(alicePage.getByTestId('lock-in-confirmation')).toBeVisible();
+		await expect(alicePage.getByTestId('lock-in-confirmation')).toBeVisible({ timeout: 5000 });
 	});
 });
 
