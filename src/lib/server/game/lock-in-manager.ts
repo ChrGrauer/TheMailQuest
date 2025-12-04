@@ -93,14 +93,14 @@ export function lockInESPTeam(roomCode: string, teamName: string): LockInResult 
 
 	// 6c. Apply pending incident choice effects (Phase 5)
 	// Note: Effects are now applied immediately at confirmation, but we still need
-	// to clean up the pending_incident_choice state at lock-in
-	if (team.pending_incident_choice) {
+	// to clean up the pending_incident_choices state at lock-in
+	if (team.pending_incident_choices && team.pending_incident_choices.length > 0) {
 		const choiceResult = applyPendingChoiceEffects(session, team);
 		getLogger().then((logger) => {
-			logger.info(`Processed incident choice at lock-in for ${teamName}`, {
+			logger.info(`Processed incident choices at lock-in for ${teamName}`, {
 				roomCode,
 				teamName,
-				incidentId: team.pending_incident_choice?.incidentId,
+				processedCount: choiceResult.processedCount,
 				choiceId: choiceResult.choiceId,
 				effectsAppliedAtConfirmation: !choiceResult.applied,
 				effects: choiceResult.effectsApplied
@@ -507,13 +507,13 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 
 			// Apply pending incident choice effects (Phase 5)
 			// Note: Effects are now applied immediately at confirmation
-			if (team.pending_incident_choice) {
+			if (team.pending_incident_choices && team.pending_incident_choices.length > 0) {
 				const choiceResult = applyPendingChoiceEffects(session, team);
 				getLogger().then((logger) => {
-					logger.info(`Auto-lock processed incident choice for ${team.name}`, {
+					logger.info(`Auto-lock processed incident choices for ${team.name}`, {
 						roomCode,
 						teamName: team.name,
-						incidentId: team.pending_incident_choice?.incidentId,
+						processedCount: choiceResult.processedCount,
 						choiceId: choiceResult.choiceId,
 						effectsAppliedAtConfirmation: !choiceResult.applied,
 						effects: choiceResult.effectsApplied

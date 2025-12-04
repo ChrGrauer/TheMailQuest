@@ -4,15 +4,15 @@
  *
  * Calculates revenue for ESP teams
  * Iteration 1: Basic revenue calculation (sum base revenue from active clients)
- * Future iterations will add: delivery rate modifiers
+ * Bug Fix: Volume multipliers (warmup, INC-011, INC-015) now affect revenue
  */
 
 import type { RevenueParams, RevenueResult, ClientRevenueData } from '../resolution-types';
 
 /**
  * Calculate revenue for a team
- * Iteration 1: Base revenue only (deliveryRate will be applied but is 1.0 for Iteration 1)
- * Phase 2.1.1: Warmup reduces revenue proportionally to volume reduction
+ * Revenue scales with volume multipliers (warmup 0.5x, INC-011 10x, INC-015 2x, etc.)
+ * Formula: actualRevenue = baseRevenue × volumeMultiplier × deliveryRate
  */
 export function calculateRevenue(params: RevenueParams): RevenueResult {
 	// Filter to only active clients
@@ -24,21 +24,13 @@ export function calculateRevenue(params: RevenueParams): RevenueResult {
 	const perClient: ClientRevenueData[] = activeClients.map((client) => {
 		const baseRevenue = client.revenue;
 
-		// Phase 2.1.1: Apply warmup factor if provided
-		// Warmup reduces volume by 50% in first active round, so revenue should also be reduced
-		let warmupFactor = 1.0; // Default: no reduction
+		// Get cumulative volume multiplier (includes warmup, incidents, etc.)
+		// Default to 1.0 if not provided
+		const volumeMultiplier = params.perClientVolumeMultipliers?.[client.id] ?? 1.0;
 
-		// Check for per-client factor first (most specific)
-		if (params.perClientWarmupFactors && params.perClientWarmupFactors[client.id] !== undefined) {
-			warmupFactor = params.perClientWarmupFactors[client.id];
-		}
-		// Fallback to global warmup factor if provided
-		else if (params.warmupFactor !== undefined) {
-			warmupFactor = params.warmupFactor;
-		}
-
-		// Apply both warmup and delivery rate
-		const actualRevenue = Math.round(baseRevenue * warmupFactor * params.deliveryRate);
+		// Apply volume multiplier and delivery rate
+		// Revenue scales proportionally with volume changes
+		const actualRevenue = Math.round(baseRevenue * volumeMultiplier * params.deliveryRate);
 
 		return {
 			clientId: client.id,

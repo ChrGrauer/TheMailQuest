@@ -245,10 +245,11 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 		duration: 'This Round',
 		effects: [
 			{
-				target: 'notification',
-				type: 'notification',
-				message:
-					'Black Friday: All client volumes doubled! Revenue opportunities abound, but reputation is at risk. (Note: Volume multiplier not implemented in Phase 1 MVP - notification only)'
+				target: 'all_esps',
+				type: 'client_volume_multiplier',
+				multiplier: 2,
+				duration: 'this_round',
+				displayMessage: 'Black Friday: All client volumes doubled!'
 			}
 		]
 	},

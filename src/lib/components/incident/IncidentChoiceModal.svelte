@@ -123,7 +123,7 @@
 			const response = await fetch(`/api/sessions/${roomCode}/incident/choice`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ choiceId: selectedChoiceId, teamName })
+				body: JSON.stringify({ choiceId: selectedChoiceId, teamName, incidentId })
 			});
 
 			const data = await response.json();

@@ -143,16 +143,27 @@ export function initiatePendingChoices(
 		}))
 	}));
 
-	// Set pending choice for each target team
+	// Set pending choice for each target team (append to array for multiple concurrent choices)
 	for (const teamName of targetTeams) {
 		const team = session.esp_teams.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
 		if (team) {
-			team.pending_incident_choice = {
-				incidentId: incident.id,
-				choiceId: defaultOption.id,
-				confirmed: false,
-				options: storedOptions
-			};
+			// Initialize array if not exists
+			if (!team.pending_incident_choices) {
+				team.pending_incident_choices = [];
+			}
+			// Check if this incident already has a pending choice (avoid duplicates)
+			const existingIndex = team.pending_incident_choices.findIndex(
+				(c) => c.incidentId === incident.id
+			);
+			if (existingIndex === -1) {
+				// Add new choice
+				team.pending_incident_choices.push({
+					incidentId: incident.id,
+					choiceId: defaultOption.id,
+					confirmed: false,
+					options: storedOptions
+				});
+			}
 		}
 	}
 
@@ -178,31 +189,33 @@ export function confirmAndApplyChoice(
 		return { success: false, error: `Team ${teamName} not found` };
 	}
 
-	// Check team has pending choice
-	if (!team.pending_incident_choice) {
+	// Check team has pending choices
+	if (!team.pending_incident_choices || team.pending_incident_choices.length === 0) {
 		return { success: false, error: `Team ${teamName} has no pending choice` };
 	}
 
-	// Check incident ID matches
-	if (team.pending_incident_choice.incidentId !== incidentId) {
+	// Find the pending choice for this specific incident
+	const pendingChoice = team.pending_incident_choices.find((c) => c.incidentId === incidentId);
+	if (!pendingChoice) {
+		const availableIncidents = team.pending_incident_choices.map((c) => c.incidentId).join(', ');
 		return {
 			success: false,
-			error: `Pending incident ID does not match: expected ${team.pending_incident_choice.incidentId}, got ${incidentId}`
+			error: `No pending choice for incident ${incidentId}. Available: ${availableIncidents}`
 		};
 	}
 
 	// Validate choice option exists in stored options
-	const validOption = team.pending_incident_choice.options.find((o) => o.id === choiceId);
+	const validOption = pendingChoice.options.find((o) => o.id === choiceId);
 	if (!validOption) {
 		return {
 			success: false,
-			error: `Invalid choice option: ${choiceId}. Valid options: ${team.pending_incident_choice.options.map((o) => o.id).join(', ')}`
+			error: `Invalid choice option: ${choiceId}. Valid options: ${pendingChoice.options.map((o) => o.id).join(', ')}`
 		};
 	}
 
 	// Update choice and mark as confirmed
-	team.pending_incident_choice.choiceId = choiceId;
-	team.pending_incident_choice.confirmed = true;
+	pendingChoice.choiceId = choiceId;
+	pendingChoice.confirmed = true;
 
 	// Apply effects IMMEDIATELY
 	const appliedEffects: Array<{ type: string; value?: number }> = [];
@@ -212,7 +225,7 @@ export function confirmAndApplyChoice(
 	}
 
 	// Store that effects have been applied (in case we need to track this)
-	team.pending_incident_choice.effectsApplied = true;
+	pendingChoice.effectsApplied = true;
 
 	return { success: true, appliedEffects };
 }
@@ -235,6 +248,7 @@ export function setPendingChoice(
  * Apply pending choice effects at lock-in time
  * Note: Since Phase 5 update, effects are applied immediately at confirmation.
  * This function now primarily handles cleanup and edge cases.
+ * Processes ALL pending choices in the array.
  */
 export function applyPendingChoiceEffects(
 	session: GameSession,
@@ -246,13 +260,14 @@ export function applyPendingChoiceEffects(
 	choiceId?: string;
 	effectsApplied?: Array<{ type: string; value?: number }>;
 } {
-	// Check team has pending choice
-	if (!team.pending_incident_choice) {
+	// Check team has pending choices
+	if (!team.pending_incident_choices || team.pending_incident_choices.length === 0) {
 		return { success: false, error: `Team ${team.name} has no pending choice`, applied: false };
 	}
 
-	// Check choice is confirmed
-	if (!team.pending_incident_choice.confirmed) {
+	// Find the first confirmed choice (for backwards compatibility with return type)
+	const confirmedChoice = team.pending_incident_choices.find((c) => c.confirmed);
+	if (!confirmedChoice) {
 		return {
 			success: false,
 			error: `Choice for team ${team.name} is not confirmed`,
@@ -260,12 +275,19 @@ export function applyPendingChoiceEffects(
 		};
 	}
 
-	const { choiceId, options, effectsApplied: alreadyApplied } = team.pending_incident_choice;
+	const { choiceId, options, effectsApplied: alreadyApplied } = confirmedChoice;
 
 	// If effects were already applied at confirmation time, just clear and return
 	if (alreadyApplied) {
 		const chosenOption = options.find((o) => o.id === choiceId);
-		team.pending_incident_choice = undefined;
+		// Remove confirmed choices from array
+		team.pending_incident_choices = team.pending_incident_choices.filter(
+			(c) => !c.confirmed || !c.effectsApplied
+		);
+		// Clean up empty array
+		if (team.pending_incident_choices.length === 0) {
+			team.pending_incident_choices = undefined;
+		}
 		return {
 			success: true,
 			applied: false, // Already applied at confirmation
@@ -287,8 +309,14 @@ export function applyPendingChoiceEffects(
 		appliedEffects.push({ type: effect.type, value: effect.value });
 	}
 
-	// Clear pending choice
-	team.pending_incident_choice = undefined;
+	// Remove this choice from array
+	team.pending_incident_choices = team.pending_incident_choices.filter(
+		(c) => c.incidentId !== confirmedChoice.incidentId
+	);
+	// Clean up empty array
+	if (team.pending_incident_choices.length === 0) {
+		team.pending_incident_choices = undefined;
+	}
 
 	return { success: true, applied: true, choiceId, effectsApplied: appliedEffects };
 }

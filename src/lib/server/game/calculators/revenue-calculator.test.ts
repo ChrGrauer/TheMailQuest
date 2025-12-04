@@ -160,7 +160,7 @@ describe('Revenue Calculator - Iteration 1: Basic Revenue', () => {
 	});
 });
 
-describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
+describe('Revenue Calculator - Volume Multipliers', () => {
 	test('warmup reduces revenue by 50% in first active round', () => {
 		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
 
@@ -180,8 +180,10 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 			},
 			deliveryRate: 1.0,
 			currentRound: 1,
-			// Warmup factor is 0.5 (50% reduction)
-			warmupFactor: 0.5
+			// Cumulative volume multiplier is 0.5 (from warmup)
+			perClientVolumeMultipliers: {
+				'client-1': 0.5
+			}
 		});
 
 		expect(result.baseRevenue).toBe(350);
@@ -193,7 +195,7 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 	test('no warmup reduction after first round', () => {
 		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
 
-		// Scenario: Client with warmup in round 2 (not first active round)
+		// Scenario: Client in round 2 (warmup no longer applies)
 		// Expected: Full revenue (warmup only applies to first round)
 		const result = calculateRevenue({
 			clients: [premium],
@@ -209,14 +211,16 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 			},
 			deliveryRate: 1.0,
 			currentRound: 2,
-			warmupFactor: 1.0 // No reduction in round 2
+			perClientVolumeMultipliers: {
+				'client-1': 1.0 // No reduction in round 2
+			}
 		});
 
 		expect(result.baseRevenue).toBe(350);
 		expect(result.actualRevenue).toBe(350);
 	});
 
-	test('warmup combines with delivery rate', () => {
+	test('volume multiplier combines with delivery rate', () => {
 		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
 
 		// Scenario: Warmup (50%) + 80% delivery rate
@@ -235,21 +239,23 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 			},
 			deliveryRate: 0.8,
 			currentRound: 1,
-			warmupFactor: 0.5
+			perClientVolumeMultipliers: {
+				'client-1': 0.5
+			}
 		});
 
 		expect(result.baseRevenue).toBe(350);
 		expect(result.actualRevenue).toBe(140); // 350 * 0.5 * 0.8
 	});
 
-	test('multiple clients with mixed warmup states', () => {
+	test('multiple clients with mixed volume multipliers', () => {
 		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
 		const startup = buildTestClient('growing_startup', { id: 'client-2', revenue: 180 });
 		const aggressive = buildTestClient('aggressive_marketer', { id: 'client-3', revenue: 350 });
 
-		// Client 1: Warmup in first round (50% revenue)
-		// Client 2: No warmup (100% revenue)
-		// Client 3: Warmup but not first round (100% revenue)
+		// Client 1: Warmup active (50% revenue)
+		// Client 2: No modifiers (100% revenue)
+		// Client 3: Warmup active (50% revenue)
 		const result = calculateRevenue({
 			clients: [premium, startup, aggressive],
 			clientStates: {
@@ -278,10 +284,9 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 			},
 			deliveryRate: 1.0,
 			currentRound: 1,
-			// Need per-client warmup factors
-			perClientWarmupFactors: {
+			perClientVolumeMultipliers: {
 				'client-1': 0.5, // Warmup active
-				'client-2': 1.0, // No warmup
+				'client-2': 1.0, // No modifiers
 				'client-3': 0.5 // Warmup active
 			}
 		});
@@ -295,5 +300,112 @@ describe('Revenue Calculator - Phase 2.1.1: Warmup Revenue Calculation', () => {
 		expect(result.perClient[0].actualRevenue).toBe(175); // client-1
 		expect(result.perClient[1].actualRevenue).toBe(180); // client-2
 		expect(result.perClient[2].actualRevenue).toBe(175); // client-3
+	});
+
+	test('INC-011 viral campaign 10x volume multiplier increases revenue', () => {
+		const reengagement = buildTestClient('re_engagement', { id: 'client-1', revenue: 150 });
+
+		// Scenario: Client goes viral (INC-011), 10x volume = 10x revenue
+		const result = calculateRevenue({
+			clients: [reengagement],
+			clientStates: {
+				'client-1': {
+					status: 'Active',
+					first_active_round: 1,
+					volumeModifiers: [
+						{ id: 'INC-011-client-1-r3', source: 'INC-011', multiplier: 10, applicableRounds: [3] }
+					],
+					spamTrapModifiers: []
+				}
+			},
+			deliveryRate: 1.0,
+			currentRound: 3,
+			perClientVolumeMultipliers: {
+				'client-1': 10.0 // Viral 10x multiplier
+			}
+		});
+
+		expect(result.baseRevenue).toBe(150);
+		expect(result.actualRevenue).toBe(1500); // 150 * 10 = 1500cr
+		expect(result.perClient[0].actualRevenue).toBe(1500);
+	});
+
+	test('INC-015 Black Friday 2x volume multiplier doubles revenue', () => {
+		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
+
+		// Scenario: Black Friday (INC-015), 2x volume = 2x revenue
+		const result = calculateRevenue({
+			clients: [premium],
+			clientStates: {
+				'client-1': {
+					status: 'Active',
+					first_active_round: 1,
+					volumeModifiers: [
+						{ id: 'INC-015-client-1-r4', source: 'INC-015', multiplier: 2, applicableRounds: [4] }
+					],
+					spamTrapModifiers: []
+				}
+			},
+			deliveryRate: 1.0,
+			currentRound: 4,
+			perClientVolumeMultipliers: {
+				'client-1': 2.0 // Black Friday 2x multiplier
+			}
+		});
+
+		expect(result.baseRevenue).toBe(350);
+		expect(result.actualRevenue).toBe(700); // 350 * 2 = 700cr
+		expect(result.perClient[0].actualRevenue).toBe(700);
+	});
+
+	test('cumulative multipliers: warmup + viral = 0.5 * 10 = 5x', () => {
+		const reengagement = buildTestClient('re_engagement', { id: 'client-1', revenue: 150 });
+
+		// Scenario: Client goes viral in first round (warmup 0.5 + viral 10x = 5x)
+		const result = calculateRevenue({
+			clients: [reengagement],
+			clientStates: {
+				'client-1': {
+					status: 'Active',
+					first_active_round: 1,
+					volumeModifiers: [
+						{ id: 'warmup', source: 'warmup', multiplier: 0.5, applicableRounds: [1] },
+						{ id: 'INC-011-client-1-r1', source: 'INC-011', multiplier: 10, applicableRounds: [1] }
+					],
+					spamTrapModifiers: []
+				}
+			},
+			deliveryRate: 1.0,
+			currentRound: 1,
+			perClientVolumeMultipliers: {
+				'client-1': 5.0 // 0.5 * 10 = 5x
+			}
+		});
+
+		expect(result.baseRevenue).toBe(150);
+		expect(result.actualRevenue).toBe(750); // 150 * 5 = 750cr
+		expect(result.perClient[0].actualRevenue).toBe(750);
+	});
+
+	test('defaults to 1.0 multiplier if not provided', () => {
+		const premium = buildTestClient('premium_brand', { id: 'client-1', revenue: 350 });
+
+		const result = calculateRevenue({
+			clients: [premium],
+			clientStates: {
+				'client-1': {
+					status: 'Active',
+					first_active_round: 1,
+					volumeModifiers: [],
+					spamTrapModifiers: []
+				}
+			},
+			deliveryRate: 1.0,
+			currentRound: 1
+			// No perClientVolumeMultipliers provided
+		});
+
+		expect(result.baseRevenue).toBe(350);
+		expect(result.actualRevenue).toBe(350); // Default 1.0 multiplier
 	});
 });

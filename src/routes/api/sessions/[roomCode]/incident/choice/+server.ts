@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	try {
 		// 1. Parse request body and validate required fields
 		const body = await request.json();
-		const { choiceId, teamName } = body;
+		const { choiceId, teamName, incidentId } = body;
 
 		if (!teamName || typeof teamName !== 'string') {
 			logger.warn({
@@ -75,8 +75,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			return json({ success: false, error: 'Team not found' }, { status: 404 });
 		}
 
-		// 5. Check for pending choice
-		if (!team.pending_incident_choice) {
+		// 5. Check for pending choices (supports multiple concurrent choices)
+		if (!team.pending_incident_choices || team.pending_incident_choices.length === 0) {
 			logger.warn({
 				action: 'incident_choice_no_pending',
 				roomCode,
@@ -88,10 +88,22 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			);
 		}
 
-		const incidentId = team.pending_incident_choice.incidentId;
+		// 5b. Determine which incident to respond to
+		// If incidentId provided, use it; otherwise use the first unconfirmed choice
+		let targetIncidentId = incidentId;
+		if (!targetIncidentId) {
+			const firstUnconfirmed = team.pending_incident_choices.find((c) => !c.confirmed);
+			if (!firstUnconfirmed) {
+				return json(
+					{ success: false, error: 'All pending choices already confirmed' },
+					{ status: 400 }
+				);
+			}
+			targetIncidentId = firstUnconfirmed.incidentId;
+		}
 
 		// 6. Confirm and apply choice effects immediately
-		const result = confirmAndApplyChoice(session, teamName, incidentId, choiceId);
+		const result = confirmAndApplyChoice(session, teamName, targetIncidentId, choiceId);
 
 		if (!result.success) {
 			logger.warn({
@@ -107,7 +119,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		// 7. Broadcast choice confirmation and effects to all players
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'incident_choice_confirmed',
-			incidentId,
+			incidentId: targetIncidentId,
 			teamName,
 			choiceId,
 			appliedEffects: result.appliedEffects
@@ -126,7 +138,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			action: 'incident_choice_confirmed',
 			roomCode,
 			teamName,
-			incidentId,
+			incidentId: targetIncidentId,
 			choiceId,
 			appliedEffects: result.appliedEffects
 		});

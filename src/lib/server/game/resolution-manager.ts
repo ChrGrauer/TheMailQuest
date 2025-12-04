@@ -137,19 +137,32 @@ export async function executeResolution(
 		});
 
 		// 4. Calculate revenue (with aggregate delivery rate)
-		// Phase 2.1.1: Build per-client warmup factors
-		// Warmup reduces volume by 50% in first active round, so revenue should also be reduced
-		const perClientWarmupFactors: Record<string, number> = {};
+		// Calculate cumulative volume multipliers from ALL volumeModifiers
+		// This includes warmup (0.5x), incidents like INC-011 (10x), INC-015 (2x), etc.
+		const perClientVolumeMultipliers: Record<string, number> = {};
 		for (const client of activeClients) {
 			const state = team.client_states?.[client.id];
-			const hasWarmupThisRound = state?.volumeModifiers?.some(
-				(m) => m.source === 'warmup' && m.applicableRounds.includes(session.current_round)
-			);
-			if (hasWarmupThisRound) {
-				perClientWarmupFactors[client.id] = 0.5; // 50% reduction in first round
-			} else {
-				perClientWarmupFactors[client.id] = 1.0; // No reduction
+			let cumulativeMultiplier = 1.0;
+
+			// Apply all applicable volume modifiers
+			for (const mod of state?.volumeModifiers || []) {
+				// Check if modifier applies to current round
+				// Special case: -1 means "first active round only"
+				let isApplicable = false;
+				if (mod.applicableRounds.includes(-1)) {
+					isApplicable =
+						state?.first_active_round !== null &&
+						state?.first_active_round === session.current_round;
+				} else {
+					isApplicable = mod.applicableRounds.includes(session.current_round);
+				}
+
+				if (isApplicable) {
+					cumulativeMultiplier *= mod.multiplier;
+				}
 			}
+
+			perClientVolumeMultipliers[client.id] = cumulativeMultiplier;
 		}
 
 		const revenueResult = calculateRevenue({
@@ -157,7 +170,7 @@ export async function executeResolution(
 			clientStates: team.client_states || {},
 			deliveryRate: aggregateDeliveryRate,
 			currentRound: session.current_round,
-			perClientWarmupFactors
+			perClientVolumeMultipliers
 		});
 		logger.info('Revenue calculated', {
 			teamName: team.name,

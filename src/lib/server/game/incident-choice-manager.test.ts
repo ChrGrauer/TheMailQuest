@@ -237,10 +237,11 @@ describe('Incident Choice Manager - initiatePendingChoices', () => {
 
 		// SendWave should have pending choice with default option
 		const sendWave = session.esp_teams.find((t) => t.name === 'SendWave')!;
-		expect(sendWave.pending_incident_choice).toBeDefined();
-		expect(sendWave.pending_incident_choice?.incidentId).toBe('INC-017');
-		expect(sendWave.pending_incident_choice?.choiceId).toBe('option_a'); // default
-		expect(sendWave.pending_incident_choice?.confirmed).toBe(false);
+		expect(sendWave.pending_incident_choices).toBeDefined();
+		expect(sendWave.pending_incident_choices).toHaveLength(1);
+		expect(sendWave.pending_incident_choices?.[0].incidentId).toBe('INC-017');
+		expect(sendWave.pending_incident_choices?.[0].choiceId).toBe('option_a'); // default
+		expect(sendWave.pending_incident_choices?.[0].confirmed).toBe(false);
 	});
 
 	it('should set default choice for all ESP teams (all_esps)', () => {
@@ -253,10 +254,11 @@ describe('Incident Choice Manager - initiatePendingChoices', () => {
 
 		// All teams should have pending choice
 		for (const team of session.esp_teams) {
-			expect(team.pending_incident_choice).toBeDefined();
-			expect(team.pending_incident_choice?.incidentId).toBe('INC-018');
-			expect(team.pending_incident_choice?.choiceId).toBe('option_a');
-			expect(team.pending_incident_choice?.confirmed).toBe(false);
+			expect(team.pending_incident_choices).toBeDefined();
+			expect(team.pending_incident_choices).toHaveLength(1);
+			expect(team.pending_incident_choices?.[0].incidentId).toBe('INC-018');
+			expect(team.pending_incident_choices?.[0].choiceId).toBe('option_a');
+			expect(team.pending_incident_choices?.[0].confirmed).toBe(false);
 		}
 	});
 
@@ -289,7 +291,8 @@ describe('Incident Choice Manager - initiatePendingChoices', () => {
 
 		expect(result.success).toBe(true);
 		const sendWave = session.esp_teams.find((t) => t.name === 'SendWave')!;
-		expect(sendWave.pending_incident_choice?.choiceId).toBe('option_a'); // first option
+		expect(sendWave.pending_incident_choices).toHaveLength(1);
+		expect(sendWave.pending_incident_choices?.[0].choiceId).toBe('option_a'); // first option
 	});
 });
 
@@ -298,16 +301,18 @@ describe('Incident Choice Manager - setPendingChoice', () => {
 
 	beforeEach(() => {
 		session = createTestSession();
-		// Initialize pending choice for SendWave with options
-		session.esp_teams[0].pending_incident_choice = {
-			incidentId: 'INC-017',
-			choiceId: 'option_a',
-			confirmed: false,
-			options: [
-				{ id: 'option_a', effects: [{ target: 'self', type: 'credits', value: 100 }] },
-				{ id: 'option_b', effects: [{ target: 'self', type: 'reputation', value: 5 }] }
-			]
-		};
+		// Initialize pending choices array for SendWave with options
+		session.esp_teams[0].pending_incident_choices = [
+			{
+				incidentId: 'INC-017',
+				choiceId: 'option_a',
+				confirmed: false,
+				options: [
+					{ id: 'option_a', effects: [{ target: 'self', type: 'credits', value: 100 }] },
+					{ id: 'option_b', effects: [{ target: 'self', type: 'reputation', value: 5 }] }
+				]
+			}
+		];
 	});
 
 	it('should update choice and mark as confirmed', () => {
@@ -316,8 +321,9 @@ describe('Incident Choice Manager - setPendingChoice', () => {
 		expect(result.success).toBe(true);
 
 		const sendWave = session.esp_teams.find((t) => t.name === 'SendWave')!;
-		expect(sendWave.pending_incident_choice?.choiceId).toBe('option_b');
-		expect(sendWave.pending_incident_choice?.confirmed).toBe(true);
+		const choice = sendWave.pending_incident_choices?.find((c) => c.incidentId === 'INC-017');
+		expect(choice?.choiceId).toBe('option_b');
+		expect(choice?.confirmed).toBe(true);
 	});
 
 	it('should fail for non-existent team', () => {
@@ -339,7 +345,7 @@ describe('Incident Choice Manager - setPendingChoice', () => {
 		const result = setPendingChoice(session, 'SendWave', 'INC-999', 'option_b');
 
 		expect(result.success).toBe(false);
-		expect(result.error).toContain('does not match');
+		expect(result.error).toContain('No pending choice for incident');
 	});
 
 	it('should fail for invalid choice option', () => {
@@ -358,7 +364,8 @@ describe('Incident Choice Manager - setPendingChoice', () => {
 
 		expect(result.success).toBe(true);
 		const sendWave = session.esp_teams.find((t) => t.name === 'SendWave')!;
-		expect(sendWave.pending_incident_choice?.choiceId).toBe('option_a');
+		const choice = sendWave.pending_incident_choices?.find((c) => c.incidentId === 'INC-017');
+		expect(choice?.choiceId).toBe('option_a');
 	});
 });
 
@@ -382,7 +389,8 @@ describe('Incident Choice Manager - applyPendingChoiceEffects', () => {
 
 		// Verify effects applied immediately
 		expect(sendWave.credits).toBe(initialCredits + 100);
-		expect(sendWave.pending_incident_choice?.effectsApplied).toBe(true);
+		const choice = sendWave.pending_incident_choices?.find((c) => c.incidentId === 'INC-017');
+		expect(choice?.effectsApplied).toBe(true);
 
 		// applyPendingChoiceEffects should succeed but not re-apply effects
 		const result = applyPendingChoiceEffects(session, sendWave);
@@ -405,7 +413,8 @@ describe('Incident Choice Manager - applyPendingChoiceEffects', () => {
 		expect(sendWave.reputation.Gmail).toBe(initialRep.Gmail + 5);
 		expect(sendWave.reputation.Outlook).toBe(initialRep.Outlook + 5);
 		expect(sendWave.reputation.Yahoo).toBe(initialRep.Yahoo + 5);
-		expect(sendWave.pending_incident_choice?.effectsApplied).toBe(true);
+		const choice = sendWave.pending_incident_choices?.find((c) => c.incidentId === 'INC-017');
+		expect(choice?.effectsApplied).toBe(true);
 
 		// applyPendingChoiceEffects should succeed but not re-apply effects
 		const result = applyPendingChoiceEffects(session, sendWave);
@@ -436,7 +445,8 @@ describe('Incident Choice Manager - applyPendingChoiceEffects', () => {
 		const sendWave = session.esp_teams.find((t) => t.name === 'SendWave')!;
 		applyPendingChoiceEffects(session, sendWave);
 
-		expect(sendWave.pending_incident_choice).toBeUndefined();
+		// Array should be empty or undefined after processing
+		expect(sendWave.pending_incident_choices?.length ?? 0).toBe(0);
 	});
 
 	it('should handle team without pending choice gracefully', () => {
@@ -487,11 +497,13 @@ describe('Incident Choice Manager - applyPendingChoiceEffects', () => {
 		setPendingChoice(session, 'SendWave', 'INC-018', 'patch');
 
 		expect(sendWave.credits).toBe(initialCredits - 150);
-		expect(sendWave.pending_incident_choice?.effectsApplied).toBe(true);
+		const choice = sendWave.pending_incident_choices?.find((c) => c.incidentId === 'INC-018');
+		expect(choice?.effectsApplied).toBe(true);
 
 		// Cleanup at lock-in
 		applyPendingChoiceEffects(session, sendWave);
-		expect(sendWave.pending_incident_choice).toBeUndefined();
+		// Array should be empty after processing
+		expect(sendWave.pending_incident_choices?.length ?? 0).toBe(0);
 	});
 
 	it('should clamp reputation to valid range (0-100)', () => {
@@ -513,7 +525,8 @@ describe('Incident Choice Manager - applyPendingChoiceEffects', () => {
 
 		// Cleanup at lock-in
 		applyPendingChoiceEffects(session, sendWave);
-		expect(sendWave.pending_incident_choice).toBeUndefined();
+		// Array should be empty after processing
+		expect(sendWave.pending_incident_choices?.length ?? 0).toBe(0);
 	});
 
 	it('should not allow credits to go negative', () => {
@@ -555,6 +568,7 @@ describe('Incident Choice Manager - applyPendingChoiceEffects', () => {
 
 		// Cleanup at lock-in
 		applyPendingChoiceEffects(session, sendWave);
-		expect(sendWave.pending_incident_choice).toBeUndefined();
+		// Array should be empty after processing
+		expect(sendWave.pending_incident_choices?.length ?? 0).toBe(0);
 	});
 });

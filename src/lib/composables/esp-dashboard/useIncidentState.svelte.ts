@@ -1,6 +1,8 @@
 /**
  * ESP Dashboard Incident State Composable
  * Manages incident card display and choice modal state
+ *
+ * Phase 5 Update: Supports multiple concurrent choices (queued display)
  */
 
 import type { IncidentCard, IncidentChoiceOption } from '$lib/types/incident';
@@ -26,15 +28,17 @@ export interface IncidentStateResult {
 	choiceOptions: IncidentChoiceOption[];
 	/** Whether choice has been confirmed */
 	choiceConfirmed: boolean;
+	/** Number of pending choices in queue */
+	pendingChoiceCount: number;
 	/** Show an incident card */
 	showIncident: (incident: IncidentCard) => void;
 	/** Hide incident card */
 	hideIncident: () => void;
-	/** Show choice modal with options */
+	/** Show choice modal with options (queues if modal already showing) */
 	showChoice: (data: IncidentChoiceData) => void;
 	/** Hide choice modal */
 	hideChoice: () => void;
-	/** Mark choice as confirmed */
+	/** Mark choice as confirmed and show next queued choice if any */
 	confirmChoice: () => void;
 	/** Reset all incident state */
 	reset: () => void;
@@ -69,6 +73,9 @@ export function useIncidentState(): IncidentStateResult {
 	let choiceOptions = $state<IncidentChoiceOption[]>([]);
 	let choiceConfirmed = $state(false);
 
+	// Queue for multiple concurrent choices
+	let pendingChoices = $state<IncidentChoiceData[]>([]);
+
 	function showIncident(incident: IncidentCard) {
 		currentIncident = incident;
 		showIncidentCard = true;
@@ -79,7 +86,7 @@ export function useIncidentState(): IncidentStateResult {
 		currentIncident = null;
 	}
 
-	function showChoice(data: IncidentChoiceData) {
+	function displayChoice(data: IncidentChoiceData) {
 		choiceIncidentId = data.incidentId;
 		choiceIncidentName = data.incidentName;
 		choiceDescription = data.description;
@@ -90,12 +97,42 @@ export function useIncidentState(): IncidentStateResult {
 		showChoiceModal = true;
 	}
 
+	function showChoice(data: IncidentChoiceData) {
+		// Check if this incident is already in queue or currently displayed
+		const alreadyQueued = pendingChoices.some((c) => c.incidentId === data.incidentId);
+		const currentlyDisplayed = showChoiceModal && choiceIncidentId === data.incidentId;
+
+		if (alreadyQueued || currentlyDisplayed) {
+			return; // Don't add duplicates
+		}
+
+		if (showChoiceModal) {
+			// Modal already showing, queue this choice
+			pendingChoices = [...pendingChoices, data];
+		} else {
+			// No modal showing, display immediately
+			displayChoice(data);
+		}
+	}
+
 	function hideChoice() {
 		showChoiceModal = false;
 	}
 
 	function confirmChoice() {
 		choiceConfirmed = true;
+
+		// After a brief delay (for UI feedback), check for next queued choice
+		setTimeout(() => {
+			showChoiceModal = false;
+
+			// If there are more choices in queue, show the next one
+			if (pendingChoices.length > 0) {
+				const nextChoice = pendingChoices[0];
+				pendingChoices = pendingChoices.slice(1);
+				displayChoice(nextChoice);
+			}
+		}, 500);
 	}
 
 	function reset() {
@@ -109,6 +146,7 @@ export function useIncidentState(): IncidentStateResult {
 		choiceCategory = '';
 		choiceOptions = [];
 		choiceConfirmed = false;
+		pendingChoices = [];
 	}
 
 	return {
@@ -153,6 +191,9 @@ export function useIncidentState(): IncidentStateResult {
 		},
 		set choiceConfirmed(value: boolean) {
 			choiceConfirmed = value;
+		},
+		get pendingChoiceCount() {
+			return pendingChoices.length;
 		},
 		showIncident,
 		hideIncident,
