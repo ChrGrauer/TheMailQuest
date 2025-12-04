@@ -14,7 +14,7 @@
 
 import { test, expect } from './fixtures';
 import type { Page, BrowserContext } from '@playwright/test';
-import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
+import { createGameInPlanningPhase } from './helpers/game-setup';
 import {
 	acquireClient,
 	toggleClientStatus,
@@ -632,5 +632,71 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		// And: Visual distinction is applied
 		const cardStatus = await clientCard.getAttribute('data-status');
 		expect(cardStatus).toBe('paused');
+	});
+
+	// ============================================================================
+	// SECTION 8: CROSS-ROUND STATE MANAGEMENT
+	// ============================================================================
+
+	test('8.1: Pending onboarding costs do not carry over to next round', async () => {
+		// This test verifies the fix for a bug where onboarding selections from round 1
+		// would persist in the UI and show as pending costs in round 2, even though
+		// the costs were already committed during lock-in.
+
+		// Given: Team acquires a client and configures onboarding in round 1
+		const clientIds = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
+		const clientId = clientIds[0];
+
+		await acquireClient(alicePage, roomCode, 'SendWave', clientId);
+
+		// Open modal to populate local onboardingSelections state
+		await openClientManagementModal(alicePage);
+
+		// Configure onboarding via UI (click checkboxes)
+		const clientCard = alicePage.getByTestId('client-card-0');
+		await clientCard.getByTestId('warm-up-checkbox').check();
+		await clientCard.getByTestId('list-hygiene-checkbox').check();
+
+		// Wait for API call to complete
+		await alicePage.waitForTimeout(500);
+
+		// Verify pending costs are shown (230 = 150 + 80)
+		await expect(alicePage.getByTestId('onboarding-costs')).toContainText('-230');
+
+		await closeClientManagementModal(alicePage);
+
+		// When: Lock in and advance to round 2
+		// Lock in all players (ESP teams + destinations)
+		const lockInButton = alicePage.locator('[data-testid="lock-in-button"]');
+		await lockInButton.click();
+		const bobLockInButton = bobPage.locator('[data-testid="lock-in-button"]');
+		await bobLockInButton.click();
+
+		// Wait for resolution phase to complete
+		await alicePage.waitForTimeout(3000);
+
+		// Click "Start Next Round" on facilitator page
+		await facilitatorPage.click('[data-testid="start-next-round-button"]');
+		await alicePage.waitForTimeout(1000);
+
+		// Then: In round 2, opening the portfolio modal should show no pending costs
+		await openClientManagementModal(alicePage);
+
+		// Pending costs section should not be visible (or show 0)
+		// The onboarding-costs element only appears when totalOnboardingCost > 0
+		await expect(alicePage.getByTestId('onboarding-costs')).not.toBeVisible();
+
+		// And: The client should show the committed onboarding state (not pending)
+		// first_active_round should be 1, so onboarding section should NOT be visible
+		const clientCardRound2 = alicePage.getByTestId('client-card-0');
+		await expect(clientCardRound2.getByTestId('onboarding-section')).not.toBeVisible();
+
+		// And: Permanent attributes section should show the onboarding history
+		await expect(clientCardRound2.getByTestId('permanent-attributes')).toBeVisible();
+		await expect(clientCardRound2.getByText('Onboarding History')).toBeVisible();
+
+		// And: The values should show "Yes" for both options (they were configured in round 1)
+		await expect(clientCardRound2.getByText('Client was Warmed-up:')).toBeVisible();
+		await expect(clientCardRound2.getByText('Has List Hygiene:')).toBeVisible();
 	});
 });

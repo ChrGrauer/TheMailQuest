@@ -79,7 +79,19 @@
 			budgetForecast = data.budget_forecast || currentCredits;
 
 			// Initialize onboarding selections from pending decisions (server state)
+			// First, remove selections for clients that have been activated (first_active_round !== null)
+			// This handles the case where the modal persists across rounds and old selections remain
 			const pendingDecisions = data.pending_onboarding_decisions || {};
+			const newClientIds = new Set(
+				clients.filter((c) => c.first_active_round === null).map((c) => c.id)
+			);
+			for (const clientId of Object.keys(onboardingSelections)) {
+				if (!newClientIds.has(clientId)) {
+					delete onboardingSelections[clientId];
+				}
+			}
+
+			// Then populate selections for new clients
 			clients.forEach((client) => {
 				if (client.first_active_round === null) {
 					// Load from pending decisions if exists, otherwise default to false
