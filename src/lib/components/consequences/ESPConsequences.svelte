@@ -1,14 +1,15 @@
 <script lang="ts">
 	/**
 	 * ESP Consequences Display Component
-	 * US-3.5: Iteration 1 - Basic Consequences Phase Display
+	 * US-3.5: Consequences Phase Display
 	 *
 	 * Displays resolution results for ESP teams:
-	 * - Client performance (volume, delivery)
+	 * - Investigation result (if any) - displayed at top for visibility
+	 * - Client performance (volume, delivery, modifiers)
 	 * - Revenue summary
-	 * - Reputation changes (placeholder)
+	 * - Spam complaints
+	 * - Reputation changes per destination
 	 * - Budget update
-	 * - Alerts/notifications (placeholder)
 	 */
 
 	import type { ESPResolutionResult } from '$lib/server/game/resolution-types';
@@ -73,6 +74,77 @@
 				{teamName}
 			</h2>
 		</div>
+
+		<!-- Investigation Result (US-2.7) - Displayed at top when present -->
+		{#if investigation}
+			<section
+				data-testid="section-investigation-penalty"
+				class="bg-white rounded-xl shadow-lg p-6 mb-6"
+			>
+				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-red-500 pb-2">
+					Investigation Result
+				</h3>
+
+				<div
+					data-testid="investigation-penalty-card"
+					class="p-4 rounded-lg border-l-4"
+					class:bg-red-50={investigation.result.violationFound}
+					class:border-red-500={investigation.result.violationFound}
+					class:bg-yellow-50={!investigation.result.violationFound}
+					class:border-yellow-500={!investigation.result.violationFound}
+					role="alert"
+					aria-live="polite"
+				>
+					<div class="flex items-start justify-between">
+						<div>
+							<p data-testid="investigation-message" class="font-semibold text-gray-900">
+								Investigation launched against you
+							</p>
+							<p class="text-sm text-gray-600 mt-1">
+								Initiated by: {investigation.voters.join(', ')}
+							</p>
+						</div>
+						<span
+							class="px-3 py-1 text-xs font-semibold rounded"
+							class:bg-red-200={investigation.result.violationFound}
+							class:text-red-800={investigation.result.violationFound}
+							class:bg-yellow-200={!investigation.result.violationFound}
+							class:text-yellow-800={!investigation.result.violationFound}
+							aria-label={investigation.result.violationFound
+								? 'Violation found'
+								: 'No violation found'}
+						>
+							{investigation.result.violationFound ? 'Violation Found' : 'No Violation'}
+						</span>
+					</div>
+
+					<p
+						class="mt-3 text-sm"
+						class:text-red-700={investigation.result.violationFound}
+						class:text-yellow-700={!investigation.result.violationFound}
+					>
+						{investigation.result.message}
+					</p>
+
+					{#if investigation.result.violationFound && investigation.result.suspendedClient}
+						<div class="mt-3 p-3 bg-white/50 rounded border border-red-200">
+							<p class="text-sm font-medium text-red-900">
+								Client Suspended: <span class="font-semibold"
+									>{investigation.result.suspendedClient.clientName}</span
+								>
+							</p>
+							<p
+								data-testid="client-status-{investigation.result.suspendedClient.clientId}"
+								class="text-xs text-red-700 mt-1"
+							>
+								Status: <span class="font-semibold">Suspended</span> - This client will no longer generate
+								volume or revenue.
+							</p>
+						</div>
+					{/if}
+				</div>
+			</section>
+		{/if}
 
 		<!-- Consequences Sections Grid -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -263,8 +335,24 @@
 									class:text-yellow-600={resolutionData.complaints.adjustedComplaintRate > 0.1 &&
 										resolutionData.complaints.adjustedComplaintRate <= 1.0}
 									class:text-red-600={resolutionData.complaints.adjustedComplaintRate > 1.0}
+									aria-label="Complaint rate {resolutionData.complaints.adjustedComplaintRate.toFixed(
+										2
+									)} percent, {resolutionData.complaints.adjustedComplaintRate <= 0.1
+										? 'excellent'
+										: resolutionData.complaints.adjustedComplaintRate <= 1.0
+											? 'acceptable'
+											: 'high risk'}"
 								>
 									{resolutionData.complaints.adjustedComplaintRate.toFixed(2)}%
+									<span class="text-xs ml-1">
+										{#if resolutionData.complaints.adjustedComplaintRate <= 0.1}
+											(Excellent)
+										{:else if resolutionData.complaints.adjustedComplaintRate <= 1.0}
+											(Acceptable)
+										{:else}
+											(High Risk)
+										{/if}
+									</span>
 								</span>
 							</div>
 						</div>
@@ -337,8 +425,23 @@
 												class:text-yellow-600={repChange.newReputation >= 40 &&
 													repChange.newReputation < 70}
 												class:text-red-600={repChange.newReputation < 40}
+												aria-label="{destName} reputation now {repChange.newReputation}, {repChange.newReputation >=
+												70
+													? 'good standing'
+													: repChange.newReputation >= 40
+														? 'caution zone'
+														: 'critical zone'}"
 											>
 												{repChange.newReputation}
+												<span class="text-xs font-normal ml-1">
+													{#if repChange.newReputation >= 70}
+														(Good)
+													{:else if repChange.newReputation >= 40}
+														(Caution)
+													{:else}
+														(Critical)
+													{/if}
+												</span>
 											</span>
 										</p>
 									</div>
@@ -373,7 +476,11 @@
 			</section>
 
 			<!-- Section 5: Budget Update -->
-			<section data-testid="section-budget-update" class="bg-white rounded-xl shadow-md p-6">
+			<section
+				data-testid="section-budget-update"
+				class="bg-white rounded-xl shadow-md p-6"
+				aria-live="polite"
+			>
 				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-emerald-500 pb-2">
 					Budget Update
 				</h3>
@@ -387,160 +494,16 @@
 						<span class="text-gray-700">Revenue Earned:</span>
 						<span class="font-semibold text-emerald-600">+{actualRevenue} credits</span>
 					</div>
-					<div class="flex justify-between items-center pt-3 border-t-2 border-emerald-500 mt-3">
+					<div
+						class="flex justify-between items-center pt-3 border-t-2 border-emerald-500 mt-3"
+						aria-label="Budget updated from {startingBudget} to {currentCredits} credits, gained {actualRevenue} credits"
+					>
 						<span class="text-gray-900 font-bold text-lg">New Budget:</span>
 						<span class="font-bold text-emerald-600 text-2xl">{currentCredits} credits</span>
 					</div>
 				</div>
 
 				<p class="text-xs text-gray-500 mt-4 italic">Budget has been updated for the next round.</p>
-			</section>
-
-			<!-- Section 6: Investigation Penalty (US-2.7) -->
-			{#if investigation}
-				<section
-					data-testid="section-investigation-penalty"
-					class="bg-white rounded-xl shadow-md p-6 lg:col-span-2"
-				>
-					<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-red-500 pb-2">
-						Investigation Result
-					</h3>
-
-					<div
-						data-testid="investigation-penalty-card"
-						class="p-4 rounded-lg border-l-4"
-						class:bg-red-50={investigation.result.violationFound}
-						class:border-red-500={investigation.result.violationFound}
-						class:bg-yellow-50={!investigation.result.violationFound}
-						class:border-yellow-500={!investigation.result.violationFound}
-					>
-						<div class="flex items-start justify-between">
-							<div>
-								<p data-testid="investigation-message" class="font-semibold text-gray-900">
-									Investigation launched against you
-								</p>
-								<p class="text-sm text-gray-600 mt-1">
-									Initiated by: {investigation.voters.join(', ')}
-								</p>
-							</div>
-							<span
-								class="px-3 py-1 text-xs font-semibold rounded"
-								class:bg-red-200={investigation.result.violationFound}
-								class:text-red-800={investigation.result.violationFound}
-								class:bg-yellow-200={!investigation.result.violationFound}
-								class:text-yellow-800={!investigation.result.violationFound}
-							>
-								{investigation.result.violationFound ? 'Violation Found' : 'No Violation'}
-							</span>
-						</div>
-
-						<p
-							class="mt-3 text-sm"
-							class:text-red-700={investigation.result.violationFound}
-							class:text-yellow-700={!investigation.result.violationFound}
-						>
-							{investigation.result.message}
-						</p>
-
-						{#if investigation.result.violationFound && investigation.result.suspendedClient}
-							<div class="mt-3 p-3 bg-white/50 rounded border border-red-200">
-								<p class="text-sm font-medium text-red-900">
-									Client Suspended: <span class="font-semibold"
-										>{investigation.result.suspendedClient.clientName}</span
-									>
-								</p>
-								<p
-									data-testid="client-status-{investigation.result.suspendedClient.clientId}"
-									class="text-xs text-red-700 mt-1"
-								>
-									Status: <span class="font-semibold">Suspended</span> - This client will no more generate
-									volume or revenue.
-								</p>
-							</div>
-						{/if}
-					</div>
-				</section>
-			{/if}
-
-			<!-- Section 7: Alerts & Notifications -->
-			<section
-				data-testid="section-alerts-notifications"
-				class="bg-white rounded-xl shadow-md p-6 lg:col-span-2"
-			>
-				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-emerald-500 pb-2">
-					Alerts & Notifications
-				</h3>
-
-				<!-- Phase 2: Display Incident Effects -->
-				{#if resolutionData?.reputation?.perDestination || resolutionData?.volume?.clientVolumes}
-					{@const reputationIncidents = resolutionData?.reputation?.perDestination
-						? Object.entries(resolutionData.reputation.perDestination).flatMap(
-								([destName, repChange]) =>
-									(repChange.breakdown || [])
-										.filter((item) => item.source.startsWith('INC-'))
-										.map((item) => ({
-											incidentId: item.source,
-											destination: destName,
-											type: 'reputation' as const,
-											value: item.value,
-											description: `${item.value > 0 ? '+' : ''}${item.value} reputation`
-										}))
-							)
-						: []}
-					{@const volumeIncidents = resolutionData?.volume?.clientVolumes
-						? resolutionData.volume.clientVolumes.flatMap((cv) =>
-								Object.entries(cv.adjustments || {})
-									.filter(([source]) => source.startsWith('INC-'))
-									.map(([source, adjustment]) => ({
-										incidentId: source,
-										type: 'volume' as const,
-										description: adjustment.description
-									}))
-							)
-						: []}
-					{@const allIncidents = [...reputationIncidents, ...volumeIncidents].filter(
-						(effect, index, self) =>
-							index === self.findIndex((e) => e.incidentId === effect.incidentId)
-					)}
-
-					{#if allIncidents.length > 0}
-						<div
-							data-testid="incident-effects-summary"
-							class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg"
-						>
-							<p class="font-semibold text-blue-900 mb-2">Incident Effects This Round</p>
-							<div class="space-y-2 text-sm">
-								{#each allIncidents as effect}
-									<div class="flex items-center justify-between" data-testid="incident-effect-item">
-										<span class="text-blue-800 font-medium">{effect.incidentId}</span>
-										<span
-											class="text-gray-700"
-											class:text-emerald-600={effect.type === 'reputation' &&
-												effect.value &&
-												effect.value > 0}
-											class:text-red-600={effect.type === 'reputation' &&
-												effect.value &&
-												effect.value < 0}
-										>
-											{effect.description}
-										</span>
-									</div>
-								{/each}
-							</div>
-						</div>
-					{/if}
-				{/if}
-
-				<!-- Future alerts placeholder -->
-				<div class="text-sm text-gray-400">
-					<p>Future alert features will include:</p>
-					<ul class="list-disc list-inside ml-4 mt-2 space-y-1">
-						<li>Low reputation warnings</li>
-						<li>High complaint rate alerts</li>
-						<li>Mandatory technology reminders</li>
-						<li>Budget deficit notifications</li>
-					</ul>
-				</div>
 			</section>
 		</div>
 	</div>

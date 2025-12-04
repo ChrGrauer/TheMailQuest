@@ -56,13 +56,14 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		await expect(teamName).toBeVisible();
 		await expect(teamName).toContainText('SendWave');
 
-		// Assert: All 5 sections are visible with appropriate titles
+		// Assert: All 5 core sections are visible with appropriate titles
+		// Note: Alerts & Notifications section was removed for MVP
 		const expectedSections = [
 			{ testId: 'section-client-performance', title: 'Client Performance' },
 			{ testId: 'section-revenue-summary', title: 'Revenue Summary' },
+			{ testId: 'section-spam-complaints', title: 'Spam Complaints' },
 			{ testId: 'section-reputation-changes', title: 'Reputation Changes' },
-			{ testId: 'section-budget-update', title: 'Budget Update' },
-			{ testId: 'section-alerts-notifications', title: 'Alerts' }
+			{ testId: 'section-budget-update', title: 'Budget Update' }
 		];
 
 		for (const section of expectedSections) {
@@ -74,7 +75,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 			expect(hasTitle).toBeGreaterThan(0);
 		}
 
-		// Assert: Each section should have a clear visual container (all 5 sections exist)
+		// Assert: Each section should have a clear visual container (at least 5 sections exist)
 		const sections = await alicePage.locator('[data-testid^="section-"]').all();
 		expect(sections.length).toBeGreaterThanOrEqual(5);
 
@@ -101,9 +102,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 		const reputationSection = alicePage.locator('[data-testid="section-reputation-changes"]');
 		await expect(reputationSection).toBeVisible();
 
-		// Assert: Alerts section exists
-		const alertsSection = alicePage.locator('[data-testid="section-alerts-notifications"]');
-		await expect(alertsSection).toBeVisible();
+		// Note: Alerts section was removed for MVP
 
 		await closePages(page, alicePage, bobPage);
 	});

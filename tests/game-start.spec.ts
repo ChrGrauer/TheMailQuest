@@ -83,5 +83,4 @@ test.describe('Feature: Game Lobby Management - E2E', () => {
 			await closePages(page, alicePage, bobPage);
 		});
 	});
-
 });

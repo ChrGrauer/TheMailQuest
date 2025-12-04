@@ -94,22 +94,33 @@
 								</h4>
 								<div class="space-y-2">
 									{#each Object.entries(espSatisfactionBreakdown) as [espName, satisfactionResult]}
+										{@const satValue = satisfactionResult.perDestination[destinationName]}
 										<div class="bg-gray-50 border border-gray-200 rounded p-3">
 											<div class="flex justify-between items-center">
 												<span class="font-medium text-gray-900">{espName}</span>
 												<span
 													class="text-sm font-semibold"
-													class:text-green-600={satisfactionResult.perDestination[
-														destinationName
-													] >= 80}
-													class:text-yellow-600={satisfactionResult.perDestination[
-														destinationName
-													] >= 60 && satisfactionResult.perDestination[destinationName] < 80}
-													class:text-red-600={satisfactionResult.perDestination[destinationName] <
-														60}
+													class:text-green-600={satValue >= 80}
+													class:text-yellow-600={satValue >= 60 && satValue < 80}
+													class:text-red-600={satValue < 60}
+													aria-label="{espName} satisfaction {Math.round(
+														satValue
+													)} percent, {satValue >= 80
+														? 'good'
+														: satValue >= 60
+															? 'moderate'
+															: 'poor'}"
 												>
-													{Math.round(satisfactionResult.perDestination[destinationName])}%
-													satisfaction
+													{Math.round(satValue)}% satisfaction
+													<span class="text-xs font-normal ml-1">
+														{#if satValue >= 80}
+															(Good)
+														{:else if satValue >= 60}
+															(Moderate)
+														{:else}
+															(Poor)
+														{/if}
+													</span>
 												</span>
 											</div>
 											<!-- Show breakdown if available -->
@@ -170,14 +181,23 @@
 			</section>
 
 			<!-- Section 2: User Satisfaction -->
-			<section data-testid="section-user-satisfaction" class="bg-white rounded-xl shadow-md p-6">
+			<section
+				data-testid="section-user-satisfaction"
+				class="bg-white rounded-xl shadow-md p-6"
+				aria-live="polite"
+			>
 				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-blue-500 pb-2">
 					User Satisfaction
 				</h3>
 
 				{#if resolution?.aggregatedSatisfaction !== undefined}
 					<!-- Display actual satisfaction -->
-					<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+					<div
+						class="bg-blue-50 border border-blue-200 rounded-lg p-4"
+						aria-label="User satisfaction score {Math.round(
+							resolution.aggregatedSatisfaction
+						)} out of 100"
+					>
 						<p class="text-sm text-gray-600 mb-2">Aggregated User Satisfaction</p>
 						<div class="flex items-baseline gap-2">
 							<p class="text-4xl font-bold text-blue-600">
@@ -331,7 +351,11 @@
 			</section>
 
 			<!-- Section 4: Budget Update -->
-			<section data-testid="section-budget-update" class="bg-white rounded-xl shadow-md p-6">
+			<section
+				data-testid="section-budget-update"
+				class="bg-white rounded-xl shadow-md p-6"
+				aria-live="polite"
+			>
 				<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-blue-500 pb-2">
 					Budget Update
 				</h3>
@@ -376,6 +400,7 @@
 				<section
 					data-testid="investigation-result-section"
 					class="bg-white rounded-xl shadow-md p-6 lg:col-span-2"
+					aria-label="Investigation Results"
 				>
 					<h3 class="text-lg font-semibold text-gray-900 mb-4 border-b-2 border-blue-500 pb-2">
 						Investigation Results
@@ -388,6 +413,8 @@
 						class:border-green-500={participatedInvestigation.result.violationFound}
 						class:bg-gray-50={!participatedInvestigation.result.violationFound}
 						class:border-gray-400={!participatedInvestigation.result.violationFound}
+						role="alert"
+						aria-live="polite"
 					>
 						<div class="flex items-start justify-between">
 							<div>
@@ -406,6 +433,9 @@
 								class:text-green-800={participatedInvestigation.result.violationFound}
 								class:bg-gray-200={!participatedInvestigation.result.violationFound}
 								class:text-gray-700={!participatedInvestigation.result.violationFound}
+								aria-label={participatedInvestigation.result.violationFound
+									? 'Investigation result: Violation found'
+									: 'Investigation result: No violation found'}
 							>
 								{participatedInvestigation.result.violationFound
 									? 'Violation Found'
@@ -484,19 +514,35 @@
 								<div class="flex justify-between items-start">
 									<div>
 										<h4 class="font-semibold text-gray-900">{espName}</h4>
-										<p class="text-sm text-gray-600">
+										<p
+											class="text-sm text-gray-600"
+											aria-label="{espName} satisfaction {Math.round(destSatisfaction)} percent"
+										>
 											Satisfaction: {Math.round(destSatisfaction)}%
+											<span class="text-xs ml-1">
+												{#if destSatisfaction >= 80}
+													(Good)
+												{:else if destSatisfaction >= 60}
+													(Moderate)
+												{:else}
+													(Poor)
+												{/if}
+											</span>
 										</p>
 									</div>
 
 									<!-- Alert/Recognition Badge -->
 									{#if destSatisfaction < 60}
-										<span class="px-3 py-1 bg-red-200 text-red-800 text-xs font-semibold rounded">
+										<span
+											class="px-3 py-1 bg-red-200 text-red-800 text-xs font-semibold rounded"
+											aria-label="Warning: High spam risk from {espName}"
+										>
 											⚠️ High Spam Risk
 										</span>
 									{:else if destSatisfaction >= 90}
 										<span
 											class="px-3 py-1 bg-green-200 text-green-800 text-xs font-semibold rounded"
+											aria-label="Excellent performance from {espName}"
 										>
 											✅ Excellent Performance
 										</span>
