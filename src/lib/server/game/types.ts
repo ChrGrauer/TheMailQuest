@@ -291,6 +291,8 @@ export interface DestinationDashboardUpdate {
 	// US-2.6.2: Tool ownership updates
 	owned_tools?: string[];
 	authentication_level?: number;
+	// US-8.2-0.2: ESP metrics for facilitator dashboard updates
+	esp_metrics?: Record<string, { user_satisfaction: number; spam_level: number }>;
 }
 
 /**

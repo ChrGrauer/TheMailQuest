@@ -15,11 +15,13 @@ import { purchaseTechUpgrade } from './helpers/client-management';
 import type { Locator } from '@playwright/test';
 
 // ============================================================================
-// Pause/Resume Game Tests
+// Buttons visibility
 // ============================================================================
-
-test.describe('US-8.2-0.1: Pause/Resume Game', () => {
-	test('Pause button visible only during planning phase', async ({ page, context }) => {
+test.describe('Facilitator button visibility', () => {
+	test('Pause, Extend Timer, End Phase buttons visible ONLY during planning phase, End Game Early button visible only during consequences', async ({
+		page,
+		context
+	}) => {
 		// Given: the game is in round 1, planning phase
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
@@ -27,31 +29,43 @@ test.describe('US-8.2-0.1: Pause/Resume Game', () => {
 		// Then: the "Pause Game" button should be visible
 		const pauseButton = page.locator('[data-testid="pause-game-button"]');
 		await expect(pauseButton).toBeVisible();
-
 		// And: button should show "Pause Game" text
 		await expect(pauseButton).toContainText('Pause');
 
-		await closePages(page, alicePage, bobPage);
-	});
+		// And: the "Extend Timer" button should be visible
+		const extendButton = page.locator('[data-testid="extend-timer-button"]');
+		await expect(extendButton).toBeVisible();
 
-	test('Pause button NOT visible during resolution and consequences phases', async ({
-		page,
-		context
-	}) => {
-		// Given: the game is in round 1, planning phase
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
+		// And: the "End Current Phase" button should be visible
+		const endPhaseButton = page.locator('[data-testid="end-phase-button"]');
+		await expect(endPhaseButton).toBeVisible();
+
+		// And: End Game Early should NOT be visible during planning
+		const endGameButton = page.locator('[data-testid="end-game-early-button"]');
+		await expect(endGameButton).not.toBeVisible();
 
 		// When: all players lock in and game transitions to consequences
 		await lockInAllPlayers([alicePage, bobPage]);
 
 		// Then: the "Pause Game" button should NOT be visible
-		const pauseButton = page.locator('[data-testid="pause-game-button"]');
 		await expect(pauseButton).not.toBeVisible();
+		// Then: the "Extend Timer" button should NOT be visible
+		await expect(extendButton).not.toBeVisible();
+		// Then: the "End Current Phase" button should NOT be visible
+		await expect(endPhaseButton).not.toBeVisible();
+		// Then: End Game Early should be visible during consequences
+		await expect(endGameButton).toBeVisible();
 
 		await closePages(page, alicePage, bobPage);
 	});
+});
 
-	test('Clicking Pause stops timer countdown and shows Paused indicator', async ({
+// ============================================================================
+// Pause/Resume Game Tests
+// ============================================================================
+
+test.describe('Pause/Resume Game', () => {
+	test('Clicking Pause stops timer countdown and shows Paused indicator to all participants, clicking Resume restart the timer', async ({
 		page,
 		context
 	}) => {
@@ -79,42 +93,7 @@ test.describe('US-8.2-0.1: Pause/Resume Game', () => {
 		// Timer value should be the same (or very close - accounting for the moment of capture)
 		expect(timerAfterPause).toBe(timerAfter2Seconds);
 
-		await closePages(page, alicePage, bobPage);
-	});
-
-	test('All players see Game Paused indicator when facilitator pauses', async ({
-		page,
-		context
-	}) => {
-		// Given: the game is in round 1, planning phase
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// When: the facilitator clicks "Pause Game" button
-		const pauseButton = page.locator('[data-testid="pause-game-button"]');
-		await pauseButton.click();
-		await page.waitForTimeout(500);
-
-		// Then: ESP player should see "Game Paused" indicator
-		const alicePausedBanner = alicePage.locator('[data-testid="game-paused-banner"]');
-		await expect(alicePausedBanner).toBeVisible({ timeout: 3000 });
-
-		// And: Destination player should see "Game Paused" indicator
-		const bobPausedBanner = bobPage.locator('[data-testid="game-paused-banner"]');
-		await expect(bobPausedBanner).toBeVisible({ timeout: 3000 });
-
-		await closePages(page, alicePage, bobPage);
-	});
-
-	test('Pause button changes to Resume Game when paused', async ({ page, context }) => {
-		// Given: the game is in round 1, planning phase
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// When: the facilitator clicks "Pause Game" button
-		const pauseButton = page.locator('[data-testid="pause-game-button"]');
-		await pauseButton.click();
-		await page.waitForTimeout(500);
-
-		// Then: the button should change to "Resume Game"
+		// And: the button should change to "Resume Game"
 		const resumeButton = page.locator('[data-testid="resume-game-button"]');
 		await expect(resumeButton).toBeVisible();
 		await expect(resumeButton).toContainText('Resume');
@@ -122,26 +101,15 @@ test.describe('US-8.2-0.1: Pause/Resume Game', () => {
 		// And: pause button should NOT be visible
 		await expect(pauseButton).not.toBeVisible();
 
-		await closePages(page, alicePage, bobPage);
-	});
+		// And: ESP player should see "Game Paused" indicator
+		const alicePausedBanner = alicePage.locator('[data-testid="game-paused-banner"]');
+		await expect(alicePausedBanner).toBeVisible({ timeout: 3000 });
 
-	test('Resume restarts timer countdown and removes Paused indicator', async ({
-		page,
-		context
-	}) => {
-		// Given: the game is paused
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		const pauseButton = page.locator('[data-testid="pause-game-button"]');
-		await pauseButton.click();
-		await page.waitForTimeout(500);
-
-		// Verify paused
-		const pausedIndicator = page.locator('[data-testid="timer-paused-indicator"]');
-		await expect(pausedIndicator).toBeVisible();
+		// And: Destination player should see "Game Paused" indicator
+		const bobPausedBanner = bobPage.locator('[data-testid="game-paused-banner"]');
+		await expect(bobPausedBanner).toBeVisible({ timeout: 3000 });
 
 		// When: the facilitator clicks "Resume Game" button
-		const resumeButton = page.locator('[data-testid="resume-game-button"]');
 		await resumeButton.click();
 		await page.waitForTimeout(500);
 
@@ -153,7 +121,6 @@ test.describe('US-8.2-0.1: Pause/Resume Game', () => {
 		await expect(pauseButton).toBeVisible();
 
 		// And: players should NOT see "Game Paused" indicator
-		const alicePausedBanner = alicePage.locator('[data-testid="game-paused-banner"]');
 		await expect(alicePausedBanner).not.toBeVisible();
 
 		await closePages(page, alicePage, bobPage);
@@ -189,52 +156,7 @@ test.describe('US-8.2-0.1: Pause/Resume Game', () => {
 // Extend Timer Tests
 // ============================================================================
 
-test.describe('US-8.2-0.1: Extend Timer', () => {
-	test('Extend Timer button visible only during planning phase', async ({ page, context }) => {
-		// Given: the game is in round 1, planning phase
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// Then: the "Extend Timer" button should be visible
-		const extendButton = page.locator('[data-testid="extend-timer-button"]');
-		await expect(extendButton).toBeVisible();
-
-		// When: game transitions to consequences
-		await lockInAllPlayers([alicePage, bobPage]);
-
-		// Then: the "Extend Timer" button should NOT be visible
-		await expect(extendButton).not.toBeVisible();
-
-		await closePages(page, alicePage, bobPage);
-	});
-
-	test('Clicking Extend Timer adds 60 seconds', async ({ page, context }) => {
-		// Given: the game is in round 1, planning phase with some time elapsed
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// Wait a bit for timer to tick down
-		await page.waitForTimeout(3000);
-
-		// Get current timer value (should be around 4:57 or so)
-		const timer = page.locator('[data-testid="game-timer"]');
-
-		// Parse timer (format: "M:SS" or "MM:SS")
-		const initialTotalSeconds = await getTotalSecond(timer);
-
-		// When: the facilitator clicks "Extend Timer" button
-		const extendButton = page.locator('[data-testid="extend-timer-button"]');
-		await extendButton.click();
-		await page.waitForTimeout(500);
-
-		// Then: the timer should show approximately 60 more seconds
-		const newTotalSeconds = await getTotalSecond(timer);
-
-		// Should be approximately 60 seconds more (allowing for some time passing)
-		expect(newTotalSeconds).toBeGreaterThanOrEqual(initialTotalSeconds + 55);
-		expect(newTotalSeconds).toBeLessThanOrEqual(initialTotalSeconds + 65);
-
-		await closePages(page, alicePage, bobPage);
-	});
-
+test.describe('Extend Timer', () => {
 	test('Multiple Extend Timer clicks accumulate', async ({ page, context }) => {
 		// Given: the game is in round 1, planning phase
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
@@ -270,33 +192,15 @@ test.describe('US-8.2-0.1: Extend Timer', () => {
 // End Current Phase Tests
 // ============================================================================
 
-test.describe('US-8.2-0.1: End Current Phase', () => {
-	test('End Phase button visible only during planning phase', async ({ page, context }) => {
+test.describe('End Current Phase', () => {
+	test('Cancel on confirmation dialog keeps phase unchanged', async ({ page, context }) => {
 		// Given: the game is in round 1, planning phase
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		// Then: the "End Current Phase" button should be visible
-		const endPhaseButton = page.locator('[data-testid="end-phase-button"]');
-		await expect(endPhaseButton).toBeVisible();
-
-		// When: game transitions to consequences
-		await lockInAllPlayers([alicePage, bobPage]);
-
-		// Then: the "End Current Phase" button should NOT be visible
-		await expect(endPhaseButton).not.toBeVisible();
-
-		await closePages(page, alicePage, bobPage);
-	});
-
-	test('Clicking End Phase shows confirmation dialog', async ({ page, context }) => {
-		// Given: the game is in round 1, planning phase
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// When: the facilitator clicks "End Current Phase" button
+		// When: the facilitator clicks "End Current Phase"
 		const endPhaseButton = page.locator('[data-testid="end-phase-button"]');
 		await endPhaseButton.click();
 		await page.waitForTimeout(500);
-
 		// Then: a confirmation dialog should appear
 		const dialog = page.locator('[data-testid="confirmation-dialog"]');
 		await expect(dialog).toBeVisible();
@@ -305,24 +209,12 @@ test.describe('US-8.2-0.1: End Current Phase', () => {
 		await expect(dialog).toContainText('Are you sure');
 		await expect(dialog).toContainText('planning phase');
 
-		await closePages(page, alicePage, bobPage);
-	});
-
-	test('Cancel on confirmation dialog keeps phase unchanged', async ({ page, context }) => {
-		// Given: the game is in round 1, planning phase
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// When: the facilitator clicks "End Current Phase" then "Cancel"
-		const endPhaseButton = page.locator('[data-testid="end-phase-button"]');
-		await endPhaseButton.click();
-		await page.waitForTimeout(500);
-
+		// When: facilitator clicks on Cancel
 		const cancelButton = page.locator('[data-testid="cancel-button"]');
 		await cancelButton.click();
 		await page.waitForTimeout(500);
 
 		// Then: the dialog should close
-		const dialog = page.locator('[data-testid="confirmation-dialog"]');
 		await expect(dialog).not.toBeVisible();
 
 		// And: the current phase should still be "planning"
@@ -331,33 +223,10 @@ test.describe('US-8.2-0.1: End Current Phase', () => {
 		await closePages(page, alicePage, bobPage);
 	});
 
-	test('Confirm on dialog triggers resolution phase transition', async ({ page, context }) => {
-		// Given: the game is in round 1, planning phase
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// When: the facilitator clicks "End Current Phase" then "Confirm"
-		const endPhaseButton = page.locator('[data-testid="end-phase-button"]');
-		await endPhaseButton.click();
-		await page.waitForTimeout(500);
-
-		const confirmButton = page.locator('[data-testid="confirm-button"]');
-		await confirmButton.click();
-		await page.waitForTimeout(1500);
-
-		// Then: the game should transition to consequences phase (through resolution)
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
-			timeout: 5000
-		});
-
-		// And: all players should receive phase transition notification
-		await expect(alicePage.locator('[data-testid="consequences-header"]')).toBeVisible({
-			timeout: 5000
-		});
-
-		await closePages(page, alicePage, bobPage);
-	});
-
-	test('End phase applies auto-lock to unlocked players', async ({ page, context }) => {
+	test('Confirm on dialog triggers resolution phase transition and End phase applies auto-lock to unlocked players', async ({
+		page,
+		context
+	}) => {
 		// Given: the game is in planning phase
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
@@ -375,6 +244,11 @@ test.describe('US-8.2-0.1: End Current Phase', () => {
 		await confirmButton.click();
 		await page.waitForTimeout(2000);
 
+		// Then: the game should transition to consequences phase (through resolution)
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+			timeout: 5000
+		});
+
 		// Then: Bob should be auto-locked and see consequences
 		await expect(bobPage.locator('[data-testid="consequences-header"]')).toBeVisible({
 			timeout: 5000
@@ -388,27 +262,7 @@ test.describe('US-8.2-0.1: End Current Phase', () => {
 // End Game Early Tests
 // ============================================================================
 
-test.describe('US-8.2-0.1: End Game Early', () => {
-	test('End Game Early button visible only during consequences phase R1-R3', async ({
-		page,
-		context
-	}) => {
-		// Given: the game is in round 1, planning phase
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-
-		// Then: End Game Early should NOT be visible during planning
-		const endGameButton = page.locator('[data-testid="end-game-early-button"]');
-		await expect(endGameButton).not.toBeVisible();
-
-		// When: game transitions to consequences
-		await lockInAllPlayers([alicePage, bobPage]);
-
-		// Then: End Game Early should be visible during consequences
-		await expect(endGameButton).toBeVisible();
-
-		await closePages(page, alicePage, bobPage);
-	});
-
+test.describe('End Game Early', () => {
 	test('End Game Early button NOT visible during Round 4 consequences', async ({
 		page,
 		context
@@ -428,25 +282,6 @@ test.describe('US-8.2-0.1: End Game Early', () => {
 		await closePages(page, alicePage, bobPage);
 	});
 
-	test('End Game Early shows confirmation dialog with warning', async ({ page, context }) => {
-		// Given: the game is in consequences phase
-		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
-		await lockInAllPlayers([alicePage, bobPage]);
-
-		// When: the facilitator clicks "End Game Early"
-		const endGameButton = page.locator('[data-testid="end-game-early-button"]');
-		await endGameButton.click();
-		await page.waitForTimeout(500);
-
-		// Then: a confirmation dialog should appear with warning
-		const dialog = page.locator('[data-testid="confirmation-dialog"]');
-		await expect(dialog).toBeVisible();
-		await expect(dialog).toContainText('end the game early');
-		await expect(dialog).toContainText('final scores');
-
-		await closePages(page, alicePage, bobPage);
-	});
-
 	test('Confirm End Game Early calculates final scores and shows victory', async ({
 		page,
 		context
@@ -460,6 +295,13 @@ test.describe('US-8.2-0.1: End Game Early', () => {
 		await endGameButton.click();
 		await page.waitForTimeout(500);
 
+		// Then: a confirmation dialog should appear with warning
+		const dialog = page.locator('[data-testid="confirmation-dialog"]');
+		await expect(dialog).toBeVisible();
+		await expect(dialog).toContainText('end the game early');
+		await expect(dialog).toContainText('final scores');
+
+		// When: facilitator clicks on Confirm
 		const confirmButton = page.locator('[data-testid="confirm-button"]');
 		await confirmButton.click();
 		await page.waitForTimeout(2000);

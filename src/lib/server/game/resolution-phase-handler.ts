@@ -119,6 +119,24 @@ export function handleResolutionPhase(
 						reputation: team.reputation
 					});
 				}
+
+				// US-8.2-0.2: Broadcast updated destination data after resolution
+				// This ensures facilitator dashboard shows current satisfaction scores and budget
+				for (const destination of session.destinations) {
+					broadcast(roomCode, {
+						type: 'destination_dashboard_update',
+						destinationName: destination.name,
+						budget: destination.budget,
+						owned_tools: destination.owned_tools || [],
+						esp_metrics: destination.esp_metrics || {}
+					});
+
+					gameLogger.info('Broadcast destination dashboard update after resolution', {
+						roomCode,
+						destinationName: destination.name,
+						budget: destination.budget
+					});
+				}
 			}
 
 			// US-2.7: Check and execute investigation if triggered

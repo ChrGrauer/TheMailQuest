@@ -212,7 +212,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 	// ============================================================================
 
 	describe('US-2.7: Destination lock-in with investigation vote', () => {
-		test('Given destination with investigation vote, When lock-in succeeds, Then 50 credits are charged', async () => {
+		test('Given destination with investigation vote, When lock-in succeeds, Then budget is reserved but NOT charged (charge happens at resolution if triggered)', async () => {
 			// Given
 			const facilitatorId = 'facilitator_123';
 			const session = createGameSession(facilitatorId);
@@ -248,11 +248,12 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			// When
 			const result = lockInDestination(session.roomCode, 'Gmail');
 
-			// Then
+			// Then: lock-in succeeds but budget NOT charged (per feature spec: "only charged if investigation triggers")
 			expect(result.success).toBe(true);
 			const postLockSession = getSession(session.roomCode);
 			const gmail = postLockSession?.destinations.find((d) => d.name === 'Gmail');
-			expect(gmail?.budget).toBe(preLockBudget! - INVESTIGATION_COST);
+			// Budget should remain unchanged at lock-in - charge only happens at resolution if 2/3 consensus reached
+			expect(gmail?.budget).toBe(preLockBudget);
 		});
 
 		test('Given destination with insufficient budget for vote, When validating lock-in, Then validation fails', async () => {

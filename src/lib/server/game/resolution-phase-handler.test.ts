@@ -92,9 +92,30 @@ describe('Resolution Phase Handler', () => {
 				}
 			],
 			destinations: [
-				{ name: 'Gmail', kingdom: 'Inbox', players: [], credits: 500 },
-				{ name: 'Outlook', kingdom: 'Inbox', players: [], credits: 500 },
-				{ name: 'Yahoo', kingdom: 'Inbox', players: [], credits: 500 }
+				{
+					name: 'Gmail',
+					kingdom: 'Inbox',
+					players: [],
+					budget: 500,
+					owned_tools: ['content_analysis_filter'],
+					esp_metrics: { SendWave: { user_satisfaction: 80, spam_level: 5 } }
+				},
+				{
+					name: 'Outlook',
+					kingdom: 'Inbox',
+					players: [],
+					budget: 500,
+					owned_tools: [],
+					esp_metrics: {}
+				},
+				{
+					name: 'Yahoo',
+					kingdom: 'Inbox',
+					players: [],
+					budget: 500,
+					owned_tools: [],
+					esp_metrics: {}
+				}
 			],
 			lock_in_status: {},
 			timer_settings: { planning_duration: 300, resolution_duration: 60, consequences_duration: 60 }
@@ -295,6 +316,40 @@ describe('Resolution Phase Handler', () => {
 			});
 		});
 
+		// US-8.2-0.2: Test destination dashboard broadcasts for facilitator
+		it('should broadcast destination_dashboard_update for each destination', async () => {
+			handleResolutionPhase(mockSession, 'TEST01', mockBroadcast);
+
+			await vi.runAllTimersAsync();
+
+			// Should broadcast for Gmail with proper data
+			expect(mockBroadcast).toHaveBeenCalledWith('TEST01', {
+				type: 'destination_dashboard_update',
+				destinationName: 'Gmail',
+				budget: 500,
+				owned_tools: ['content_analysis_filter'],
+				esp_metrics: { SendWave: { user_satisfaction: 80, spam_level: 5 } }
+			});
+
+			// Should broadcast for Outlook
+			expect(mockBroadcast).toHaveBeenCalledWith('TEST01', {
+				type: 'destination_dashboard_update',
+				destinationName: 'Outlook',
+				budget: 500,
+				owned_tools: [],
+				esp_metrics: {}
+			});
+
+			// Should broadcast for Yahoo
+			expect(mockBroadcast).toHaveBeenCalledWith('TEST01', {
+				type: 'destination_dashboard_update',
+				destinationName: 'Yahoo',
+				budget: 500,
+				owned_tools: [],
+				esp_metrics: {}
+			});
+		});
+
 		it('should not broadcast dashboard updates if application fails', async () => {
 			vi.mocked(applyResolutionToGameState).mockReturnValue({
 				success: false,
@@ -310,6 +365,12 @@ describe('Resolution Phase Handler', () => {
 				.mocked(mockBroadcast)
 				.mock.calls.filter((call) => call[1].type === 'esp_dashboard_update');
 			expect(espDashboardCalls).toHaveLength(0);
+
+			// US-8.2-0.2: Should also not have destination_dashboard_update broadcasts
+			const destDashboardCalls = vi
+				.mocked(mockBroadcast)
+				.mock.calls.filter((call) => call[1].type === 'destination_dashboard_update');
+			expect(destDashboardCalls).toHaveLength(0);
 		});
 
 		it('should broadcast phase_transition with resolution history', async () => {

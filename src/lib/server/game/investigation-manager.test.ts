@@ -530,7 +530,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			// Then
 			expect(result.violationFound).toBe(true);
 			expect(result.suspendedClient).toBeDefined();
-			expect(result.suspendedClient?.riskLevel).toBe('high');
+			expect(result.suspendedClient?.riskLevel).toBe('High');
 		});
 
 		test('Given HIGH-risk client without list hygiene, When investigation runs, Then client is suspended', async () => {
@@ -627,46 +627,51 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 				{
 					id: 'client-bad',
 					name: 'Bad Actor',
-					risk_level: 'high',
+					risk: 'High',
 					spam_rate: 2.0,
 					email_volume: 50000,
 					industry: 'E-commerce',
-					initial_cost: 200,
-					onboarding_options: { warmUp: false, listHygiene: true }
+					initial_cost: 200
 				} as any,
 				{
 					id: 'client-worse',
 					name: 'Worse Actor',
-					risk_level: 'high',
+					risk: 'High',
 					spam_rate: 3.5,
 					email_volume: 50000,
 					industry: 'E-commerce',
-					initial_cost: 200,
-					onboarding_options: { warmUp: true, listHygiene: false }
+					initial_cost: 200
 				} as any,
 				{
 					id: 'client-worst',
 					name: 'Worst Actor',
-					risk_level: 'high',
+					risk: 'High',
 					spam_rate: 5.0,
 					email_volume: 50000,
 					industry: 'E-commerce',
-					initial_cost: 200,
-					onboarding_options: { warmUp: false, listHygiene: false }
+					initial_cost: 200
 				} as any
 			];
 			bluePostTeam.active_clients = ['client-bad', 'client-worse', 'client-worst'];
+			// All clients missing at least one protection (violation)
+			// client-bad: has listHygiene but no warmup
+			// client-worse: has warmup but no listHygiene
+			// client-worst: has neither (highest spam_rate = should be suspended)
 			bluePostTeam.client_states = {
 				'client-bad': {
 					status: 'Active',
 					first_active_round: 1,
-					volumeModifiers: [],
+					volumeModifiers: [
+						{ id: 'lh-1', source: 'list_hygiene', multiplier: 0.9, applicableRounds: 'all' }
+					],
 					spamTrapModifiers: []
 				},
 				'client-worse': {
 					status: 'Active',
 					first_active_round: 1,
-					volumeModifiers: [],
+					volumeModifiers: [
+						{ id: 'wu-1', source: 'warmup', multiplier: 0.5, applicableRounds: 'all' }
+					],
 					spamTrapModifiers: []
 				},
 				'client-worst': {
@@ -887,20 +892,52 @@ interface ClientConfig {
 async function createGameWithESPClient(config: ClientConfig) {
 	const { session, gmailDest, bluePostTeam } = await createGameInPlanningPhase();
 
+	// Map lowercase risk to capitalized risk expected by Client type
+	const riskMap: Record<string, 'Low' | 'Medium' | 'High'> = {
+		low: 'Low',
+		medium: 'Medium',
+		high: 'High'
+	};
+
 	// Configure BluePost with a specific test client
 	const testClient = {
 		id: 'test-client-1',
 		name: 'Test Client',
-		risk_level: config.riskLevel,
+		risk: riskMap[config.riskLevel], // Use 'risk' not 'risk_level', and capitalize
 		spam_rate: config.spamRate,
 		email_volume: 50000,
 		industry: 'E-commerce',
-		initial_cost: 200,
-		onboarding_options: {
-			warmUp: config.hasWarmup,
-			listHygiene: config.hasListHygiene
-		}
+		initial_cost: 200
 	};
+
+	// Build volumeModifiers based on config
+	// hasWarmup() checks for { source: 'warmup' }
+	// hasListHygiene() checks for { source: 'list_hygiene' }
+	const volumeModifiers: any[] = [];
+	const spamTrapModifiers: any[] = [];
+
+	if (config.hasWarmup) {
+		volumeModifiers.push({
+			id: 'warmup-test',
+			source: 'warmup',
+			multiplier: 0.5,
+			applicableRounds: 'all'
+		});
+	}
+	if (config.hasListHygiene) {
+		volumeModifiers.push({
+			id: 'list-hygiene-test',
+			source: 'list_hygiene',
+			multiplier: 0.9,
+			applicableRounds: 'all'
+		});
+		spamTrapModifiers.push({
+			id: 'list-hygiene-spam-test',
+			source: 'list_hygiene',
+			multiplier: 0.5,
+			applicableRounds: 'all'
+		});
+	}
 
 	bluePostTeam.available_clients = [testClient as any];
 	bluePostTeam.active_clients = ['test-client-1'];
@@ -908,8 +945,8 @@ async function createGameWithESPClient(config: ClientConfig) {
 		'test-client-1': {
 			status: 'Active',
 			first_active_round: 1,
-			volumeModifiers: [],
-			spamTrapModifiers: []
+			volumeModifiers,
+			spamTrapModifiers
 		}
 	};
 

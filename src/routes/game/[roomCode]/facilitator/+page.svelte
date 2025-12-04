@@ -7,7 +7,7 @@
 		type ESPDashboardUpdate
 	} from '$lib/stores/websocket';
 	import type { IncidentCard, IncidentHistoryEntry } from '$lib/types/incident';
-	import type { Client, ClientState } from '$lib/server/game/types';
+	import type { Client, ClientState, DestinationDashboardUpdate } from '$lib/server/game/types';
 	import IncidentTriggerButton from '$lib/components/incident/IncidentTriggerButton.svelte';
 	import IncidentSelectionModal from '$lib/components/incident/IncidentSelectionModal.svelte';
 	import IncidentCardDisplay from '$lib/components/incident/IncidentCardDisplay.svelte';
@@ -131,6 +131,10 @@
 			if (data.data.incident_history !== undefined) {
 				incidentHistory = data.data.incident_history;
 			}
+			// US-8.2-0.2: Update resolution history for satisfaction display
+			if (data.data.resolution_history !== undefined) {
+				resolutionHistory = data.data.resolution_history;
+			}
 			return;
 		}
 
@@ -215,7 +219,28 @@
 				...esp,
 				budget: update.credits ?? esp.budget,
 				reputation: update.reputation ?? esp.reputation,
-				ownedTechUpgrades: update.owned_tech_upgrades ?? esp.ownedTechUpgrades
+				ownedTechUpgrades: update.owned_tech_upgrades ?? esp.ownedTechUpgrades,
+				// US-8.2-0.2: Add client updates for real-time portfolio tracking
+				activeClients: update.clients ?? esp.activeClients,
+				clientStates: update.client_states ?? esp.clientStates
+			};
+		});
+	}
+
+	// US-8.2-0.2: Handle destination dashboard updates for real-time metrics
+	function handleDestinationDashboardUpdate(
+		update: DestinationDashboardUpdate & { destinationName?: string }
+	) {
+		if (!update.destinationName) return;
+
+		destinations = destinations.map((dest) => {
+			if (dest.name !== update.destinationName) return dest;
+
+			return {
+				...dest,
+				budget: update.budget ?? dest.budget,
+				ownedTools: update.owned_tools ?? dest.ownedTools,
+				espMetrics: update.esp_metrics ?? dest.espMetrics
 			};
 		});
 	}
@@ -287,7 +312,8 @@
 			roomCode,
 			() => {}, // Lobby updates not needed for facilitator
 			handleGameStateUpdate,
-			handleESPDashboardUpdate // US-8.2-0.2: Listen for ESP dashboard updates
+			handleESPDashboardUpdate, // US-8.2-0.2: Listen for ESP dashboard updates
+			handleDestinationDashboardUpdate // US-8.2-0.2: Listen for destination dashboard updates
 		);
 
 		// Fetch incident history
