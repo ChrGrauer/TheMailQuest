@@ -11,12 +11,7 @@
  */
 
 import { test, expect } from './fixtures';
-import {
-	createTestSession,
-	addPlayer,
-	createSessionWithMinimumPlayers,
-	closePages
-} from './helpers/game-setup';
+import { createTestSession, addPlayer, closePages } from './helpers/game-setup';
 
 // ============================================================================
 // TESTS
@@ -89,36 +84,4 @@ test.describe('Feature: Game Lobby Management - E2E', () => {
 		});
 	});
 
-	// ============================================================================
-	// ACCESSIBILITY
-	// ============================================================================
-	//
-	// NOTE: Happy path tests for successful game start have been removed as they
-	// are implicitly tested in 9+ other test files via helper functions like
-	// createGameInPlanningPhase(). This file now focuses on:
-	// - Permission checks (facilitator-only visibility)
-	// - Validation logic (minimum player requirements)
-	// - Accessibility attributes
-	// ============================================================================
-
-	test.describe('Accessibility', () => {
-		test('Start Game button should have proper accessibility attributes', async ({
-			page,
-			context
-		}) => {
-			// Given - Session with minimum players
-			const { alicePage, bobPage } = await createSessionWithMinimumPlayers(page, context);
-			await page.waitForTimeout(500);
-
-			// Then - Button should have proper role and be keyboard accessible
-			const startGameButton = page.getByRole('button', { name: /start game/i });
-			await expect(startGameButton).toBeVisible();
-
-			// Should be able to focus with keyboard
-			await startGameButton.focus();
-			await expect(startGameButton).toBeFocused();
-
-			await closePages(page, alicePage, bobPage);
-		});
-	});
 });

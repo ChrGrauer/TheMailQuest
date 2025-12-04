@@ -7,7 +7,7 @@
  * - Role selection screen
  * - Display name entry
  * - Real-time lobby updates
- * - Error states and accessibility
+ * - Error states
  *
  * Uses Playwright for end-to-end testing
  */
@@ -25,7 +25,7 @@ test.describe('Feature: Join Game Session - E2E', () => {
 	// This file now focuses on:
 	// - Error cases (invalid/malformed room codes, validation failures)
 	// - Edge cases (occupied slots, full sessions)
-	// - Accessibility attributes
+	// Accessibility tests moved to accessibility.spec.ts
 	// ============================================================================
 
 	test.describe('Scenario: Player enters invalid or non-existent room code', () => {
@@ -320,44 +320,6 @@ test.describe('Feature: Join Game Session - E2E', () => {
 			// And all slots should be disabled/unavailable
 			const availableSlots = player9Page.locator('[data-occupied="false"]');
 			await expect(availableSlots).toHaveCount(0);
-		});
-	});
-
-	// ============================================================================
-	// ACCESSIBILITY
-	// ============================================================================
-
-	test.describe('Accessibility: Role selection', () => {
-		test('should have proper ARIA labels and keyboard navigation', async ({ page }) => {
-			const roomCode = await createTestSession(page);
-			await page.goto(`/lobby/${roomCode}`);
-
-			// Check that team slots have proper ARIA labels
-			const sendWaveSlot = page.locator('[data-team="SendWave"]');
-			// Note: <button> elements don't need role="button" (redundant)
-			await expect(sendWaveSlot).toHaveAttribute('aria-label');
-
-			// Check that occupied slots have aria-disabled
-			await page.click('text=SendWave');
-			await page.locator('input[name="displayName"]').fill('Alice');
-			await page.click('button:has-text("Join Game")');
-
-			await expect(sendWaveSlot).toHaveAttribute('aria-disabled', 'true');
-		});
-
-		test('should support keyboard navigation for role selection', async ({ page }) => {
-			const roomCode = await createTestSession(page);
-			await page.goto(`/lobby/${roomCode}`);
-
-			// Focus on first team slot
-			const sendWaveSlot = page.locator('[data-team="SendWave"]');
-			await sendWaveSlot.focus();
-
-			// Press Enter to select
-			await page.keyboard.press('Enter');
-
-			// Display name modal should appear
-			await expect(page.locator('input[name="displayName"]')).toBeFocused();
 		});
 	});
 
