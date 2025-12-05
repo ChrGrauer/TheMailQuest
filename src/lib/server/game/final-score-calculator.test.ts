@@ -578,6 +578,81 @@ describe('aggregateResolutionHistory - Multi-Round Data Collection', () => {
 		expect(result.espRevenues.SendWave).toBe(2600);
 		expect(result.espRevenues.NewESP).toBe(900);
 	});
+
+	test('should aggregate destination stats from espSatisfactionData', () => {
+		// Given: Resolution history with satisfaction data stored in espSatisfactionData
+		const history = [
+			{
+				round: 1,
+				results: {
+					espResults: {
+						SendWave: {
+							revenue: { actualRevenue: 500 },
+							volume: { totalVolume: 10000, perDestination: { Gmail: 5000, Outlook: 3000, Yahoo: 2000 } },
+							reputation: {
+								perDestination: {
+									Gmail: { newReputation: 70 },
+									Outlook: { newReputation: 70 },
+									Yahoo: { newReputation: 70 }
+								}
+							}
+						}
+					},
+					// Satisfaction data stored separately (not in espResults)
+					espSatisfactionData: {
+						SendWave: {
+							aggregatedSatisfaction: 80,
+							perDestination: { Gmail: 82, Outlook: 78, Yahoo: 80 },
+							breakdown: [
+								{
+									destination: 'Gmail',
+									spam_blocked_volume: 400,
+									spam_through_volume: 100,
+									false_positive_volume: 50,
+									total_volume: 5000
+								},
+								{
+									destination: 'Outlook',
+									spam_blocked_volume: 240,
+									spam_through_volume: 60,
+									false_positive_volume: 30,
+									total_volume: 3000
+								},
+								{
+									destination: 'Yahoo',
+									spam_blocked_volume: 160,
+									spam_through_volume: 40,
+									false_positive_volume: 20,
+									total_volume: 2000
+								}
+							]
+						}
+					}
+				},
+				timestamp: new Date()
+			}
+		];
+
+		// When: Aggregating resolution history
+		const result = aggregateResolutionHistory(history);
+
+		// Then: Destination stats should be populated from espSatisfactionData
+		// totalSpamSent = spam_blocked + spam_through (not just spam_through)
+		expect(result.destinationStats.Gmail.spamBlocked).toBe(400);
+		expect(result.destinationStats.Gmail.totalSpamSent).toBe(500); // 400 + 100
+		expect(result.destinationStats.Gmail.falsePositives).toBe(50);
+		expect(result.destinationStats.Gmail.legitimateEmails).toBe(5000);
+
+		expect(result.destinationStats.Outlook.spamBlocked).toBe(240);
+		expect(result.destinationStats.Outlook.totalSpamSent).toBe(300); // 240 + 60
+		expect(result.destinationStats.Outlook.falsePositives).toBe(30);
+		expect(result.destinationStats.Outlook.legitimateEmails).toBe(3000);
+
+		expect(result.destinationStats.Yahoo.spamBlocked).toBe(160);
+		expect(result.destinationStats.Yahoo.totalSpamSent).toBe(200); // 160 + 40
+		expect(result.destinationStats.Yahoo.falsePositives).toBe(20);
+		expect(result.destinationStats.Yahoo.legitimateEmails).toBe(2000);
+	});
 });
 
 // ============================================================================

@@ -366,12 +366,16 @@ export function aggregateResolutionHistory(
 			});
 
 			// Aggregate destination stats from satisfaction data (if available)
-			if (espResult.satisfaction?.breakdown) {
-				for (const breakdown of espResult.satisfaction.breakdown) {
+			// Note: satisfaction data is stored in espSatisfactionData, not in espResults
+			const satisfactionData = results.espSatisfactionData?.[espName];
+			if (satisfactionData?.breakdown) {
+				for (const breakdown of satisfactionData.breakdown) {
 					const destName = breakdown.destination;
 					if (destinationStats[destName]) {
 						// Accumulate volumes
-						destinationStats[destName].totalSpamSent += breakdown.spam_through_volume ?? 0;
+						// totalSpamSent = spam blocked + spam that got through (total spam sent by ESP)
+						destinationStats[destName].totalSpamSent +=
+							(breakdown.spam_blocked_volume ?? 0) + (breakdown.spam_through_volume ?? 0);
 						destinationStats[destName].spamBlocked += breakdown.spam_blocked_volume ?? 0;
 						destinationStats[destName].falsePositives += breakdown.false_positive_volume ?? 0;
 						destinationStats[destName].legitimateEmails += breakdown.total_volume ?? 0;
