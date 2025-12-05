@@ -488,6 +488,28 @@ await page.waitForFunction(
 );
 ```
 
+#### WebSocket Synchronization
+
+Generic WebSocket sync is already tested in `tests/websocket-sync.spec.ts`. **Don't re-test generic sync in feature tests.**
+
+```typescript
+// ❌ BAD: Re-testing WebSocket sync in feature file
+test('should see real-time updates when player joins', async ({ page, context }) => {
+  const roomCode = await createTestSession(page);
+  const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
+  await expect(page.locator('text=Alice')).toBeVisible(); // Generic sync - already tested!
+});
+
+// ✅ GOOD: Test feature-specific data, not the sync mechanism
+test('should update reputation with correct value after resolution', async ({ page, context }) => {
+  const { alicePage } = await createGameInSecondRound(page, context);
+  const reputation = await alicePage.getByTestId('reputation-gmail');
+  await expect(reputation).toContainText('85'); // Specific business value
+});
+```
+
+**Reference**: See `tests/websocket-sync.spec.ts` for WebSocket sync coverage.
+
 ## Validation Checklist
 
 Before submitting a test, verify:
