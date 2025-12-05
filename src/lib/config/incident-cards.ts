@@ -24,7 +24,7 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 		rarity: 'Common',
 		description:
 			'The email industry association announces that DMARC authentication will become mandatory starting Round 3. Major destinations will require full authentication or face severe delivery penalties.',
-		educationalNote: 'Teaches the importance of staying ahead of regulatory changes',
+		educationalNote: 'Industry issues short term ultimatum, so it is important to stay ahead of regulatory changes',
 		duration: 'Permanent',
 		effects: [
 			{
@@ -92,7 +92,7 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 		category: 'Security',
 		rarity: 'Common',
 		description:
-			'Major phishing attack exploiting weak email authentication! Destinations crack down on ESPs without proper DKIM setup.',
+			'Major phishing attack exploiting weak email authentication! Destinations penalises severely ESPs without proper DKIM setup.',
 		educationalNote: 'Authentication is critical for email security and trust',
 		duration: 'Immediate',
 		effects: [
@@ -354,8 +354,8 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 		category: 'Industry',
 		rarity: 'Rare',
 		description:
-			'Industry amnesty program announced! The lowest-reputation ESP can pay 500 credits to reset their reputation to 70 across all destinations. Fresh start for the final push!',
-		educationalNote: 'Sometimes paying for reputation recovery is a valid strategy',
+			'Industry amnesty program : The lowest-reputation ESP can pay 500 credits to reset their reputation to 70 across all destinations. Fresh start for the final push!',
+		educationalNote: 'Paying for reputation improvement is not a real strategy',
 		duration: 'Immediate',
 		effects: [], // Effects applied via choice
 		choiceConfig: {
