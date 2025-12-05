@@ -119,7 +119,7 @@
 										data-status={satStatus.status}
 										class="{satStatus.color} text-lg font-bold"
 									>
-										{esp.userSatisfaction}%
+										{esp.userSatisfaction.toFixed(1)}%
 									</span>
 								{/if}
 							</div>
