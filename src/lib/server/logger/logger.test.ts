@@ -237,6 +237,8 @@ describe('Feature: Logging Integration', () => {
 			const { gameLogger } = await import('./index.js');
 
 			// Verify gameLogger has all expected methods
+			expect(gameLogger.info).toBeDefined();
+			expect(gameLogger.warn).toBeDefined();
 			expect(gameLogger.event).toBeDefined();
 			expect(gameLogger.playerAction).toBeDefined();
 			expect(gameLogger.reputationChange).toBeDefined();
@@ -244,6 +246,8 @@ describe('Feature: Logging Integration', () => {
 			expect(gameLogger.error).toBeDefined();
 
 			// The helper methods should be functions
+			expect(typeof gameLogger.info).toBe('function');
+			expect(typeof gameLogger.warn).toBe('function');
 			expect(typeof gameLogger.event).toBe('function');
 			expect(typeof gameLogger.playerAction).toBe('function');
 			expect(typeof gameLogger.reputationChange).toBe('function');

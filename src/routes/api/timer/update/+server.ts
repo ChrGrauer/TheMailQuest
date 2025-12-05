@@ -4,6 +4,9 @@
  *
  * Called every second by server.js to update all active session timers
  * Handles: 15-second warnings, auto-lock at expiry, phase transitions
+ *
+ * Optimization: Timer sync broadcasts every 10s (clients have local countdown)
+ * Critical events (warnings, auto-lock, pause/resume) still broadcast immediately
  */
 
 import { json } from '@sveltejs/kit';
@@ -11,6 +14,9 @@ import type { RequestHandler } from './$types';
 import { getAllSessions } from '$lib/server/game/session-manager';
 import { updateTimerRemaining } from '$lib/server/game/timer-manager';
 import { gameWss } from '$lib/server/websocket';
+
+// Sync interval for timer broadcasts (seconds)
+const TIMER_SYNC_INTERVAL = 10;
 
 export const POST: RequestHandler = async () => {
 	try {
@@ -25,18 +31,20 @@ export const POST: RequestHandler = async () => {
 				);
 				const remaining = Math.max(0, session.timer.duration - elapsed);
 
-				// Update timer and handle auto-lock/warnings
-				// Pass the WebSocket broadcast function
+				// Update timer and handle auto-lock/warnings (broadcasts critical events)
 				updateTimerRemaining(session.roomCode, remaining, (roomCode, message) => {
 					gameWss.broadcastToRoom(roomCode, message);
 				});
 
-				// Broadcast regular timer updates to keep clients synchronized
-				// This ensures server authority - clients can't drift without correction
-				gameWss.broadcastToRoom(session.roomCode, {
-					type: 'game_state_update',
-					timer_remaining: remaining
-				});
+				// Broadcast sync updates every TIMER_SYNC_INTERVAL seconds
+				// Clients have local countdown, so frequent broadcasts aren't needed
+				// Critical events (warnings, auto-lock) are handled separately above
+				if (remaining % TIMER_SYNC_INTERVAL === 0) {
+					gameWss.broadcastToRoom(session.roomCode, {
+						type: 'game_state_update',
+						timer_remaining: remaining
+					});
+				}
 			}
 		});
 

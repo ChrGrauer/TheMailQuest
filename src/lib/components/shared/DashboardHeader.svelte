@@ -29,6 +29,8 @@
 		theme?: 'emerald' | 'blue';
 		/** Whether decisions are locked in (US-3.2) */
 		isLockedIn?: boolean;
+		/** Whether the game is paused (US-8.2-0.1) */
+		isPaused?: boolean;
 	}
 
 	let {
@@ -40,7 +42,8 @@
 		timerSeconds = 0,
 		onTimerUpdate,
 		theme = 'emerald',
-		isLockedIn = false
+		isLockedIn = false,
+		isPaused = false
 	}: Props = $props();
 
 	// Calculate forecast budget after lock-in
@@ -66,13 +69,14 @@
 		return 'text-gray-700'; // Normal
 	});
 
-	// Client-side countdown (if timer is running)
+	// Client-side countdown (if timer is running and not paused)
 	let countdownInterval: ReturnType<typeof setInterval> | null = null;
 
 	$effect(() => {
-		if (timerSeconds > 0) {
+		// Only run countdown if timer has time remaining AND not paused (US-8.2-0.1)
+		if (timerSeconds > 0 && !isPaused) {
 			countdownInterval = setInterval(() => {
-				if (timerSeconds > 0) {
+				if (timerSeconds > 0 && !isPaused) {
 					timerSeconds--;
 					onTimerUpdate?.(timerSeconds);
 				} else if (countdownInterval) {

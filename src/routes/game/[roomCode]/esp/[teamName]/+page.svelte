@@ -788,6 +788,7 @@
 			timerSeconds={gameState.timerSeconds}
 			theme="emerald"
 			isLockedIn={lockInState.isLockedIn}
+			isPaused={gameState.isPaused}
 		/>
 
 		<!-- US-8.2-0.1: Game Paused Banner -->

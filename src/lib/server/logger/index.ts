@@ -32,9 +32,26 @@ export const logger = pino(
 );
 
 // Helper functions for common log patterns
+// Methods support both Pino-style (object first) and custom-style (message first) signatures
 export const gameLogger = {
-	info: (message: string, data?: object) => {
-		logger.info({ ...data }, message);
+	info: (messageOrData: string | object, dataOrMessage?: object | string) => {
+		if (typeof messageOrData === 'string') {
+			// Custom style: info('message', {data})
+			logger.info((dataOrMessage as object) || {}, messageOrData);
+		} else {
+			// Pino style: info({data}, 'message') or info({data})
+			logger.info(messageOrData, (dataOrMessage as string) || '');
+		}
+	},
+
+	warn: (messageOrData: string | object, dataOrMessage?: object | string) => {
+		if (typeof messageOrData === 'string') {
+			// Custom style: warn('message', {data})
+			logger.warn((dataOrMessage as object) || {}, messageOrData);
+		} else {
+			// Pino style: warn({data}, 'message') or warn({data})
+			logger.warn(messageOrData, (dataOrMessage as string) || '');
+		}
 	},
 
 	event: (event: string, data?: object) => {
@@ -56,7 +73,13 @@ export const gameLogger = {
 		logger.debug({ event, ...data }, `WebSocket: ${event}`);
 	},
 
-	error: (error: Error, context?: object) => {
-		logger.error({ err: error, ...context }, error.message);
+	error: (errorOrData: Error | object, contextOrMessage?: object | string) => {
+		if (errorOrData instanceof Error) {
+			// Original style: error(Error, {context})
+			logger.error({ err: errorOrData, ...(contextOrMessage as object) }, errorOrData.message);
+		} else {
+			// Pino style: error({data}, 'message') or error({data})
+			logger.error(errorOrData, (contextOrMessage as string) || '');
+		}
 	}
 };
