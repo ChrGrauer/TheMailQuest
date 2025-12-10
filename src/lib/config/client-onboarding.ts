@@ -10,8 +10,8 @@
 /**
  * Onboarding option costs
  */
-export const WARMUP_COST = 150;
-export const LIST_HYGIENE_COST = 80;
+export const WARMUP_COST = 50;
+export const LIST_HYGIENE_COST = 40;
 
 /**
  * Onboarding Option Type

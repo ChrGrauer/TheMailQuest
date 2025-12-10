@@ -588,7 +588,10 @@ describe('aggregateResolutionHistory - Multi-Round Data Collection', () => {
 					espResults: {
 						SendWave: {
 							revenue: { actualRevenue: 500 },
-							volume: { totalVolume: 10000, perDestination: { Gmail: 5000, Outlook: 3000, Yahoo: 2000 } },
+							volume: {
+								totalVolume: 10000,
+								perDestination: { Gmail: 5000, Outlook: 3000, Yahoo: 2000 }
+							},
 							reputation: {
 								perDestination: {
 									Gmail: { newReputation: 70 },

@@ -210,6 +210,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		teamName: teamName, // Include team name to filter updates on client side
 		credits: acquisitionResult.team!.credits,
 		clients: acquisitionResult.team!.active_clients,
+		client_states: acquisitionResult.team!.client_states,
 		available_clients_count: availableClientsCount
 	});
 

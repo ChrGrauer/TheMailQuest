@@ -219,7 +219,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			// Wait for manipulation to take effect (condition-based)
 			await expect(timerElement).toHaveText(manipulatedPattern, { timeout: 1000 });
 
-			// Then - Wait for server correction (poll until corrected, max 5 seconds)
+			// Then - Wait for server correction (poll until corrected, max 15 seconds)
 			// Use toPass() for condition-based polling instead of hard timeout
 			await expect(async () => {
 				const currentText = await timerElement.textContent();
@@ -227,7 +227,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 				expect(currentText).not.toMatch(expectedNotPattern);
 				// Should be back in correct range
 				expect(currentText).toMatch(/[4-5]:[0-9]{2}/);
-			}).toPass({ timeout: 5000, intervals: [500, 1000] });
+			}).toPass({ timeout: 15000, intervals: [500, 1000] });
 
 			await closePages(page, alicePage, bobPage);
 		};

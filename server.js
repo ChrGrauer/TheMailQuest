@@ -91,6 +91,17 @@ function broadcastToRoom(roomCode, message) {
 // Store it in a way that can be accessed by the build
 global.wsBroadcastToRoom = broadcastToRoom;
 
+// Expose WebSocket metrics for load testing
+global.wsGetMetrics = function () {
+	return {
+		totalConnections: clients.size,
+		activeRooms: rooms.size,
+		connectionsPerRoom: Object.fromEntries(
+			[...rooms.entries()].map(([roomCode, clientSet]) => [roomCode, clientSet.size])
+		)
+	};
+};
+
 wss.on('connection', (ws) => {
 	const clientId = generateClientId();
 	clients.set(clientId, { ws, roomCode: null });

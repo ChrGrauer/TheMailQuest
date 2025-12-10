@@ -35,6 +35,7 @@ import {
 	createGameWithDestinationPlayer,
 	closePages
 } from './helpers/game-setup';
+import { WARMUP_COST, LIST_HYGIENE_COST } from '../src/lib/config/client-onboarding';
 
 // ============================================================================
 // TESTS
@@ -59,9 +60,15 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Given: ESP team "SendWave" has 1000 credits
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-			// And: the team has pending onboarding decisions that will cost 310 credits
-			// Client 1: warmup (150) + list hygiene (80) = 230
-			// Client 2: list hygiene (80) = 80
+			// Calculate expected costs from config
+			const client1Cost = WARMUP_COST + LIST_HYGIENE_COST; // warmup + list hygiene
+			const client2Cost = LIST_HYGIENE_COST; // list hygiene only
+			const totalPendingCost = client1Cost + client2Cost;
+			const expectedForecast = 1000 - totalPendingCost;
+
+			// And: the team has pending onboarding decisions
+			// Client 1: warmup + list hygiene
+			// Client 2: list hygiene only
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.addPendingOnboarding('client-1', true, true);
 				(window as any).__espDashboardTest.addPendingOnboarding('client-2', false, true);
@@ -71,11 +78,11 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			await alicePage.waitForTimeout(500);
 
 			// When: player "Alice" views the dashboard
-			// Then: a budget forecast should show "690" (1000 - 310) as "After Lock-in" value
+			// Then: a budget forecast should show the expected value as "After Lock-in" value
 			const forecastElement = alicePage.locator('[data-testid="budget-forecast"]');
 			await expect(forecastElement).toBeVisible();
 			let forecastText = await forecastElement.textContent();
-			expect(forecastText).toMatch(/690/);
+			expect(forecastText).toMatch(new RegExp(String(expectedForecast)));
 
 			// And: the forecast should be visually distinct from current budget
 			const currentBudget = alicePage.locator('[data-testid="budget-current"]');

@@ -62,6 +62,7 @@ export async function executeResolution(
 	roomCode: string
 ): Promise<ResolutionResults> {
 	const logger = await getLogger();
+	const startTime = Date.now();
 	logger.info('Starting resolution phase', { roomCode, round: session.current_round });
 
 	const results: ResolutionResults = {
@@ -413,6 +414,17 @@ export async function executeResolution(
 		};
 	}
 
-	logger.info('Resolution phase completed');
+	// Calculate total clients processed for metrics
+	const totalClients = session.esp_teams.reduce((sum, team) => sum + team.active_clients.length, 0);
+	const durationMs = Date.now() - startTime;
+
+	logger.info('Resolution phase completed', {
+		roomCode,
+		round: session.current_round,
+		duration_ms: durationMs,
+		total_clients: totalClients,
+		esp_count: session.esp_teams.length,
+		destination_count: session.destinations.length
+	});
 	return results;
 }

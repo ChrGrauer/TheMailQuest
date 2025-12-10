@@ -25,6 +25,7 @@ import {
 	closeClientManagementModal
 } from './helpers/client-management';
 import { hasListHygiene, hasWarmup } from '$lib/utils/client-state-helpers';
+import { WARMUP_COST, LIST_HYGIENE_COST } from '../src/lib/config/client-onboarding';
 
 test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 	let facilitatorPage: Page;
@@ -113,13 +114,13 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		const clientCard = alicePage.getByTestId('client-card-0');
 		await expect(clientCard.getByTestId('onboarding-section')).toBeVisible();
 
-		// And: Shows warm-up checkbox (150 credits)
+		// And: Shows warm-up checkbox with cost from config
 		await expect(clientCard.getByTestId('warm-up-checkbox')).toBeVisible();
-		await expect(clientCard.getByText('150 cr')).toBeVisible();
+		await expect(clientCard.getByText(`${WARMUP_COST} cr`)).toBeVisible();
 
-		// And: Shows list hygiene checkbox (80 credits)
+		// And: Shows list hygiene checkbox with cost from config
 		await expect(clientCard.getByTestId('list-hygiene-checkbox')).toBeVisible();
-		await expect(clientCard.getByText('80 cr')).toBeVisible();
+		await expect(clientCard.getByText(`${LIST_HYGIENE_COST} cr`)).toBeVisible();
 
 		// And: Both are unchecked by default
 		await expect(clientCard.getByTestId('warm-up-checkbox')).not.toBeChecked();
@@ -149,11 +150,11 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 
 		// Then: Onboarding configuration succeeds
 		expect(result.success).toBe(true);
-		expect(result.cost).toBe(150);
+		expect(result.cost).toBe(WARMUP_COST);
 
 		// And: Credits are deducted
 		const portfolioAfter = await getPortfolio(alicePage, roomCode, 'SendWave');
-		expect(portfolioAfter.team.credits).toBe(creditsBefore - 150);
+		expect(portfolioAfter.team.credits).toBe(creditsBefore - WARMUP_COST);
 
 		// And: Client state reflects warm-up purchase
 		const clientState = portfolioAfter.team.client_states[clientId];
@@ -171,16 +172,19 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		const portfolioBefore = await getPortfolio(alicePage, roomCode, 'SendWave');
 		const creditsBefore = portfolioBefore.team.credits;
 
+		// Calculate expected cost from config
+		const bothOptionsCost = WARMUP_COST + LIST_HYGIENE_COST;
+
 		// When: Configure both options via API
 		const result = await configureOnboarding(alicePage, roomCode, 'SendWave', clientId, true, true);
 
 		// Then: Onboarding configuration succeeds
 		expect(result.success).toBe(true);
-		expect(result.cost).toBe(230); // 150 + 80
+		expect(result.cost).toBe(bothOptionsCost);
 
 		// And: Credits are deducted
 		const portfolioAfter = await getPortfolio(alicePage, roomCode, 'SendWave');
-		expect(portfolioAfter.team.credits).toBe(creditsBefore - 230);
+		expect(portfolioAfter.team.credits).toBe(creditsBefore - bothOptionsCost);
 
 		// And: Client state reflects both purchases
 		const clientState = portfolioAfter.team.client_states[clientId];
@@ -196,11 +200,14 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		const acquireResult = await acquireClient(alicePage, roomCode, 'SendWave', clientId);
 		expect(acquireResult.success).toBe(true);
 
-		// Acquire more clients until credits < 230
+		// Calculate the cost of both onboarding options from config
+		const bothOptionsCost = WARMUP_COST + LIST_HYGIENE_COST;
+
+		// Acquire more clients until credits < bothOptionsCost
 		let creditsRemaining = acquireResult.team.credits;
 		let attempts = 0;
 
-		while (creditsRemaining >= 230 && attempts < clientIds.length - 1) {
+		while (creditsRemaining >= bothOptionsCost && attempts < clientIds.length - 1) {
 			attempts++;
 			const nextClientId = clientIds[attempts];
 			const result = await acquireClient(alicePage, roomCode, 'SendWave', nextClientId);
@@ -211,10 +218,10 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 			}
 		}
 
-		// Skip test if we couldn't get to <230 credits (rare edge case)
-		if (creditsRemaining >= 230) {
+		// Skip test if we couldn't get to < bothOptionsCost credits (rare edge case)
+		if (creditsRemaining >= bothOptionsCost) {
 			console.log(
-				`Skipping test: Unable to reduce credits below 230 (remaining: ${creditsRemaining})`
+				`Skipping test: Unable to reduce credits below ${bothOptionsCost} (remaining: ${creditsRemaining})`
 			);
 			return;
 		}
@@ -350,12 +357,12 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		const portfolioBefore = await getPortfolio(alicePage, roomCode, 'SendWave');
 		const creditsBefore = portfolioBefore.team.credits;
 
-		// When: Configure onboarding
+		// When: Configure onboarding (warmup only)
 		await configureOnboarding(alicePage, roomCode, 'SendWave', clientId, true, false);
 
 		// Then: Portfolio reflects updated budget
 		const portfolioAfter = await getPortfolio(alicePage, roomCode, 'SendWave');
-		expect(portfolioAfter.budget_forecast).toBe(creditsBefore - 150);
+		expect(portfolioAfter.budget_forecast).toBe(creditsBefore - WARMUP_COST);
 	});
 
 	test('4.3: Revenue preview shows potential from active clients', async () => {
@@ -660,8 +667,9 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		// Wait for API call to complete
 		await alicePage.waitForTimeout(500);
 
-		// Verify pending costs are shown (230 = 150 + 80)
-		await expect(alicePage.getByTestId('onboarding-costs')).toContainText('-230');
+		// Verify pending costs are shown (warmup + list hygiene)
+		const expectedPendingCost = WARMUP_COST + LIST_HYGIENE_COST;
+		await expect(alicePage.getByTestId('onboarding-costs')).toContainText(`-${expectedPendingCost}`);
 
 		await closeClientManagementModal(alicePage);
 

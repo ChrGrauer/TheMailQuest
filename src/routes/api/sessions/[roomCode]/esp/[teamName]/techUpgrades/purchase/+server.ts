@@ -73,7 +73,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			type: 'esp_dashboard_update',
 			teamName: teamName, // Include team name to filter updates on client side
 			credits: result.updatedTeam.credits,
-			owned_tech_upgrades: result.updatedTeam.owned_tech_upgrades
+			owned_tech_upgrades: result.updatedTeam.owned_tech_upgrades,
+			client_states: result.updatedTeam.client_states
 		});
 
 		gameLogger.event('tech_purchase_broadcast', {

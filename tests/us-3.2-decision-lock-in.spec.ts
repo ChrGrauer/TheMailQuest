@@ -27,6 +27,7 @@ import {
 	configurePendingOnboarding,
 	getAvailableClientIds
 } from './helpers/client-management';
+import { WARMUP_COST, LIST_HYGIENE_COST } from '../src/lib/config/client-onboarding';
 
 // ============================================================================
 // SECTION 1: SUCCESSFUL LOCK-IN
@@ -118,58 +119,73 @@ test.describe('Feature: Decision Lock-In', () => {
 			page,
 			context
 		}) => {
-			// Given: "SendWave" has 150 credits remaining after committed costs
+			// Calculate costs from config
+			const clientABothCost = WARMUP_COST + LIST_HYGIENE_COST;
+			const clientBHygieneCost = LIST_HYGIENE_COST;
+			const initialPendingTotal = clientABothCost + clientBHygieneCost;
+
+			// Set remaining budget between LIST_HYGIENE_COST and 2*LIST_HYGIENE_COST
+			// This ensures: initially over, still over after removing warmup, within budget after removing client B
+			const remainingBudget = Math.floor(LIST_HYGIENE_COST * 1.5);
+			const totalBudget = 1000 + remainingBudget; // Arbitrary base + remaining
+			const spentCredits = totalBudget - remainingBudget;
+
+			// Calculate expected "over by" amounts
+			const initialOverBy = initialPendingTotal - remainingBudget;
+			const afterRemovingWarmupPending = 2 * LIST_HYGIENE_COST;
+			const afterRemovingWarmupOverBy = afterRemovingWarmupPending - remainingBudget;
+
+			// Given: "SendWave" has limited credits remaining after committed costs
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-			// Set up: Alice has 1450 total budget, 1300 already spent (committed), 150 remaining
-			// And: Alice has selected 3 pending onboarding options:
-			//   - Client A: warm-up (150cr) + list hygiene (80cr) = 230cr
-			//   - Client B: list hygiene (80cr) = 80cr
-			// Total pending: 310cr, but only 150cr remaining → exceeds by 160cr
-			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setCredits(1450); // Total budget
-				(window as any).__espDashboardTest.setSpentCredits(1300); // Already spent (committed)
-				// Set pending onboarding options for 3 clients
-				(window as any).__espDashboardTest.setPendingOnboarding({
-					'client-a': { warmUp: true, listHygiene: true }, // 230cr
-					'client-b': { warmUp: false, listHygiene: true } // 80cr
-				});
-			});
+			// Set up: Alice has pending onboarding options that exceed remaining budget
+			//   - Client A: warm-up + list hygiene
+			//   - Client B: list hygiene only
+			await alicePage.evaluate(
+				({ totalBudget, spentCredits }) => {
+					(window as any).__espDashboardTest.setCredits(totalBudget);
+					(window as any).__espDashboardTest.setSpentCredits(spentCredits);
+					(window as any).__espDashboardTest.setPendingOnboarding({
+						'client-a': { warmUp: true, listHygiene: true },
+						'client-b': { warmUp: false, listHygiene: true }
+					});
+				},
+				{ totalBudget, spentCredits }
+			);
 			await alicePage.waitForTimeout(500);
 
 			// Then: "SendWave" should see "Lock In" button as disabled on main dashboard
 			const lockInButton = alicePage.locator('[data-testid="lock-in-button"]');
 			await expect(lockInButton).toBeDisabled();
 
-			// And: "SendWave" should see budget warning showing 160cr over budget
+			// And: "SendWave" should see budget warning showing amount over budget
 			const budgetWarning = alicePage.locator('[data-testid="budget-warning"]');
 			await expect(budgetWarning).toBeVisible();
 			await expect(budgetWarning).toContainText('Budget exceeded');
-			await expect(budgetWarning).toContainText('160');
+			await expect(budgetWarning).toContainText(String(initialOverBy));
 
-			// When: "SendWave" removes warm-up from Client A (150 credits)
+			// When: "SendWave" removes warm-up from Client A
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setPendingOnboarding({
-					'client-a': { warmUp: false, listHygiene: true }, // Now 80cr
-					'client-b': { warmUp: false, listHygiene: true } // 80cr
-				}); // Total now 160cr, still over by 10cr
+					'client-a': { warmUp: false, listHygiene: true },
+					'client-b': { warmUp: false, listHygiene: true }
+				});
 			});
 			await alicePage.waitForTimeout(500);
 
-			// Then: total becomes 1460 credits (still over by 10)
+			// Then: still over budget (by smaller amount)
 			await expect(lockInButton).toBeDisabled();
-			await expect(budgetWarning).toContainText('10'); // Now shows 10cr over
+			await expect(budgetWarning).toContainText(String(afterRemovingWarmupOverBy));
 
-			// When: "SendWave" removes list hygiene from Client B (80 credits)
+			// When: "SendWave" removes list hygiene from Client B
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setPendingOnboarding({
-					'client-a': { warmUp: false, listHygiene: true } // 80cr
-					// client-b removed
-				}); // Total now 80cr, within budget (150cr remaining)
+					'client-a': { warmUp: false, listHygiene: true }
+				});
 			});
 			await alicePage.waitForTimeout(500);
 
-			// Then: "SendWave" should see "Lock In" button as enabled
+			// Then: "SendWave" should see "Lock In" button as enabled (within budget now)
 			await expect(lockInButton).toBeEnabled();
 			// Budget warning should disappear
 			await expect(budgetWarning).not.toBeVisible();
@@ -326,12 +342,15 @@ test.describe('Feature: Decision Lock-In', () => {
 			page,
 			context
 		}) => {
+			// Calculate expected onboarding cost for 2 clients with both options
+			const bothOptionsCost = WARMUP_COST + LIST_HYGIENE_COST;
+			const totalOnboardingCost = 2 * bothOptionsCost;
+
 			// Given: Planning Phase timer reaches 0 seconds
 			const { roomCode, alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 			// And: "SendWave" has not locked in
-			// And: "SendWave" has pending onboarding decisions totaling 460 credits
-			// (2 clients: both with warmup+hygiene)
+			// And: "SendWave" has pending onboarding decisions (2 clients: both with warmup+hygiene)
 
 			// Step 1: Get available clients
 			const availableClients = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
@@ -360,14 +379,14 @@ test.describe('Feature: Decision Lock-In', () => {
 			await alicePage.waitForTimeout(1000);
 
 			// Then: "SendWave" decisions should be auto-locked as-is
-			// And: Credits should be deducted by 460, then increased by revenue from resolution
+			// And: Credits should be deducted by onboarding cost, then increased by revenue from resolution
 			const finalCredits = await alicePage.evaluate(() => {
 				return (window as any).__espDashboardTest.getCredits();
 			});
 			const revenue = await alicePage.evaluate(() => {
 				return (window as any).__espDashboardTest.getRevenue();
 			});
-			expect(finalCredits).toBe(currentCredits - 460 + revenue);
+			expect(finalCredits).toBe(currentCredits - totalOnboardingCost + revenue);
 
 			// And: Pending onboarding decisions should be cleared
 			const pendingAfter = await alicePage.evaluate(() => {

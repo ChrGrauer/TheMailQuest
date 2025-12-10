@@ -24,7 +24,8 @@ export const INCIDENT_CARDS: IncidentCard[] = [
 		rarity: 'Common',
 		description:
 			'The email industry association announces that DMARC authentication will become mandatory starting Round 3. Major destinations will require full authentication or face severe delivery penalties.',
-		educationalNote: 'Industry issues short term ultimatum, so it is important to stay ahead of regulatory changes',
+		educationalNote:
+			'Industry issues short term ultimatum, so it is important to stay ahead of regulatory changes',
 		duration: 'Permanent',
 		effects: [
 			{
