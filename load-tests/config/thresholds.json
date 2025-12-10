@@ -1,0 +1,40 @@
+{
+	"description": "Performance thresholds for The Mail Quest load tests",
+	"targets": {
+		"websocket_latency_ms": {
+			"p95": 500,
+			"description": "WebSocket message latency should be under 500ms at p95"
+		},
+		"resolution_phase_time_ms": {
+			"p95": 4000,
+			"description": "Resolution calculation should complete under 4 seconds at p95"
+		},
+		"http_request_duration_ms": {
+			"p95": 500,
+			"description": "HTTP API requests should respond under 500ms at p95"
+		},
+		"error_rate": {
+			"max": 0.01,
+			"description": "Error rate should be under 1%"
+		}
+	},
+	"room_configuration": {
+		"players_per_room": 8,
+		"esp_teams": 5,
+		"destinations": 3,
+		"websocket_connections_per_room": 8
+	},
+	"test_scenarios": {
+		"baseline": {
+			"rooms": 1,
+			"rounds": 4,
+			"description": "Single room playing full 4-round game"
+		},
+		"scaling": {
+			"min_rooms": 1,
+			"max_rooms": 5,
+			"rounds_per_level": 1,
+			"description": "Scale from 1 to 5 concurrent rooms"
+		}
+	}
+}
