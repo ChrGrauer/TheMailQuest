@@ -209,6 +209,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		type: 'esp_dashboard_update',
 		teamName: teamName, // Include team name to filter updates on client side
 		credits: acquisitionResult.team!.credits,
+		reputation: acquisitionResult.team!.reputation,
+		owned_tech_upgrades: acquisitionResult.team!.owned_tech_upgrades,
 		clients: acquisitionResult.team!.active_clients,
 		client_states: acquisitionResult.team!.client_states,
 		available_clients_count: availableClientsCount

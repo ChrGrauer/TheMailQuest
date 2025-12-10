@@ -7,6 +7,7 @@
 
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { updateFilteringPolicy } from '$lib/server/game/filtering-policy-manager';
+import { getSession } from '$lib/server/game/session-manager';
 import { gameWss } from '$lib/server/websocket';
 import type { FilteringLevel } from '$lib/server/game/types';
 
@@ -88,10 +89,19 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
 	// Broadcast WebSocket update on success
 	if (result.filtering_policies) {
+		// Get full destination data for facilitator dashboard
+		const session = getSession(roomCode);
+		const destination = session?.destinations.find(
+			(d) => d.name.toLowerCase() === destName.toLowerCase()
+		);
+
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'destination_dashboard_update',
 			destinationName: destName,
-			filtering_policies: result.filtering_policies
+			filtering_policies: result.filtering_policies,
+			budget: destination?.budget,
+			owned_tools: destination?.owned_tools,
+			esp_metrics: destination?.esp_metrics
 		});
 	}
 

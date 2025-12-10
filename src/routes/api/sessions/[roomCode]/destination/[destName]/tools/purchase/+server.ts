@@ -77,14 +77,15 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		);
 	}
 
-	// Broadcast WebSocket update on success
+	// Broadcast WebSocket update on success (include all fields for facilitator)
 	if (result.updatedDestination) {
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'destination_dashboard_update',
 			destinationName: destName,
 			budget: result.updatedDestination.budget,
 			owned_tools: result.updatedDestination.owned_tools,
-			authentication_level: result.updatedDestination.authentication_level
+			authentication_level: result.updatedDestination.authentication_level,
+			esp_metrics: result.updatedDestination.esp_metrics
 		});
 	}
 

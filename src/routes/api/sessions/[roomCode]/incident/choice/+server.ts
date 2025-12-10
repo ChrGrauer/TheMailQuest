@@ -125,12 +125,15 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			appliedEffects: result.appliedEffects
 		});
 
-		// Also broadcast updated team state (credits, reputation may have changed)
+		// Also broadcast updated team state (include all fields for facilitator)
 		gameWss.broadcastToRoom(roomCode, {
 			type: 'esp_dashboard_update',
 			teamName: team.name, // Use proper casing from session
 			credits: team.credits,
 			reputation: team.reputation,
+			owned_tech_upgrades: team.owned_tech_upgrades,
+			clients: team.active_clients,
+			client_states: team.client_states,
 			locked_in: team.locked_in
 		});
 

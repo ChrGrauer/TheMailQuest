@@ -112,6 +112,7 @@ export interface DestinationDashboardUpdateMessage {
 	filtering_policies?: Record<string, FilteringPolicy>;
 	owned_tools?: string[];
 	authentication_level?: number;
+	esp_metrics?: Record<string, { user_satisfaction: number; spam_level: number }>;
 }
 
 /**

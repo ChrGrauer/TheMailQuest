@@ -88,10 +88,15 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		listHygiene
 	});
 
-	// Broadcast WebSocket update
+	// Broadcast WebSocket update (include all fields for facilitator)
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'esp_dashboard_update',
 		teamName: teamName,
+		credits: team.credits,
+		reputation: team.reputation,
+		owned_tech_upgrades: team.owned_tech_upgrades,
+		clients: team.active_clients,
+		client_states: team.client_states,
 		pending_onboarding_decisions: team.pending_onboarding_decisions
 	});
 

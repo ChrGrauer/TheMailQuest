@@ -154,14 +154,17 @@ export const POST: RequestHandler = async ({ params, cookies, request }) => {
 				incident_history: session.incident_history
 			});
 
-			// 6g. Broadcast ESP dashboard updates (to show pending choice indicator)
+			// 6g. Broadcast ESP dashboard updates (include all fields for facilitator)
 			for (const team of session.esp_teams) {
 				if (targetTeams.includes(team.name)) {
 					gameWss.broadcastToRoom(roomCode, {
 						type: 'esp_dashboard_update',
 						teamName: team.name,
 						credits: team.credits,
-						reputation: team.reputation
+						reputation: team.reputation,
+						owned_tech_upgrades: team.owned_tech_upgrades,
+						clients: team.active_clients,
+						client_states: team.client_states
 					});
 				}
 			}

@@ -99,11 +99,15 @@ export const POST: RequestHandler = async ({ params }) => {
 		locked_in_at: result.locked_in_at!
 	});
 
-	// Broadcast updated credits and cleared pending decisions
+	// Broadcast updated dashboard data (include all fields for facilitator)
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'esp_dashboard_update',
 		teamName,
 		credits: team.credits,
+		reputation: team.reputation,
+		owned_tech_upgrades: team.owned_tech_upgrades,
+		clients: team.active_clients,
+		client_states: team.client_states,
 		pending_onboarding_decisions: {}
 	});
 

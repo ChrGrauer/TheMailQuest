@@ -109,10 +109,14 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		oldStatus: team.client_states?.[clientId]?.status
 	});
 
-	// Broadcast WebSocket update
+	// Broadcast WebSocket update (include all fields for facilitator)
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'esp_dashboard_update',
 		teamName: teamName, // Include team name to filter updates on client side
+		credits: result.team.credits,
+		reputation: result.team.reputation,
+		owned_tech_upgrades: result.team.owned_tech_upgrades,
+		clients: result.team.active_clients,
 		client_states: result.team.client_states
 	});
 
