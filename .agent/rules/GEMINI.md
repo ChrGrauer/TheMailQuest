@@ -1,4 +1,8 @@
-# Claude Context - The Mail Quest
+---
+trigger: always_on
+---
+
+# Context - The Mail Quest
 
 ## Project Overview
 **The Mail Quest** is a multiplayer game built with SvelteKit where ESP teams compete to deliver emails.
@@ -18,7 +22,6 @@
 - **Logger**: Pino (server-side only)
 - **WebSocket**: ws library
 - cat -A doesn't work on macOS
-- **Build Resilience**: If Rollup or SvelteKit `fork` export errors occur, perform a clean install: `rm -rf node_modules package-lock.json && npm install`.
 
 ## Critical Rules
 - ❌ use `console.log()` only for debugging - use Pino logger for prod (server-side)
@@ -81,9 +84,6 @@ if (update.destinationName && update.destinationName !== destName) {
   return; // Ignore updates for other destinations
 }
 ```
-
-**State Reset Pattern**:
-Broadcast a specific event (e.g., `clear_votes`, `reset_state`) to ensure clients clear local ephemeral state when a shared process finishes or transitions.
 
 ## Testing Patterns
 
@@ -173,7 +173,6 @@ if (result.success) {
 ## TypeScript Safety
 - **Optional chaining**: Always use `?.` for optional fields (`client.status?.toLowerCase() || 'default'`)
 - **Server-side filtering**: Filter round-based data on server, send filtered results to reduce payload
-- **Robust Equality**: Use loose equality `==` when filtering data by round number in Svelte components to handle potential string/number type mismatches from JSON serialization.
 
 ## Git Commits
 Organize commits by concern:
