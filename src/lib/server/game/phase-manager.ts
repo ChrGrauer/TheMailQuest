@@ -1,131 +1,101 @@
 /**
  * Phase Manager
- * US-1.4: Resources Allocation
- *
- * Handles game phase transitions
- * - Validates phase transitions
- * - Sets round number when entering planning phase
- * - Records phase start time
- * - Logs phase transitions
+ * Centralized logic for managing game phases and transitions.
  */
 
-import { getSession, updateActivity } from './session-manager';
-import { validateRoomCode } from './validation/room-validator';
 import type { GamePhase } from './types';
+import { updateActivity } from './session-manager';
+import { validateRoomCode } from './validation/room-validator';
 import { gameLogger } from '../logger';
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
-export interface PhaseTransitionRequest {
-	roomCode: string;
-	toPhase: GamePhase;
-}
-
+/**
+ * Result of a phase transition attempt
+ */
 export interface PhaseTransitionResult {
 	success: boolean;
-	error?: string;
 	phase?: GamePhase;
 	round?: number;
 	phaseStartTime?: Date;
+	error?: string;
 }
-
-export interface PhaseTransitionValidation {
-	canTransition: boolean;
-	reason?: string;
-}
-
-// Export types
-export type { GamePhase };
-
-// ============================================================================
-// PHASE TRANSITION RULES
-// ============================================================================
-
-const VALID_TRANSITIONS: Record<string, GamePhase[]> = {
-	lobby: ['resource_allocation'],
-	resource_allocation: ['planning'],
-	planning: ['resolution'], // Direct transition after all players lock in or timer expires (US-3.2)
-	resolution: ['consequences'], // US-3.5: Auto-transition to consequences after resolution
-	consequences: ['planning', 'finished'], // US-3.5: Can go to next round or end game
-	finished: []
-};
-
-// ============================================================================
-// VALIDATION
-// ============================================================================
 
 /**
- * Check if a phase transition is valid
- * @param request Transition request
- * @returns Validation result
+ * Validate if a phase transition is allowed
+ * @param from Current phase
+ * @param to Target phase
+ * @returns boolean
  */
-export function canTransitionPhase(request: PhaseTransitionRequest): PhaseTransitionValidation {
-	const { roomCode, toPhase } = request;
+export function isValidTransition(from: GamePhase, to: GamePhase): boolean {
+	const allowedTransitions: Record<GamePhase, GamePhase[]> = {
+		lobby: ['resource_allocation'],
+		resource_allocation: ['planning'],
+		planning: ['resolution'],
+		resolution: ['consequences'],
+		consequences: ['planning', 'finished'],
+		finished: []
+	};
 
-	// Validate room code
+	return allowedTransitions[from]?.includes(to) || false;
+}
+
+/**
+ * Check if a phase transition is possible (for UI/API validation)
+ */
+export function canTransitionPhase({
+	roomCode,
+	toPhase
+}: {
+	roomCode: string;
+	toPhase: GamePhase;
+}): { canTransition: boolean; reason?: string } {
 	const roomValidation = validateRoomCode(roomCode);
 	if (!roomValidation.isValidFormat || !roomValidation.exists) {
 		return {
 			canTransition: false,
-			reason: roomValidation.error
+			reason: 'Room not found. Please check the code.'
 		};
 	}
 
 	const session = roomValidation.session!;
-	const currentPhase = session.current_phase;
+	const fromPhase = session.current_phase as GamePhase;
 
-	// Check if transition is valid
-	const allowedTransitions = VALID_TRANSITIONS[currentPhase] || [];
-	if (!allowedTransitions.includes(toPhase)) {
+	if (!isValidTransition(fromPhase, toPhase)) {
 		return {
 			canTransition: false,
-			reason: `Invalid phase transition from ${currentPhase} to ${toPhase}`
+			reason: `Invalid phase transition from ${fromPhase} to ${toPhase}`
 		};
 	}
 
-	return {
-		canTransition: true
-	};
+	return { canTransition: true };
 }
 
-// ============================================================================
-// PHASE TRANSITION
-// ============================================================================
-
 /**
- * Transition game to a new phase
- * @param request Transition request with roomCode and target phase
- * @returns Result indicating success or error
+ * Transition the game to a new phase
+ * @param params Transition parameters
+ * @returns Result object
  */
-export async function transitionPhase(
-	request: PhaseTransitionRequest
-): Promise<PhaseTransitionResult> {
-	const { roomCode, toPhase } = request;
-
-	// Validate room code
+export async function transitionPhase({
+	roomCode,
+	toPhase
+}: {
+	roomCode: string;
+	toPhase: GamePhase;
+}): Promise<PhaseTransitionResult> {
 	const roomValidation = validateRoomCode(roomCode);
 	if (!roomValidation.isValidFormat || !roomValidation.exists) {
-		gameLogger.event('phase_transition_failed', {
-			roomCode,
-			toPhase,
-			reason: roomValidation.error
-		});
-
 		return {
 			success: false,
-			error: roomValidation.error
+			error: 'Invalid room'
 		};
 	}
 
 	const session = roomValidation.session!;
-	const fromPhase = session.current_phase;
+	const fromPhase = session.current_phase as GamePhase;
 
 	// Validate transition
-	const validation = canTransitionPhase(request);
+	const validation = canTransitionPhase({ roomCode, toPhase });
 	if (!validation.canTransition) {
-		gameLogger.event('phase_transition_failed', {
+		gameLogger.warn('Invalid phase transition attempted', {
 			roomCode,
 			fromPhase,
 			toPhase,
@@ -147,20 +117,28 @@ export async function transitionPhase(
 			session.current_round = 1;
 		}
 
+		// Reset lock-in status for all teams when entering planning phase
+		if (toPhase === 'planning') {
+			for (const team of session.esp_teams) {
+				team.locked_in = false;
+				team.locked_in_at = undefined;
+			}
+			for (const dest of session.destinations) {
+				dest.locked_in = false;
+				dest.locked_in_at = undefined;
+			}
+			gameLogger.info('Centralized lock-in reset applied for planning phase', { roomCode });
+		}
+
 		// Record phase start time
 		session.phase_start_time = new Date();
 
-		// Phase 2: Apply pending auto-locks when entering planning phase
-		// NOTE: We only update state here. The caller (e.g., next-round/+server.ts)
-		// is responsible for broadcasting lock_in_confirmed AFTER the phase_transition
-		// message to ensure correct message ordering on the client.
+		// Apply pending auto-locks when entering planning phase
 		if (toPhase === 'planning') {
 			for (const team of session.esp_teams) {
 				if (team.pendingAutoLock) {
 					team.locked_in = true;
 					team.locked_in_at = new Date();
-					// Don't clear pendingAutoLock here - let the caller broadcast and then clear it
-					// This way the caller knows which teams need lock_in_confirmed broadcasts
 
 					gameLogger.event('pending_auto_lock_applied', {
 						roomCode,
@@ -171,31 +149,25 @@ export async function transitionPhase(
 			}
 		}
 
-		// Phase 1: Automatic DMARC Enforcement at Round 3
-		// Trigger INC-010 automatically when entering Round 3 planning phase
+		// Automatic DMARC Enforcement at Round 3
 		if (toPhase === 'planning' && session.current_round === 3) {
-			// Check if DMARC incident not already triggered
 			const dmarcAlreadyTriggered =
 				session.incident_history?.some((entry) => entry.incidentId === 'INC-010') || false;
 
 			if (!dmarcAlreadyTriggered) {
 				try {
-					// Import incident management functions dynamically to avoid circular dependencies
 					const { triggerIncident } = await import('./incident-manager');
 					const { applyIncidentEffects } = await import('./incident-effects-manager');
 					const { getIncidentById } = await import('$lib/config/incident-cards');
 					const { gameWss } = await import('../websocket');
 
-					// Trigger DMARC incident
 					const incident = getIncidentById('INC-010');
 					if (incident) {
 						const triggerResult = triggerIncident(session, 'INC-010');
 
 						if (triggerResult.success) {
-							// Apply effects
 							const effectResult = applyIncidentEffects(session, incident);
 
-							// Broadcast incident to all players
 							gameWss.broadcastToRoom(roomCode, {
 								type: 'incident_triggered',
 								incident: {
@@ -206,18 +178,18 @@ export async function transitionPhase(
 									category: incident.category,
 									rarity: incident.rarity,
 									duration: incident.duration,
+									round: incident.round,
+									effects: incident.effects,
 									displayDurationMs: 10000
 								}
 							});
 
-							// Broadcast effects
 							gameWss.broadcastToRoom(roomCode, {
 								type: 'incident_effects_applied',
 								incidentId: incident.id,
 								changes: effectResult.changes
 							});
 
-							// Broadcast updated incident history
 							gameWss.broadcastToRoom(roomCode, {
 								type: 'game_state_update',
 								incident_history: session.incident_history
@@ -231,9 +203,8 @@ export async function transitionPhase(
 							});
 						}
 					}
-				} catch (error) {
-					// Log error but don't fail phase transition
-					gameLogger.error(error as Error, {
+				} catch (err) {
+					gameLogger.error(err as Error, {
 						context: 'automatic_dmarc_trigger',
 						roomCode
 					});

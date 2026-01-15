@@ -108,7 +108,8 @@ export const POST: RequestHandler = async ({ params }) => {
 		owned_tech_upgrades: team.owned_tech_upgrades,
 		clients: team.active_clients,
 		client_states: team.client_states,
-		pending_onboarding_decisions: {}
+		pending_onboarding_decisions: {},
+		locked_in: true
 	});
 
 	// Broadcast player_locked_in to all players in room

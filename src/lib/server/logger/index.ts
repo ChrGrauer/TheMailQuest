@@ -22,13 +22,11 @@ export const logger = pino(
 		timestamp: pino.stdTimeFunctions.isoTime
 	},
 	dev
-		? // Pretty print in development
-			pino.destination(1) // stdout
-		: // JSON logs to file in production
-			pino.multistream([
-				{ stream: pino.destination(1) }, // stdout
-				{ stream: logStream } // rotating file
-			])
+		? pino.destination(1) // Just stdout in dev
+		: pino.multistream([
+			{ stream: pino.destination(1) }, // stdout
+			{ stream: logStream } // rotating file
+		])
 );
 
 // Helper functions for common log patterns

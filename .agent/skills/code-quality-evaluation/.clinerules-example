@@ -1,0 +1,102 @@
+# Code Quality Standards for Claude Code
+
+When generating code, automatically follow these maintainability principles from the code-quality-evaluation skill:
+
+## File Size Limits
+- Svelte components: < 200 lines
+- JavaScript/TypeScript modules: < 250 lines
+- Store modules: < 150 lines
+- Alert me if any file exceeds 400 lines
+
+## Structure Requirements
+- Maximum 3 directory levels deep
+- Use import aliases ($lib, $utils, $stores) instead of deep relative imports (../)
+- Clear separation of concerns: UI / Logic / State / Utils
+- Each file should have single, clear responsibility
+
+## Modularity Rules
+- UI components never import business logic directly (use stores)
+- Business logic never imports UI components
+- Components must be generic and reusable (not use-case specific)
+- Use dependency injection for services
+
+## DRY Principles
+- Extract repeated logic (3+ occurrences) into shared utility functions
+- Centralize validation logic in dedicated validators
+- Consolidate constants and magic numbers
+- Unify similar components (>70% similarity) using variant props
+- Target: < 5% code duplication overall
+
+## Test Quality
+- Use parameterized tests (test.each) to avoid redundancy
+- Focus tests on behavior and contracts, not implementation details
+- Cover happy path + critical edge cases + expected errors
+- Target > 80% coverage on business logic modules
+- Avoid testing trivial getters/setters or framework internals
+
+## When to Suggest Refactoring
+If during code generation:
+- A module exceeds 300 lines → suggest splitting before continuing
+- Two components show >70% similarity → suggest unification
+- Logic is repeated 3+ times → suggest extraction
+- Deep coupling is detected → suggest decoupling strategy
+
+## Code Generation Preferences
+- Prioritize clarity over cleverness
+- Write self-documenting code with clear naming
+- Add brief comments only for complex algorithms or business rules
+- Generate complete, functional code (no placeholders or TODOs)
+- Follow established patterns in the existing codebase
+
+## Example Patterns to Follow
+
+### Good File Structure
+```
+src/lib/game/
+├── reputation/
+│   ├── calculator.js    (< 150 lines)
+│   ├── history.js       (< 120 lines)
+│   └── analyzer.js      (< 100 lines)
+└── clients/
+    ├── manager.js       (< 180 lines)
+    └── validator.js     (< 80 lines)
+```
+
+### Good Import Usage
+```javascript
+// ✅ Use aliases
+import { calculateScore } from '$lib/utils/scoring';
+import { playerStore } from '$stores/player';
+
+// ❌ Avoid deep relatives
+import { calculateScore } from '../../../utils/scoring';
+```
+
+### Good Component Reusability
+```svelte
+<!-- ✅ Generic component -->
+<PlayerCard player={data} role="esp" />
+
+<!-- ❌ Specific component -->
+<ESPDashboardForSendWave />
+```
+
+### Good Test Structure
+```javascript
+// ✅ Parameterized test
+test.each([
+    [input1, expected1],
+    [input2, expected2]
+])('calculates %s correctly', (input, expected) => {
+    expect(fn(input)).toBe(expected);
+});
+```
+
+## Quality Check Integration
+Before considering code complete:
+1. Verify no files exceed size limits
+2. Check for code duplication
+3. Ensure proper separation of concerns
+4. Confirm test coverage meets targets
+
+Use the check-quality.sh script for automated verification.

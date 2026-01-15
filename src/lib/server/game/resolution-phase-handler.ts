@@ -85,6 +85,10 @@ export function handleResolutionPhase(
 				historyLength: session.resolution_history.length
 			});
 
+			// US-2.7: Check and execute investigation if triggered
+			// MUST happen before dashboard updates so budget charges are reflected in broadcasts
+			const investigationResult = await handleInvestigation(session, roomCode, broadcast);
+
 			// Apply resolution results to game state (update credits, reputation)
 			const applicationResult = applyResolutionToGameState(session, resolutionResults);
 
@@ -139,9 +143,6 @@ export function handleResolutionPhase(
 				}
 			}
 
-			// US-2.7: Check and execute investigation if triggered
-			const investigationResult = await handleInvestigation(session, roomCode, broadcast);
-
 			// Auto-transition to consequences phase after brief delay
 			setTimeout(async () => {
 				const consequencesResult = await transitionPhase({
@@ -159,9 +160,18 @@ export function handleResolutionPhase(
 							message: 'Resolution complete - reviewing results',
 							resolution_history: session.resolution_history,
 							// Include current round results for easy access
-							current_round_results: resolutionResults
+							current_round_results: resolutionResults,
+							// Include investigation history for Coordination Panel results
+							investigation_history: session.investigation_history || []
 						}
 					};
+
+					gameLogger.info('Broadcasting phase transition with investigation history', {
+						roomCode,
+						round: session.current_round,
+						historyLength: session.investigation_history?.length || 0,
+						lastEntryTarget: session.investigation_history?.[session.investigation_history.length - 1]?.targetEsp
+					});
 
 					broadcast(roomCode, message);
 
@@ -208,6 +218,11 @@ async function handleInvestigation(
 	if (!triggerResult.triggered || !triggerResult.targetEsp || !triggerResult.voters) {
 		// No investigation - just clear votes for next round
 		clearInvestigationVotes(roomCode);
+		broadcast(roomCode, {
+			type: 'investigation_update',
+			event: 'clear_votes',
+			round: session.current_round
+		});
 
 		gameLogger.info('No investigation triggered this round', {
 			roomCode,
@@ -258,17 +273,12 @@ async function handleInvestigation(
 			message: investigationResult.message,
 			suspendedClient: investigationResult.suspendedClient
 				? {
-						clientId: investigationResult.suspendedClient.id,
-						clientName: investigationResult.suspendedClient.name,
-						riskLevel: investigationResult.suspendedClient.riskLevel as 'Low' | 'Medium' | 'High',
-						missingProtection:
-							investigationResult.suspendedClient.missingProtection === 'warmUp'
-								? 'warmup'
-								: investigationResult.suspendedClient.missingProtection === 'listHygiene'
-									? 'list_hygiene'
-									: 'both',
-						spamRate: investigationResult.suspendedClient.spamRate
-					}
+					clientId: investigationResult.suspendedClient.id,
+					clientName: investigationResult.suspendedClient.name,
+					riskLevel: investigationResult.suspendedClient.riskLevel as 'Low' | 'Medium' | 'High',
+					missingProtection: investigationResult.suspendedClient.missingProtection,
+					spamRate: investigationResult.suspendedClient.spamRate
+				}
 				: undefined
 		},
 		timestamp: new Date()
@@ -302,6 +312,11 @@ async function handleInvestigation(
 
 	// Clear votes for next round
 	clearInvestigationVotes(roomCode);
+	broadcast(roomCode, {
+		type: 'investigation_update',
+		event: 'clear_votes',
+		round: session.current_round
+	});
 
 	return historyEntry;
 }

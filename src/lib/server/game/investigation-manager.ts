@@ -311,7 +311,7 @@ export interface InvestigationResolutionResult {
 		name: string;
 		riskLevel: string;
 		spamRate: number;
-		missingProtection: 'warmUp' | 'listHygiene' | 'both';
+		missingProtection: 'warmup' | 'list_hygiene' | 'both';
 	};
 	message: string;
 }
@@ -386,13 +386,13 @@ export function runInvestigation(params: RunInvestigationParams): InvestigationR
 	const worstClientState = espTeam.client_states?.[worstClient.id];
 	const worstHasWarmup = worstClientState ? hasWarmup(worstClientState) : false;
 	const worstHasListHygiene = worstClientState ? hasListHygiene(worstClientState) : false;
-	let missingProtection: 'warmUp' | 'listHygiene' | 'both';
+	let missingProtection: 'warmup' | 'list_hygiene' | 'both';
 	if (!worstHasWarmup && !worstHasListHygiene) {
 		missingProtection = 'both';
 	} else if (!worstHasWarmup) {
-		missingProtection = 'warmUp';
+		missingProtection = 'warmup';
 	} else {
-		missingProtection = 'listHygiene';
+		missingProtection = 'list_hygiene';
 	}
 
 	// Suspend the client

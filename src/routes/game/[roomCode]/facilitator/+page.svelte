@@ -4,7 +4,8 @@
 	import {
 		websocketStore,
 		type GameStateUpdate,
-		type ESPDashboardUpdate
+		type ESPDashboardUpdate,
+		type LobbyUpdate
 	} from '$lib/stores/websocket';
 	import type { IncidentCard, IncidentHistoryEntry } from '$lib/types/incident';
 	import type { Client, ClientState, DestinationDashboardUpdate } from '$lib/server/game/types';
@@ -24,6 +25,7 @@
 		activeClients: string[];
 		availableClients: Client[];
 		clientStates: Record<string, ClientState>;
+		lockedIn?: boolean;
 	}
 
 	interface DestinationMetrics {
@@ -49,6 +51,22 @@
 	let espTeams = $state<ESPMetrics[]>(data?.initialData?.espTeams ?? []);
 	let destinations = $state<DestinationMetrics[]>(data?.initialData?.destinations ?? []);
 	let resolutionHistory = $state<any[]>(data?.initialData?.resolutionHistory ?? []);
+
+	// US-8.2: Real-time metadata and status
+	let availableClientsDefinitions = $state<Client[]>([]);
+
+	// Initialize available clients from all teams on load
+	onMount(() => {
+		const allClients: Client[] = [];
+		espTeams.forEach((esp) => {
+			esp.availableClients.forEach((client) => {
+				if (!allClients.find((c) => c.id === client.id)) {
+					allClients.push(client);
+				}
+			});
+		});
+		availableClientsDefinitions = allClients;
+	});
 
 	// Start Next Round button state
 	let isStartingRound = $state(false);
@@ -90,13 +108,42 @@
 	let showEndPhaseButton = $derived(phase === 'planning');
 	let showEndGameEarlyButton = $derived(phase === 'consequences' && round >= 1 && round <= 3);
 
+	// Handle lobby updates from WebSocket
+	function handleLobbyUpdate(data: LobbyUpdate | any) {
+		console.debug('[Facilitator] Received LobbyUpdate:', data);
+		const lobbyData = data.data || data;
+		// Update espTeams if we don't have them all yet
+		lobbyData.espTeams?.forEach((newTeam: any) => {
+			if (!espTeams.find((t) => t.name.toLowerCase() === newTeam.name.toLowerCase())) {
+				console.info(`[Facilitator] Adding new team from lobby: ${newTeam.name}`);
+				espTeams = [
+					...espTeams,
+					{
+						name: newTeam.name,
+						budget: 1000,
+						reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
+						ownedTechUpgrades: [],
+						activeClients: [],
+						availableClients: [],
+						clientStates: {},
+						lockedIn: false
+					}
+				];
+			}
+		});
+	}
+
 	// Handle game state updates from WebSocket
 	function handleGameStateUpdate(data: GameStateUpdate | any) {
+		console.debug('[Facilitator] Received GameStateUpdate:', data.type, data);
+		const stateData = data.data || data;
+
 		// US-8.2-0.1: Handle timer_update messages
-		if (data.type === 'timer_update') {
-			isPaused = data.isPaused;
-			if (data.remainingTime !== undefined) {
-				timerRemaining = data.remainingTime;
+		if (data.type === 'timer_update' || (data.data && data.data.type === 'timer_update')) {
+			const timerData = data.data || data;
+			isPaused = timerData.isPaused;
+			if (timerData.remainingTime !== undefined) {
+				timerRemaining = timerData.remainingTime;
 			}
 			// Reset button states
 			isPausingResuming = false;
@@ -104,10 +151,21 @@
 			return;
 		}
 
-		// Handle incident_triggered messages
-		if (data.type === 'incident_triggered' && data.incident) {
-			currentIncident = data.incident;
-			showIncidentCard = true;
+		// Handle esp_dashboard_update messages
+		if (data.type === 'esp_dashboard_update' || stateData.type === 'esp_dashboard_update') {
+			handleESPDashboardUpdate(stateData);
+			return;
+		}
+
+		// Handle player_locked_in messages
+		if (data.type === 'player_locked_in' || stateData.type === 'player_locked_in') {
+			const playerName = stateData.playerName || stateData.teamName;
+			// US-3.2: Only update lock status if in planning phase
+			if (playerName && phase === 'planning') {
+				espTeams = espTeams.map((esp) =>
+					esp.name.toLowerCase() === playerName.toLowerCase() ? { ...esp, lockedIn: true } : esp
+				);
+			}
 			return;
 		}
 
@@ -120,6 +178,12 @@
 				isEndingPhase = false;
 				isEndingGame = false;
 				isPaused = false;
+
+				// Clear lock-in status when moving to planning or other interactive phases
+				if (phase === 'planning' || phase === 'resolution') {
+					console.debug(`[Facilitator] Resetting espTeams locks for phase: ${phase}`);
+					espTeams = espTeams.map((esp) => ({ ...esp, lockedIn: false }));
+				}
 			}
 			if (data.data.round !== undefined) {
 				round = data.data.round;
@@ -135,6 +199,10 @@
 			if (data.data.resolution_history !== undefined) {
 				resolutionHistory = data.data.resolution_history;
 			}
+			// Handle lock status passed in transition
+			if (data.data.locked_in === false) {
+				espTeams = espTeams.map((esp) => ({ ...esp, lockedIn: false }));
+			}
 			return;
 		}
 
@@ -143,12 +211,19 @@
 			round = data.round;
 		}
 		if (data.phase !== undefined) {
+			const oldPhase = phase;
 			phase = data.phase;
 			// Reset loading states when phase changes
 			isStartingRound = false;
 			isEndingPhase = false;
 			isEndingGame = false;
 			isPaused = false;
+
+			// US-3.2: Reset locks if moving to planning from something else
+			if (phase === 'planning' && oldPhase !== 'planning') {
+				console.debug('[Facilitator] Resetting espTeams locks via game_state_update');
+				espTeams = espTeams.map((esp) => ({ ...esp, lockedIn: false }));
+			}
 		}
 		if (data.timer_remaining !== undefined) {
 			timerRemaining = data.timer_remaining;
@@ -209,21 +284,42 @@
 	}
 
 	// US-8.2-0.2: Handle ESP dashboard updates for real-time metrics
-	function handleESPDashboardUpdate(update: ESPDashboardUpdate) {
-		if (!update.teamName) return;
+	function handleESPDashboardUpdate(data: ESPDashboardUpdate | any) {
+		const update = data.data || data;
+		console.debug('[Facilitator] Received ESPDashboardUpdate for:', update.teamName, update);
+		const teamName = update.teamName;
+		if (!teamName) return;
+
+		// US-8.2: Sync available clients definitions if provided
+		if (update.available_clients) {
+			update.available_clients.forEach((client: any) => {
+				if (!availableClientsDefinitions.find((c) => c.id === client.id)) {
+					availableClientsDefinitions = [...availableClientsDefinitions, client];
+				}
+			});
+		}
 
 		espTeams = espTeams.map((esp) => {
-			if (esp.name !== update.teamName) return esp;
+			if (esp.name.toLowerCase() !== teamName.toLowerCase()) return esp;
 
-			return {
-				...esp,
-				budget: update.credits ?? esp.budget,
-				reputation: update.reputation ?? esp.reputation,
-				ownedTechUpgrades: update.owned_tech_upgrades ?? esp.ownedTechUpgrades,
-				// US-8.2-0.2: Add client updates for real-time portfolio tracking
-				activeClients: update.clients ?? esp.activeClients,
-				clientStates: update.client_states ?? esp.clientStates
-			};
+			const updatedEsp = { ...esp };
+
+			// Update metrics
+			if (update.credits !== undefined) updatedEsp.budget = update.credits;
+			if (update.reputation !== undefined) updatedEsp.reputation = update.reputation;
+			if (update.owned_tech_upgrades !== undefined)
+				updatedEsp.ownedTechUpgrades = update.owned_tech_upgrades;
+			if (update.clients !== undefined) updatedEsp.activeClients = update.clients;
+			if (update.client_states !== undefined) updatedEsp.clientStates = update.client_states;
+			if (update.available_clients !== undefined)
+				updatedEsp.availableClients = update.available_clients;
+
+			// US-3.2: Sync lock status (only if in planning phase)
+			if (update.locked_in !== undefined && phase === 'planning') {
+				updatedEsp.lockedIn = update.locked_in;
+			}
+
+			return updatedEsp;
 		});
 	}
 
@@ -231,6 +327,11 @@
 	function handleDestinationDashboardUpdate(
 		update: DestinationDashboardUpdate & { destinationName?: string }
 	) {
+		console.debug(
+			'[Facilitator] Received DestinationDashboardUpdate for:',
+			update.destinationName,
+			update
+		);
 		if (!update.destinationName) return;
 
 		destinations = destinations.map((dest) => {
@@ -247,6 +348,14 @@
 
 	// US-8.2-0.2: Get spam rate for ESP from resolution history
 	function getSpamRate(espName: string): string {
+		// Prefer live metrics from destinations if available
+		for (const dest of destinations) {
+			const metrics = dest.espMetrics?.[espName];
+			if (metrics?.spam_level !== undefined) {
+				return `${metrics.spam_level.toFixed(1)}%`;
+			}
+		}
+
 		if (resolutionHistory.length === 0) return 'N/A';
 
 		const latestResolution = resolutionHistory[resolutionHistory.length - 1];
@@ -259,40 +368,54 @@
 
 	// US-8.2-0.2: Get clients breakdown by type
 	function getClientsByType(
-		activeClients: string[],
-		availableClients: Client[],
-		clientStates: Record<string, ClientState>
+		activeIds: string[],
+		availableDefs: Client[],
+		states: Record<string, ClientState>
 	): string {
-		if (activeClients.length === 0) return 'None';
+		if (!activeIds || activeIds.length === 0) return 'None';
 
+		const clientNames: string[] = [];
 		const typeCounts: Record<string, number> = {};
 		const typeLabels: Record<string, string> = {
-			premium_brand: 'Premium',
-			growing_startup: 'Startup',
-			re_engagement: 'Re-engage',
-			aggressive_marketer: 'Aggressive',
-			event_seasonal: 'Event'
+			startup: 'Startup',
+			premium_brand: 'Premium'
 		};
 
-		// Count clients by type
-		for (const clientId of activeClients) {
-			const client = availableClients.find((c) => c.id === clientId);
+		for (const id of activeIds) {
+			// US-8.2: Use definitions if available, otherwise just use IDs
+			const client =
+				availableDefs.find((c) => c.id === id) ||
+				availableClientsDefinitions.find((c) => c.id === id);
+
 			if (client) {
 				const label = typeLabels[client.type] || client.type;
 				typeCounts[label] = (typeCounts[label] || 0) + 1;
+				clientNames.push(client.name);
+			} else {
+				clientNames.push(id.split('-').pop() || id); // Fallback to partial ID if definition not found
 			}
 		}
 
-		// Format as "X Premium, Y Startup, ..."
-		return (
-			Object.entries(typeCounts)
-				.map(([type, count]) => `${count} ${type}`)
-				.join(', ') || 'None'
-		);
+		const summary = Object.entries(typeCounts)
+			.map(([type, count]) => `${count} ${type}`)
+			.join(', ');
+
+		return summary ? `${summary} (${clientNames.join(', ')})` : clientNames.join(', ');
 	}
 
 	// US-8.2-0.2: Get destination user satisfaction
 	function getDestinationSatisfaction(dest: DestinationMetrics): string {
+		// Prefer live aggregated satisfaction if available in destination dashboard update
+		// (Calculated on server during resolution and sent in updates)
+		// Note: The DestinationMetrics interface might need checking for a direct satisfaction field
+		// or we can look at esp_metrics average
+		const espMetricsValues = Object.values(dest.espMetrics || {});
+		if (espMetricsValues.length > 0) {
+			const avgSatisfaction =
+				espMetricsValues.reduce((sum, m) => sum + m.user_satisfaction, 0) / espMetricsValues.length;
+			return `${Math.round(avgSatisfaction)}%`;
+		}
+
 		// Check resolution history for satisfaction data
 		if (resolutionHistory.length === 0) return 'N/A';
 
@@ -309,8 +432,8 @@
 	onMount(() => {
 		// Connect to WebSocket for real-time game state updates
 		websocketStore.connect(
-			roomCode,
-			() => {}, // Lobby updates not needed for facilitator
+			roomCode as string,
+			handleLobbyUpdate, // Correctly handle new teams joining
 			handleGameStateUpdate,
 			handleESPDashboardUpdate, // US-8.2-0.2: Listen for ESP dashboard updates
 			handleDestinationDashboardUpdate // US-8.2-0.2: Listen for destination dashboard updates
@@ -663,6 +786,7 @@
 				<thead>
 					<tr>
 						<th>Team</th>
+						<th>Status</th>
 						<th>Budget</th>
 						<th>Gmail Rep</th>
 						<th>Outlook Rep</th>
@@ -676,6 +800,17 @@
 					{#each espTeams as esp}
 						<tr data-testid="esp-row-{esp.name}">
 							<td class="team-name">{esp.name}</td>
+							<td data-testid="esp-lock-status">
+								{#if esp.lockedIn}
+									<span class="text-emerald-500 font-semibold flex items-center gap-1">
+										<span data-testid="lock-icon" class="text-lg">✓</span> Locked In
+									</span>
+								{:else if phase === 'planning'}
+									<span class="text-amber-500 font-medium animate-pulse">Planning...</span>
+								{:else}
+									<span class="text-gray-400">Idle</span>
+								{/if}
+							</td>
 							<td data-testid="esp-budget">{esp.budget}</td>
 							<td data-testid="esp-rep-Gmail">{esp.reputation?.Gmail ?? 70}</td>
 							<td data-testid="esp-rep-Outlook">{esp.reputation?.Outlook ?? 70}</td>
@@ -765,7 +900,7 @@
 <!-- Incident Selection Modal -->
 <IncidentSelectionModal
 	bind:show={showIncidentSelectionModal}
-	{roomCode}
+	roomCode={roomCode as string}
 	currentRound={round}
 	onClose={() => (showIncidentSelectionModal = false)}
 	onTriggerSuccess={handleIncidentTriggered}

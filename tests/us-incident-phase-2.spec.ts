@@ -345,8 +345,8 @@ test.describe('Modifier Stacking', () => {
 		await expect(alicePage.getByTestId('list-hygiene-adjustment-message')).toBeVisible();
 
 		// Verify incident effects summary shows INC-009
-		await expect(alicePage.getByTestId('incident-effects-summary')).toBeVisible();
-		await expect(alicePage.getByTestId('incident-effects-summary')).toContainText(
+		await expect(alicePage.getByTestId('INC-009-adjustment-message')).toBeVisible();
+		await expect(alicePage.getByTestId('INC-009-adjustment-message')).toContainText(
 			'Seasonal Traffic Surge'
 		);
 	});
@@ -383,8 +383,8 @@ test.describe('Modifier Stacking', () => {
 		await expect(alicePage.getByTestId('list-hygiene-adjustment-message')).toBeVisible();
 
 		// Verify incident effects summary shows INC-009
-		await expect(alicePage.getByTestId('incident-effects-summary')).toBeVisible();
-		await expect(alicePage.getByTestId('incident-effects-summary')).toContainText(
+		await expect(alicePage.getByTestId('INC-009-adjustment-message')).toBeVisible();
+		await expect(alicePage.getByTestId('INC-009-adjustment-message')).toContainText(
 			'Seasonal Traffic Surge'
 		);
 	});

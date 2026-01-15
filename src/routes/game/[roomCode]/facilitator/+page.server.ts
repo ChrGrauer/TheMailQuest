@@ -39,7 +39,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 				ownedTechUpgrades: esp.owned_tech_upgrades,
 				activeClients: esp.active_clients,
 				availableClients: esp.available_clients,
-				clientStates: esp.client_states || {}
+				clientStates: esp.client_states || {},
+				lockedIn: esp.locked_in || false
 			})),
 			destinations: session.destinations.map((dest) => ({
 				name: dest.name,

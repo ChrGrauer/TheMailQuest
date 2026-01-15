@@ -80,7 +80,7 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 	{
 		type: 're_engagement',
 		baseCost: 150,
-		baseRevenue: 300,
+		baseRevenue: 150,
 		baseVolume: 50000,
 		risk: 'High',
 		baseSpamRate: 2.5,

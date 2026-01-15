@@ -290,6 +290,11 @@ test.describe('US-2.7: Coordination Panel', () => {
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
+			// US-2.7: Capture console logs for destination pages
+			gmailPage.on('console', msg => console.log(`[BROWSER GMAIL] ${msg.text()}`));
+			outlookPage.on('console', msg => console.log(`[BROWSER OUTLOOK] ${msg.text()}`));
+			yahooPage.on('console', msg => console.log(`[BROWSER YAHOO] ${msg.text()}`));
+
 			// Record initial budgets
 			const gmailBudgetBefore = await extractBudget(gmailPage, 'budget-current');
 			const outlookBudgetBefore = await extractBudget(outlookPage, 'budget-current');
@@ -314,7 +319,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 			await gmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
 
 			// Then: investigation should be triggered against BluePost
-			await expect(gmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible();
+			await expect(gmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible({
+				timeout: 10000
+			});
 			await expect(gmailPage.locator('[data-testid="investigation-target"]')).toContainText(
 				'BluePost'
 			);

@@ -181,129 +181,210 @@
 	}
 
 	// Handle game state updates from WebSocket
-	function handleGameStateUpdate(update: any) {
+	function handleGameStateUpdate(data: any) {
+		const updateData = data.data || data;
+		const messageType = data.type || updateData.type;
+
 		// US-8.2-0.1: Handle timer_update messages
-		if (update.type === 'timer_update') {
-			gameState.isPaused = update.isPaused;
-			if (update.remainingTime !== undefined) {
-				gameState.timerSeconds = update.remainingTime;
+		if (messageType === 'timer_update') {
+			gameState.isPaused = updateData.isPaused;
+			if (updateData.remainingTime !== undefined) {
+				gameState.timerSeconds = updateData.remainingTime;
 			}
 			return;
 		}
 
 		// Handle incident_triggered messages (via incidentState composable)
-		if (update.type === 'incident_triggered' && update.incident) {
-			incidentState.showIncident(update.incident);
+		if (messageType === 'incident_triggered' && updateData.incident) {
+			incidentState.showIncident(updateData.incident);
 			return;
 		}
 
 		// US-5.2: Handle final scores calculated
-		if (update.type === 'final_scores_calculated') {
+		if (messageType === 'final_scores_calculated') {
 			finalScores = {
-				espResults: update.espResults,
-				winner: update.winner,
-				destinationResults: update.destinationResults,
-				metadata: update.metadata
+				espResults: updateData.espResults,
+				winner: updateData.winner,
+				destinationResults: updateData.destinationResults,
+				metadata: updateData.metadata
 			};
 			return;
 		}
 
-		// US-2.7: Handle investigation updates (vote events)
-		if (update.type === 'investigation_update' && update.event === 'vote') {
-			investigationVotes = update.votes || {};
-			// Update myVote based on the votes
-			const destNameCapitalized =
-				destinationName || destName.charAt(0).toUpperCase() + destName.slice(1).toLowerCase();
-			for (const [espName, voters] of Object.entries(investigationVotes)) {
-				if ((voters as string[]).includes(destNameCapitalized)) {
-					myInvestigationVote = espName;
-					return;
+		// US-2.7: Handle investigation updates (vote and result events)
+		if (messageType === 'investigation_update') {
+			if (updateData.event === 'vote') {
+				investigationVotes = updateData.votes || {};
+				// Update myVote based on the votes
+				const destNameCapitalized =
+					destinationName ||
+					(destName ? destName.charAt(0).toUpperCase() + destName.slice(1).toLowerCase() : '');
+				for (const [espName, voters] of Object.entries(investigationVotes)) {
+					if ((voters as string[]).includes(destNameCapitalized)) {
+						myInvestigationVote = espName;
+						return;
+					}
 				}
+				myInvestigationVote = null;
+			} else if (updateData.event === 'result' && destName) {
+				// Result event: toast the result if we participated or if a violation was found
+				const historyEntry: InvestigationHistoryEntry = {
+					round: updateData.round,
+					targetEsp: updateData.targetEsp,
+					voters: updateData.voters,
+					result: {
+						violationFound: updateData.violationFound,
+						message: updateData.message,
+						suspendedClient: updateData.suspendedClient
+							? {
+									clientId: updateData.suspendedClient.id,
+									clientName: updateData.suspendedClient.name,
+									riskLevel: updateData.suspendedClient.riskLevel,
+									missingProtection: updateData.suspendedClient.missingProtection,
+									spamRate: updateData.suspendedClient.spamRate
+								}
+							: undefined
+					},
+					timestamp: new Date()
+				};
+				investigationHistory = [...investigationHistory, historyEntry];
+			} else if (updateData.event === 'clear_votes') {
+				// Reset local voting state
+				investigationVotes = {};
+				myInvestigationVote = null;
 			}
-			myInvestigationVote = null;
 			return;
 		}
 
-		// Game state updates via composable
-		if (update.current_round !== undefined) gameState.currentRound = update.current_round;
-		if (update.current_phase !== undefined) gameState.currentPhase = update.current_phase;
-		// Timer: Use simple value from WebSocket (matches ESP dashboard pattern)
-		if (update.timer_remaining !== undefined) {
-			gameState.timerSeconds = update.timer_remaining;
+		// Update game state metrics
+		if (updateData.timer_remaining !== undefined) {
+			gameState.timerSeconds = updateData.timer_remaining;
 		}
 
-		// US-3.2: Handle WebSocket lock-in events (via lockInState composable)
-		const messageType = update.type;
+		// Handle phase and round transitions
+		if (updateData.phase || updateData.round !== undefined) {
+			const oldPhase = gameState.currentPhase;
+			const oldRound = gameState.currentRound;
 
+			if (updateData.phase) gameState.currentPhase = updateData.phase;
+			if (updateData.round !== undefined) gameState.currentRound = updateData.round;
+
+			// US-3.2: Reset lock-in state when entering a new planning phase or round
+			if (
+				(gameState.currentPhase === 'planning' && oldPhase !== 'planning') ||
+				gameState.currentRound !== oldRound
+			) {
+				lockInState.resetLockIn();
+			}
+		}
+
+		// US-3.2: Handle WebSocket lock-in events
 		if (messageType === 'lock_in_confirmed') {
 			// Only process if this message is for THIS destination
 			const isForThisDestination =
-				update.role === 'Destination' &&
-				update.destinationName?.toLowerCase() === destName.toLowerCase();
+				updateData.role === 'Destination' &&
+				destName &&
+				updateData.teamName?.toLowerCase() === destName.toLowerCase();
 
 			if (isForThisDestination) {
 				// This destination has successfully locked in
-				if (update.locked_in !== undefined) {
-					lockInState.isLockedIn = update.locked_in;
+				if (updateData.locked_in !== undefined) {
+					lockInState.isLockedIn = updateData.locked_in;
 				}
-				if (update.locked_in_at) {
-					lockInState.lockedInAt = new Date(update.locked_in_at);
+				if (updateData.locked_in_at) {
+					lockInState.lockedInAt = new Date(updateData.locked_in_at);
 				}
 			}
 		}
 
 		if (messageType === 'player_locked_in') {
 			// Any player locked in - update remaining count
-			if (update.remaining_players !== undefined) {
-				lockInState.remainingPlayers = update.remaining_players;
+			if (updateData.remaining_players !== undefined) {
+				lockInState.remainingPlayers = updateData.remaining_players;
 			}
 		}
 
 		if (messageType === 'auto_lock_warning') {
 			// 15-second warning before auto-lock
-			if (update.message) {
-				lockInState.autoLockMessage = update.message;
+			if (updateData.message) {
+				lockInState.autoLockMessage = updateData.message;
 			}
 		}
 
 		if (messageType === 'auto_lock_complete') {
 			// Auto-lock completed
-			lockInState.autoLockMessage = update.message || "Time's up! Decisions locked automatically";
+			lockInState.autoLockMessage =
+				updateData.message || "Time's up! Decisions locked automatically";
 		}
 
 		if (messageType === 'phase_transition') {
 			// Phase transition (e.g., to resolution)
 			const previousRound = gameState.currentRound;
-			if (update.data?.phase) {
-				gameState.currentPhase = update.data.phase;
-				// Refetch data when transitioning to consequences to get resolution results
-				if (update.data.phase === 'consequences') {
-					fetchDashboardData();
-				}
-				// Refetch data when transitioning to planning for a new round
-				// This ensures spam rates from previous round are loaded
-				if (update.data.phase === 'planning' && update.data.round > previousRound) {
-					fetchDashboardData();
-				}
+			if (updateData.phase) {
+				gameState.currentPhase = updateData.phase;
 			}
-			if (update.data?.round !== undefined) {
-				gameState.currentRound = update.data.round;
+			if (updateData.round !== undefined) {
+				gameState.currentRound = updateData.round;
 			}
-			// Update lock-in state when transitioning phases (US-8.2-0.0: Start Next Round)
-			if (update.data?.locked_in !== undefined) {
-				lockInState.isLockedIn = update.data.locked_in;
-				if (!update.data.locked_in) {
-					// Reset lock-in state via composable
+			// Update lock-in state when transitioning phases
+			if (updateData.locked_in !== undefined) {
+				lockInState.isLockedIn = updateData.locked_in;
+				if (!updateData.locked_in) {
+					// Reset lock-in state when unlocking
 					lockInState.resetLockIn();
 				}
 			}
-			// US-5.2: Extract final scores from phase transition (finished phase)
-			if (update.data?.final_scores) {
-				finalScores = update.data.final_scores;
+			// US-3.5: Capture resolution results for consequences phase
+			if (updateData.current_round_results) {
+				const allResults = updateData.current_round_results;
+				// Extract destination-specific results
+				if (allResults.destinationResults && destName) {
+					const destKey = Object.keys(allResults.destinationResults).find(
+						(key) => key.toLowerCase() === destName.toLowerCase()
+					);
+					if (destKey) {
+						currentResolution = allResults.destinationResults[destKey];
+					} else {
+						console.warn(`[Facilitator] No resolution results found for destination: ${destName}`);
+						currentResolution = null;
+					}
+				}
+
+				// Extract ESP satisfaction breakdown (used for behavior analysis section)
+				if (allResults.espSatisfactionData) {
+					espSatisfactionBreakdown = allResults.espSatisfactionData;
+				}
+			}
+			// Also support older data structures for backward compatibility
+			if (updateData.resolution_history && updateData.round !== undefined) {
+				const currentRoundEntry = updateData.resolution_history.find(
+					(entry: any) => entry.round === updateData.round
+				);
+				if (currentRoundEntry && currentRoundEntry.results) {
+					const allResults = currentRoundEntry.results;
+					if (allResults.destinationResults && destName) {
+						const destKey = Object.keys(allResults.destinationResults).find(
+							(key) => key.toLowerCase() === destName.toLowerCase()
+						);
+						if (destKey) {
+							currentResolution = allResults.destinationResults[destKey];
+						}
+					}
+					if (allResults.espSatisfactionData) {
+						espSatisfactionBreakdown = allResults.espSatisfactionData;
+					}
+				}
+			}
+			if (updateData.final_scores) {
+				finalScores = updateData.final_scores;
+			}
+			// US-2.7: Sync investigation history
+			if (updateData.investigation_history) {
+				investigationHistory = updateData.investigation_history;
 			}
 			// Show transition message via composable (auto-clears after timeout)
-			if (update.data?.message) {
-				lockInState.showPhaseTransition(update.data.message);
+			if (updateData.message) {
+				lockInState.showPhaseTransition(updateData.message);
 			}
 		}
 	}
@@ -312,7 +393,11 @@
 	function handleDestinationDashboardUpdate(update: any) {
 		// Only apply updates for this destination (filter out updates for other destinations)
 		// Use case-insensitive comparison since URL params are lowercase but API may use original case
-		if (update.destinationName && update.destinationName.toLowerCase() !== destName.toLowerCase()) {
+		if (
+			update.destinationName &&
+			destName &&
+			update.destinationName.toLowerCase() !== destName.toLowerCase()
+		) {
 			return;
 		}
 
@@ -354,7 +439,9 @@
 	 * Handle investigation vote change (US-2.7)
 	 * @param espName - ESP to vote for, or null to remove vote
 	 */
+	// US-2.7: Handle vote changes via API
 	async function handleVoteChange(espName: string | null) {
+		if (!destName) return;
 		const endpoint = `/api/sessions/${roomCode}/destination/${destName}/investigation/vote`;
 
 		try {
@@ -453,7 +540,7 @@
 
 		// Connect to WebSocket
 		websocketStore.connect(
-			roomCode,
+			roomCode ?? '',
 			() => {}, // onLobbyUpdate (not needed on dashboard)
 			handleGameStateUpdate,
 			undefined, // onESPDashboardUpdate (not for destinations)
@@ -587,8 +674,8 @@
 			{destinationName}
 			currentRound={gameState.currentRound}
 			{budget}
-			resolution={currentResolution}
-			{espSatisfactionBreakdown}
+			resolution={currentResolution ?? undefined}
+			espSatisfactionBreakdown={espSatisfactionBreakdown ?? undefined}
 			{investigationHistory}
 		/>
 	{:else if gameState.currentPhase === 'resolution'}
@@ -692,7 +779,6 @@
 				phase={gameState.currentPhase}
 				isLockedIn={lockInState.isLockedIn}
 				remainingPlayers={lockInState.remainingPlayers}
-				autoLockMessage={lockInState.autoLockMessage}
 				onLockIn={handleLockIn}
 			/>
 
@@ -714,8 +800,8 @@
 <TechnicalShopModal
 	bind:show={modals.showTechShop}
 	isLockedIn={lockInState.isLockedIn}
-	{roomCode}
-	{destName}
+	roomCode={roomCode ?? ''}
+	destName={destName ?? ''}
 	{kingdom}
 	currentBudget={budget}
 	authLevel={authenticationLevel}
@@ -726,9 +812,12 @@
 <FilteringControlsModal
 	bind:show={modals.showFilteringControls}
 	isLockedIn={lockInState.isLockedIn}
-	{roomCode}
-	{destName}
-	espTeams={espTeamsForFiltering}
+	roomCode={roomCode ?? ''}
+	destName={destName ?? ''}
+	espTeams={espTeamsForFiltering.map((esp) => ({
+		...esp,
+		satisfaction: esp.satisfaction ?? 0
+	}))}
 	{filteringPolicies}
 	dashboardError={error}
 	onRetry={handleRetry}
@@ -738,8 +827,8 @@
 <CoordinationPanelModal
 	bind:show={showCoordinationPanel}
 	isLockedIn={lockInState.isLockedIn}
-	{roomCode}
-	{destName}
+	roomCode={roomCode ?? ''}
+	destName={destName ?? ''}
 	currentBudget={availableBudget}
 	espTeams={espTeamsForCoordination}
 	currentVotes={investigationVotes}

@@ -186,6 +186,7 @@ export interface PhaseTransitionMessage {
 		}>;
 		current_round_results?: any; // ResolutionResults (avoiding circular import)
 		final_scores?: FinalScoreOutput; // US-5.2: Final scores for victory screen
+		investigation_history?: any[]; // US-2.7: Investigation history for coordination panel
 	};
 }
 
@@ -266,7 +267,7 @@ export interface InvestigationUpdateMessage {
 		clientId: string;
 		clientName: string;
 		riskLevel: 'Low' | 'Medium' | 'High';
-		missingProtection: 'warmup' | 'listHygiene' | 'both';
+		missingProtection: 'warmup' | 'list_hygiene' | 'both';
 		spamRate: number;
 	};
 	message?: string;

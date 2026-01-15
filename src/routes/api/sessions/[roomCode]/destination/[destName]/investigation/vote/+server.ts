@@ -23,8 +23,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	}
 
 	try {
-		const body = await request.json();
-		const { targetEsp } = body;
+		const { targetEsp } = await request.json();
+		gameLogger.info('Investigation vote request received', { roomCode, destName, targetEsp });
 
 		if (!targetEsp) {
 			return json({ error: 'targetEsp is required', success: false }, { status: 400 });

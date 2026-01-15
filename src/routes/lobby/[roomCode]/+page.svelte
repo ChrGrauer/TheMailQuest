@@ -8,51 +8,55 @@
 	import JoinGameModal from '$lib/components/lobby/JoinGameModal.svelte';
 	import GameStartControls from '$lib/components/lobby/GameStartControls.svelte';
 
-	export let data: PageData;
+	let { data } = $props();
 
 	const { session, isFacilitator } = data; // US-1.3: Get facilitator status
-	let playerNames = data.playerNames || {}; // Initialize from server data
-
-	let copySuccess = false;
-	let mounted = false;
-
-	// Role selection state
-	let selectedTeam: string | null = null;
-	let selectedRole: 'ESP' | 'Destination' | null = null;
-	let displayName = '';
-	let showRoleModal = false;
-	let joinError = '';
-	let isJoining = false;
-	let hasJoined = false;
-	let currentPlayerId: string | null = null;
-
-	// US-1.3: Game start state
-	let isStartingGame = false;
-	let startGameError = '';
-	let gameStarted = false;
-
-	// US-1.4: Store player's role and team for redirect
-	let playerRole: 'ESP' | 'Destination' | 'Facilitator' | null = isFacilitator
-		? 'Facilitator'
-		: null;
-	let playerTeamName: string | null = null;
-
 	// Slot state (will be updated via WebSocket)
-	let espTeams = session.esp_teams;
-	let destinations = session.destinations;
-	let espTeamCount = 0;
-	let destinationCount = 0;
+	let espTeams = $state(session.esp_teams);
+	let destinations = $state(session.destinations);
+	let espTeamCount = $state(0);
+	let destinationCount = $state(0);
+	let playerNames = $state(data.playerNames || {});
 
-	$: totalPlayers = espTeamCount + destinationCount;
-	$: isSessionFull = totalPlayers >= 8; // 5 ESP + 3 Destinations = 8 total slots
+	let totalPlayers = $derived(espTeamCount + destinationCount);
+	let isSessionFull = $derived(totalPlayers >= 8); // 5 ESP + 3 Destinations = 8 total slots
 
 	// US-1.3: Start game validation
-	$: canStartGame = espTeamCount > 0 && destinationCount > 0;
-	$: startGameTooltip = !canStartGame
-		? espTeamCount === 0
-			? 'At least 1 ESP team is required'
-			: 'At least 1 Destination is required'
-		: '';
+	let canStartGame = $derived(espTeamCount > 0 && destinationCount > 0);
+	let startGameTooltip = $derived(
+		!canStartGame
+			? espTeamCount === 0
+				? 'At least 1 ESP team is required'
+				: 'At least 1 Destination is required'
+			: ''
+	);
+
+	let isStartingGame = $state(false);
+	let startGameError = $state('');
+	let gameStarted = $state(false);
+	let mounted = $state(false);
+	let copySuccess = $state(false);
+
+	// Role selection state
+	let selectedTeam = $state<string | null>(null);
+	let selectedRole = $state<'ESP' | 'Destination' | null>(null);
+	let displayName = $state('');
+	let showRoleModal = $state(false);
+	let joinError = $state('');
+	let isJoining = $state(false);
+	let hasJoined = $state(false);
+	let currentPlayerId = $state<string | null>(null);
+
+	// Log derived state changes
+	$effect(() => {
+		console.debug('[Lobby] Derived state check:', { totalPlayers, canStartGame, startGameTooltip });
+	});
+
+	// US-1.4: Store player's role and team for redirect
+	let playerRole = $state<'ESP' | 'Destination' | 'Facilitator' | null>(
+		isFacilitator ? 'Facilitator' : null
+	);
+	let playerTeamName = $state<string | null>(null);
 
 	onMount(() => {
 		mounted = true;
@@ -69,18 +73,23 @@
 	});
 
 	function updateSlotCounts() {
-		espTeamCount = espTeams.filter((t) => t.players.length > 0).length;
-		destinationCount = destinations.filter((d) => d.players.length > 0).length;
+		espTeamCount = espTeams.filter((t) => (t.players?.length ?? 0) > 0).length;
+		destinationCount = destinations.filter((d) => (d.players?.length ?? 0) > 0).length;
+		console.debug('[Lobby] Updated slot counts:', { espTeamCount, destinationCount, canStartGame });
 	}
 
-	function handleLobbyUpdate(data: LobbyUpdate) {
+	function handleLobbyUpdate(data: LobbyUpdate | any) {
+		console.debug('[Lobby] Received handleLobbyUpdate:', data);
+		// US-1.3: Support both flat and nested data structures from server
+		const lobbyData = data.data || data;
+
 		// Update local state with server data
-		espTeams = data.espTeams;
-		destinations = data.destinations;
+		if (lobbyData.espTeams) espTeams = lobbyData.espTeams;
+		if (lobbyData.destinations) destinations = lobbyData.destinations;
 
 		// Store new player name if provided
-		if (data.newPlayer) {
-			playerNames[data.newPlayer.id] = data.newPlayer.displayName;
+		if (lobbyData.newPlayer) {
+			playerNames[lobbyData.newPlayer.id] = lobbyData.newPlayer.displayName;
 		}
 
 		// Recalculate slot counts
@@ -88,8 +97,11 @@
 	}
 
 	// US-1.4: Handle game state updates and redirect players
-	function handleGameStateUpdate(data: GameStateUpdate) {
-		if (data.phase === 'planning' && data.round === 1) {
+	function handleGameStateUpdate(data: GameStateUpdate | any) {
+		// Support both flat and nested data structures
+		const stateData = data.data || data;
+
+		if (stateData.phase === 'planning' && stateData.round === 1) {
 			// Game has started! Redirect based on player role
 			if (playerRole === 'ESP' && playerTeamName) {
 				// Redirect ESP players to their team dashboard

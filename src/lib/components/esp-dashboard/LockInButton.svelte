@@ -36,6 +36,10 @@
 	// Button should be visible in planning phase
 	let isVisible = $derived(phase === 'planning');
 
+	$effect(() => {
+		console.debug('[LockInButton] phase:', phase, 'isVisible:', isVisible);
+	});
+
 	// Button is disabled if:
 	// - Not in planning phase
 	// - Explicitly disabled

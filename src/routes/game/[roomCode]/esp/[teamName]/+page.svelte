@@ -310,18 +310,21 @@
 	 * Handle game state updates (phase, round, timer)
 	 */
 	function handleGameStateUpdate(data: any) {
+		const updateData = data.data || data;
+		const messageType = data.type || updateData.type;
+
 		// US-8.2-0.1: Handle timer_update messages
-		if (data.type === 'timer_update') {
-			gameState.isPaused = data.isPaused;
-			if (data.remainingTime !== undefined) {
-				gameState.timerSeconds = data.remainingTime;
+		if (messageType === 'timer_update') {
+			gameState.isPaused = updateData.isPaused;
+			if (updateData.remainingTime !== undefined) {
+				gameState.timerSeconds = updateData.remainingTime;
 			}
 			return;
 		}
 
 		// Handle incident_triggered messages (via incidentState composable)
-		if (data.type === 'incident_triggered' && data.incident) {
-			incidentState.showIncident(data.incident);
+		if (messageType === 'incident_triggered' && updateData.incident) {
+			incidentState.showIncident(updateData.incident);
 			return;
 		}
 
@@ -385,48 +388,58 @@
 			return;
 		}
 
-		if (data.phase) {
-			gameState.currentPhase = data.phase;
+		// Update game state metrics
+		if (updateData.timer_remaining !== undefined) {
+			gameState.timerSeconds = updateData.timer_remaining;
 		}
 
-		if (data.round !== undefined) {
-			gameState.currentRound = data.round;
-		}
+		// Handle phase and round transitions
+		if (updateData.phase || updateData.round !== undefined) {
+			const oldPhase = gameState.currentPhase;
+			const oldRound = gameState.currentRound;
 
-		if (data.timer_remaining !== undefined) {
-			gameState.timerSeconds = data.timer_remaining;
+			if (updateData.phase) gameState.currentPhase = updateData.phase;
+			if (updateData.round !== undefined) gameState.currentRound = updateData.round;
+
+			// US-3.2: Reset lock-in state when entering a new planning phase or round
+			if (
+				(gameState.currentPhase === 'planning' && oldPhase !== 'planning') ||
+				gameState.currentRound !== oldRound
+			) {
+				lockInState.resetLockIn();
+			}
 		}
 
 		// US-3.2: Handle WebSocket lock-in events
-		const messageType = data.type;
+		// Handled via messageType above
 
 		if (messageType === 'lock_in_confirmed') {
 			// Only process if this message is for THIS ESP team
 			const isForThisTeam =
-				data.role === 'ESP' && data.teamName?.toLowerCase() === teamName.toLowerCase();
+				updateData.role === 'ESP' && updateData.teamName?.toLowerCase() === teamName.toLowerCase();
 
 			if (isForThisTeam) {
 				// This team has successfully locked in
-				if (data.locked_in !== undefined) {
-					lockInState.isLockedIn = data.locked_in;
+				if (updateData.locked_in !== undefined) {
+					lockInState.isLockedIn = updateData.locked_in;
 				}
-				if (data.locked_in_at) {
-					lockInState.lockedInAt = new Date(data.locked_in_at);
+				if (updateData.locked_in_at) {
+					lockInState.lockedInAt = new Date(updateData.locked_in_at);
 				}
 			}
 		}
 
 		if (messageType === 'player_locked_in') {
 			// Any player locked in - update remaining count
-			if (data.remaining_players !== undefined) {
-				lockInState.remainingPlayers = data.remaining_players;
+			if (updateData.remaining_players !== undefined) {
+				lockInState.remainingPlayers = updateData.remaining_players;
 			}
 		}
 
 		if (messageType === 'auto_lock_warning') {
 			// 15-second warning before auto-lock
-			if (data.message) {
-				lockInState.autoLockMessage = data.message;
+			if (updateData.message) {
+				lockInState.autoLockMessage = updateData.message;
 			}
 		}
 
@@ -460,24 +473,24 @@
 
 		if (messageType === 'phase_transition') {
 			// Phase transition (e.g., to resolution) - via composables
-			if (data.data?.phase) {
-				gameState.currentPhase = data.data.phase;
+			if (updateData.phase) {
+				gameState.currentPhase = updateData.phase;
 			}
-			if (data.data?.round !== undefined) {
-				gameState.currentRound = data.data.round;
+			if (updateData.round !== undefined) {
+				gameState.currentRound = updateData.round;
 			}
 			// Update lock-in state when transitioning phases (US-8.2-0.0: Start Next Round)
-			if (data.data?.locked_in !== undefined) {
-				lockInState.isLockedIn = data.data.locked_in;
-				if (!data.data.locked_in) {
+			if (updateData.locked_in !== undefined) {
+				lockInState.isLockedIn = updateData.locked_in;
+				if (!updateData.locked_in) {
 					// Reset lock-in state when unlocking (composable handles message clearing logic)
 					lockInState.resetLockIn();
 				}
 			}
 			// US-3.5: Capture resolution results for consequences display
 			// First try current_round_results for convenience (from phase transition broadcast)
-			if (data.data?.current_round_results?.espResults) {
-				const espResults = data.data.current_round_results.espResults;
+			if (updateData.current_round_results?.espResults) {
+				const espResults = updateData.current_round_results.espResults;
 				const matchingKey = Object.keys(espResults).find(
 					(key) => key.toLowerCase() === teamName.toLowerCase()
 				);
@@ -624,6 +637,11 @@
 					return !loading && !error;
 				}, // Signal that initial fetch is complete
 				setCredits: (value: number) => (credits = value),
+				setReputation: (value: Record<string, number>) => (reputation = value),
+				setClients: (value: any[]) => (clients = value),
+				setOwnedTech: (value: string[]) => (ownedTech = value),
+				setRound: (value: number) => (gameState.currentRound = value),
+				setPhase: (value: string) => (gameState.currentPhase = value as any),
 				// Add pending onboarding decision for a client (US-2.1 test support)
 				addPendingOnboarding: (clientId: string, warmup: boolean, listHygiene: boolean) => {
 					pendingOnboardingDecisions = {
@@ -635,12 +653,6 @@
 				clearPendingOnboarding: () => {
 					pendingOnboardingDecisions = {};
 				},
-				setReputation: (value: Record<string, number>) =>
-					(reputation = { ...reputation, ...value }),
-				setClients: (value: typeof clients) => (clients = value),
-				setOwnedTech: (value: string[]) => (ownedTech = value),
-				setRound: (value: number) => (gameState.currentRound = value),
-				setPhase: (value: string) => (gameState.currentPhase = value),
 				setTimer: (value: number) => (gameState.timerSeconds = value),
 				setTimerSeconds: (value: number) => (gameState.timerSeconds = value), // Alias for setTimer (US-3.2)
 				triggerAutoLock: async () => {

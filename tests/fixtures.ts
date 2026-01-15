@@ -12,7 +12,8 @@
  *   });
  */
 
-import { test as base, Page, BrowserContext } from '@playwright/test';
+import { test as base } from '@playwright/test';
+import type { Page, BrowserContext } from '@playwright/test';
 import {
 	createTestSession,
 	addPlayer,
@@ -208,3 +209,4 @@ export const test = base.extend<GameFixtures>({
 });
 
 export { expect } from '@playwright/test';
+export type { Page, BrowserContext } from '@playwright/test';

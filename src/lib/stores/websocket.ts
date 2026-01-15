@@ -40,19 +40,17 @@ export interface ESPDashboardUpdate {
 	teamName?: string; // Team name to filter updates (only apply if matches)
 	credits?: number;
 	reputation?: Record<string, number>;
-	clients?: Array<{
-		name: string;
-		status: 'Active' | 'Paused';
-		revenue?: number;
-		volume?: string;
-		risk?: 'Low' | 'Medium' | 'High';
-	}>;
+	clients?: string[]; // IDs of active clients
 	owned_tech_upgrades?: string[]; // Owned technical upgrade IDs
 	pending_costs?: number;
 	// US-2.4: Client portfolio management
 	client_states?: Record<string, ClientState>; // Per-client state (status, onboarding, first_active_round)
 	budget_forecast?: number; // Budget after current round lock-in (including revenue and costs)
 	available_clients_count?: number; // Count of clients available in marketplace
+	available_clients?: import('$lib/server/game/types').Client[]; // US-8.2: Full definitions for facilitator sync
+	locked_in?: boolean; // US-3.2: Lock-in status
+	locked_in_at?: string | Date;
+	pending_onboarding_decisions?: Record<string, { warmUp: boolean; listHygiene: boolean }>;
 }
 
 export interface WebSocketStore {
@@ -131,6 +129,7 @@ function createWebSocketStore() {
 				ws.onmessage = (event) => {
 					try {
 						const message = JSON.parse(event.data) as ServerMessage;
+						console.debug('[WS Store] Received raw message:', message.type, message);
 
 						switch (message.type) {
 							case 'room_joined':
@@ -139,19 +138,40 @@ function createWebSocketStore() {
 
 							case 'lobby_update':
 								if (lobbyUpdateCallback) {
-									lobbyUpdateCallback(message.data);
+									lobbyUpdateCallback(message as any);
 								}
 								break;
 
 							case 'game_state_update':
 								// US-1.4: Handle game phase transitions
 								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback({
-										phase: message.phase,
-										round: message.round,
-										timer_duration: message.timer_duration,
-										timer_remaining: message.timer_remaining
+									const payload = (message as any).data || message;
+									const update: any = {};
+
+									if (payload.phase || (payload as any).current_phase) {
+										update.phase = payload.phase || (payload as any).current_phase;
+									}
+
+									if (payload.round !== undefined || (payload as any).current_round !== undefined) {
+										update.round = payload.round !== undefined ? payload.round : (payload as any).current_round;
+									}
+
+									if (payload.timer_duration !== undefined) update.timer_duration = payload.timer_duration;
+									if (payload.timer_remaining !== undefined) update.timer_remaining = payload.timer_remaining;
+
+									// US-8.2: Ensure type is included for component branching logic
+									const messageType = (message as any).type || payload.type;
+									if (messageType) update.type = messageType;
+
+									// Include any other fields (incident_history, results, etc)
+									Object.keys(payload).forEach(key => {
+										if (!['type', 'phase', 'current_phase', 'round', 'current_round', 'timer_duration', 'timer_remaining'].includes(key)) {
+											update[key] = payload[key];
+										}
 									});
+
+									console.debug('[WS Store] game_state_update:', update);
+									gameStateUpdateCallback(update);
 								}
 								break;
 
@@ -163,15 +183,17 @@ function createWebSocketStore() {
 							case 'esp_dashboard_update':
 								// US-2.1: ESP Dashboard real-time updates
 								if (espDashboardUpdateCallback) {
-									espDashboardUpdateCallback(message as unknown as ESPDashboardUpdate);
+									const payload = (message as any).data || message;
+									espDashboardUpdateCallback(payload as unknown as ESPDashboardUpdate);
 								}
 								break;
 
 							case 'destination_dashboard_update':
 								// US-2.5: Destination Dashboard real-time updates
 								if (destinationDashboardUpdateCallback) {
+									const payload = (message as any).data || message;
 									destinationDashboardUpdateCallback(
-										message as unknown as DestinationDashboardUpdate
+										payload as unknown as DestinationDashboardUpdate
 									);
 								}
 								break;
@@ -182,46 +204,19 @@ function createWebSocketStore() {
 							case 'auto_lock_corrections':
 							case 'auto_lock_complete':
 							case 'phase_transition':
-								// US-3.2: Decision Lock-In events
-								// Pass the entire message to gameStateUpdateCallback
-								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback(message);
-								}
-								break;
-
 							case 'incident_triggered':
-								// Incident Cards Phase 1: Pass incident card to gameStateUpdateCallback
-								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback(message);
-								}
-								break;
-
 							case 'incident_choice_required':
 							case 'incident_choice_confirmed':
-								// Phase 5: Pass choice incidents to gameStateUpdateCallback
-								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback(message);
-								}
-								break;
-
 							case 'investigation_update':
-								// US-2.7: Pass investigation updates (vote or result) to gameStateUpdateCallback
-								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback(message as any);
-								}
-								break;
-
 							case 'final_scores_calculated':
-								// US-5.2: Pass final scores to gameStateUpdateCallback
-								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback(message as any);
-								}
-								break;
-
 							case 'timer_update':
-								// US-8.2-0.1: Pass timer updates (pause, resume, extend) to gameStateUpdateCallback
+								// Standardize message delivery to gameStateUpdateCallback
 								if (gameStateUpdateCallback) {
-									gameStateUpdateCallback(message as any);
+									const payload = (message as any).data || message;
+									const update = { ...payload };
+									// Ensure type is preserved from the original message if not in payload
+									if (!update.type) update.type = message.type;
+									gameStateUpdateCallback(update as any);
 								}
 								break;
 

@@ -129,8 +129,8 @@
 						<!-- Phase 4.1.1+: Shows '-' when spam rate is 0 (no previous round data or no spam sent) -->
 						<div class="text-center p-2 bg-gray-50 rounded-lg">
 							<div class="text-xs text-gray-500 font-semibold mb-1">Spam Complaints</div>
-							{#if esp.spamComplaintRate === 0}
-								<!-- No spam data available (Round 1 or no spam sent) -->
+							{#if currentRound === 1 && esp.spamComplaintRate === 0}
+								<!-- No spam data available in Round 1 (no previous resolution) -->
 								<span data-testid="esp-spam-rate" class="text-lg font-bold text-gray-400"> - </span>
 							{:else}
 								<!-- Show spam volume and rate -->

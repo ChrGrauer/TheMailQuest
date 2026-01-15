@@ -130,7 +130,7 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 		await expect(spamSection).toBeVisible({ timeout: 5000 });
 		const spamPlaceholder = await spamSection.locator('text=/coming soon/i').count();
 		expect(spamPlaceholder).toBe(0);
-		await expect(spamSection).toContainText(/spam blocked/i);
+		await expect(spamSection).toContainText(/spam blocking performance/i);
 		await expect(spamSection).toContainText(/\d+/);
 		await expect(spamSection).toContainText(/false positive/i);
 		await expect(spamSection).toContainText(/legitimate/i);

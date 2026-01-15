@@ -56,7 +56,7 @@ export const TECHNICAL_UPGRADES: TechnicalUpgrade[] = [
 		id: 'dmarc',
 		name: 'DMARC Policy',
 		description: 'Domain-based Message Authentication, Reporting & Conformance',
-		cost: 400,
+		cost: 200,
 		mandatory: true,
 		mandatoryFrom: 3,
 		category: 'authentication',

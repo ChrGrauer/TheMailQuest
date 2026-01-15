@@ -213,7 +213,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		owned_tech_upgrades: acquisitionResult.team!.owned_tech_upgrades,
 		clients: acquisitionResult.team!.active_clients,
 		client_states: acquisitionResult.team!.client_states,
-		available_clients_count: availableClientsCount
+		available_clients_count: availableClientsCount,
+		available_clients: acquisitionResult.team!.available_clients // Include full definitions for facilitator sync
 	});
 
 	return json({
