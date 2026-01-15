@@ -25,7 +25,8 @@ Assist with writing, reviewing, and validating E2E tests for The Mail Quest. Thi
 - **Business logic**: Calculations, thresholds, game rules, formulas
 - **Error states**: Validation failures, edge cases, negative scenarios
 - **Feature-specific behavior**: Unique interactions and flows
-- **Data updates**: Verify correct values after operations
+- **Data updates**: Verify correct values after operations (e.g. budget deductions, revenue increases)
+- **Dynamic state**: Verify values across round transitions (Round 1 vs Round 2)
 
 #### What NOT to Test (❌ Avoid This)
 - **Setup validation**: Helpers are already tested by usage
@@ -440,6 +441,11 @@ await expect(playerPage.locator(`text=${displayName}`)).toBeVisible();
 // ✅ Test specific business values
 const reputation = await alicePage.getByTestId('reputation-gmail');
 await expect(reputation).toContainText('85'); // After resolution calculation
+
+// ✅ Test financial updates precisely
+const budget = await extractBudget(alicePage, 'budget-current');
+const revenue = await alicePage.getByTestId('revenue-earned').textContent();
+expect(revenue).toContain('150');
 
 // ❌ Don't just check visibility
 await expect(reputation).toBeVisible(); // Too generic

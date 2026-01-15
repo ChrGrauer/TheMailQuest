@@ -1,0 +1,235 @@
+# Claude Context - The Mail Quest
+
+## Project Overview
+**The Mail Quest** is a multiplayer game built with SvelteKit where ESP teams compete to deliver emails.
+
+**Development Methodology**: ATDD (Acceptance Test-Driven Development)
+0. Read `.feature` or spec files (with Gherkin acceptance criteria)
+1. Write/update types
+2. Write failing tests (Red phase); IMPORTANT : use your e2e skill .claude/skills/e2e-test-assistant.md
+3. Implement code to pass tests (Green phase)
+4. Refactor while keeping tests green
+
+## Tech Stack
+- **Framework**: SvelteKit 2.x with Svelte 5
+- **Language**: TypeScript (strongly preferred)
+- **Styling**: Tailwind CSS v4.1.15 (uses v4 syntax - see below)
+- **Testing**: Vitest (unit/integration) + Playwright (E2E)
+- **Logger**: Pino (server-side only)
+- **WebSocket**: ws library
+- cat -A doesn't work on macOS
+- **Build Resilience**: If Rollup or SvelteKit `fork` export errors occur, perform a clean install: `rm -rf node_modules package-lock.json && npm install`.
+
+## Critical Rules
+- ❌ use `console.log()` only for debugging - use Pino logger for prod (server-side)
+- ❌ No mocking in Vitest tests (test real implementations)
+- ✅ Follow hexagonal architecture for storage (port/adapter pattern)
+- ✅ Prefer editing existing files over creating new ones
+- ✅ Log all important events with Pino
+- ✅ Only create documentation when explicitly requested
+
+## Format
+### Configuration Used
+- Indentation: Tabs (2 spaces wide)
+- Line width: 100 characters
+- Quotes: Single quotes
+- Trailing commas: None
+
+### How to Use
+- Format all files: npm run format
+- Check if files need formatting (CI/pre-commit): npm run format:check
+
+## Tailwind CSS v4
+**CRITICAL**: Uses v4.1.15 syntax (different from v3):
+- ✅ `@import "tailwindcss";` (not `@tailwind base/components/utilities;`)
+- ✅ `@theme { --font-sans: 'Roboto'; }` (not `tailwind.config.js`)
+
+## UI Design System
+- **Font**: Roboto (400, 500, 600, 700)
+- **Colors**: Primary #10B981, Dark #0B5540, Light #D1FAE5
+- **Animations**: Svelte transitions (fly, scale, fade) with 50ms stagger
+- **Responsive**: Grid collapses to single column on mobile (lg:grid-cols-2)
+- **Max width**: 1400px main container
+
+## WebSocket Architecture
+**Setup**: Custom `server.js` wraps SvelteKit with WebSocket (uses `@sveltejs/adapter-node`)
+- **Production/Testing**: `npm run build && node server.js` (port 4173)
+- **Dev limitation**: WebSocket not available in `npm run dev`
+
+**Lazy Logger Pattern** (CRITICAL):
+```typescript
+// ✅ Lazy import to avoid $app/environment issues during Vite config
+let gameLogger: any = null;
+async function getLogger() {
+  if (!gameLogger) {
+    const module = await import('../logger');
+    gameLogger = module.gameLogger;
+  }
+  return gameLogger;
+}
+```
+
+**Message Types**: `lobby_update`, `game_state_update`, `esp_dashboard_update`, `destination_dashboard_update`
+
+**Broadcasting Patterns**:
+- Include computed/derived values in broadcasts to avoid client-side recomputation
+- Filter updates by recipient: check `destinationName` field before applying destination updates
+- Broadcast immediately after state changes for real-time sync
+```typescript
+// Filter destination-specific updates
+if (update.destinationName && update.destinationName !== destName) {
+  return; // Ignore updates for other destinations
+}
+```
+
+**State Reset Pattern**:
+Broadcast a specific event (e.g., `clear_votes`, `reset_state`) to ensure clients clear local ephemeral state when a shared process finishes or transitions.
+
+## Testing Patterns
+
+**Detailed testing guidance**: See `.claude/skills/e2e-test-assistant.md`
+
+### Quick Reference
+- **Test helpers**: `tests/helpers/game-setup.ts`, `tests/helpers/client-management.ts`, `tests/helpers/e2e-actions.ts`
+- **Test IDs catalog**: `TEST-IDS-REFERENCE.md`
+- **WebSocket sync tests**: `tests/websocket-sync.spec.ts`
+
+### Critical Rules
+- ❌ No mocking in Vitest tests (test real implementations)
+- ✅ Use `closePages()` for cleanup in all E2E tests
+- ✅ Focus on business logic, not setup validation
+- ✅ Trust your helpers - don't re-test what they already validate
+
+### Game Configuration
+Externalize game rules to config files (`src/lib/config/`) for easy balancing:
+```typescript
+export const TECHNICAL_UPGRADES: TechnicalUpgrade[] = [
+  { id: 'dmarc', cost: 200, mandatory: true, mandatoryFrom: 3 },
+];
+```
+
+## Accessibility
+- **Focus indicators**: All interactive elements need `focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2`
+- **Color-blind friendly**: Use icons + text labels alongside colors (✓/⚠/✗)
+- **ARIA attributes**: Add `aria-label`, `role`, `aria-live` for screen readers
+- **Modals**: Include `role="dialog"`, `aria-modal="true"`, `tabindex="-1"` on backdrop, Escape key support, click-outside to close
+
+## Error Handling
+- **Error Banner** (non-blocking): Fixed top banner for recoverable errors (network, sync)
+- **Error Page** (blocking): Full page replacement for critical errors (auth, fatal)
+- Use `role="alert"` and `aria-live="assertive"` for error messages
+
+### Modal Error Pattern
+Modals that display server data should handle two error types:
+```typescript
+interface ModalProps {
+  dashboardError?: string | null;  // Parent's data loading error
+  onRetry?: () => void;             // Callback to retry parent data fetch
+}
+
+// Internal error for modal operations
+let error = $state<string | null>(null);
+```
+**Benefits**: Separate concerns, clear error ownership, proper retry mechanism
+
+## API Endpoint Patterns
+
+### RESTful Structure
+Organize endpoints by resource hierarchy:
+```
+/api/sessions/[roomCode]/destination/[destName]/filtering   # Filtering operations
+/api/sessions/[roomCode]/destination/[destName]             # Destination data
+```
+
+### Endpoint Response Pattern
+```typescript
+// Success response
+return json({
+  success: true,
+  filtering_policies: updatedPolicies,  // Updated state
+  // Include related data that changed
+});
+
+// Error response
+return json(
+  { success: false, error: 'User-friendly message' },
+  { status: 400 }
+);
+```
+
+### WebSocket After Mutations
+Always broadcast after successful mutations:
+```typescript
+const result = updateFilteringPolicy(session, destName, espName, level);
+if (result.success) {
+  gameWss.broadcastToRoom(roomCode, {
+    type: 'destination_dashboard_update',
+    destinationName: destName,
+    filtering_policies: result.policies
+  });
+}
+```
+
+## TypeScript Safety
+- **Optional chaining**: Always use `?.` for optional fields (`client.status?.toLowerCase() || 'default'`)
+- **Server-side filtering**: Filter round-based data on server, send filtered results to reduce payload
+- **Robust Equality**: Use loose equality `==` when filtering data by round number in Svelte components to handle potential string/number type mismatches from JSON serialization.
+
+## Git Commits
+Organize commits by concern:
+1. **Feature**: `Implement US-X.X: Feature Name`
+2. **Refactor**: `refactor: Extract shared components`
+3. **Fix**: `fix: Connect feature to existing system`
+
+## State Management
+
+### Resource Tracking Pattern
+Separate arrays for definitions vs. ownership:
+```typescript
+interface Team {
+  available_clients: Client[];    // ALL definitions (immutable source)
+  active_clients: string[];       // IDs of owned items
+  client_states: Record<string, ClientState>;  // Runtime state
+}
+// Acquisition: Add to active_clients, keep available_clients unchanged
+// Portfolio: available_clients.filter(c => active_clients.includes(c.id))
+// Marketplace: available_clients.filter(c => !active_clients.includes(c.id))
+```
+**Why**: Immutable source prevents data inconsistencies, easy filtering for different views
+
+### Svelte 5 Two-way Binding
+Use `$bindable()` and `bind:` prefix:
+```svelte
+// Child: let { show = $bindable() }: Props = $props();
+// Parent: <Modal bind:show={showModal} />  <!-- bind: prefix required -->
+```
+
+## Component Organization
+
+### Shared Components Pattern
+Extract reusable UI patterns into `src/lib/components/shared/`:
+- **When**: Component used in 2+ places with identical/similar styling
+- **Benefits**: DRY principle, consistent appearance, easy updates
+- **Example**: StatusBadge with `role="status"` and `aria-label`, FilteringSliderItem for reusable controls
+
+### Utility Functions
+Create utility functions in `src/lib/utils/` for business logic calculations:
+```typescript
+// src/lib/utils/filtering.ts
+export function calculateImpactValues(level: FilteringLevel) {
+  const impacts = {
+    permissive: { spamReduction: 0, falsePositives: 0 },
+    moderate: { spamReduction: 50, falsePositives: 5 },
+    // ...
+  };
+  return impacts[level];
+}
+```
+**Benefits**: Testable, reusable, separates logic from UI, easy to adjust game balance
+
+### Manager Pattern
+Organize server-side business logic in `src/lib/server/game/`:
+- **Managers**: Handle single responsibility (e.g., `filtering-policy-manager.ts`)
+- **Include**: CRUD operations, validation, state transitions
+- **Test file**: Co-locate tests as `<manager-name>.test.ts`
+- **Export**: Clear interfaces and result types

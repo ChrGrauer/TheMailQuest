@@ -97,6 +97,25 @@ function calculateScore() {
 }
 ```
 
+#### 🔄 Synchronization & State Patterns
+
+**Server-Side Mutation Order**
+When updating game state that triggers UI updates:
+1. **Mutate state first** (e.g., deduct costs, update reputation).
+2. **Execute derived logic** (e.g., check for triggers).
+3. **Broadcast updates last** (ensure dashboard values match final state).
+
+**Frontend Data Extraction (Svelte 5)**
+When receiving aggregate state updates (e.g., `game_state_update`):
+- Avoid using the entire aggregate object in a specific component.
+- Extract the relevant slice immediately in the handler:
+```typescript
+function handleGameStateUpdate(results) {
+  // ✅ Targeted extraction
+  currentResolution = results.destinationResults?.[destName];
+}
+```
+
 #### Component Reusability Checklist
 When reviewing a component, verify:
 - [ ] Has generic naming (no specific use-case references like `ESPDashboardForRound2`)
