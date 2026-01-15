@@ -44,16 +44,6 @@
 	// US-2.7: Get the investigation for this round (all destinations see results, not just voters)
 	let currentRoundInvestigation = $derived(currentRoundInvestigations[0] || null);
 
-	$effect(() => {
-		console.log('[DestinationConsequences] Debug:', {
-			destinationName,
-			currentRound,
-			historyLength: investigationHistory.length,
-			currentRoundInvestigationsCount: currentRoundInvestigations.length,
-			investigationRounds: investigationHistory.map((inv) => inv.round)
-		});
-	});
-
 	// US-2.7: Check if this destination voted in the investigation (for display purposes)
 	let thisDestinationVoted = $derived(
 		currentRoundInvestigation?.voters.includes(destinationName) ?? false

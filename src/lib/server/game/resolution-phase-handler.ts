@@ -166,19 +166,7 @@ export function handleResolutionPhase(
 						}
 					};
 
-					gameLogger.info('Broadcasting phase transition with investigation history', {
-						roomCode,
-						round: session.current_round,
-						historyLength: session.investigation_history?.length || 0,
-						lastEntryTarget: session.investigation_history?.[session.investigation_history.length - 1]?.targetEsp
-					});
-
 					broadcast(roomCode, message);
-
-					gameLogger.info('Phase transitioned to consequences', {
-						roomCode,
-						round: session.current_round
-					});
 				} else {
 					gameLogger.error(new Error('Failed to transition to consequences'), {
 						context: 'handleResolutionPhase',
