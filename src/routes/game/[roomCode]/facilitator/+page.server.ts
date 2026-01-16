@@ -7,6 +7,7 @@
 
 import type { PageServerLoad } from './$types';
 import { getSession } from '$lib/server/game/session-manager';
+import { getPlayersByIds } from '$lib/server/game/player-manager';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 	const { roomCode } = params;
@@ -25,6 +26,23 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		};
 	}
 
+	// Resolve player names from IDs
+	const allPlayerIds = [
+		...session.esp_teams.flatMap((t) => t.players),
+		...session.destinations.flatMap((d) => d.players)
+	];
+
+	// Filter out empty/null IDs just in case
+	const validPlayerIds = allPlayerIds.filter((id) => id && typeof id === 'string');
+
+	const allPlayers = getPlayersByIds(validPlayerIds);
+	const playerMap = new Map(allPlayers.map((p) => [p.id, p.displayName]));
+
+	const getPlayerNames = (ids: string[]) => {
+		if (!ids || ids.length === 0) return [];
+		return ids.map((id) => playerMap.get(id) || 'Unknown');
+	};
+
 	// Return session data for metrics
 	return {
 		initialData: {
@@ -34,6 +52,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 			currentPhase: session.current_phase,
 			espTeams: session.esp_teams.map((esp) => ({
 				name: esp.name,
+				players: getPlayerNames(esp.players),
 				budget: esp.credits,
 				reputation: esp.reputation,
 				ownedTechUpgrades: esp.owned_tech_upgrades,
@@ -44,6 +63,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 			})),
 			destinations: session.destinations.map((dest) => ({
 				name: dest.name,
+				players: getPlayerNames(dest.players),
 				kingdom: dest.kingdom || dest.name,
 				budget: dest.budget,
 				ownedTools: dest.owned_tools || [],

@@ -16,9 +16,11 @@
 	import { TECHNICAL_UPGRADES } from '$lib/config/technical-upgrades';
 	import { DESTINATION_TOOLS } from '$lib/config/destination-technical-upgrades';
 
+	import DashboardHeader from '$lib/components/shared/DashboardHeader.svelte';
 	// US-8.2-0.2: Types for metrics data
 	interface ESPMetrics {
 		name: string;
+		players: string[];
 		budget: number;
 		reputation: Record<string, number>;
 		ownedTechUpgrades: string[];
@@ -30,6 +32,7 @@
 
 	interface DestinationMetrics {
 		name: string;
+		players: string[];
 		kingdom: string;
 		budget: number;
 		ownedTools: string[];
@@ -121,6 +124,7 @@
 					...espTeams,
 					{
 						name: newTeam.name,
+						players: newTeam.players || [],
 						budget: 1000,
 						reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
 						ownedTechUpgrades: [],
@@ -678,18 +682,15 @@
 </script>
 
 <div class="container">
-	<h1>Facilitator Dashboard</h1>
-	<p>Room Code: {roomCode}</p>
-	<p>Round {round} - <span data-testid="current-phase">{phase}</span> Phase</p>
-
-	<div class="timer-container">
-		<div data-testid="game-timer" class="timer">
-			{timerDisplay}
-		</div>
-		{#if isPaused}
-			<span data-testid="timer-paused-indicator" class="paused-indicator">PAUSED</span>
-		{/if}
-	</div>
+	<DashboardHeader
+		entityName="Facilitator"
+		currentRound={round}
+		totalRounds={4}
+		timerSeconds={timerRemaining}
+		theme="neutral"
+		{isPaused}
+		showBudget={false}
+	/>
 
 	<!-- Facilitator Actions -->
 	<div class="actions-panel">
@@ -816,7 +817,14 @@
 				<tbody>
 					{#each espTeams as esp}
 						<tr data-testid="esp-row-{esp.name}">
-							<td class="team-name">{esp.name}</td>
+							<td class="team-name">
+								{esp.name}
+								{#if esp.players && esp.players.length > 0}
+									<span class="text-xs text-gray-500 font-normal block"
+										>({esp.players.join(', ')})</span
+									>
+								{/if}
+							</td>
 							<td data-testid="esp-lock-status">
 								{#if esp.lockedIn}
 									<span class="text-emerald-500 font-semibold flex items-center gap-1">
@@ -877,22 +885,23 @@
 				<tbody>
 					{#each destinations as dest}
 						<tr data-testid="dest-row-{dest.name}">
-							<td class="dest-name">{dest.name}</td>
-							<td class="text-center">
+							<td class="dest-name">
+								{dest.name}
+								{#if dest.players && dest.players.length > 0}
+									<span class="text-xs text-gray-500 font-normal block"
+										>({dest.players.join(', ')})</span
+									>
+								{/if}
+							</td>
+							<td class="text-center" data-testid="dest-lock-status">
 								{#if dest.lockedIn}
 									<span
-										class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800"
-										data-testid="dest-status-locked"
+										class="text-emerald-500 font-semibold flex items-center justify-center gap-1"
 									>
-										Locked
+										<span data-testid="dest-lock-icon" class="text-lg">✓</span> Locked In
 									</span>
 								{:else}
-									<span
-										class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800"
-										data-testid="dest-status-planning"
-									>
-										Planning...
-									</span>
+									<span class="text-amber-500 font-medium animate-pulse">Planning...</span>
 								{/if}
 							</td>
 							<td data-testid="dest-budget">{dest.budget}</td>

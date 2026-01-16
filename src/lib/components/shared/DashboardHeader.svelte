@@ -25,12 +25,14 @@
 		timerSeconds?: number;
 		/** Callback when timer updates */
 		onTimerUpdate?: (seconds: number) => void;
-		/** Theme color: 'emerald' for ESP, 'blue' for Destination */
-		theme?: 'emerald' | 'blue';
+		/** Theme color: 'emerald' for ESP, 'blue' for Destination, 'neutral' for Facilitator */
+		theme?: 'emerald' | 'blue' | 'neutral';
 		/** Whether decisions are locked in (US-3.2) */
 		isLockedIn?: boolean;
 		/** Whether the game is paused (US-8.2-0.1) */
 		isPaused?: boolean;
+		/** Whether to show the budget section (default: true) */
+		showBudget?: boolean;
 	}
 
 	let {
@@ -43,7 +45,8 @@
 		onTimerUpdate,
 		theme = 'emerald',
 		isLockedIn = false,
-		isPaused = false
+		isPaused = false,
+		showBudget = true
 	}: Props = $props();
 
 	// Calculate forecast budget after lock-in
@@ -97,9 +100,15 @@
 
 	// Theme-specific colors
 	let avatarGradient = $derived(
-		theme === 'emerald' ? 'from-emerald-400 to-emerald-600' : 'from-blue-500 to-blue-700'
+		theme === 'emerald'
+			? 'from-emerald-400 to-emerald-600'
+			: theme === 'blue'
+				? 'from-blue-500 to-blue-700'
+				: 'from-slate-400 to-slate-600'
 	);
-	let budgetColor = $derived(theme === 'emerald' ? 'text-emerald-600' : 'text-blue-600');
+	let budgetColor = $derived(
+		theme === 'emerald' ? 'text-emerald-600' : theme === 'blue' ? 'text-blue-600' : 'text-slate-600'
+	);
 </script>
 
 <header data-testid="game-header" class="bg-white px-6 py-4 shadow-sm sticky top-0 z-10">
@@ -107,13 +116,21 @@
 		<!-- Entity Info -->
 		<div class="flex items-center gap-3">
 			<div
-				data-testid={theme === 'blue' ? 'destination-icon' : 'team-icon'}
+				data-testid={theme === 'neutral'
+					? 'facilitator-avatar'
+					: theme === 'blue'
+						? 'destination-icon'
+						: 'team-icon'}
 				class="w-12 h-12 rounded-full bg-gradient-to-br {avatarGradient} flex items-center justify-center text-white font-bold text-lg shadow-md"
 			>
 				{entityInitials}
 			</div>
 			<h1
-				data-testid={theme === 'blue' ? 'destination-name' : 'team-name'}
+				data-testid={theme === 'neutral'
+					? 'facilitator-name'
+					: theme === 'blue'
+						? 'destination-name'
+						: 'team-name'}
 				class="text-2xl font-bold text-gray-800"
 			>
 				{entityName}
@@ -121,36 +138,38 @@
 		</div>
 
 		<!-- Budget Display -->
-		<div class="flex items-center gap-6">
-			<!-- Current Budget -->
-			<div class="text-right">
-				<div class="text-xs text-gray-500 uppercase tracking-wide">Budget</div>
-				<div
-					data-testid="budget-current"
-					class="text-3xl font-bold {budgetColor} flex items-baseline gap-2"
-				>
-					{currentBudget.toLocaleString()}
-					<span class="text-base text-gray-500">credits</span>
-				</div>
-			</div>
-
-			<!-- Forecast Budget (After Lock-in) - ESP only -->
-			{#if showForecast}
-				<div class="text-right border-l border-gray-300 pl-6">
-					<div class="text-xs text-gray-500 uppercase tracking-wide">After Lock-in</div>
+		{#if showBudget}
+			<div class="flex items-center gap-6">
+				<!-- Current Budget -->
+				<div class="text-right">
+					<div class="text-xs text-gray-500 uppercase tracking-wide">Budget</div>
 					<div
-						data-testid="budget-forecast"
-						class="text-2xl font-semibold text-gray-500 opacity-75 flex items-baseline gap-2"
+						data-testid="budget-current"
+						class="text-3xl font-bold {budgetColor} flex items-baseline gap-2"
 					>
-						{forecastBudget.toLocaleString()}
-						<span class="text-sm text-gray-400">credits</span>
-					</div>
-					<div data-testid="pending-costs" class="text-xs text-orange-600 mt-0.5">
-						-{pendingCosts.toLocaleString()} pending
+						{currentBudget.toLocaleString()}
+						<span class="text-base text-gray-500">credits</span>
 					</div>
 				</div>
-			{/if}
-		</div>
+
+				<!-- Forecast Budget (After Lock-in) - ESP only -->
+				{#if showForecast}
+					<div class="text-right border-l border-gray-300 pl-6">
+						<div class="text-xs text-gray-500 uppercase tracking-wide">After Lock-in</div>
+						<div
+							data-testid="budget-forecast"
+							class="text-2xl font-semibold text-gray-500 opacity-75 flex items-baseline gap-2"
+						>
+							{forecastBudget.toLocaleString()}
+							<span class="text-sm text-gray-400">credits</span>
+						</div>
+						<div data-testid="pending-costs" class="text-xs text-orange-600 mt-0.5">
+							-{pendingCosts.toLocaleString()} pending
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
 
 		<!-- Game State Info -->
 		<div class="flex items-center gap-6">
