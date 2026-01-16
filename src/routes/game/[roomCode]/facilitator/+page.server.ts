@@ -47,7 +47,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 				kingdom: dest.kingdom || dest.name,
 				budget: dest.budget,
 				ownedTools: dest.owned_tools || [],
-				espMetrics: dest.esp_metrics || {}
+				espMetrics: dest.esp_metrics || {},
+				lockedIn: dest.locked_in || false
 			})),
 			// Include resolution history for spam rate data
 			resolutionHistory: session.resolution_history || []

@@ -293,6 +293,7 @@ export interface DestinationDashboardUpdate {
 	authentication_level?: number;
 	// US-8.2-0.2: ESP metrics for facilitator dashboard updates
 	esp_metrics?: Record<string, { user_satisfaction: number; spam_level: number }>;
+	locked_in?: boolean; // US-3.2: Lock-in status
 }
 
 /**

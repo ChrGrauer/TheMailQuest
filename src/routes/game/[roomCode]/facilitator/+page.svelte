@@ -34,6 +34,7 @@
 		budget: number;
 		ownedTools: string[];
 		espMetrics: Record<string, { user_satisfaction: number; spam_level: number }>;
+		lockedIn: boolean; // US-3.2: Add lock status
 	}
 
 	// Props from server load
@@ -160,11 +161,25 @@
 		// Handle player_locked_in messages
 		if (data.type === 'player_locked_in' || stateData.type === 'player_locked_in') {
 			const playerName = stateData.playerName || stateData.teamName;
+			console.log('[Facilitator] Player locked in:', playerName, 'Role:', stateData.role);
 			// US-3.2: Only update lock status if in planning phase
 			if (playerName && phase === 'planning') {
-				espTeams = espTeams.map((esp) =>
-					esp.name.toLowerCase() === playerName.toLowerCase() ? { ...esp, lockedIn: true } : esp
-				);
+				espTeams = espTeams.map((esp) => {
+					if (esp.name.toLowerCase() === playerName.toLowerCase()) {
+						console.log('[Facilitator] Matching ESP team found:', esp.name);
+						return { ...esp, lockedIn: true };
+					}
+					return esp;
+				});
+
+				// US-3.2: Also update destinations lock status
+				destinations = destinations.map((dest) => {
+					if (dest.name.toLowerCase() === playerName.toLowerCase()) {
+						console.log('[Facilitator] Matching destination found:', dest.name);
+						return { ...dest, lockedIn: true };
+					}
+					return dest;
+				});
 			}
 			return;
 		}
@@ -332,16 +347,18 @@
 			update.destinationName,
 			update
 		);
-		if (!update.destinationName) return;
+		const destName = update.destinationName;
+		if (!destName) return;
 
 		destinations = destinations.map((dest) => {
-			if (dest.name !== update.destinationName) return dest;
+			if (dest.name.toLowerCase() !== destName.toLowerCase()) return dest;
 
 			return {
 				...dest,
 				budget: update.budget ?? dest.budget,
 				ownedTools: update.owned_tools ?? dest.ownedTools,
-				espMetrics: update.esp_metrics ?? dest.espMetrics
+				espMetrics: update.esp_metrics ?? dest.espMetrics,
+				lockedIn: update.locked_in ?? dest.lockedIn
 			};
 		});
 	}
@@ -851,6 +868,7 @@
 				<thead>
 					<tr>
 						<th>Destination</th>
+						<th class="text-center">Status</th>
 						<th>Budget</th>
 						<th>User Satisfaction</th>
 						<th>Tech Tools</th>
@@ -860,6 +878,23 @@
 					{#each destinations as dest}
 						<tr data-testid="dest-row-{dest.name}">
 							<td class="dest-name">{dest.name}</td>
+							<td class="text-center">
+								{#if dest.lockedIn}
+									<span
+										class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800"
+										data-testid="dest-status-locked"
+									>
+										Locked
+									</span>
+								{:else}
+									<span
+										class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800"
+										data-testid="dest-status-planning"
+									>
+										Planning...
+									</span>
+								{/if}
+							</td>
 							<td data-testid="dest-budget">{dest.budget}</td>
 							<td data-testid="dest-satisfaction">{getDestinationSatisfaction(dest)}</td>
 							<td data-testid="dest-tech-tools" class="tech-tools-cell">

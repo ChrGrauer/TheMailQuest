@@ -113,6 +113,7 @@ export interface DestinationDashboardUpdateMessage {
 	owned_tools?: string[];
 	authentication_level?: number;
 	esp_metrics?: Record<string, { user_satisfaction: number; spam_level: number }>;
+	locked_in?: boolean;
 }
 
 /**

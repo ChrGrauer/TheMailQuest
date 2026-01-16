@@ -39,12 +39,6 @@
 			{#if isFacilitator && !gameStarted}
 				<div class="flex gap-4">
 					<button
-						disabled
-						class="cursor-not-allowed rounded-lg border-2 border-[#E5E7EB] bg-white px-8 py-4 font-semibold text-[#6B7280] opacity-50 transition-all hover:bg-[#F9FAFB] active:scale-95"
-					>
-						Settings
-					</button>
-					<button
 						on:click={onStartGame}
 						disabled={!canStartGame || isStartingGame}
 						class="rounded-lg bg-gradient-to-r from-[#0B5540] to-[#10B981] px-8 py-4 font-semibold text-white shadow-lg transition-all hover:shadow-xl active:scale-95 {!canStartGame ||

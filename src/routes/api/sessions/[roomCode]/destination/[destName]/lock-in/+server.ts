@@ -100,6 +100,15 @@ export const POST: RequestHandler = async ({ params }) => {
 		locked_in_at: result.locked_in_at!
 	});
 
+	// US-8.2: Broadcast updated dashboard data for facilitator (include locked_in)
+	gameWss.broadcastToRoom(roomCode, {
+		type: 'destination_dashboard_update',
+		destinationName: destName,
+		budget: destination.budget,
+		owned_tools: destination.owned_tools,
+		locked_in: true
+	});
+
 	// Broadcast player_locked_in to all players in room
 	gameWss.broadcastToRoom(roomCode, {
 		type: 'player_locked_in',
