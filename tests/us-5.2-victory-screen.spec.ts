@@ -124,6 +124,11 @@ test.describe('US-5.2: Victory Screen', () => {
 		await expect(alicePage.getByTestId('victory-screen')).toBeVisible();
 		await expect(gmailPage.getByTestId('victory-screen')).toBeVisible();
 
+		// Facilitator verification (US-5.2 additional requirement)
+		await expect(page.getByTestId('victory-screen')).toBeVisible();
+		await expect(page.getByTestId('esp-leaderboard')).toBeVisible();
+		await expect(page.getByTestId('destination-results')).toBeVisible();
+
 		await closePages(page, alicePage, gmailPage);
 	});
 

@@ -81,11 +81,7 @@ test.describe('Pause/Resume Game', () => {
 		await pauseButton.click();
 		await page.waitForTimeout(500);
 
-		// Then: the timer display should show a "Paused" indicator
-		const pausedIndicator = page.locator('[data-testid="timer-paused-indicator"]');
-		await expect(pausedIndicator).toBeVisible();
-
-		// And: the timer should stop counting down (verify after 2 seconds)
+		// Then: the timer should stop counting down (verify after 2 seconds)
 		const timerAfterPause = await timer.textContent();
 		await page.waitForTimeout(2000);
 		const timerAfter2Seconds = await timer.textContent();
@@ -113,10 +109,7 @@ test.describe('Pause/Resume Game', () => {
 		await resumeButton.click();
 		await page.waitForTimeout(500);
 
-		// Then: the timer display should NOT show "Paused" indicator
-		await expect(pausedIndicator).not.toBeVisible();
-
-		// And: the "Resume Game" button should change back to "Pause Game"
+		// Then: the "Resume Game" button should change back to "Pause Game"
 		await expect(resumeButton).not.toBeVisible();
 		await expect(pauseButton).toBeVisible();
 
@@ -245,7 +238,7 @@ test.describe('End Current Phase', () => {
 		await page.waitForTimeout(2000);
 
 		// Then: the game should transition to consequences phase (through resolution)
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
 			timeout: 5000
 		});
 

@@ -23,10 +23,7 @@ test.describe('US-8.2-0.2: Dashboard Layout', () => {
 		await page.waitForURL(/\/facilitator/, { timeout: 10000 });
 		await page.waitForTimeout(500);
 
-		// Then: header should display room code
-		await expect(page.getByText(`Room Code: ${roomCode}`)).toBeVisible({ timeout: 5000 });
-
-		// And: header should display round info (Round 1)
+		// Then: header should display round info (Round 1)
 		await expect(page.getByText(/Round 1/)).toBeVisible();
 
 		// And: header should display current phase

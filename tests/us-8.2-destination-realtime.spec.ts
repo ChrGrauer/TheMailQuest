@@ -54,8 +54,8 @@ test.describe('US-8.2: Real-time Destination Updates', () => {
 
         // Then: Facilitator dashboard should show Destination as "Locked"
         await facilitatorPage.bringToFront();
-        await expect(gmailRow.locator('[data-testid="dest-status-locked"]')).toBeVisible({ timeout: 15000 });
-        await expect(gmailRow.locator('[data-testid="dest-status-locked"]')).toContainText('Locked');
+        await expect(gmailRow.locator('[data-testid="dest-lock-status"]')).toBeVisible({ timeout: 15000 });
+        await expect(gmailRow.locator('[data-testid="dest-lock-status"]')).toContainText('Locked');
 
         await closePages(facilitatorPage, destinationPage, alicePage, bobPage);
     });

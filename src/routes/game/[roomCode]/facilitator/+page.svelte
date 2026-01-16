@@ -15,6 +15,8 @@
 	import IncidentHistory from '$lib/components/incident/IncidentHistory.svelte';
 	import { TECHNICAL_UPGRADES } from '$lib/config/technical-upgrades';
 	import { DESTINATION_TOOLS } from '$lib/config/destination-technical-upgrades';
+	import VictoryScreen from '$lib/components/victory/VictoryScreen.svelte';
+	import type { FinalScoreOutput } from '$lib/server/game/final-score-types';
 
 	import DashboardHeader from '$lib/components/shared/DashboardHeader.svelte';
 	// US-8.2-0.2: Types for metrics data
@@ -93,7 +95,11 @@
 	let showIncidentSelectionModal = $state(false);
 	let showIncidentCard = $state(false);
 	let currentIncident = $state<IncidentCard | null>(null);
+
 	let incidentHistory = $state<IncidentHistoryEntry[]>([]);
+
+	// Final scores state
+	let finalScores = $state<FinalScoreOutput | null>(null);
 
 	// Format timer as M:SS
 	let timerDisplay = $derived(
@@ -200,8 +206,9 @@
 
 				// Clear lock-in status when moving to planning or other interactive phases
 				if (phase === 'planning' || phase === 'resolution') {
-					console.debug(`[Facilitator] Resetting espTeams locks for phase: ${phase}`);
+					console.debug(`[Facilitator] Resetting locks for phase: ${phase}`);
 					espTeams = espTeams.map((esp) => ({ ...esp, lockedIn: false }));
+					destinations = destinations.map((dest) => ({ ...dest, lockedIn: false }));
 				}
 			}
 			if (data.data.round !== undefined) {
@@ -240,8 +247,9 @@
 
 			// US-3.2: Reset locks if moving to planning from something else
 			if (phase === 'planning' && oldPhase !== 'planning') {
-				console.debug('[Facilitator] Resetting espTeams locks via game_state_update');
+				console.debug('[Facilitator] Resetting locks via game_state_update');
 				espTeams = espTeams.map((esp) => ({ ...esp, lockedIn: false }));
+				destinations = destinations.map((dest) => ({ ...dest, lockedIn: false }));
 			}
 		}
 		if (data.timer_remaining !== undefined) {
@@ -254,6 +262,17 @@
 		// Update incident history if present
 		if (data.incident_history !== undefined) {
 			incidentHistory = data.incident_history;
+		}
+
+		// US-5.2: Handle final scores calculated
+		if (data.type === 'final_scores_calculated') {
+			finalScores = {
+				espResults: data.espResults,
+				winner: data.winner,
+				destinationResults: data.destinationResults,
+				metadata: data.metadata
+			};
+			return;
 		}
 	}
 
@@ -692,6 +711,23 @@
 		showBudget={false}
 	/>
 
+	<!-- Phase Indicator (restored for tests/clarity) -->
+	<div class="text-center my-4">
+		<span
+			data-testid="current-phase"
+			class="inline-block px-4 py-2 rounded-full font-bold text-sm uppercase tracking-wide
+			{phase === 'planning'
+				? 'bg-emerald-100 text-emerald-800'
+				: phase === 'consequences'
+					? 'bg-purple-100 text-purple-800'
+					: phase === 'resolution'
+						? 'bg-blue-100 text-blue-800'
+						: 'bg-gray-100 text-gray-800'}"
+		>
+			{phase === 'consequences' ? 'Consequences Phase' : phase}
+		</span>
+	</div>
+
 	<!-- Facilitator Actions -->
 	<div class="actions-panel">
 		<!-- US-8.2-0.1: Timer Controls (planning phase only) -->
@@ -796,149 +832,154 @@
 		</div>
 	{/if}
 
-	<!-- US-8.2-0.2: ESP Metrics Table -->
-	<section class="metrics-section">
-		<h2>ESP Teams</h2>
-		<div class="table-container">
-			<table data-testid="esp-metrics-table" class="metrics-table">
-				<thead>
-					<tr>
-						<th>Team</th>
-						<th>Status</th>
-						<th>Budget</th>
-						<th>Gmail Rep</th>
-						<th>Outlook Rep</th>
-						<th>Yahoo Rep</th>
-						<th>Spam Rate</th>
-						<th>Clients</th>
-						<th>Tech Tools</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each espTeams as esp}
-						<tr data-testid="esp-row-{esp.name}">
-							<td class="team-name">
-								{esp.name}
-								{#if esp.players && esp.players.length > 0}
-									<span class="text-xs text-gray-500 font-normal block"
-										>({esp.players.join(', ')})</span
-									>
-								{/if}
-							</td>
-							<td data-testid="esp-lock-status">
-								{#if esp.lockedIn}
-									<span class="text-emerald-500 font-semibold flex items-center gap-1">
-										<span data-testid="lock-icon" class="text-lg">✓</span> Locked In
-									</span>
-								{:else if phase === 'planning'}
-									<span class="text-amber-500 font-medium animate-pulse">Planning...</span>
-								{:else}
-									<span class="text-gray-400">Idle</span>
-								{/if}
-							</td>
-							<td data-testid="esp-budget">{esp.budget}</td>
-							<td data-testid="esp-rep-Gmail">{esp.reputation?.Gmail ?? 70}</td>
-							<td data-testid="esp-rep-Outlook">{esp.reputation?.Outlook ?? 70}</td>
-							<td data-testid="esp-rep-Yahoo">{esp.reputation?.Yahoo ?? 70}</td>
-							<td data-testid="esp-spam-rate">{getSpamRate(esp.name)}</td>
-							<td data-testid="esp-clients"
-								>{getClientsByType(esp.activeClients, esp.availableClients, esp.clientStates)}</td
-							>
-							<td data-testid="esp-tech-tools" class="tech-tools-cell">
-								{#each TECHNICAL_UPGRADES as tech}
-									<span
-										data-testid="tech-{tech.id}"
-										data-owned={esp.ownedTechUpgrades.includes(tech.id) ? 'true' : 'false'}
-										class="tech-badge"
-										class:owned={esp.ownedTechUpgrades.includes(tech.id)}
-									>
-										{tech.id === 'content-filtering'
-											? 'Content'
-											: tech.id === 'advanced-monitoring'
-												? 'Monitor'
-												: tech.id.toUpperCase()}
-										{esp.ownedTechUpgrades.includes(tech.id) ? '✓' : '✗'}
-									</span>
-								{/each}
-							</td>
+	{#if phase === 'finished' && finalScores}
+		<!-- US-5.2: Victory Screen for Facilitator -->
+		<VictoryScreen {finalScores} />
+	{:else}
+		<!-- US-8.2-0.2: ESP Metrics Table -->
+		<section class="metrics-section">
+			<h2>ESP Teams</h2>
+			<div class="table-container">
+				<table data-testid="esp-metrics-table" class="metrics-table">
+					<thead>
+						<tr>
+							<th>Team</th>
+							<th>Status</th>
+							<th>Budget</th>
+							<th>Gmail Rep</th>
+							<th>Outlook Rep</th>
+							<th>Yahoo Rep</th>
+							<th>Spam Rate</th>
+							<th>Clients</th>
+							<th>Tech Tools</th>
 						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	</section>
+					</thead>
+					<tbody>
+						{#each espTeams as esp}
+							<tr data-testid="esp-row-{esp.name}">
+								<td class="team-name">
+									{esp.name}
+									{#if esp.players && esp.players.length > 0}
+										<span class="text-xs text-gray-500 font-normal block"
+											>({esp.players.join(', ')})</span
+										>
+									{/if}
+								</td>
+								<td data-testid="esp-lock-status">
+									{#if esp.lockedIn}
+										<span class="text-emerald-500 font-semibold flex items-center gap-1">
+											<span data-testid="lock-icon" class="text-lg">✓</span> Locked In
+										</span>
+									{:else if phase === 'planning'}
+										<span class="text-amber-500 font-medium animate-pulse">Planning...</span>
+									{:else}
+										<span class="text-gray-400">Idle</span>
+									{/if}
+								</td>
+								<td data-testid="esp-budget">{esp.budget}</td>
+								<td data-testid="esp-rep-Gmail">{esp.reputation?.Gmail ?? 70}</td>
+								<td data-testid="esp-rep-Outlook">{esp.reputation?.Outlook ?? 70}</td>
+								<td data-testid="esp-rep-Yahoo">{esp.reputation?.Yahoo ?? 70}</td>
+								<td data-testid="esp-spam-rate">{getSpamRate(esp.name)}</td>
+								<td data-testid="esp-clients"
+									>{getClientsByType(esp.activeClients, esp.availableClients, esp.clientStates)}</td
+								>
+								<td data-testid="esp-tech-tools" class="tech-tools-cell">
+									{#each TECHNICAL_UPGRADES as tech}
+										<span
+											data-testid="tech-{tech.id}"
+											data-owned={esp.ownedTechUpgrades.includes(tech.id) ? 'true' : 'false'}
+											class="tech-badge"
+											class:owned={esp.ownedTechUpgrades.includes(tech.id)}
+										>
+											{tech.id === 'content-filtering'
+												? 'Content'
+												: tech.id === 'advanced-monitoring'
+													? 'Monitor'
+													: tech.id.toUpperCase()}
+											{esp.ownedTechUpgrades.includes(tech.id) ? '✓' : '✗'}
+										</span>
+									{/each}
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</section>
 
-	<!-- US-8.2-0.2: Destination Metrics Table -->
-	<section class="metrics-section">
-		<h2>Destinations</h2>
-		<div class="table-container">
-			<table data-testid="destination-metrics-table" class="metrics-table">
-				<thead>
-					<tr>
-						<th>Destination</th>
-						<th class="text-center">Status</th>
-						<th>Budget</th>
-						<th>User Satisfaction</th>
-						<th>Tech Tools</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each destinations as dest}
-						<tr data-testid="dest-row-{dest.name}">
-							<td class="dest-name">
-								{dest.name}
-								{#if dest.players && dest.players.length > 0}
-									<span class="text-xs text-gray-500 font-normal block"
-										>({dest.players.join(', ')})</span
-									>
-								{/if}
-							</td>
-							<td class="text-center" data-testid="dest-lock-status">
-								{#if dest.lockedIn}
-									<span
-										class="text-emerald-500 font-semibold flex items-center justify-center gap-1"
-									>
-										<span data-testid="dest-lock-icon" class="text-lg">✓</span> Locked In
-									</span>
-								{:else}
-									<span class="text-amber-500 font-medium animate-pulse">Planning...</span>
-								{/if}
-							</td>
-							<td data-testid="dest-budget">{dest.budget}</td>
-							<td data-testid="dest-satisfaction">{getDestinationSatisfaction(dest)}</td>
-							<td data-testid="dest-tech-tools" class="tech-tools-cell">
-								{#each Object.values(DESTINATION_TOOLS) as tool}
-									<span
-										data-testid="tool-{tool.id}"
-										data-owned={dest.ownedTools.includes(tool.id) ? 'true' : 'false'}
-										class="tech-badge"
-										class:owned={dest.ownedTools.includes(tool.id)}
-									>
-										{tool.id === 'content_analysis_filter'
-											? 'Content'
-											: tool.id === 'auth_validator_l1'
-												? 'Auth L1'
-												: tool.id === 'auth_validator_l2'
-													? 'Auth L2'
-													: tool.id === 'auth_validator_l3'
-														? 'Auth L3'
-														: tool.id === 'ml_system'
-															? 'ML'
-															: tool.id === 'spam_trap_network'
-																? 'Trap'
-																: tool.id === 'volume_throttling'
-																	? 'Throttle'
-																	: tool.id}
-										{dest.ownedTools.includes(tool.id) ? '✓' : '✗'}
-									</span>
-								{/each}
-							</td>
+		<!-- US-8.2-0.2: Destination Metrics Table -->
+		<section class="metrics-section">
+			<h2>Destinations</h2>
+			<div class="table-container">
+				<table data-testid="destination-metrics-table" class="metrics-table">
+					<thead>
+						<tr>
+							<th>Destination</th>
+							<th class="text-center">Status</th>
+							<th>Budget</th>
+							<th>User Satisfaction</th>
+							<th>Tech Tools</th>
 						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	</section>
+					</thead>
+					<tbody>
+						{#each destinations as dest}
+							<tr data-testid="dest-row-{dest.name}">
+								<td class="dest-name">
+									{dest.name}
+									{#if dest.players && dest.players.length > 0}
+										<span class="text-xs text-gray-500 font-normal block"
+											>({dest.players.join(', ')})</span
+										>
+									{/if}
+								</td>
+								<td class="text-center" data-testid="dest-lock-status">
+									{#if dest.lockedIn}
+										<span
+											class="text-emerald-500 font-semibold flex items-center justify-center gap-1"
+										>
+											<span data-testid="dest-lock-icon" class="text-lg">✓</span> Locked In
+										</span>
+									{:else}
+										<span class="text-amber-500 font-medium animate-pulse">Planning...</span>
+									{/if}
+								</td>
+								<td data-testid="dest-budget">{dest.budget}</td>
+								<td data-testid="dest-satisfaction">{getDestinationSatisfaction(dest)}</td>
+								<td data-testid="dest-tech-tools" class="tech-tools-cell">
+									{#each Object.values(DESTINATION_TOOLS) as tool}
+										<span
+											data-testid="tool-{tool.id}"
+											data-owned={dest.ownedTools.includes(tool.id) ? 'true' : 'false'}
+											class="tech-badge"
+											class:owned={dest.ownedTools.includes(tool.id)}
+										>
+											{tool.id === 'content_analysis_filter'
+												? 'Content'
+												: tool.id === 'auth_validator_l1'
+													? 'Auth L1'
+													: tool.id === 'auth_validator_l2'
+														? 'Auth L2'
+														: tool.id === 'auth_validator_l3'
+															? 'Auth L3'
+															: tool.id === 'ml_system'
+																? 'ML'
+																: tool.id === 'spam_trap_network'
+																	? 'Trap'
+																	: tool.id === 'volume_throttling'
+																		? 'Throttle'
+																		: tool.id}
+											{dest.ownedTools.includes(tool.id) ? '✓' : '✗'}
+										</span>
+									{/each}
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	{/if}
 </div>
 
 <!-- Incident Selection Modal -->

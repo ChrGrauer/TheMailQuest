@@ -31,7 +31,7 @@ async function getToConsequencesPhase(facilitatorPage: Page, playerPages: Page[]
 
 	// Verify we're in consequences phase
 	await expect(facilitatorPage.locator('[data-testid="current-phase"]')).toContainText(
-		'consequences',
+		'Consequences Phase',
 		{ timeout: 5000 }
 	);
 }
@@ -78,7 +78,7 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		// facilitator dashboard with updated state via WebSocket. No need to navigate again.
 
 		// Verify we're in Round 4 consequences (check on facilitator page)
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
 			timeout: 5000
 		});
 		await expect(page.locator('text=/Round 4/i')).toBeVisible({ timeout: 3000 });

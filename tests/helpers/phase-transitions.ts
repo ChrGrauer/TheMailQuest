@@ -70,7 +70,7 @@ export async function createGameInRoundConsequences(
 	await lockInAllPlayers([alicePage, bobPage]);
 
 	// Wait for consequences phase
-	await expect(facilitatorPage.getByTestId('current-phase')).toContainText('consequences', {
+	await expect(facilitatorPage.getByTestId('current-phase')).toContainText('Consequences Phase', {
 		timeout: 10000
 	});
 

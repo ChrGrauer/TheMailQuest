@@ -279,7 +279,7 @@ test.describe('INC-016: Legal Reckoning', () => {
 		await page.waitForTimeout(3000);
 
 		// Verify we're in consequences phase before triggering incident
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
 			timeout: 5000
 		});
 

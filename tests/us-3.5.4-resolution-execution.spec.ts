@@ -41,7 +41,7 @@ test.describe('Resolution Execution Trigger', () => {
 		// Verified by checking consequences phase has data
 
 		// Wait for auto-transition to Consequences
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
 			timeout: 5000
 		});
 

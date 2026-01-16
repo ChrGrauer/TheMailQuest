@@ -40,7 +40,7 @@ test.describe('US-3.5 Scenario 1.1: Transition to Consequences Phase', () => {
 
 		// Then: the phase should change to "Consequences"
 		// Check on facilitator page for phase indicator
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
 			timeout: 5000
 		});
 

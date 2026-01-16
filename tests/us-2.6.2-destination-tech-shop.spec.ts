@@ -452,7 +452,7 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 
 			// Wait for consequences phase
 			await page.waitForTimeout(1500);
-			await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+			await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
 				timeout: 5000
 			});
 
@@ -636,7 +636,7 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 
 			// Wait for consequences phase
 			await page.waitForTimeout(1500);
-			await expect(page.locator('[data-testid="current-phase"]')).toContainText('consequences', {
+			await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
 				timeout: 5000
 			});
 
