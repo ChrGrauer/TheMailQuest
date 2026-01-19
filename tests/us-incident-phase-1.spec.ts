@@ -75,7 +75,7 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 		await expect(page.getByTestId('drama-history-item-1-0')).toBeVisible();
 	});
 
-	test('incident card auto-dismisses after 10 seconds', async ({ page, context }) => {
+	test('incident card does not auto-dismiss', async ({ page, context }) => {
 		const result = await createGameInPlanningPhase(page, context);
 		alicePage = result.alicePage;
 		bobPage = result.bobPage;
@@ -88,11 +88,14 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 		// Wait for card to appear
 		await expect(alicePage.getByTestId('drama-card-display')).toBeVisible();
 
-		// Wait 10+ seconds for auto-dismiss
+		// Wait 10+ seconds - card should STAY visible
 		await alicePage.waitForTimeout(10500);
 
-		// Card should be hidden
-		await expect(alicePage.getByTestId('drama-card-display')).not.toBeVisible();
+		// Card should still be visible
+		await expect(alicePage.getByTestId('drama-card-display')).toBeVisible();
+
+		// Close it manually to clean up
+		await page.keyboard.press('Escape');
 	});
 });
 

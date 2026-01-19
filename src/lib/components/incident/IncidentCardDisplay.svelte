@@ -22,17 +22,9 @@
 
 	let { show = $bindable(), incident, affectedTeam, onClose }: Props = $props();
 
-	// Auto-dismiss timer
-	let dismissTimer: ReturnType<typeof setTimeout> | null = null;
-
 	// Handle show/hide
 	$effect(() => {
 		if (show && incident) {
-			// Start auto-dismiss timer (10 seconds)
-			dismissTimer = setTimeout(() => {
-				onClose();
-			}, 10000);
-
 			// Handle Escape key
 			const handleEscape = (e: KeyboardEvent) => {
 				if (e.key === 'Escape') {
@@ -42,9 +34,6 @@
 			window.addEventListener('keydown', handleEscape);
 
 			return () => {
-				if (dismissTimer) {
-					clearTimeout(dismissTimer);
-				}
 				window.removeEventListener('keydown', handleEscape);
 			};
 		}
@@ -179,7 +168,7 @@
 			<!-- Footer -->
 			<div class="px-6 py-4 bg-gray-50 rounded-b-xl border-t border-gray-200">
 				<div class="flex items-center justify-between">
-					<p class="text-sm text-gray-500">Card will auto-dismiss in 10 seconds</p>
+					<p class="text-sm text-gray-500">Press Escape to close</p>
 					<button
 						onclick={onClose}
 						class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"

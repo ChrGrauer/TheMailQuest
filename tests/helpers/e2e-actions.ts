@@ -183,7 +183,7 @@ export async function triggerIncident(
 	await facilitatorPage.waitForTimeout(waitTime);
 
 	// Wait for incident card modal to appear and then close it on all pages to avoid blocking other interactions
-	// The incident card auto-dismisses after 10s, but we close it immediately
+	// The incident card does not auto-dismiss, so we must close it manually
 	const allPages = [facilitatorPage, ...(playerPages || [])];
 
 	for (const page of allPages) {
