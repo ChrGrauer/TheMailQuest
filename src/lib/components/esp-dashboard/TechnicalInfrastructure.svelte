@@ -41,14 +41,17 @@
 <div data-testid="technical-infrastructure" class="bg-white rounded-xl shadow-md p-6">
 	<div class="flex items-center justify-between mb-4">
 		<h2 class="text-lg font-bold text-gray-800">Technical Infrastructure</h2>
-		{#if hasMissingTech}
-			<span
-				data-testid="tech-upgrade-available"
-				class="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded"
-			>
-				Upgrades Available
-			</span>
-		{/if}
+		<!-- Tech Shop Button (merged with status tag) -->
+		<button
+			data-testid="tech-infrastructure-action"
+			onclick={onTechShopClick}
+			class="px-3 py-1 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 {hasMissingTech
+				? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+				: 'bg-gray-100 text-gray-500 hover:bg-gray-200'}"
+		>
+			<span>{hasMissingTech ? 'Upgrades Available' : 'No Upgrades Available'}</span>
+			<span>{hasMissingTech ? '→' : '⚙️'}</span>
+		</button>
 	</div>
 
 	<div class="space-y-3">
@@ -118,17 +121,4 @@
 			{/if}
 		{/each}
 	</div>
-
-	<!-- Tech Shop CTA -->
-	{#if hasMissingTech}
-		<div class="mt-4 pt-4 border-t border-gray-200">
-			<button
-				onclick={onTechShopClick}
-				class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-			>
-				<span>⚙️</span>
-				<span>Visit Technical Shop</span>
-			</button>
-		</div>
-	{/if}
 </div>

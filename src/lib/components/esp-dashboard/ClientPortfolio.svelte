@@ -7,7 +7,7 @@
 	 * - List of active clients with details
 	 * - Client status badges (Active/Paused)
 	 * - Empty state with CTA to marketplace
-	 * - Client count in header
+	 * - "Manage clients" button in header
 	 */
 
 	import StatusBadge from '$lib/components/shared/StatusBadge.svelte';
@@ -24,12 +24,15 @@
 		clients?: Client[];
 		pendingDecisions?: number;
 		onMarketplaceClick?: () => void;
+		onClientManagementClick?: () => void;
 	}
 
-	let { clients = [], pendingDecisions = 0, onMarketplaceClick }: Props = $props();
-
-	// Count active clients
-	let activeClientCount = $derived(clients.filter((c) => c.status === 'Active').length);
+	let {
+		clients = [],
+		pendingDecisions = 0,
+		onMarketplaceClick,
+		onClientManagementClick
+	}: Props = $props();
 
 	// Risk color mapping
 	function getRiskColor(risk?: string): string {
@@ -47,7 +50,7 @@
 </script>
 
 <div class="bg-white rounded-xl shadow-md p-6">
-	<!-- Header with Client Count -->
+	<!-- Header with Manage Clients Button -->
 	<div data-testid="portfolio-header" class="flex items-center justify-between mb-4">
 		<div class="flex items-center gap-3">
 			<h2 class="text-lg font-bold text-gray-800">Active Portfolio</h2>
@@ -64,9 +67,15 @@
 				</span>
 			{/if}
 		</div>
-		<span class="text-sm text-gray-600">
-			{activeClientCount} active {activeClientCount === 1 ? 'client' : 'clients'}
-		</span>
+		<!-- Manage Clients Button -->
+		<button
+			data-testid="manage-clients-button"
+			onclick={onClientManagementClick}
+			class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-3 py-1 rounded-lg text-sm transition-colors flex items-center gap-2"
+		>
+			<span>📋</span>
+			<span>Manage clients</span>
+		</button>
 	</div>
 
 	<div data-testid="client-portfolio">

@@ -546,9 +546,9 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		// And: Client displays risk level
 		await expect(clientCard).toContainText(/(Low|Medium|High)/);
 
-		// And: Portfolio header shows count
-		const header = alicePage.locator('[data-testid="portfolio-header"]');
-		await expect(header).toContainText('1 active client');
+		// And: Portfolio header shows manage button
+		const manageButton = alicePage.locator('[data-testid="manage-clients-button"]');
+		await expect(manageButton).toBeVisible();
 	});
 
 	test('7.2: Multiple clients display correctly', async () => {
@@ -572,9 +572,9 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		await expect(clientCards.first().locator('[data-testid^="client-status-badge"]')).toBeVisible();
 		await expect(clientCards.nth(1).locator('[data-testid^="client-status-badge"]')).toBeVisible();
 
-		// And: Portfolio header shows correct count
-		const header = alicePage.locator('[data-testid="portfolio-header"]');
-		await expect(header).toContainText('2 active clients');
+		// And: Portfolio header shows manage button
+		const manageButton = alicePage.locator('[data-testid="manage-clients-button"]');
+		await expect(manageButton).toBeVisible();
 	});
 
 	test('7.3: Portfolio updates in real-time after acquisition', async () => {

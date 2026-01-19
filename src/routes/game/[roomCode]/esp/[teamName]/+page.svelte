@@ -817,26 +817,6 @@
 
 		<!-- Main Dashboard Content (Planning Phase) -->
 		<div class="max-w-7xl mx-auto px-4 py-8">
-			<!-- WebSocket Connection Status (via wsStatus composable) -->
-			<div data-testid="ws-status" class="mb-4 text-sm">
-				{#if wsStatus.connected}
-					<span class="text-green-600 flex items-center gap-2">
-						<span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
-						Connected
-					</span>
-				{:else if wsStatus.error}
-					<span class="text-red-600 flex items-center gap-2">
-						<span class="w-2 h-2 bg-red-600 rounded-full"></span>
-						Disconnected - {wsStatus.error}
-					</span>
-				{:else}
-					<span class="text-gray-500 flex items-center gap-2">
-						<span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-						Connecting...
-					</span>
-				{/if}
-			</div>
-
 			<!-- Quick Actions -->
 			<div class="mb-8">
 				<QuickActions
@@ -868,6 +848,7 @@
 					{clients}
 					pendingDecisions={pendingDecisionsCount}
 					onMarketplaceClick={handleMarketplaceClick}
+					onClientManagementClick={handleClientManagementClick}
 				/>
 			</div>
 
