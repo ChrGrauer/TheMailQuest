@@ -373,6 +373,16 @@ This document catalogs all `data-testid` attributes used across the frontend for
 | Test ID | Element | Description |
 |---------|---------|-------------|
 | `room-code` | Text | Room code display |
+| `show-qr-code-button` | `<button>` | Button to open QR code modal |
+
+### QRCodeModal
+**Location**: `src/lib/components/lobby/QRCodeModal.svelte`
+
+| Test ID | Element | Description |
+|---------|---------|-------------|
+| `qr-code-modal` | `<div>` | QR code modal container (role="dialog") |
+| `qr-code-image` | `<img>` | QR code image display |
+| `close-qr-modal` | `<button>` | Close button for QR code modal |
 
 ### TeamSlotSelector
 **Location**: `src/lib/components/lobby/TeamSlotSelector.svelte`
