@@ -319,6 +319,7 @@ export function calculatePendingOnboardingCosts(team: ESPTeam): number {
  * Deducts credits and applies onboarding options
  * Clears pending_onboarding_decisions
  * Sets first_active_round for newly activated clients
+ * Phase 2: Creates VolumeModifier and SpamTrapModifier objects
  */
 export function commitPendingOnboardingDecisions(team: ESPTeam, currentRound: number): void {
 	if (!team.pending_onboarding_decisions || !team.client_states) {
@@ -341,20 +342,58 @@ export function commitPendingOnboardingDecisions(team: ESPTeam, currentRound: nu
 			continue;
 		}
 
-		// Apply onboarding options
-		clientState.has_warmup = options.warmUp;
-		clientState.has_list_hygiene = options.listHygiene;
+		// Phase 2: Create modifiers instead of setting deprecated properties
+		// Match the logic from configureOnboarding in client-portfolio-manager.ts
+
+		// Import required utilities
+		const {
+			WARMUP_VOLUME_REDUCTION,
+			getListHygieneVolumeReduction,
+			LIST_HYGIENE_SPAM_TRAP_REDUCTION
+		} = require('$lib/config/client-onboarding');
+
+		// Get client's risk level for list hygiene calculation
+		const client = team.available_clients.find((c) => c.id === clientId);
+		const riskLevel = client?.risk || 'Medium'; // Default to Medium if not found
+
+		// Warmup: 50% volume reduction in first active round only
+		// Use -1 as sentinel value for "first active round only"
+		if (options.warmUp) {
+			clientState.volumeModifiers.push({
+				id: `warmup-${clientId}`,
+				source: 'warmup',
+				multiplier: 1.0 - WARMUP_VOLUME_REDUCTION, // 0.5
+				applicableRounds: [-1], // -1 = first active round only
+				description: 'Warm-up active, initial volume reduced'
+			});
+			totalCost += WARMUP_COST;
+		}
+
+		// List Hygiene: Permanent volume reduction + spam trap reduction
+		if (options.listHygiene) {
+			// Volume reduction based on risk level
+			const volumeReduction = getListHygieneVolumeReduction(riskLevel);
+			clientState.volumeModifiers.push({
+				id: `list_hygiene-${clientId}`,
+				source: 'list_hygiene',
+				multiplier: 1.0 - volumeReduction, // 0.95, 0.90, or 0.85
+				applicableRounds: [1, 2, 3, 4], // All rounds (permanent)
+				description: 'List Hygiene active (permanent)'
+			});
+
+			// Spam trap reduction: 40% reduction = 0.6 multiplier
+			clientState.spamTrapModifiers.push({
+				id: `list_hygiene-spam-${clientId}`,
+				source: 'list_hygiene',
+				multiplier: 1.0 - LIST_HYGIENE_SPAM_TRAP_REDUCTION, // 0.6
+				applicableRounds: [1, 2, 3, 4], // All rounds (permanent)
+				description: 'List Hygiene spam trap reduction'
+			});
+			totalCost += LIST_HYGIENE_COST;
+		}
 
 		// Mark client as activated in this round
 		clientState.first_active_round = currentRound;
-
-		// Calculate cost
-		if (options.warmUp) {
-			totalCost += WARMUP_COST;
-		}
-		if (options.listHygiene) {
-			totalCost += LIST_HYGIENE_COST;
-		}
 	}
 
 	// Deduct credits

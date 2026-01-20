@@ -15,6 +15,7 @@
 import { test, expect } from './fixtures';
 import type { Page, BrowserContext } from '@playwright/test';
 import { createGameInPlanningPhase } from './helpers/game-setup';
+import { advanceToRound } from './helpers/e2e-actions';
 import {
 	acquireClient,
 	toggleClientStatus,
@@ -160,6 +161,15 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 		const clientState = portfolioAfter.team.client_states[clientId];
 		expect(hasWarmup(clientState)).toBe(true);
 		expect(hasListHygiene(clientState)).toBe(false);
+
+		// Then: move to next round
+		await advanceToRound(facilitatorPage, [alicePage, bobPage], 2);
+
+		// And: in round 2, onboarding history shows warm-up purchase
+		await openClientManagementModal(alicePage);
+		const modal = alicePage.getByTestId('client-management-modal');
+		await expect(modal.getByTestId('permanent-attributes')).toContainText('Warmed-up: Yes');
+		await expect(modal.getByTestId('permanent-attributes')).toContainText('Hygiene: No');
 	});
 
 	test('2.3: Configure both onboarding options', async () => {

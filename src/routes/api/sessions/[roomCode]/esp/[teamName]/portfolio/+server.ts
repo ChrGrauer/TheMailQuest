@@ -18,6 +18,7 @@ import {
 } from '$lib/server/game/client-portfolio-manager';
 import { gameLogger } from '$lib/server/logger';
 import type { Client } from '$lib/server/game/types';
+import { hasWarmup, hasListHygiene } from '$lib/utils/client-state-helpers';
 
 export const GET: RequestHandler = async ({ params }) => {
 	const { roomCode, teamName } = params;
@@ -67,9 +68,13 @@ export const GET: RequestHandler = async ({ params }) => {
 		// Merge with state
 		const clientState = team.client_states?.[clientId];
 		if (clientState) {
+			// Extract onboarding history from modifiers
 			clients.push({
 				...client,
-				...clientState
+				status: clientState.status,
+				first_active_round: clientState.first_active_round,
+				has_warmup: hasWarmup(clientState),
+				has_list_hygiene: hasListHygiene(clientState)
 			});
 		}
 	}
