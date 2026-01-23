@@ -17,6 +17,7 @@ import { joinGame, clearPlayers } from './player-manager';
 import { startGame } from './game-start-manager';
 import { allocateResources } from './resource-allocation-manager';
 import { transitionPhase } from './phase-manager';
+import { WARMUP_COST, LIST_HYGIENE_COST } from '$lib/config/client-onboarding';
 
 // Lock-in manager functions (to be implemented)
 import {
@@ -75,7 +76,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			if (team) {
 				team.credits = 1450;
 				team.pending_onboarding_decisions = {
-					'client-1': { warmUp: true, listHygiene: true } // 230cr
+					'client-1': { warmup: true, listHygiene: true }
 				};
 			}
 
@@ -165,12 +166,17 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			const team = currentSession?.esp_teams.find((t) => t.name === 'SendWave');
 			if (team) {
 				team.credits = 1450;
-				team.budget = 1300; // Already spent (committed costs)
+				team.budget = 1400; // Committed costs (higher to exceed budget with new lower costs)
 				team.pending_onboarding_decisions = {
-					'client-1': { warmUp: true, listHygiene: true }, // 230cr
-					'client-2': { warmUp: false, listHygiene: true } // 80cr
+					'client-1': { warmup: true, listHygiene: true },
+					'client-2': { warmup: false, listHygiene: true }
 				}; // Total pending: 310cr
 			}
+
+			const totalCost1 = WARMUP_COST + LIST_HYGIENE_COST;
+			const totalCost2 = LIST_HYGIENE_COST;
+			const totalPending = totalCost1 + totalCost2;
+			const excessAmount = 1400 + totalPending - 1450;
 
 			// When - Validate lock-in
 			const validation = validateLockIn(team!);
@@ -178,8 +184,8 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			// Then - Validation fails
 			expect(validation.isValid).toBe(false);
 			expect(validation.budgetExceeded).toBe(true);
-			expect(validation.pendingCosts).toBe(310);
-			expect(validation.excessAmount).toBe(160); // 1300 + 310 - 1450 = 160
+			expect(validation.pendingCosts).toBe(totalPending);
+			expect(validation.excessAmount).toBe(excessAmount);
 			expect(validation.error).toContain('Budget exceeded');
 		});
 
@@ -213,7 +219,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				team.credits = 1450;
 				team.budget = 1000; // Already spent
 				team.pending_onboarding_decisions = {
-					'client-1': { warmUp: true, listHygiene: true } // 230cr
+					'client-1': { warmup: true, listHygiene: true } // 230cr
 				};
 			}
 
@@ -258,17 +264,19 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			const team = currentSession?.esp_teams.find((t) => t.name === 'SendWave');
 			if (team) {
 				team.pending_onboarding_decisions = {
-					'client-1': { warmUp: true, listHygiene: true }, // 150 + 80 = 230
-					'client-2': { warmUp: true, listHygiene: false }, // 150
-					'client-3': { warmUp: false, listHygiene: true } // 80
+					'client-1': { warmup: true, listHygiene: true },
+					'client-2': { warmup: true, listHygiene: false },
+					'client-3': { warmup: false, listHygiene: true }
 				};
 			}
+
+			const expectedTotal = (WARMUP_COST + LIST_HYGIENE_COST) + WARMUP_COST + LIST_HYGIENE_COST;
 
 			// When
 			const totalCost = calculatePendingOnboardingCosts(team!);
 
-			// Then - Total is 230 + 150 + 80 = 460
-			expect(totalCost).toBe(460);
+			// Then
+			expect(totalCost).toBe(expectedTotal);
 		});
 
 		test('When team has no pending options, Then cost is zero', () => {

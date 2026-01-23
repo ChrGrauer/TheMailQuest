@@ -145,7 +145,7 @@ test.describe('US-3.5 Scenario 1.2: ESP Consequences Screen Structure', () => {
 
 		// Use helper to acquire client with warmup enabled
 		const acquiredClients = await acquireAndConfigureClients(alicePage, roomCode, 'SendWave', 1, {
-			warmUp: true,
+			warmup: true,
 			listHygiene: false
 		});
 

@@ -711,7 +711,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 					email_volume: 50000,
 					industry: 'E-commerce',
 					initial_cost: 200,
-					onboarding_options: { warmUp: false, listHygiene: false }
+					onboarding_options: { warmup: false, listHygiene: false }
 				} as any,
 				{
 					id: 'client-suspended',
@@ -721,7 +721,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 					email_volume: 50000,
 					industry: 'E-commerce',
 					initial_cost: 200,
-					onboarding_options: { warmUp: false, listHygiene: false }
+					onboarding_options: { warmup: false, listHygiene: false }
 				} as any,
 				{
 					id: 'client-safe',
@@ -731,7 +731,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 					email_volume: 50000,
 					industry: 'E-commerce',
 					initial_cost: 200,
-					onboarding_options: { warmUp: true, listHygiene: true }
+					onboarding_options: { warmup: true, listHygiene: true }
 				} as any
 			];
 			bluePostTeam.active_clients = ['client-paused', 'client-suspended', 'client-safe'];

@@ -167,6 +167,11 @@ export function handleResolutionPhase(
 					};
 
 					broadcast(roomCode, message);
+
+					gameLogger.info('Phase transitioned to consequences', {
+						roomCode,
+						round: session.current_round
+					});
 				} else {
 					gameLogger.error(new Error('Failed to transition to consequences'), {
 						context: 'handleResolutionPhase',

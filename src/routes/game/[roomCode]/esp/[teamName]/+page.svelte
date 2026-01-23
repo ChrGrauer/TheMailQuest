@@ -123,7 +123,7 @@
 		let total = 0;
 		for (const clientId in pendingOnboardingDecisions) {
 			const options = pendingOnboardingDecisions[clientId];
-			total += calculateOnboardingCost(options.warmUp, options.listHygiene);
+			total += calculateOnboardingCost(options.warmup, options.listHygiene);
 		}
 		return total;
 	}
@@ -453,7 +453,7 @@
 				const corrections = data.corrections;
 				const details = corrections
 					.map((c: any) => {
-						const optionName = c.optionType === 'warmUp' ? 'warm-up' : 'list hygiene';
+						const optionName = c.optionType === 'warmup' ? 'warm-up' : 'list hygiene';
 						return `• Removed ${optionName} from ${c.clientName} (-${c.costSaved}cr)`;
 					})
 					.join('\n');
@@ -646,7 +646,7 @@
 				addPendingOnboarding: (clientId: string, warmup: boolean, listHygiene: boolean) => {
 					pendingOnboardingDecisions = {
 						...pendingOnboardingDecisions,
-						[clientId]: { warmUp: warmup, listHygiene: listHygiene }
+						[clientId]: { warmup: warmup, listHygiene: listHygiene }
 					};
 				},
 				// Clear all pending onboarding decisions (US-2.1 test support)

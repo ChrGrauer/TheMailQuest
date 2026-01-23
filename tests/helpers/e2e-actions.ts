@@ -282,7 +282,7 @@ export async function acquireAndConfigureClients(
 	roomCode: string,
 	teamName: string,
 	count: number,
-	options?: { warmUp?: boolean; listHygiene?: boolean }
+	options?: { warmup?: boolean; listHygiene?: boolean }
 ): Promise<string[]> {
 	// Dynamically import client-management to avoid circular dependency
 	const { getAvailableClientIds, acquireClient, configureOnboarding } = await import(
@@ -297,13 +297,13 @@ export async function acquireAndConfigureClients(
 		await acquireClient(page, roomCode, teamName, clientId);
 		acquiredIds.push(clientId);
 
-		if (options?.warmUp !== undefined || options?.listHygiene !== undefined) {
+		if (options?.warmup !== undefined || options?.listHygiene !== undefined) {
 			await configureOnboarding(
 				page,
 				roomCode,
 				teamName,
 				clientId,
-				options.warmUp ?? false,
+				options.warmup ?? false,
 				options.listHygiene ?? false
 			);
 		}

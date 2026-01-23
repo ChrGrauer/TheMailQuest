@@ -146,8 +146,8 @@ test.describe('Feature: Decision Lock-In', () => {
 					(window as any).__espDashboardTest.setCredits(totalBudget);
 					(window as any).__espDashboardTest.setSpentCredits(spentCredits);
 					(window as any).__espDashboardTest.setPendingOnboarding({
-						'client-a': { warmUp: true, listHygiene: true },
-						'client-b': { warmUp: false, listHygiene: true }
+						'client-a': { warmup: true, listHygiene: true },
+						'client-b': { warmup: false, listHygiene: true }
 					});
 				},
 				{ totalBudget, spentCredits }
@@ -167,8 +167,8 @@ test.describe('Feature: Decision Lock-In', () => {
 			// When: "SendWave" removes warm-up from Client A
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setPendingOnboarding({
-					'client-a': { warmUp: false, listHygiene: true },
-					'client-b': { warmUp: false, listHygiene: true }
+					'client-a': { warmup: false, listHygiene: true },
+					'client-b': { warmup: false, listHygiene: true }
 				});
 			});
 			await alicePage.waitForTimeout(500);
@@ -180,7 +180,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			// When: "SendWave" removes list hygiene from Client B
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setPendingOnboarding({
-					'client-a': { warmUp: false, listHygiene: true }
+					'client-a': { warmup: false, listHygiene: true }
 				});
 			});
 			await alicePage.waitForTimeout(500);
@@ -411,6 +411,7 @@ test.describe('Feature: Decision Lock-In', () => {
 			await acquireClient(alicePage, roomCode, 'SendWave', availableClients[1]);
 			await acquireClient(alicePage, roomCode, 'SendWave', availableClients[2]);
 			await acquireClient(alicePage, roomCode, 'SendWave', availableClients[3]);
+			await acquireClient(alicePage, roomCode, 'SendWave', availableClients[4]);
 			await alicePage.waitForTimeout(500);
 
 			// Configure pending onboarding for all 4 clients (610cr total)
@@ -430,7 +431,7 @@ test.describe('Feature: Decision Lock-In', () => {
 				'SendWave',
 				availableClients[1],
 				true,
-				false
+				true
 			); // 150cr
 			await configurePendingOnboarding(
 				alicePage,
@@ -438,14 +439,14 @@ test.describe('Feature: Decision Lock-In', () => {
 				'SendWave',
 				availableClients[2],
 				true,
-				false
+				true
 			); // 150cr
 			await configurePendingOnboarding(
 				alicePage,
 				roomCode,
 				'SendWave',
 				availableClients[3],
-				false,
+				true,
 				true
 			); // 80cr
 			await alicePage.waitForTimeout(500);
@@ -689,8 +690,8 @@ test.describe('Feature: Decision Lock-In', () => {
 
 			// And: All action buttons within modal should be disabled
 			// Check that onboarding checkboxes are disabled
-			const warmUpCheckbox = alicePage.locator('[data-testid="warm-up-checkbox"]').first();
-			await expect(warmUpCheckbox).not.toBeVisible();
+			const warmupCheckbox = alicePage.locator('[data-testid="warm-up-checkbox"]').first();
+			await expect(warmupCheckbox).not.toBeVisible();
 
 			const listHygieneCheckbox = alicePage
 				.locator('[data-testid="list-hygiene-checkbox"]')

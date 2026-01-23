@@ -17,6 +17,7 @@ import {
 	calculateRevenuePreview,
 	calculateBudgetForecast
 } from '$lib/server/game/client-portfolio-manager';
+import { WARMUP_COST, LIST_HYGIENE_COST } from '$lib/config/client-onboarding';
 import type { ESPTeam, Client, ClientState } from '$lib/server/game/types';
 
 describe('Client Portfolio Manager', () => {
@@ -213,8 +214,8 @@ describe('Client Portfolio Manager', () => {
 					(m) => m.source === 'list_hygiene'
 				)
 			).toBe(false);
-			expect(result.team?.credits).toBe(850); // 1000 - 150
-			expect(result.cost).toBe(150);
+			expect(result.team?.credits).toBe(1000 - WARMUP_COST);
+			expect(result.cost).toBe(WARMUP_COST);
 		});
 
 		it('should configure list hygiene for new client', () => {
@@ -254,8 +255,8 @@ describe('Client Portfolio Manager', () => {
 					(m) => m.source === 'list_hygiene'
 				)
 			).toBe(true);
-			expect(result.team?.credits).toBe(920); // 1000 - 80
-			expect(result.cost).toBe(80);
+			expect(result.team?.credits).toBe(1000 - LIST_HYGIENE_COST);
+			expect(result.cost).toBe(LIST_HYGIENE_COST);
 		});
 
 		it('should configure both options for new client', () => {
@@ -301,8 +302,8 @@ describe('Client Portfolio Manager', () => {
 					(m) => m.source === 'list_hygiene'
 				)
 			).toBe(true);
-			expect(result.team?.credits).toBe(770); // 1000 - 150 - 80
-			expect(result.cost).toBe(230);
+			expect(result.team?.credits).toBe(1000 - (WARMUP_COST + LIST_HYGIENE_COST));
+			expect(result.cost).toBe(WARMUP_COST + LIST_HYGIENE_COST);
 		});
 
 		it('should deduct costs from credits', () => {
@@ -331,7 +332,8 @@ describe('Client Portfolio Manager', () => {
 			const result = configureOnboarding(team, 'client-001', { warmup: true, listHygiene: true });
 
 			expect(result.success).toBe(true);
-			expect(result.team?.credits).toBe(270); // 500 - 230
+			const expectedCost = WARMUP_COST + LIST_HYGIENE_COST;
+			expect(result.team?.credits).toBe(500 - expectedCost);
 		});
 
 		it('should fail for existing client (first_active_round set)', () => {
@@ -370,7 +372,7 @@ describe('Client Portfolio Manager', () => {
 				budget: 1000,
 				clients: [],
 				technical_stack: [],
-				credits: 100, // Not enough for both options
+				credits: 50, // Not enough for both (need 90)
 				reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
 				active_clients: ['client-001'],
 				owned_tech_upgrades: [],
@@ -753,8 +755,9 @@ describe('Client Portfolio Manager', () => {
 			// Calculate forecast
 			const forecast = calculateBudgetForecast(configured.team!);
 
-			// Should be: 770 (1000 - 230 onboarding costs, no revenue)
-			expect(forecast).toBe(770);
+			const expectedCost = WARMUP_COST + LIST_HYGIENE_COST;
+			// Should be: 1000 - onboarding costs
+			expect(forecast).toBe(1000 - expectedCost);
 		});
 
 		it('should work with low remaining credits after onboarding', () => {
@@ -789,8 +792,9 @@ describe('Client Portfolio Manager', () => {
 			expect(configured.success).toBe(true);
 			const forecast = calculateBudgetForecast(configured.team!);
 
-			// Should be: 20 (250 - 230)
-			expect(forecast).toBe(20);
+			const expectedCost = WARMUP_COST + LIST_HYGIENE_COST;
+			// Should be: 250 - expectedCost
+			expect(forecast).toBe(250 - expectedCost);
 		});
 
 		it('should return exact credits value (no calculations)', () => {

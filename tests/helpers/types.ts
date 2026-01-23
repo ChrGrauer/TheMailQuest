@@ -16,11 +16,11 @@ export interface EspDashboardTestAPI {
 	setReputation: (values: Record<string, number>) => void;
 	setRound: (round: number) => void;
 	setTimerSeconds: (seconds: number) => void;
-	addPendingOnboarding: (clientId: string, warmUp: boolean, listHygiene: boolean) => void;
+	addPendingOnboarding: (clientId: string, warmup: boolean, listHygiene: boolean) => void;
 	setPendingOnboarding: (
-		pending: Record<string, { warmUp: boolean; listHygiene: boolean }>
+		pending: Record<string, { warmup: boolean; listHygiene: boolean }>
 	) => void;
-	getPendingOnboarding: () => Record<string, { warmUp: boolean; listHygiene: boolean }>;
+	getPendingOnboarding: () => Record<string, { warmup: boolean; listHygiene: boolean }>;
 	getCurrentPhase: () => string;
 	getRevenue: () => number;
 }
@@ -58,7 +58,7 @@ export interface EspDashboardState {
 	reputation?: Record<string, number>;
 	round?: number;
 	timerSeconds?: number;
-	pendingOnboarding?: Record<string, { warmUp: boolean; listHygiene: boolean }>;
+	pendingOnboarding?: Record<string, { warmup: boolean; listHygiene: boolean }>;
 }
 
 /**

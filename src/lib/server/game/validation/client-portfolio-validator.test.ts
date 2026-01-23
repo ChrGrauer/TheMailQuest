@@ -14,6 +14,7 @@ import {
 	validateOnboardingConfig,
 	validateLockIn
 } from '$lib/server/game/validation/client-portfolio-validator';
+import { WARMUP_COST, LIST_HYGIENE_COST } from '$lib/config/client-onboarding';
 import type { ESPTeam } from '$lib/server/game/types';
 
 describe('Client Portfolio Validator', () => {
@@ -284,13 +285,16 @@ describe('Client Portfolio Validator', () => {
 		});
 
 		it('should prevent config with insufficient budget', () => {
+			const totalCost = WARMUP_COST + LIST_HYGIENE_COST;
+			const availableCredits = totalCost - 10; // Insufficient
+
 			const team: ESPTeam = {
 				name: 'SendWave',
 				players: ['alice'],
 				budget: 1000,
 				clients: [],
 				technical_stack: [],
-				credits: 100, // Not enough for both (need 230)
+				credits: availableCredits,
 				reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
 				active_clients: ['client-001'],
 				owned_tech_upgrades: [],
@@ -313,8 +317,8 @@ describe('Client Portfolio Validator', () => {
 
 			expect(result.canConfigure).toBe(false);
 			expect(result.reason).toContain('Insufficient credits');
-			expect(result.requiredCredits).toBe(230);
-			expect(result.availableCredits).toBe(100);
+			expect(result.requiredCredits).toBe(totalCost);
+			expect(result.availableCredits).toBe(availableCredits);
 		});
 
 		it('should validate warm-up option alone', () => {
@@ -324,7 +328,7 @@ describe('Client Portfolio Validator', () => {
 				budget: 1000,
 				clients: [],
 				technical_stack: [],
-				credits: 150, // Exactly enough for warm-up
+				credits: WARMUP_COST, // Exactly enough for warm-up
 				reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
 				active_clients: ['client-001'],
 				owned_tech_upgrades: [],
@@ -355,7 +359,7 @@ describe('Client Portfolio Validator', () => {
 				budget: 1000,
 				clients: [],
 				technical_stack: [],
-				credits: 80, // Exactly enough for list hygiene
+				credits: LIST_HYGIENE_COST, // Exactly enough for list hygiene
 				reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
 				active_clients: ['client-001'],
 				owned_tech_upgrades: [],

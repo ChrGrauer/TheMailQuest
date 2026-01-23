@@ -311,8 +311,8 @@ export interface DestinationToolPurchaseResult {
  * Represents pending onboarding options for a client (not yet committed)
  */
 export interface OnboardingOptions {
-	warmUp: boolean; // Warm-up option (150 credits)
-	listHygiene: boolean; // List hygiene option (80 credits)
+	warmup: boolean; // Warm-up option
+	listHygiene: boolean; // List hygiene option
 }
 
 /**
@@ -350,7 +350,7 @@ export interface LockInResult {
 export interface AutoCorrectionLog {
 	clientId: string; // Client ID
 	clientName: string; // Client name for logging
-	optionType: 'warmUp' | 'listHygiene'; // Type of option removed
+	optionType: 'warmup' | 'listHygiene'; // Type of option removed
 	costSaved: number; // Credits saved (150 for warm-up, 80 for list hygiene)
 }
 

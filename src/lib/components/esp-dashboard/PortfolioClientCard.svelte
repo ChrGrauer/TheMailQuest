@@ -181,7 +181,7 @@
 	{/if}
 
 	<!-- Onboarding Section (New Clients Only) -->
-	{#if isNewClient && !isSuspended}
+	{#if isNewClient && !isSuspended && !isLockedIn}
 		<div data-testid="onboarding-section" class="mt-4 pt-4 border-t border-gray-200">
 			<div class="text-sm font-semibold text-gray-700 mb-3">First-Round Options (one-time)</div>
 

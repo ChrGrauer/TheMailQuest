@@ -21,7 +21,7 @@ export function hasWarmup(clientState: ClientState): boolean {
  * List hygiene creates both volume and spam trap modifiers with source: 'list_hygiene'
  */
 export function hasListHygiene(clientState: ClientState): boolean {
-	return clientState.volumeModifiers.some((m) => m.source === 'list_hygiene');
+	return clientState.volumeModifiers.some((m) => m.source === 'listHygiene');
 }
 
 /**
@@ -45,7 +45,7 @@ export function getActiveSpamTrapModifiers(clientState: ClientState): string[] {
 }
 
 /**
- * Check if a modifier source is active (warmup, list_hygiene, incident cards)
+ * Check if a modifier source is active (warmup, listHygiene, incident cards)
  */
 export function hasModifierSource(clientState: ClientState, source: string): boolean {
 	return (

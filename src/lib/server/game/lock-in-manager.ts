@@ -15,6 +15,14 @@ import { getSession, updateActivity } from './session-manager';
 import { gameWss } from '$lib/server/websocket';
 import { applyPendingChoiceEffects } from './incident-choice-manager';
 import { INVESTIGATION_COST } from './investigation-manager';
+import {
+	WARMUP_COST,
+	LIST_HYGIENE_COST,
+	calculateOnboardingCost,
+	WARMUP_VOLUME_REDUCTION,
+	getListHygieneVolumeReduction,
+	LIST_HYGIENE_SPAM_TRAP_REDUCTION
+} from '$lib/config/client-onboarding';
 import type {
 	ESPTeam,
 	Destination,
@@ -39,8 +47,7 @@ async function getLogger() {
 // CONSTANTS
 // ============================================================================
 
-const WARMUP_COST = 150; // Credits
-const LIST_HYGIENE_COST = 80; // Credits
+// Local hardcoded constants removed - using imports from $lib/config/client-onboarding
 
 // ============================================================================
 // LOCK-IN OPERATIONS
@@ -303,7 +310,7 @@ export function calculatePendingOnboardingCosts(team: ESPTeam): number {
 
 	for (const clientId in team.pending_onboarding_decisions) {
 		const options = team.pending_onboarding_decisions[clientId];
-		if (options.warmUp) {
+		if (options.warmup) {
 			totalCost += WARMUP_COST;
 		}
 		if (options.listHygiene) {
@@ -345,20 +352,13 @@ export function commitPendingOnboardingDecisions(team: ESPTeam, currentRound: nu
 		// Phase 2: Create modifiers instead of setting deprecated properties
 		// Match the logic from configureOnboarding in client-portfolio-manager.ts
 
-		// Import required utilities
-		const {
-			WARMUP_VOLUME_REDUCTION,
-			getListHygieneVolumeReduction,
-			LIST_HYGIENE_SPAM_TRAP_REDUCTION
-		} = require('$lib/config/client-onboarding');
-
 		// Get client's risk level for list hygiene calculation
 		const client = team.available_clients.find((c) => c.id === clientId);
 		const riskLevel = client?.risk || 'Medium'; // Default to Medium if not found
 
 		// Warmup: 50% volume reduction in first active round only
 		// Use -1 as sentinel value for "first active round only"
-		if (options.warmUp) {
+		if (options.warmup) {
 			clientState.volumeModifiers.push({
 				id: `warmup-${clientId}`,
 				source: 'warmup',
@@ -438,9 +438,9 @@ export function autoCorrectOnboardingOptions(team: ESPTeam): AutoCorrectionLog[]
 		// Priority 1: Remove warm-up options
 		for (const clientId in team.pending_onboarding_decisions) {
 			const options = team.pending_onboarding_decisions[clientId];
-			if (options.warmUp) {
+			if (options.warmup) {
 				// Remove warm-up
-				options.warmUp = false;
+				options.warmup = false;
 				correctionMade = true;
 
 				// Log correction
@@ -448,7 +448,7 @@ export function autoCorrectOnboardingOptions(team: ESPTeam): AutoCorrectionLog[]
 				corrections.push({
 					clientId,
 					clientName: client?.name || clientId,
-					optionType: 'warmUp',
+					optionType: 'warmup',
 					costSaved: WARMUP_COST
 				});
 
@@ -597,7 +597,7 @@ export function autoLockAllPlayers(roomCode: string): Map<string, AutoCorrection
 
 					// Log each correction
 					for (const correction of corrections) {
-						const optionName = correction.optionType === 'warmUp' ? 'warm-up' : 'list hygiene';
+						const optionName = correction.optionType === 'warmup' ? 'warm-up' : 'list hygiene';
 						logger.info(
 							`Removed ${optionName} option (${correction.costSaved}cr) for client: ${correction.clientName}`,
 							{ roomCode, teamName: team.name, clientName: correction.clientName }

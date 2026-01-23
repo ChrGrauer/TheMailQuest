@@ -73,7 +73,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 
 	// Store pending selection (don't deduct credits yet)
 	team.pending_onboarding_decisions[clientId] = {
-		warmUp: warmup,
+		warmup: warmup,
 		listHygiene: listHygiene
 	};
 

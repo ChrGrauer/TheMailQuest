@@ -54,6 +54,8 @@ export const GET: RequestHandler = async ({ params }) => {
 			has_warmup: boolean;
 			has_list_hygiene: boolean;
 			first_active_round: number | null;
+			volumeModifiers: any[];
+			spamTrapModifiers: any[];
 		}
 	> = [];
 
@@ -74,7 +76,9 @@ export const GET: RequestHandler = async ({ params }) => {
 				status: clientState.status,
 				first_active_round: clientState.first_active_round,
 				has_warmup: hasWarmup(clientState),
-				has_list_hygiene: hasListHygiene(clientState)
+				has_list_hygiene: hasListHygiene(clientState),
+				volumeModifiers: clientState.volumeModifiers,
+				spamTrapModifiers: clientState.spamTrapModifiers
 			});
 		}
 	}

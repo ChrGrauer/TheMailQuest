@@ -99,13 +99,14 @@
 					// previous rounds where costs were already paid
 					if (pendingDecisions[client.id]) {
 						onboardingSelections[client.id] = {
-							warmup: pendingDecisions[client.id].warmUp,
-							listHygiene: pendingDecisions[client.id].listHygiene
+							warmup: pendingDecisions[client.id].warmup || (client as any).has_warmup || false,
+							listHygiene:
+								pendingDecisions[client.id].listHygiene || (client as any).has_list_hygiene || false
 						};
 					} else {
 						onboardingSelections[client.id] = {
-							warmup: false,
-							listHygiene: false
+							warmup: (client as any).has_warmup || false,
+							listHygiene: (client as any).has_list_hygiene || false
 						};
 					}
 				}

@@ -50,7 +50,7 @@ export interface ESPDashboardUpdate {
 	available_clients?: import('$lib/server/game/types').Client[]; // US-8.2: Full definitions for facilitator sync
 	locked_in?: boolean; // US-3.2: Lock-in status
 	locked_in_at?: string | Date;
-	pending_onboarding_decisions?: Record<string, { warmUp: boolean; listHygiene: boolean }>;
+	pending_onboarding_decisions?: Record<string, { warmup: boolean; listHygiene: boolean }>;
 }
 
 export interface WebSocketStore {

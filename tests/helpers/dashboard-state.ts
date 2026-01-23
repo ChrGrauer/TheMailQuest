@@ -101,7 +101,7 @@ export async function getEspRevenue(page: Page): Promise<number> {
  */
 export async function getEspPendingOnboarding(
 	page: Page
-): Promise<Record<string, { warmUp: boolean; listHygiene: boolean }>> {
+): Promise<Record<string, { warmup: boolean; listHygiene: boolean }>> {
 	return await page.evaluate(() => {
 		const api = (window as any).__espDashboardTest;
 		if (!api) throw new Error('ESP Dashboard test API not available');
@@ -114,22 +114,22 @@ export async function getEspPendingOnboarding(
  *
  * @param page - ESP player's page
  * @param clientId - Client ID
- * @param warmUp - Enable warm-up
+ * @param warmup - Enable warm-up
  * @param listHygiene - Enable list hygiene
  */
 export async function addEspPendingOnboarding(
 	page: Page,
 	clientId: string,
-	warmUp: boolean,
+	warmup: boolean,
 	listHygiene: boolean
 ): Promise<void> {
 	await page.evaluate(
-		({ clientId, warmUp, listHygiene }) => {
+		({ clientId, warmup, listHygiene }) => {
 			const api = (window as any).__espDashboardTest;
 			if (!api) throw new Error('ESP Dashboard test API not available');
-			api.addPendingOnboarding(clientId, warmUp, listHygiene);
+			api.addPendingOnboarding(clientId, warmup, listHygiene);
 		},
-		{ clientId, warmUp, listHygiene }
+		{ clientId, warmup, listHygiene }
 	);
 }
 
