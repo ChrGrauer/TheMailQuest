@@ -26,9 +26,9 @@ export interface ClientProfile {
 	description: string; // Description for display
 	destination_distribution: {
 		// US-3.3: Resolution Phase Automation - Iteration 6
-		Gmail: number; // Percentage (0-100)
-		Outlook: number; // Percentage (0-100)
-		Yahoo: number; // Percentage (0-100)
+		zmail: number; // Percentage (0-100)
+		intake: number; // Percentage (0-100)
+		yagle: number; // Percentage (0-100)
 	};
 }
 
@@ -54,9 +54,9 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		description:
 			'Established brand with engaged subscriber base. Excellent reputation, low complaint rates. Requires full authentication stack.',
 		destination_distribution: {
-			Gmail: 50,
-			Outlook: 30,
-			Yahoo: 20
+			zmail: 50,
+			intake: 30,
+			yagle: 20
 		}
 	},
 	{
@@ -72,9 +72,9 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		description:
 			'Fast-growing SaaS company with expanding list. Good engagement but occasional complaints.',
 		destination_distribution: {
-			Gmail: 50,
-			Outlook: 30,
-			Yahoo: 20
+			zmail: 50,
+			intake: 30,
+			yagle: 20
 		}
 	},
 	{
@@ -90,9 +90,9 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		description:
 			'Re-activation campaign targeting inactive subscribers. High volume, significant reputation risk.',
 		destination_distribution: {
-			Gmail: 50,
-			Outlook: 30,
-			Yahoo: 20
+			zmail: 50,
+			intake: 30,
+			yagle: 20
 		}
 	},
 	{
@@ -108,9 +108,9 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		description:
 			'High-volume email marketer with purchased lists. High revenue but significant reputation risk.',
 		destination_distribution: {
-			Gmail: 50,
-			Outlook: 30,
-			Yahoo: 20
+			zmail: 50,
+			intake: 30,
+			yagle: 20
 		}
 	},
 	{
@@ -126,9 +126,9 @@ export const CLIENT_PROFILES: ClientProfile[] = [
 		description:
 			'Seasonal campaign with time-sensitive promotions. Moderate risk with concentrated traffic.',
 		destination_distribution: {
-			Gmail: 50,
-			Outlook: 30,
-			Yahoo: 20
+			zmail: 50,
+			intake: 30,
+			yagle: 20
 		}
 	}
 ];
@@ -222,11 +222,11 @@ export function getReputationImpact(risk: 'Low' | 'Medium' | 'High'): number {
  * US-3.3: Resolution Phase Automation - Iteration 6
  */
 export function validateDestinationDistribution(distribution: {
-	Gmail: number;
-	Outlook: number;
-	Yahoo: number;
+	zmail: number;
+	intake: number;
+	yagle: number;
 }): { valid: boolean; error?: string } {
-	const total = distribution.Gmail + distribution.Outlook + distribution.Yahoo;
+	const total = distribution.zmail + distribution.intake + distribution.yagle;
 
 	if (Math.abs(total - 100) > 0.01) {
 		return {

@@ -8,7 +8,7 @@ Feature: Destination Filtering Controls
 
   Background:
     Given the game is in the Planning phase
-    And I am a Destination player for "Gmail"
+    And I am a Destination player for "zmail"
     And the Filtering Controls modal is open
 
   # === VIEWING ESP FILTERING STATUS ===
@@ -17,7 +17,7 @@ Feature: Destination Filtering Controls
     Given all 5 ESP teams are active in the game
     When I open the Filtering Controls modal
     Then I should see 5 ESP entries
-    And each ESP should display complete Gmail-specific metrics:
+    And each ESP should display complete zmail-specific metrics:
       | ESP name                    |
       | Current filtering level     |
       | Email volume last round     |
@@ -28,11 +28,11 @@ Feature: Destination Filtering Controls
   Scenario: ESP metrics are destination-specific
     Given "BluePost" has different metrics at each destination:
       | Destination | User Satisfaction | Spam Rate| Current filtering level | Email volume last round | Reputation score |
-      | Gmail       | 52%               | 2.8%     | Strict                  | 54k                     | 70               |
-      | Outlook     | 58%               | 2.2%     | Permissive              | 37k                     | 82               |
-    When I am "Gmail" and view "BluePost" filtering item
+      | zmail       | 52%               | 2.8%     | Strict                  | 54k                     | 70               |
+      | intake     | 58%               | 2.2%     | Permissive              | 37k                     | 82               |
+    When I am "zmail" and view "BluePost" filtering item
     Then I should see Satisfaction: 52% and Spam: 2.8%
-    When I am "Outlook" and view "BluePost" filtering item
+    When I am "intake" and view "BluePost" filtering item
     Then I should see Satisfaction: 58% and Spam: 2.2%
 
   # === FILTERING LEVELS AND IMPACT ===
@@ -94,7 +94,7 @@ Feature: Destination Filtering Controls
   Scenario: Filtering applies during Resolution phase
     Given I set "BluePost" to "Strict" (65% spam reduction, 8% false positives)
     When the game transitions to Resolution phase
-    Then the filtering should be applied to "BluePost" emails at "Gmail"
+    Then the filtering should be applied to "BluePost" emails at "zmail"
     And 65% of spam should be blocked
     And 8% of legitimate emails should be incorrectly filtered
     And user satisfaction should be affected accordingly

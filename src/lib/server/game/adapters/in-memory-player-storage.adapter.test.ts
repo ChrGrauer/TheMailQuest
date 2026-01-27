@@ -56,7 +56,7 @@ describe('InMemoryPlayerStorage', () => {
 				id: 'player_1',
 				displayName: 'Alice Updated',
 				role: 'Destination',
-				teamName: 'Gmail',
+				teamName: 'zmail',
 				joinedAt: new Date()
 			};
 
@@ -87,7 +87,7 @@ describe('InMemoryPlayerStorage', () => {
 				id: 'player_2',
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail',
+				teamName: 'zmail',
 				joinedAt: new Date()
 			};
 
@@ -139,7 +139,7 @@ describe('InMemoryPlayerStorage', () => {
 				id: 'player_2',
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail',
+				teamName: 'zmail',
 				joinedAt: new Date()
 			};
 
@@ -220,7 +220,7 @@ describe('InMemoryPlayerStorage', () => {
 				id: 'player_2',
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail',
+				teamName: 'zmail',
 				joinedAt: new Date()
 			};
 
@@ -267,7 +267,7 @@ describe('InMemoryPlayerStorage', () => {
 				id: 'player_2',
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail',
+				teamName: 'zmail',
 				joinedAt: new Date()
 			};
 
@@ -344,7 +344,7 @@ describe('InMemoryPlayerStorage', () => {
 				id: 'player_2',
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail',
+				teamName: 'zmail',
 				joinedAt: new Date()
 			};
 

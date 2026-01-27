@@ -56,7 +56,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		);
 	}
 
-	const kingdom = destination.kingdom || 'Gmail';
+	const kingdom = destination.kingdom || 'zmail';
 	const ownedTools = destination.owned_tools || [];
 
 	// Map tools with status

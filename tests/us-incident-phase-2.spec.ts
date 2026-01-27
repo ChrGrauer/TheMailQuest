@@ -61,27 +61,27 @@ test.describe('INC-003: Venture Capital Boost', () => {
 test.describe('INC-008: Authentication Emergency', () => {
 	let alicePage: any;
 	let bobPage: any;
-	let gmailPage: any;
+	let zmailPage: any;
 
 	test.afterEach(async ({ page }) => {
-		await closePages(page, alicePage, bobPage, gmailPage);
+		await closePages(page, alicePage, bobPage, zmailPage);
 	});
 
 	test('ESPs without DKIM lose 10 reputation', async ({ page, context }) => {
-		({ alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(page, context));
+		({ alicePage, bobPage, zmailPage } = await createGameWithDestinationPlayer(page, context));
 
 		// Advance to Round 2
-		await advanceToRound(page, [alicePage, bobPage, gmailPage], 2);
+		await advanceToRound(page, [alicePage, bobPage, zmailPage], 2);
 
 		// Get initial reputation for both ESPs
-		const aliceRepElement = alicePage.getByTestId('reputation-gmail');
+		const aliceRepElement = alicePage.getByTestId('reputation-zmail');
 		const aliceInitialRep = await extractNumeric(aliceRepElement);
 
-		const bobRepElement = bobPage.getByTestId('reputation-gmail');
+		const bobRepElement = bobPage.getByTestId('reputation-zmail');
 		const bobInitialRep = await extractNumeric(bobRepElement);
 
 		// Trigger INC-008 (Authentication Emergency)
-		await triggerIncident(page, 'INC-008', undefined, [alicePage, bobPage, gmailPage]);
+		await triggerIncident(page, 'INC-008', undefined, [alicePage, bobPage, zmailPage]);
 
 		// Both ESPs should lose 10 reputation (neither has DKIM at start)
 		const aliceNewRep = await extractNumeric(aliceRepElement);
@@ -102,7 +102,7 @@ test.describe('INC-008: Authentication Emergency', () => {
 		await advanceToRound(page, [alicePage, bobPage], 2);
 
 		// Get initial reputation
-		const repElement = alicePage.getByTestId('reputation-gmail');
+		const repElement = alicePage.getByTestId('reputation-zmail');
 		const initialRep = await extractNumeric(repElement);
 
 		// Trigger INC-008 (Authentication Emergency)
@@ -187,7 +187,7 @@ test.describe('INC-011: Viral Campaign', () => {
 
 		// Get initial values before triggering INC-011
 		const initialCredits = await extractBudget(alicePage, 'budget-current');
-		const repElement = alicePage.getByTestId('reputation-gmail');
+		const repElement = alicePage.getByTestId('reputation-zmail');
 		const initialRep = await extractNumeric(repElement);
 
 		// Trigger INC-011 (Viral Campaign) on SendWave
@@ -217,7 +217,7 @@ test.describe('INC-011: Viral Campaign', () => {
 		await advanceToRound(page, [alicePage, bobPage], 3);
 
 		// Get initial reputation before triggering INC-011
-		const repElement = alicePage.getByTestId('reputation-gmail');
+		const repElement = alicePage.getByTestId('reputation-zmail');
 		const initialRep = await extractNumeric(repElement);
 
 		// Trigger INC-011 (Viral Campaign) on SendWave

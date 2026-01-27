@@ -23,7 +23,7 @@
  * Example usage:
  *   import { test, expect } from './fixtures';
  *   test('my test', async ({ destinationGame }) => {
- *     const { gmailPage, alicePage, bobPage, roomCode } = destinationGame;
+ *     const { zmailPage, alicePage, bobPage, roomCode } = destinationGame;
  *     // Test logic...
  *   });
  */
@@ -58,14 +58,14 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 	test.describe('ESP Statistics Display', () => {
 		test('Scenario: ESP with zero volume displays correctly', async ({ page, context }) => {
 			// Given: I am viewing the Destination dashboard
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// And: an ESP team has 0 active clients and 0 volume
 			// Simulate this via test API
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.setESPStats([
 					{
 						espName: 'SendWave',
@@ -82,7 +82,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			});
 
 			// When: I view the ESP Statistics Overview
-			const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
+			const espCard = zmailPage.locator('[data-testid="esp-card-sendwave"]');
 			await expect(espCard).toBeVisible({ timeout: 2000 });
 
 			// Then: "SendWave" should still appear in the list
@@ -97,7 +97,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			const reputation = espCard.locator('[data-testid="esp-reputation"]');
 			await expect(reputation).toContainText('70');
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 	});
@@ -120,13 +120,13 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 				page,
 				context
 			}) => {
-				const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+				const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 					page,
 					context
 				);
 
 				// When: ESP has reputation at threshold value
-				await gmailPage.evaluate((rep) => {
+				await zmailPage.evaluate((rep) => {
 					const spamRate = rep >= 90 ? 0.01 : rep >= 70 ? 0.04 : rep >= 50 ? 0.08 : 0.2;
 					const spamVolume = Math.floor(185000 * spamRate);
 
@@ -146,7 +146,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 				}, threshold.value);
 
 				// Then: reputation should display correct status (wait for DOM update)
-				const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
+				const espCard = zmailPage.locator('[data-testid="esp-card-sendwave"]');
 				await expect(espCard).toBeVisible({ timeout: 2000 });
 
 				const reputation = espCard.locator('[data-testid="esp-reputation"]');
@@ -166,7 +166,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 					expect(repStyles).not.toBe('rgba(0, 0, 0, 1)');
 				}
 
-				await closePages(page, gmailPage, alicePage, bobPage);
+				await closePages(page, zmailPage, alicePage, bobPage);
 			});
 		}
 
@@ -174,16 +174,16 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			page,
 			context
 		}) => {
-			const { alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			const { alicePage, bobPage, zmailPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
-			const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
+			const espCard = zmailPage.locator('[data-testid="esp-card-sendwave"]');
 			const spamRate = espCard.locator('[data-testid="esp-spam-rate"]');
 
 			// Test low spam rate (<0.05%)
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				const volumeRaw = 185000;
 				const rate = 0.04;
 				(window as any).__destinationDashboardTest.setESPStats([
@@ -206,7 +206,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			await expect(spamRate).toHaveAttribute('data-status', 'low', { timeout: 2000 });
 
 			// Test medium spam rate (0.05-0.15%)
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				const volumeRaw = 185000;
 				const rate = 0.1;
 				(window as any).__destinationDashboardTest.setESPStats([
@@ -228,7 +228,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			await expect(spamRate).toHaveAttribute('data-status', 'medium', { timeout: 2000 });
 
 			// Test high spam rate (≥0.15%)
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				const volumeRaw = 185000;
 				const rate = 0.28;
 				(window as any).__destinationDashboardTest.setESPStats([
@@ -249,7 +249,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// Wait for DOM update
 			await expect(spamRate).toHaveAttribute('data-status', 'high', { timeout: 2000 });
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 	});
@@ -266,26 +266,26 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// Given: multiple Destination players are viewing their dashboards
 			const roomCode = await createTestSession(page);
 			const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
-			const gmailPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'Gmail');
-			const outlookPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'Outlook');
+			const zmailPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'zmail');
+			const intakePage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'intake');
 			await page.waitForTimeout(500);
 
 			// Start game
 			const startGameButton = page.getByRole('button', { name: /start game/i });
 			await startGameButton.click();
 
-			await gmailPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });
-			await outlookPage.waitForURL(`/game/${roomCode}/destination/outlook`, {
+			await zmailPage.waitForURL(`/game/${roomCode}/destination/zmail`, { timeout: 10000 });
+			await intakePage.waitForURL(`/game/${roomCode}/destination/intake`, {
 				timeout: 10000
 			});
 
 			// Wait for dashboards to load
-			await gmailPage.waitForFunction(
+			await zmailPage.waitForFunction(
 				() => (window as any).__destinationDashboardTest?.ready === true,
 				{},
 				{ timeout: 10000 }
 			);
-			await outlookPage.waitForFunction(
+			await intakePage.waitForFunction(
 				() => (window as any).__destinationDashboardTest?.ready === true,
 				{},
 				{ timeout: 10000 }
@@ -294,25 +294,25 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// When: each player views their dashboard
 			// Then: each should see only their own data
 
-			// Gmail sees "Gmail"
-			const gmailName = gmailPage.locator('[data-testid="destination-name"]');
-			await expect(gmailName).toHaveText('Gmail');
+			// zmail sees "zmail"
+			const zmailName = zmailPage.locator('[data-testid="destination-name"]');
+			await expect(zmailName).toHaveText('zmail');
 
-			// Outlook sees "Outlook"
-			const outlookName = outlookPage.locator('[data-testid="destination-name"]');
-			await expect(outlookName).toHaveText('Outlook');
+			// intake sees "intake"
+			const intakeName = intakePage.locator('[data-testid="destination-name"]');
+			await expect(intakeName).toHaveText('intake');
 
 			// Budgets should be different (per game configuration)
-			const gmailBudget = await gmailPage.locator('[data-testid="budget-current"]').textContent();
-			const outlookBudget = await outlookPage
+			const zmailBudget = await zmailPage.locator('[data-testid="budget-current"]').textContent();
+			const intakeBudget = await intakePage
 				.locator('[data-testid="budget-current"]')
 				.textContent();
 
-			// Gmail (50%) gets more budget than Outlook (30%)
+			// zmail (50%) gets more budget than intake (30%)
 			// This will depend on game configuration, but they should be different
-			expect(gmailBudget).not.toBe(outlookBudget);
+			expect(zmailBudget).not.toBe(intakeBudget);
 
-			await closePages(page, gmailPage, outlookPage, alicePage);
+			await closePages(page, zmailPage, intakePage, alicePage);
 		});
 	});
 
@@ -322,13 +322,13 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 
 	test.describe('Accessibility', () => {
 		test('Scenario: Color-coding is accessible to color-blind users', async ({ page, context }) => {
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// Set ESP with excellent reputation
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				const volumeRaw = 185000;
 				const rate = 0.01;
 				(window as any).__destinationDashboardTest.setESPStats([
@@ -347,7 +347,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			});
 
 			// Then: each status should also use icons (wait for DOM update)
-			const espCard = gmailPage.locator('[data-testid="esp-card-sendwave"]');
+			const espCard = zmailPage.locator('[data-testid="esp-card-sendwave"]');
 			await expect(espCard).toBeVisible({ timeout: 2000 });
 
 			// Check for icon (checkmark for excellent) - there are multiple excellent icons (rep + satisfaction)
@@ -357,7 +357,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			const iconText = await icons.first().textContent();
 			expect(iconText).toMatch(/[✓✕⚠!👍]/); // Should have an icon
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 	});
@@ -369,23 +369,23 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 	test.describe('Error Handling', () => {
 		test('Scenario: Dashboard handles errors gracefully with banner', async ({ page, context }) => {
 			// Given: I am viewing the Destination dashboard
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// When: an error occurs
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.setError('Failed to load ESP statistics');
 			});
 
 			// Then: an error banner should appear at the top (wait for DOM update)
-			const errorBanner = gmailPage.locator('[data-testid="error-banner"]');
+			const errorBanner = zmailPage.locator('[data-testid="error-banner"]');
 			await expect(errorBanner).toBeVisible({ timeout: 2000 });
 			await expect(errorBanner).toContainText('Failed to load ESP statistics');
 
 			// And: the dashboard should remain functional (non-blocking)
-			const espSection = gmailPage.locator('[data-testid="esp-statistics-overview"]');
+			const espSection = zmailPage.locator('[data-testid="esp-statistics-overview"]');
 			await expect(espSection).toBeVisible();
 
 			// And: user can dismiss the error
@@ -393,7 +393,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			await dismissButton.click();
 			await expect(errorBanner).not.toBeVisible({ timeout: 2000 });
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 	});
@@ -405,18 +405,18 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 	test.describe('Phase 4.1.1: Round 1 Spam Complaints Display', () => {
 		test('Round 1 ESP statistics should show spam complaints as "-"', async ({ page, context }) => {
 			// Given: I am a destination player in Round 1
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// When: I view the ESP Statistics Overview
-			const espOverview = gmailPage.locator('[data-testid="esp-statistics-overview"]');
+			const espOverview = zmailPage.locator('[data-testid="esp-statistics-overview"]');
 			await expect(espOverview).toBeVisible({ timeout: 5000 });
 
 			// Then: Spam complaints for all ESPs should show '-' (not numeric data)
 			// Because Round 1 has no previous round data to compare
-			const espCards = gmailPage.locator('[data-testid^="esp-card-"]');
+			const espCards = zmailPage.locator('[data-testid^="esp-card-"]');
 			const cardCount = await espCards.count();
 			expect(cardCount).toBeGreaterThan(0);
 
@@ -429,7 +429,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// Should show '-' or similar placeholder (not a percentage or number)
 			expect(spamRateText?.trim()).toBe('-');
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 
@@ -438,16 +438,16 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			context
 		}) => {
 			// Given: I am a destination player in Round 2
-			const { facilitatorPage, alicePage, gmailPage } = await createGameInSecondRound(
+			const { facilitatorPage, alicePage, zmailPage } = await createGameInSecondRound(
 				page,
 				context
 			);
 
 			// Check ESP Statistics Overview
-			const espOverview = gmailPage.locator('[data-testid="esp-statistics-overview"]');
+			const espOverview = zmailPage.locator('[data-testid="esp-statistics-overview"]');
 			await expect(espOverview).toBeVisible({ timeout: 5000 });
 
-			const espCards = gmailPage.locator('[data-testid^="esp-card-"]');
+			const espCards = zmailPage.locator('[data-testid^="esp-card-"]');
 			const firstCard = espCards.first();
 			const spamRateElement = firstCard.locator('[data-testid="esp-spam-rate"]');
 			await expect(spamRateElement).toBeVisible();
@@ -458,7 +458,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 			// Should contain either a percentage sign or numeric data
 			expect(spamRateText).toMatch(/\d+|%/);
 
-			await closePages(facilitatorPage, alicePage, gmailPage);
+			await closePages(facilitatorPage, alicePage, zmailPage);
 		});
 	});
 });

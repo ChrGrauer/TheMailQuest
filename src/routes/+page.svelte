@@ -83,7 +83,7 @@
 				<div class="text-center">
 					<div class="text-2xl mb-2">📮</div>
 					<p>
-						<strong>Destinations:</strong> Three email destinations (Gmail, Outlook, Yahoo) receive emails
+						<strong>Destinations:</strong> Three email destinations (zmail, intake, yagle) receive emails
 					</p>
 				</div>
 				<div class="text-center">

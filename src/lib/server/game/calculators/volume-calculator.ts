@@ -82,14 +82,14 @@ export function calculateVolume(params: VolumeParams): VolumeResult {
 		// 3. Distribute volume per destination (Iteration 6)
 		// Fallback to default distribution for clients without the field (backward compatibility)
 		const distribution = client.destination_distribution || {
-			Gmail: 50,
-			Outlook: 30,
-			Yahoo: 20
+			zmail: 50,
+			intake: 30,
+			yagle: 20
 		};
 		const perDestination = {
-			Gmail: Math.round(adjustedVolume * (distribution.Gmail / 100)),
-			Outlook: Math.round(adjustedVolume * (distribution.Outlook / 100)),
-			Yahoo: Math.round(adjustedVolume * (distribution.Yahoo / 100))
+			zmail: Math.round(adjustedVolume * (distribution.zmail / 100)),
+			intake: Math.round(adjustedVolume * (distribution.intake / 100)),
+			yagle: Math.round(adjustedVolume * (distribution.yagle / 100))
 		};
 
 		return {
@@ -106,9 +106,9 @@ export function calculateVolume(params: VolumeParams): VolumeResult {
 
 	// Aggregate per-destination totals (Iteration 6)
 	const perDestination = {
-		Gmail: clientVolumes.reduce((sum, cv) => sum + cv.perDestination.Gmail, 0),
-		Outlook: clientVolumes.reduce((sum, cv) => sum + cv.perDestination.Outlook, 0),
-		Yahoo: clientVolumes.reduce((sum, cv) => sum + cv.perDestination.Yahoo, 0)
+		zmail: clientVolumes.reduce((sum, cv) => sum + cv.perDestination.zmail, 0),
+		intake: clientVolumes.reduce((sum, cv) => sum + cv.perDestination.intake, 0),
+		yagle: clientVolumes.reduce((sum, cv) => sum + cv.perDestination.yagle, 0)
 	};
 
 	return {

@@ -71,7 +71,7 @@ function createInitialESPTeams(): ESPTeam[] {
  * US-1.4: Added resource allocation fields
  */
 function createInitialDestinations(): Destination[] {
-	const destinationNames: Array<'Gmail' | 'Outlook' | 'Yahoo'> = ['Gmail', 'Outlook', 'Yahoo'];
+	const destinationNames: Array<'zmail' | 'intake' | 'yagle'> = ['zmail', 'intake', 'yagle'];
 
 	return destinationNames.map((name) => ({
 		name,

@@ -19,7 +19,7 @@ test.describe('US-8.2-0.4: Facilitator Logic Fixes', () => {
         });
 
         // Verify Destination is shown as "Locked In" in the facilitator dashboard
-        const destRow = page.locator('[data-testid="dest-row-Gmail"]'); // Bob is usually Gmail
+        const destRow = page.locator('[data-testid="dest-row-zmail"]'); // Bob is usually zmail
         await expect(destRow.locator('text=Locked In')).toBeVisible();
 
         // When: Facilitator starts next round

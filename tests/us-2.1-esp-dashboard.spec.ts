@@ -167,21 +167,21 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			context
 		}) => {
 			// Given: ESP team "SendWave" starts with default reputation (70 for each destination)
-			const { roomCode, alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			const { roomCode, alicePage, bobPage, zmailPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 			//const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 			// And: player "Alice" is viewing the dashboard
-			const gmailGauge = alicePage.locator('[data-testid="reputation-gmail"]');
-			await expect(gmailGauge).toBeVisible();
-			await expect(gmailGauge).toContainText('70');
+			const zmailGauge = alicePage.locator('[data-testid="reputation-zmail"]');
+			await expect(zmailGauge).toBeVisible();
+			await expect(zmailGauge).toContainText('70');
 
 			// When: All players lock in to trigger resolution
 			await alicePage.locator('[data-testid="lock-in-button"]').click();
 			await bobPage.locator('[data-testid="lock-in-button"]').click();
-			await gmailPage.locator('[data-testid="lock-in-button"]').click();
+			await zmailPage.locator('[data-testid="lock-in-button"]').click();
 			await alicePage.waitForTimeout(2000); // Wait for resolution to complete
 
 			// Then: Alice should see the consequences phase
@@ -205,11 +205,11 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// And: The reputation should be updated via WebSocket (likely changed from 70)
 			// Without requiring a page refresh
-			const updatedGmailRep = await gmailGauge.textContent();
-			const repValue = parseInt(updatedGmailRep?.replace(/\D/g, '') || '0');
+			const updatedzmailRep = await zmailGauge.textContent();
+			const repValue = parseInt(updatedzmailRep?.replace(/\D/g, '') || '0');
 
 			// Reputation should have changed from initial 70 (could be higher or lower)
-			// gmailGauge contains "50%" before the reputation value as it is gmail
+			// zmailGauge contains "50%" before the reputation value as it is zmail
 			// The key test is that it updates automatically without refresh
 			// We just verify it's a valid reputation value (0-100)
 			expect(repValue).toBeGreaterThanOrEqual(0);
@@ -235,9 +235,9 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Using values that match the threshold table: 90+=Excellent, 70-89=Good, 50-69=Warning
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setReputation({
-					Gmail: 92, // Excellent (90+)
-					Outlook: 75, // Good (70-89)
-					Yahoo: 55 // Warning (50-69)
+					zmail: 92, // Excellent (90+)
+					intake: 75, // Good (70-89)
+					yagle: 55 // Warning (50-69)
 				});
 			});
 
@@ -246,28 +246,28 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// When: player "Alice" views the dashboard
 			// Then: reputation gauges should be displayed for each destination
-			const gmailGauge = alicePage.locator('[data-testid="reputation-gmail"]');
-			const outlookGauge = alicePage.locator('[data-testid="reputation-outlook"]');
-			const yahooGauge = alicePage.locator('[data-testid="reputation-yahoo"]');
+			const zmailGauge = alicePage.locator('[data-testid="reputation-zmail"]');
+			const intakeGauge = alicePage.locator('[data-testid="reputation-intake"]');
+			const yagleGauge = alicePage.locator('[data-testid="reputation-yagle"]');
 
-			await expect(gmailGauge).toBeVisible();
-			await expect(outlookGauge).toBeVisible();
-			await expect(yahooGauge).toBeVisible();
+			await expect(zmailGauge).toBeVisible();
+			await expect(intakeGauge).toBeVisible();
+			await expect(yagleGauge).toBeVisible();
 
-			// And: the Gmail gauge should show "92" with excellent/green styling
-			await expect(gmailGauge).toContainText('92');
-			const gmailColor = await gmailGauge.getAttribute('data-status');
-			expect(gmailColor).toBe('excellent');
+			// And: the zmail gauge should show "92" with excellent/green styling
+			await expect(zmailGauge).toContainText('92');
+			const zmailColor = await zmailGauge.getAttribute('data-status');
+			expect(zmailColor).toBe('excellent');
 
-			// And: the Outlook gauge should show "75" with good/blue styling
-			await expect(outlookGauge).toContainText('75');
-			const outlookColor = await outlookGauge.getAttribute('data-status');
-			expect(outlookColor).toBe('good');
+			// And: the intake gauge should show "75" with good/blue styling
+			await expect(intakeGauge).toContainText('75');
+			const intakeColor = await intakeGauge.getAttribute('data-status');
+			expect(intakeColor).toBe('good');
 
-			// And: the Yahoo gauge should show "55" with warning/orange styling
-			await expect(yahooGauge).toContainText('55');
-			const yahooColor = await yahooGauge.getAttribute('data-status');
-			expect(yahooColor).toBe('warning');
+			// And: the yagle gauge should show "55" with warning/orange styling
+			await expect(yagleGauge).toContainText('55');
+			const yagleColor = await yagleGauge.getAttribute('data-status');
+			expect(yagleColor).toBe('warning');
 
 			await closePages(page, alicePage, bobPage);
 		});
@@ -282,9 +282,9 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// When: player "Alice" views the reputation gauges
 			// Then: reputations should be color-coded by threshold
 			const testCases = [
-				{ value: 95, expectedStatus: 'excellent', destination: 'Gmail' },
-				{ value: 75, expectedStatus: 'good', destination: 'Outlook' },
-				{ value: 55, expectedStatus: 'warning', destination: 'Yahoo' }
+				{ value: 95, expectedStatus: 'excellent', destination: 'zmail' },
+				{ value: 75, expectedStatus: 'good', destination: 'intake' },
+				{ value: 55, expectedStatus: 'warning', destination: 'yagle' }
 			];
 
 			for (const testCase of testCases) {
@@ -312,27 +312,27 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			page,
 			context
 		}) => {
-			// Given: ESP team "SendWave" has Gmail reputation at 65
+			// Given: ESP team "SendWave" has zmail reputation at 65
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setReputation({ Gmail: 65 });
+				(window as any).__espDashboardTest.setReputation({ zmail: 65 });
 			});
 
 			// Wait for front-end to process the update
 			await alicePage.waitForTimeout(500);
 
 			// When: the round starts
-			// Then: a visual warning should appear for Gmail reputation
-			const warningIndicator = alicePage.locator('[data-testid="reputation-gmail-warning"]');
+			// Then: a visual warning should appear for zmail reputation
+			const warningIndicator = alicePage.locator('[data-testid="reputation-zmail-warning"]');
 			await expect(warningIndicator).toBeVisible();
 
 			// And: the warning should indicate "Warning Zone"
 			await expect(warningIndicator).toContainText(/warning zone/i);
 
 			// And: the gauge should change to orange/warning styling
-			const gmailGauge = alicePage.locator('[data-testid="reputation-gmail"]');
-			const status = await gmailGauge.getAttribute('data-status');
+			const zmailGauge = alicePage.locator('[data-testid="reputation-zmail"]');
+			const status = await zmailGauge.getAttribute('data-status');
 			expect(status).toBe('warning');
 
 			await closePages(page, alicePage, bobPage);
@@ -342,27 +342,27 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			page,
 			context
 		}) => {
-			// Given: ESP team "SendWave" has Gmail reputation at 45
+			// Given: ESP team "SendWave" has zmail reputation at 45
 			const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
 			await alicePage.evaluate(() => {
-				(window as any).__espDashboardTest.setReputation({ Gmail: 45 });
+				(window as any).__espDashboardTest.setReputation({ zmail: 45 });
 			});
 
 			// Wait for front-end to process the update
 			await alicePage.waitForTimeout(500);
 
 			// When: the round starts
-			// Then: a visual alert should appear for Gmail reputation
-			const alertIndicator = alicePage.locator('[data-testid="reputation-gmail-alert"]');
+			// Then: a visual alert should appear for zmail reputation
+			const alertIndicator = alicePage.locator('[data-testid="reputation-zmail-alert"]');
 			await expect(alertIndicator).toBeVisible();
 
 			// And: the alert should indicate "Danger Zone"
 			await expect(alertIndicator).toContainText(/danger zone/i);
 
 			// And: the gauge should change to red/poor styling
-			const gmailGauge = alicePage.locator('[data-testid="reputation-gmail"]');
-			const status = await gmailGauge.getAttribute('data-status');
+			const zmailGauge = alicePage.locator('[data-testid="reputation-zmail"]');
+			const status = await zmailGauge.getAttribute('data-status');
 			expect(status).toBe('poor');
 
 			// And: the alert should be more prominent than a warning
@@ -380,24 +380,24 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// When: player "Alice" views the dashboard
 			// Then: each destination should display its market weight
-			const gmailWeight = alicePage.locator('[data-testid="destination-weight-gmail"]');
-			const outlookWeight = alicePage.locator('[data-testid="destination-weight-outlook"]');
-			const yahooWeight = alicePage.locator('[data-testid="destination-weight-yahoo"]');
+			const zmailWeight = alicePage.locator('[data-testid="destination-weight-zmail"]');
+			const intakeWeight = alicePage.locator('[data-testid="destination-weight-intake"]');
+			const yagleWeight = alicePage.locator('[data-testid="destination-weight-yagle"]');
 
-			await expect(gmailWeight).toContainText('50%');
-			await expect(outlookWeight).toContainText('30%');
-			await expect(yahooWeight).toContainText('20%');
+			await expect(zmailWeight).toContainText('50%');
+			await expect(intakeWeight).toContainText('30%');
+			await expect(yagleWeight).toContainText('20%');
 
 			// And: the weight should be shown near each reputation gauge
-			const gmailGauge = alicePage.locator('[data-testid="reputation-gmail"]');
-			const gmailGaugeBox = await gmailGauge.boundingBox();
-			const gmailWeightBox = await gmailWeight.boundingBox();
+			const zmailGauge = alicePage.locator('[data-testid="reputation-zmail"]');
+			const zmailGaugeBox = await zmailGauge.boundingBox();
+			const zmailWeightBox = await zmailWeight.boundingBox();
 
-			expect(gmailGaugeBox).not.toBeNull();
-			expect(gmailWeightBox).not.toBeNull();
+			expect(zmailGaugeBox).not.toBeNull();
+			expect(zmailWeightBox).not.toBeNull();
 
 			// Weight should be within 100px of gauge
-			const distance = Math.abs(gmailGaugeBox!.y - gmailWeightBox!.y);
+			const distance = Math.abs(zmailGaugeBox!.y - zmailWeightBox!.y);
 			expect(distance).toBeLessThan(100);
 
 			await closePages(page, alicePage, bobPage);
@@ -534,9 +534,9 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Set up reputation values (using thresholds: 90+=Excellent, 70-89=Good, 50-69=Warning)
 			await alicePage.evaluate(() => {
 				(window as any).__espDashboardTest.setReputation({
-					Gmail: 95, // Excellent (90+)
-					Outlook: 75, // Good (70-89)
-					Yahoo: 55 // Warning (50-69)
+					zmail: 95, // Excellent (90+)
+					intake: 75, // Good (70-89)
+					yagle: 55 // Warning (50-69)
 				});
 			});
 
@@ -545,25 +545,25 @@ test.describe('Feature: ESP Team Dashboard', () => {
 
 			// When: viewing reputation gauges with color coding
 			// Then: each status should also use patterns or icons
-			const gmailGauge = alicePage.locator('[data-testid="reputation-gmail"]');
-			const outlookGauge = alicePage.locator('[data-testid="reputation-outlook"]');
-			const yahooGauge = alicePage.locator('[data-testid="reputation-yahoo"]');
+			const zmailGauge = alicePage.locator('[data-testid="reputation-zmail"]');
+			const intakeGauge = alicePage.locator('[data-testid="reputation-intake"]');
+			const yagleGauge = alicePage.locator('[data-testid="reputation-yagle"]');
 
 			// Excellent should have checkmark icon
-			const checkmarkIcon = gmailGauge.locator('[data-testid="status-icon-checkmark"]');
+			const checkmarkIcon = zmailGauge.locator('[data-testid="status-icon-checkmark"]');
 			await expect(checkmarkIcon).toBeVisible();
 
 			// Good should have thumb up icon
-			const thumbUpIcon = outlookGauge.locator('[data-testid="status-icon-thumbup"]');
+			const thumbUpIcon = intakeGauge.locator('[data-testid="status-icon-thumbup"]');
 			await expect(thumbUpIcon).toBeVisible();
 
 			// Warning should have warning triangle icon
-			const warningIcon = yahooGauge.locator('[data-testid="status-icon-warning"]');
+			const warningIcon = yagleGauge.locator('[data-testid="status-icon-warning"]');
 			await expect(warningIcon).toBeVisible();
 
 			// And: the status should be readable by screen readers
-			const gmailLabel = await gmailGauge.getAttribute('aria-label');
-			expect(gmailLabel).toMatch(/excellent|95/i);
+			const zmailLabel = await zmailGauge.getAttribute('aria-label');
+			expect(zmailLabel).toMatch(/excellent|95/i);
 
 			await closePages(page, alicePage, bobPage);
 		});

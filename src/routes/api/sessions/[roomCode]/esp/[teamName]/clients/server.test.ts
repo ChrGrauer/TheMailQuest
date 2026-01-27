@@ -49,7 +49,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]/clients', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -94,7 +94,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]/clients', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -138,7 +138,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]/clients', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -192,7 +192,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]/clients', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -244,7 +244,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]/clients', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });

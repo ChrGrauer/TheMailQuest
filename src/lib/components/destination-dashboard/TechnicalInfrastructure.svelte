@@ -18,10 +18,10 @@
 
 	interface Props {
 		ownedTools: string[]; // Array of owned tool IDs (US-2.6.2)
-		kingdom?: 'Gmail' | 'Outlook' | 'Yahoo'; // For kingdom-specific pricing
+		kingdom?: 'zmail' | 'intake' | 'yagle'; // For kingdom-specific pricing
 	}
 
-	let { ownedTools, kingdom = 'Gmail' }: Props = $props();
+	let { ownedTools, kingdom = 'zmail' }: Props = $props();
 
 	// Group tools by category
 	const toolsByCategory = $derived.by(() => {

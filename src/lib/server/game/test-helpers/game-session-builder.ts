@@ -42,7 +42,7 @@ export function buildTestTeam(nameOrConfig: string | TestTeamConfig): ESPTeam {
 		clients: [],
 		technical_stack: [],
 		credits: config.credits ?? 1000,
-		reputation: config.reputation ?? { Gmail: 70, Outlook: 70, Yahoo: 70 },
+		reputation: config.reputation ?? { zmail: 70, intake: 70, yagle: 70 },
 		active_clients: config.clients?.map((c) => c.id) ?? [],
 		owned_tech_upgrades: config.techStack ?? [],
 		round_history: [],
@@ -59,7 +59,7 @@ export function buildTestTeam(nameOrConfig: string | TestTeamConfig): ESPTeam {
 export function buildTestDestination(name: string): Destination {
 	return {
 		name,
-		kingdom: name as 'Gmail' | 'Outlook' | 'Yahoo',
+		kingdom: name as 'zmail' | 'intake' | 'yagle',
 		players: [],
 		budget: 500,
 		filtering_policies: {},
@@ -75,9 +75,9 @@ export function buildTestDestination(name: string): Destination {
  */
 export function buildTestSession(config?: TestSessionConfig): GameSession {
 	const destinations = config?.destinations?.map(buildTestDestination) ?? [
-		buildTestDestination('Gmail'),
-		buildTestDestination('Outlook'),
-		buildTestDestination('Yahoo')
+		buildTestDestination('zmail'),
+		buildTestDestination('intake'),
+		buildTestDestination('yagle')
 	];
 
 	return {

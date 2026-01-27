@@ -29,7 +29,7 @@ const WS_URL = __ENV.WS_URL || 'ws://localhost:4173/ws';
 
 // Team configurations
 const ESP_TEAMS = ['SendWave', 'MailMonkey', 'BluePost', 'SendBolt', 'RocketMail'];
-const DESTINATIONS = ['Gmail', 'Outlook', 'Yahoo'];
+const DESTINATIONS = ['zmail', 'intake', 'yagle'];
 
 /**
  * GameRoom class - simulates a full game room

@@ -51,7 +51,7 @@ export function buildTestClients(
 /**
  * Default per-destination volume distribution (50/30/20)
  */
-const DEFAULT_PER_DESTINATION = { Gmail: 0, Outlook: 0, Yahoo: 0 };
+const DEFAULT_PER_DESTINATION = { zmail: 0, intake: 0, yagle: 0 };
 
 /**
  * Build a test ClientVolumeData with defaults for optional fields
@@ -67,7 +67,9 @@ export function buildClientVolumeData(
 	baseVolume: number;
 	adjustedVolume: number;
 	adjustments: Record<string, any>;
-	perDestination: { Gmail: number; Outlook: number; Yahoo: number };
+	adjustedVolume: number;
+	adjustments: Record<string, any>;
+	perDestination: { zmail: number; intake: number; yagle: number };
 } {
 	const vol = adjustedVolume ?? baseVolume;
 	return {
@@ -76,9 +78,9 @@ export function buildClientVolumeData(
 		adjustedVolume: vol,
 		adjustments: adjustments ?? {},
 		perDestination: {
-			Gmail: Math.round(vol * 0.5),
-			Outlook: Math.round(vol * 0.3),
-			Yahoo: Math.round(vol * 0.2)
+			zmail: Math.round(vol * 0.5),
+			intake: Math.round(vol * 0.3),
+			yagle: Math.round(vol * 0.2)
 		}
 	};
 }
@@ -94,7 +96,7 @@ export function buildVolumeResult(
 		baseVolume: number;
 		adjustedVolume: number;
 		adjustments: Record<string, any>;
-		perDestination?: { Gmail: number; Outlook: number; Yahoo: number };
+		perDestination?: { zmail: number; intake: number; yagle: number };
 	}>,
 	totalVolume?: number
 ): {
@@ -104,18 +106,18 @@ export function buildVolumeResult(
 		baseVolume: number;
 		adjustedVolume: number;
 		adjustments: Record<string, any>;
-		perDestination: { Gmail: number; Outlook: number; Yahoo: number };
+		perDestination: { zmail: number; intake: number; yagle: number };
 	}>;
 	totalVolume: number;
-	perDestination: { Gmail: number; Outlook: number; Yahoo: number };
+	perDestination: { zmail: number; intake: number; yagle: number };
 } {
 	// Add default perDestination to each client volume if missing
 	const clientVolumesWithDest = clientVolumes.map((cv) => ({
 		...cv,
 		perDestination: cv.perDestination ?? {
-			Gmail: Math.round(cv.adjustedVolume * 0.5),
-			Outlook: Math.round(cv.adjustedVolume * 0.3),
-			Yahoo: Math.round(cv.adjustedVolume * 0.2)
+			zmail: Math.round(cv.adjustedVolume * 0.5),
+			intake: Math.round(cv.adjustedVolume * 0.3),
+			yagle: Math.round(cv.adjustedVolume * 0.2)
 		}
 	}));
 
@@ -125,9 +127,9 @@ export function buildVolumeResult(
 
 	// Aggregate per-destination volumes
 	const perDestination = {
-		Gmail: clientVolumesWithDest.reduce((sum, cv) => sum + cv.perDestination.Gmail, 0),
-		Outlook: clientVolumesWithDest.reduce((sum, cv) => sum + cv.perDestination.Outlook, 0),
-		Yahoo: clientVolumesWithDest.reduce((sum, cv) => sum + cv.perDestination.Yahoo, 0)
+		zmail: clientVolumesWithDest.reduce((sum, cv) => sum + cv.perDestination.zmail, 0),
+		intake: clientVolumesWithDest.reduce((sum, cv) => sum + cv.perDestination.intake, 0),
+		yagle: clientVolumesWithDest.reduce((sum, cv) => sum + cv.perDestination.yagle, 0)
 	};
 
 	return {

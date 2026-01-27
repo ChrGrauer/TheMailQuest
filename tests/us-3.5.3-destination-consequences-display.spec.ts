@@ -23,11 +23,11 @@ import { lockInAllPlayers } from './helpers';
 test.describe('US-3.5: Destination Consequences Screen', () => {
 	let alicePage: Page;
 	let bobPage: Page;
-	let gmailPage: Page;
-	let yahooPage: Page | undefined;
+	let zmailPage: Page;
+	let yaglePage: Page | undefined;
 
 	test.afterEach(async ({ page }) => {
-		await closePages(page, alicePage, bobPage, gmailPage, yahooPage);
+		await closePages(page, alicePage, bobPage, zmailPage, yaglePage);
 	});
 
 	/**
@@ -39,19 +39,19 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 		const result = await createGameWithDestinationPlayer(page, context);
 		alicePage = result.alicePage;
 		bobPage = result.bobPage;
-		gmailPage = result.gmailPage;
+		zmailPage = result.zmailPage;
 
-		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
+		await lockInAllPlayers([alicePage, bobPage, zmailPage]);
 
 		// Assert: Header shows "Round 1 Results"
-		const header = gmailPage.locator('[data-testid="consequences-header"]');
+		const header = zmailPage.locator('[data-testid="consequences-header"]');
 		await expect(header).toBeVisible({ timeout: 5000 });
 		await expect(header).toContainText('Round 1 Results');
 
-		// Assert: Destination name "Gmail" prominently displayed
-		const destName = gmailPage.locator('[data-testid="consequences-team-name"]');
+		// Assert: Destination name "zmail" prominently displayed
+		const destName = zmailPage.locator('[data-testid="consequences-team-name"]');
 		await expect(destName).toBeVisible();
-		await expect(destName).toContainText('Gmail');
+		await expect(destName).toContainText('zmail');
 
 		// Assert: All 5 sections are visible with appropriate titles
 		const expectedSections = [
@@ -63,19 +63,19 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 		];
 
 		for (const section of expectedSections) {
-			const sectionLocator = gmailPage.locator(`[data-testid="${section.testId}"]`);
+			const sectionLocator = zmailPage.locator(`[data-testid="${section.testId}"]`);
 			await expect(sectionLocator).toBeVisible({ timeout: 3000 });
 			const hasContent = await sectionLocator.locator(`text=/.*${section.title}.*/i`).count();
 			expect(hasContent).toBeGreaterThan(0);
 		}
 
 		// Assert: Revenue section shows budget info
-		const revenueSection = gmailPage.locator('[data-testid="section-revenue-summary"]');
+		const revenueSection = zmailPage.locator('[data-testid="section-revenue-summary"]');
 		await expect(revenueSection).toContainText('credits');
 		await expect(revenueSection).toContainText(/\d+/);
 
 		// Assert: No errors displayed
-		const errorBanner = gmailPage.locator('[data-testid="error-banner"]');
+		const errorBanner = zmailPage.locator('[data-testid="error-banner"]');
 		await expect(errorBanner).not.toBeVisible();
 	});
 
@@ -86,26 +86,26 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 	test('Multiple destinations see their own consequences', async ({ page, context }) => {
 		const roomCode = await createTestSession(page);
 		alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
-		gmailPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'Gmail');
-		yahooPage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'Yahoo');
+		zmailPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'zmail');
+		yaglePage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'yagle');
 
 		await page.click('text=Start Game');
 		await page.waitForTimeout(1000);
-		await lockInAllPlayers([alicePage, gmailPage, yahooPage]);
+		await lockInAllPlayers([alicePage, zmailPage, yaglePage]);
 
-		// Assert: Gmail sees "Gmail" and Yahoo sees "Yahoo"
-		await expect(gmailPage.locator('[data-testid="consequences-team-name"]')).toContainText(
-			'Gmail',
+		// Assert: zmail sees "zmail" and yagle sees "yagle"
+		await expect(zmailPage.locator('[data-testid="consequences-team-name"]')).toContainText(
+			'zmail',
 			{ timeout: 5000 }
 		);
-		await expect(yahooPage.locator('[data-testid="consequences-team-name"]')).toContainText(
-			'Yahoo',
+		await expect(yaglePage.locator('[data-testid="consequences-team-name"]')).toContainText(
+			'yagle',
 			{ timeout: 5000 }
 		);
 
 		// Assert: Both see consequences screens
-		await expect(gmailPage.locator('[data-testid="consequences-header"]')).toBeVisible();
-		await expect(yahooPage.locator('[data-testid="consequences-header"]')).toBeVisible();
+		await expect(zmailPage.locator('[data-testid="consequences-header"]')).toBeVisible();
+		await expect(yaglePage.locator('[data-testid="consequences-header"]')).toBeVisible();
 	});
 
 	/**
@@ -121,12 +121,12 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 		const result = await createGameWithDestinationPlayer(page, context);
 		alicePage = result.alicePage;
 		bobPage = result.bobPage;
-		gmailPage = result.gmailPage;
+		zmailPage = result.zmailPage;
 
-		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
+		await lockInAllPlayers([alicePage, bobPage, zmailPage]);
 
 		// Spam Blocking section: Real metrics, no placeholders
-		const spamSection = gmailPage.locator('[data-testid="section-spam-blocking"]');
+		const spamSection = zmailPage.locator('[data-testid="section-spam-blocking"]');
 		await expect(spamSection).toBeVisible({ timeout: 5000 });
 		const spamPlaceholder = await spamSection.locator('text=/coming soon/i').count();
 		expect(spamPlaceholder).toBe(0);
@@ -136,7 +136,7 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 		await expect(spamSection).toContainText(/legitimate/i);
 
 		// ESP Behavior section: ESP-specific data
-		const espSection = gmailPage.locator('[data-testid="section-esp-behavior"]');
+		const espSection = zmailPage.locator('[data-testid="section-esp-behavior"]');
 		await expect(espSection).toBeVisible({ timeout: 5000 });
 		const espPlaceholder = await espSection.locator('text=/coming soon/i').count();
 		expect(espPlaceholder).toBe(0);
@@ -144,7 +144,7 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 		await expect(espSection).toContainText(/ESP|behavior|reputation|spam/i);
 
 		// User Satisfaction section: Score displayed
-		const satisfactionSection = gmailPage.locator('[data-testid="section-user-satisfaction"]');
+		const satisfactionSection = zmailPage.locator('[data-testid="section-user-satisfaction"]');
 		await expect(satisfactionSection).toBeVisible({ timeout: 5000 });
 		const satPlaceholder = await satisfactionSection.locator('text=/coming soon/i').count();
 		expect(satPlaceholder).toBe(0);
@@ -152,7 +152,7 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 		await expect(satisfactionSection).toContainText(/\d+%?/);
 
 		// Revenue Summary section: Breakdown displayed
-		const revenueSection = gmailPage.locator('[data-testid="section-revenue-summary"]');
+		const revenueSection = zmailPage.locator('[data-testid="section-revenue-summary"]');
 		await expect(revenueSection).toBeVisible({ timeout: 5000 });
 		await expect(revenueSection).toContainText(/base revenue/i);
 		await expect(revenueSection).toContainText(/volume bonus/i);
@@ -161,7 +161,7 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 		await expect(revenueSection).toContainText(/\d+ credits/);
 
 		// Budget Update section: Revenue impact shown
-		const budgetSection = gmailPage.locator('[data-testid="section-budget-update"]');
+		const budgetSection = zmailPage.locator('[data-testid="section-budget-update"]');
 		await expect(budgetSection).toBeVisible({ timeout: 5000 });
 		const budgetPlaceholder = await budgetSection.locator('text=/coming soon/i').count();
 		expect(budgetPlaceholder).toBe(0);
@@ -178,18 +178,18 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 		const result = await createGameWithDestinationPlayer(page, context);
 		alicePage = result.alicePage;
 		bobPage = result.bobPage;
-		gmailPage = result.gmailPage;
+		zmailPage = result.zmailPage;
 
-		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
+		await lockInAllPlayers([alicePage, bobPage, zmailPage]);
 
 		// Assert: Satisfaction section visible with score
-		const satisfactionSection = gmailPage.locator('[data-testid="section-user-satisfaction"]');
+		const satisfactionSection = zmailPage.locator('[data-testid="section-user-satisfaction"]');
 		await expect(satisfactionSection).toBeVisible({ timeout: 5000 });
 		const satisfactionScore = satisfactionSection.locator('text=/\\d+.*100|\\d+%/');
 		await expect(satisfactionScore.first()).toBeVisible();
 
 		// Assert: Exactly 1 satisfaction section header (not duplicated)
-		const satisfactionSectionHeaders = gmailPage.locator('h3:has-text("User Satisfaction")');
+		const satisfactionSectionHeaders = zmailPage.locator('h3:has-text("User Satisfaction")');
 		const headerCount = await satisfactionSectionHeaders.count();
 		expect(headerCount).toBe(1);
 
@@ -214,17 +214,17 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 	 */
 	test('Spam data displays volumes with readable formatting', async ({ page, context }) => {
 		const result = await createGameWithDestinationPlayer(page, context);
-		gmailPage = result.gmailPage;
+		zmailPage = result.zmailPage;
 		alicePage = result.alicePage;
 		bobPage = result.bobPage;
 
-		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
+		await lockInAllPlayers([alicePage, bobPage, zmailPage]);
 
-		await expect(gmailPage.locator('[data-testid="consequences-header"]')).toBeVisible({
+		await expect(zmailPage.locator('[data-testid="consequences-header"]')).toBeVisible({
 			timeout: 5000
 		});
 
-		const spamSection = gmailPage.locator('[data-testid="section-spam-blocking"]');
+		const spamSection = zmailPage.locator('[data-testid="section-spam-blocking"]');
 		await expect(spamSection).toBeVisible();
 
 		// Check volume data if filtering breakdown exists
@@ -259,13 +259,13 @@ test.describe('US-3.5: Destination Consequences Screen', () => {
 	 */
 	test('ESP behavior analysis shows enriched metrics', async ({ page, context }) => {
 		const result = await createGameWithDestinationPlayer(page, context);
-		gmailPage = result.gmailPage;
+		zmailPage = result.zmailPage;
 		alicePage = result.alicePage;
 		bobPage = result.bobPage;
 
-		await lockInAllPlayers([alicePage, bobPage, gmailPage]);
+		await lockInAllPlayers([alicePage, bobPage, zmailPage]);
 
-		const espBehaviorSection = gmailPage.locator('[data-testid="section-esp-behavior"]');
+		const espBehaviorSection = zmailPage.locator('[data-testid="section-esp-behavior"]');
 		await expect(espBehaviorSection).toBeVisible({ timeout: 5000 });
 
 		// Assert: Contains ESP names

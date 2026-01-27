@@ -2,7 +2,7 @@
  * Reputation Calculator Utility
  *
  * Calculates weighted reputation averages based on destination weights.
- * Gmail: 50%, Outlook: 30%, Yahoo: 20%
+ * zmail: 50%, intake: 30%, yagle: 20%
  */
 
 export interface Destination {

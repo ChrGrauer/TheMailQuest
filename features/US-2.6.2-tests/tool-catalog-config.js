@@ -14,9 +14,9 @@ export const TOOL_CATEGORIES = {
 };
 
 export const KINGDOMS = {
-	GMAIL: 'gmail',
-	OUTLOOK: 'outlook',
-	YAHOO: 'yahoo'
+	zmail: 'zmail',
+	intake: 'intake',
+	yagle: 'yagle'
 };
 
 /**
@@ -39,14 +39,14 @@ export const DESTINATION_TOOLS = {
 		},
 		// Kingdom-specific pricing
 		pricing: {
-			[KINGDOMS.GMAIL]: { acquisition: 300 },
-			[KINGDOMS.OUTLOOK]: { acquisition: 240 },
-			[KINGDOMS.YAHOO]: { acquisition: 160 }
+			[KINGDOMS.zmail]: { acquisition: 300 },
+			[KINGDOMS.intake]: { acquisition: 240 },
+			[KINGDOMS.yagle]: { acquisition: 160 }
 		},
 		availability: {
-			[KINGDOMS.GMAIL]: true,
-			[KINGDOMS.OUTLOOK]: true,
-			[KINGDOMS.YAHOO]: true
+			[KINGDOMS.zmail]: true,
+			[KINGDOMS.intake]: true,
+			[KINGDOMS.yagle]: true
 		}
 	},
 
@@ -71,14 +71,14 @@ export const DESTINATION_TOOLS = {
 			}
 		},
 		pricing: {
-			[KINGDOMS.GMAIL]: { acquisition: 50 },
-			[KINGDOMS.OUTLOOK]: { acquisition: 50 },
-			[KINGDOMS.YAHOO]: { acquisition: 50 }
+			[KINGDOMS.zmail]: { acquisition: 50 },
+			[KINGDOMS.intake]: { acquisition: 50 },
+			[KINGDOMS.yagle]: { acquisition: 50 }
 		},
 		availability: {
-			[KINGDOMS.GMAIL]: true,
-			[KINGDOMS.OUTLOOK]: true,
-			[KINGDOMS.YAHOO]: true
+			[KINGDOMS.zmail]: true,
+			[KINGDOMS.intake]: true,
+			[KINGDOMS.yagle]: true
 		}
 	},
 
@@ -103,14 +103,14 @@ export const DESTINATION_TOOLS = {
 			}
 		},
 		pricing: {
-			[KINGDOMS.GMAIL]: { acquisition: 50 },
-			[KINGDOMS.OUTLOOK]: { acquisition: 50 },
-			[KINGDOMS.YAHOO]: { acquisition: 50 }
+			[KINGDOMS.zmail]: { acquisition: 50 },
+			[KINGDOMS.intake]: { acquisition: 50 },
+			[KINGDOMS.yagle]: { acquisition: 50 }
 		},
 		availability: {
-			[KINGDOMS.GMAIL]: true,
-			[KINGDOMS.OUTLOOK]: true,
-			[KINGDOMS.YAHOO]: true
+			[KINGDOMS.zmail]: true,
+			[KINGDOMS.intake]: true,
+			[KINGDOMS.yagle]: true
 		}
 	},
 
@@ -136,14 +136,14 @@ export const DESTINATION_TOOLS = {
 			}
 		},
 		pricing: {
-			[KINGDOMS.GMAIL]: { acquisition: 50 },
-			[KINGDOMS.OUTLOOK]: { acquisition: 50 },
-			[KINGDOMS.YAHOO]: { acquisition: 50 }
+			[KINGDOMS.zmail]: { acquisition: 50 },
+			[KINGDOMS.intake]: { acquisition: 50 },
+			[KINGDOMS.yagle]: { acquisition: 50 }
 		},
 		availability: {
-			[KINGDOMS.GMAIL]: true,
-			[KINGDOMS.OUTLOOK]: true,
-			[KINGDOMS.YAHOO]: true
+			[KINGDOMS.zmail]: true,
+			[KINGDOMS.intake]: true,
+			[KINGDOMS.yagle]: true
 		}
 	},
 
@@ -168,17 +168,17 @@ export const DESTINATION_TOOLS = {
 			round_improvement: 2
 		},
 		pricing: {
-			[KINGDOMS.GMAIL]: { acquisition: 500 },
-			[KINGDOMS.OUTLOOK]: { acquisition: 400 },
-			[KINGDOMS.YAHOO]: { acquisition: null } // Unavailable
+			[KINGDOMS.zmail]: { acquisition: 500 },
+			[KINGDOMS.intake]: { acquisition: 400 },
+			[KINGDOMS.yagle]: { acquisition: null } // Unavailable
 		},
 		availability: {
-			[KINGDOMS.GMAIL]: true,
-			[KINGDOMS.OUTLOOK]: true,
-			[KINGDOMS.YAHOO]: false // Insufficient computational resources
+			[KINGDOMS.zmail]: true,
+			[KINGDOMS.intake]: true,
+			[KINGDOMS.yagle]: false // Insufficient computational resources
 		},
 		unavailable_reason: {
-			[KINGDOMS.YAHOO]: 'Insufficient computational resources'
+			[KINGDOMS.yagle]: 'Insufficient computational resources'
 		}
 	},
 
@@ -218,14 +218,14 @@ export const DESTINATION_TOOLS = {
 			}
 		],
 		pricing: {
-			[KINGDOMS.GMAIL]: { acquisition: 250 },
-			[KINGDOMS.OUTLOOK]: { acquisition: 200 },
-			[KINGDOMS.YAHOO]: { acquisition: 150 }
+			[KINGDOMS.zmail]: { acquisition: 250 },
+			[KINGDOMS.intake]: { acquisition: 200 },
+			[KINGDOMS.yagle]: { acquisition: 150 }
 		},
 		availability: {
-			[KINGDOMS.GMAIL]: true,
-			[KINGDOMS.OUTLOOK]: true,
-			[KINGDOMS.YAHOO]: true
+			[KINGDOMS.zmail]: true,
+			[KINGDOMS.intake]: true,
+			[KINGDOMS.yagle]: true
 		}
 	},
 
@@ -248,14 +248,14 @@ export const DESTINATION_TOOLS = {
 			}
 		},
 		pricing: {
-			[KINGDOMS.GMAIL]: { acquisition: 200 },
-			[KINGDOMS.OUTLOOK]: { acquisition: 150 },
-			[KINGDOMS.YAHOO]: { acquisition: 100 }
+			[KINGDOMS.zmail]: { acquisition: 200 },
+			[KINGDOMS.intake]: { acquisition: 150 },
+			[KINGDOMS.yagle]: { acquisition: 100 }
 		},
 		availability: {
-			[KINGDOMS.GMAIL]: true,
-			[KINGDOMS.OUTLOOK]: true,
-			[KINGDOMS.YAHOO]: true
+			[KINGDOMS.zmail]: true,
+			[KINGDOMS.intake]: true,
+			[KINGDOMS.yagle]: true
 		}
 	}
 };

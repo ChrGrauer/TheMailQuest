@@ -97,10 +97,10 @@ REPUTATION_DELIVERY_SUCCESS = {
 ### Warmup Service (per-client)
 - **Reputation Effect:** +2 reputation per destination (applies to each destination separately)
 - **Volume Effect:** 50% reduction during first round of activity only
-- **Example:** ESP with warmup client sending to Gmail, Outlook, Yahoo
-  - Gmail reputation: +2
-  - Outlook reputation: +2
-  - Yahoo reputation: +2
+- **Example:** ESP with warmup client sending to zmail, intake, yagle
+  - zmail reputation: +2
+  - intake reputation: +2
+  - yagle reputation: +2
   - Volume: 50% of base for first round only
 
 ### List Hygiene Service (per-client)

@@ -132,7 +132,7 @@
 						name: newTeam.name,
 						players: newTeam.players || [],
 						budget: 1000,
-						reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
+						reputation: { zmail: 70, intake: 70, yagle: 70 },
 						ownedTechUpgrades: [],
 						activeClients: [],
 						availableClients: [],
@@ -846,9 +846,9 @@
 							<th>Team</th>
 							<th>Status</th>
 							<th>Budget</th>
-							<th>Gmail Rep</th>
-							<th>Outlook Rep</th>
-							<th>Yahoo Rep</th>
+							<th>zmail Rep</th>
+							<th>intake Rep</th>
+							<th>yagle Rep</th>
 							<th>Spam Rate</th>
 							<th>Clients</th>
 							<th>Tech Tools</th>
@@ -877,9 +877,9 @@
 									{/if}
 								</td>
 								<td data-testid="esp-budget">{esp.budget}</td>
-								<td data-testid="esp-rep-Gmail">{esp.reputation?.Gmail ?? 70}</td>
-								<td data-testid="esp-rep-Outlook">{esp.reputation?.Outlook ?? 70}</td>
-								<td data-testid="esp-rep-Yahoo">{esp.reputation?.Yahoo ?? 70}</td>
+								<td data-testid="esp-rep-zmail">{esp.reputation?.zmail ?? 70}</td>
+								<td data-testid="esp-rep-intake">{esp.reputation?.intake ?? 70}</td>
+								<td data-testid="esp-rep-yagle">{esp.reputation?.yagle ?? 70}</td>
 								<td data-testid="esp-spam-rate">{getSpamRate(esp.name)}</td>
 								<td data-testid="esp-clients"
 									>{getClientsByType(esp.activeClients, esp.availableClients, esp.clientStates)}</td

@@ -9,8 +9,8 @@ import type { Destination } from '../types';
 import type { DestinationTool } from '$lib/config/destination-technical-upgrades';
 
 describe('Destination Tool Validator', () => {
-	let gmailDestination: Destination;
-	let yahooDestination: Destination;
+	let zmailDestination: Destination;
+	let yagleDestination: Destination;
 	let contentAnalysisTool: DestinationTool;
 	let mlSystemTool: DestinationTool;
 	let authL1Tool: DestinationTool;
@@ -18,9 +18,9 @@ describe('Destination Tool Validator', () => {
 	let authL3Tool: DestinationTool;
 
 	beforeEach(() => {
-		gmailDestination = {
-			name: 'Gmail',
-			kingdom: 'Gmail',
+		zmailDestination = {
+			name: 'zmail',
+			kingdom: 'zmail',
 			players: ['player1'],
 			budget: 500,
 			filtering_policies: {},
@@ -29,9 +29,9 @@ describe('Destination Tool Validator', () => {
 			authentication_level: 0
 		};
 
-		yahooDestination = {
-			name: 'Yahoo',
-			kingdom: 'Yahoo',
+		yagleDestination = {
+			name: 'yagle',
+			kingdom: 'yagle',
 			players: ['player2'],
 			budget: 200,
 			filtering_policies: {},
@@ -51,8 +51,8 @@ describe('Destination Tool Validator', () => {
 				spam_detection_boost: 15,
 				false_positive_impact: -2
 			},
-			pricing: { Gmail: 300, Outlook: 240, Yahoo: 160 },
-			availability: { Gmail: true, Outlook: true, Yahoo: true }
+			pricing: { zmail: 300, intake: 240, yagle: 160 },
+			availability: { zmail: true, intake: true, yagle: true }
 		};
 
 		mlSystemTool = {
@@ -66,9 +66,9 @@ describe('Destination Tool Validator', () => {
 				spam_detection_boost: 25,
 				false_positive_impact: -3
 			},
-			pricing: { Gmail: 500, Outlook: 400, Yahoo: null },
-			availability: { Gmail: true, Outlook: true, Yahoo: false },
-			unavailable_reason: { Yahoo: 'Insufficient computational resources' }
+			pricing: { zmail: 500, intake: 400, yagle: null },
+			availability: { zmail: true, intake: true, yagle: false },
+			unavailable_reason: { yagle: 'Insufficient computational resources' }
 		};
 
 		authL1Tool = {
@@ -83,8 +83,8 @@ describe('Destination Tool Validator', () => {
 				spam_detection_boost: 5,
 				false_positive_impact: 0
 			},
-			pricing: { Gmail: 50, Outlook: 50, Yahoo: 50 },
-			availability: { Gmail: true, Outlook: true, Yahoo: true }
+			pricing: { zmail: 50, intake: 50, yagle: 50 },
+			availability: { zmail: true, intake: true, yagle: true }
 		};
 
 		authL2Tool = {
@@ -100,8 +100,8 @@ describe('Destination Tool Validator', () => {
 				spam_detection_boost: 8,
 				false_positive_impact: 0
 			},
-			pricing: { Gmail: 50, Outlook: 50, Yahoo: 50 },
-			availability: { Gmail: true, Outlook: true, Yahoo: true }
+			pricing: { zmail: 50, intake: 50, yagle: 50 },
+			availability: { zmail: true, intake: true, yagle: true }
 		};
 
 		authL3Tool = {
@@ -117,28 +117,28 @@ describe('Destination Tool Validator', () => {
 				spam_detection_boost: 12,
 				false_positive_impact: 0
 			},
-			pricing: { Gmail: 50, Outlook: 50, Yahoo: 50 },
-			availability: { Gmail: true, Outlook: true, Yahoo: true }
+			pricing: { zmail: 50, intake: 50, yagle: 50 },
+			availability: { zmail: true, intake: true, yagle: true }
 		};
 	});
 
 	describe('Kingdom Availability', () => {
-		it('should reject ML System purchase for Yahoo', () => {
-			const result = validateToolPurchase(yahooDestination, mlSystemTool);
+		it('should reject ML System purchase for yagle', () => {
+			const result = validateToolPurchase(yagleDestination, mlSystemTool);
 			expect(result.canPurchase).toBe(false);
 			expect(result.reason).toBe('tool_unavailable_for_kingdom');
 		});
 
-		it('should allow ML System purchase for Gmail', () => {
-			const result = validateToolPurchase(gmailDestination, mlSystemTool);
+		it('should allow ML System purchase for zmail', () => {
+			const result = validateToolPurchase(zmailDestination, mlSystemTool);
 			expect(result.canPurchase).toBe(true);
 		});
 	});
 
 	describe('Budget Validation', () => {
 		it('should reject purchase when budget insufficient', () => {
-			gmailDestination.budget = 299; // Content Analysis costs 300 for Gmail
-			const result = validateToolPurchase(gmailDestination, contentAnalysisTool);
+			zmailDestination.budget = 299; // Content Analysis costs 300 for zmail
+			const result = validateToolPurchase(zmailDestination, contentAnalysisTool);
 			expect(result.canPurchase).toBe(false);
 			expect(result.reason).toBe('insufficient_budget');
 			expect(result.requiredCredits).toBe(300);
@@ -146,22 +146,22 @@ describe('Destination Tool Validator', () => {
 		});
 
 		it('should allow purchase when budget exactly matches cost', () => {
-			gmailDestination.budget = 300;
-			const result = validateToolPurchase(gmailDestination, contentAnalysisTool);
+			zmailDestination.budget = 300;
+			const result = validateToolPurchase(zmailDestination, contentAnalysisTool);
 			expect(result.canPurchase).toBe(true);
 		});
 
 		it('should allow purchase when budget exceeds cost', () => {
-			gmailDestination.budget = 500;
-			const result = validateToolPurchase(gmailDestination, contentAnalysisTool);
+			zmailDestination.budget = 500;
+			const result = validateToolPurchase(zmailDestination, contentAnalysisTool);
 			expect(result.canPurchase).toBe(true);
 		});
 	});
 
 	describe('Ownership Validation', () => {
 		it('should reject purchase of already owned permanent tool', () => {
-			gmailDestination.owned_tools = ['content_analysis_filter'];
-			const result = validateToolPurchase(gmailDestination, contentAnalysisTool);
+			zmailDestination.owned_tools = ['content_analysis_filter'];
+			const result = validateToolPurchase(zmailDestination, contentAnalysisTool);
 			expect(result.canPurchase).toBe(false);
 			expect(result.reason).toBe('already_owned');
 		});
@@ -169,40 +169,40 @@ describe('Destination Tool Validator', () => {
 
 	describe('Authentication Validator Prerequisites', () => {
 		it('should allow L1 purchase without prerequisites', () => {
-			const result = validateToolPurchase(gmailDestination, authL1Tool);
+			const result = validateToolPurchase(zmailDestination, authL1Tool);
 			expect(result.canPurchase).toBe(true);
 		});
 
 		it('should reject L2 purchase without L1', () => {
-			const result = validateToolPurchase(gmailDestination, authL2Tool);
+			const result = validateToolPurchase(zmailDestination, authL2Tool);
 			expect(result.canPurchase).toBe(false);
 			expect(result.reason).toBe('missing_dependencies');
 			expect(result.missingDependencies).toEqual(['auth_validator_l1']);
 		});
 
 		it('should allow L2 purchase with L1 owned', () => {
-			gmailDestination.owned_tools = ['auth_validator_l1'];
-			const result = validateToolPurchase(gmailDestination, authL2Tool);
+			zmailDestination.owned_tools = ['auth_validator_l1'];
+			const result = validateToolPurchase(zmailDestination, authL2Tool);
 			expect(result.canPurchase).toBe(true);
 		});
 
 		it('should reject L3 purchase without L1 and L2', () => {
-			const result = validateToolPurchase(gmailDestination, authL3Tool);
+			const result = validateToolPurchase(zmailDestination, authL3Tool);
 			expect(result.canPurchase).toBe(false);
 			expect(result.reason).toBe('missing_dependencies');
 			expect(result.missingDependencies).toEqual(['auth_validator_l1', 'auth_validator_l2']);
 		});
 
 		it('should reject L3 purchase with only L1', () => {
-			gmailDestination.owned_tools = ['auth_validator_l1'];
-			const result = validateToolPurchase(gmailDestination, authL3Tool);
+			zmailDestination.owned_tools = ['auth_validator_l1'];
+			const result = validateToolPurchase(zmailDestination, authL3Tool);
 			expect(result.canPurchase).toBe(false);
 			expect(result.missingDependencies).toEqual(['auth_validator_l2']);
 		});
 
 		it('should allow L3 purchase with both L1 and L2 owned', () => {
-			gmailDestination.owned_tools = ['auth_validator_l1', 'auth_validator_l2'];
-			const result = validateToolPurchase(gmailDestination, authL3Tool);
+			zmailDestination.owned_tools = ['auth_validator_l1', 'auth_validator_l2'];
+			const result = validateToolPurchase(zmailDestination, authL3Tool);
 			expect(result.canPurchase).toBe(true);
 		});
 	});

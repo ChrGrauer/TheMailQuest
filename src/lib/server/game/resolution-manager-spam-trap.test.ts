@@ -31,7 +31,7 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 			]
 		});
 
-		// And: Gmail purchases secret spam trap network in Round 1
+		// And: zmail purchases secret spam trap network in Round 1
 		session.destinations[0].spam_trap_active = {
 			round: 1,
 			announced: false // SECRET - should be active immediately
@@ -40,15 +40,15 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 		// When: Resolution executes in Round 1
 		const results = await executeResolution(session, 'TEST-123');
 
-		// Then: Spam trap network should be active at Gmail
+		// Then: Spam trap network should be active at zmail
 		const spamTrapResult = results.espResults.SendWave.spamTraps;
 		expect(spamTrapResult).toBeDefined();
 
-		// Then: Gmail should be checked for spam traps
-		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.Gmail).toBeGreaterThan(0);
+		// Then: zmail should be checked for spam traps
+		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.zmail).toBeGreaterThan(0);
 
 		// Note: Whether trap is hit depends on RNG, but the key is that it's being checked
-		if (spamTrapResult!.trapHit && spamTrapResult!.hitDestinations.includes('Gmail')) {
+		if (spamTrapResult!.trapHit && spamTrapResult!.hitDestinations.includes('zmail')) {
 			// If trap was hit, reputation penalty should be applied
 			expect(spamTrapResult!.reputationPenalty).toBeLessThan(0);
 		}
@@ -75,7 +75,7 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 			]
 		});
 
-		// And: Gmail purchases ANNOUNCED spam trap network in Round 1
+		// And: zmail purchases ANNOUNCED spam trap network in Round 1
 		session.destinations[0].spam_trap_active = {
 			round: 1,
 			announced: true // ANNOUNCED - should NOT be active until Round 2
@@ -84,17 +84,17 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 		// When: Resolution executes in Round 1
 		const results = await executeResolution(session, 'TEST-123');
 
-		// Then: Spam trap network should NOT be active at Gmail yet
+		// Then: Spam trap network should NOT be active at zmail yet
 		const spamTrapResult = results.espResults.SendWave.spamTraps;
 		expect(spamTrapResult).toBeDefined();
 
-		// Then: Gmail should have base adjusted risk (network multiplier = 1, not 3)
+		// Then: zmail should have base adjusted risk (network multiplier = 1, not 3)
 		// re_engagement base risk is 3%, no list hygiene, so adjusted = 0.03
-		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.Gmail).toBe(0.03);
+		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.zmail).toBe(0.03);
 
 		// Then: Network is not active yet (multiplier is 1, not 3)
 		// If it were active, risk would be 0.03 * 3 = 0.09
-		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.Gmail).toBeLessThan(0.09);
+		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.zmail).toBeLessThan(0.09);
 	});
 
 	test('announced spam trap becomes active in round after purchase', async () => {
@@ -118,7 +118,7 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 			]
 		});
 
-		// And: Gmail purchased announced spam trap in Round 1
+		// And: zmail purchased announced spam trap in Round 1
 		session.destinations[0].spam_trap_active = {
 			round: 1, // Purchased in Round 1
 			announced: true // ANNOUNCED - should be active starting Round 2
@@ -127,12 +127,12 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 		// When: Resolution executes in Round 2
 		const results = await executeResolution(session, 'TEST-123');
 
-		// Then: Spam trap network should be active at Gmail now
+		// Then: Spam trap network should be active at zmail now
 		const spamTrapResult = results.espResults.SendWave.spamTraps;
 		expect(spamTrapResult).toBeDefined();
 
-		// Then: Gmail should have network multiplied risk (trap is active)
-		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.Gmail).toBeGreaterThan(0);
+		// Then: zmail should have network multiplied risk (trap is active)
+		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.zmail).toBeGreaterThan(0);
 	});
 
 	test('secret trap stays active in subsequent rounds until removed', async () => {
@@ -156,7 +156,7 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 			]
 		});
 
-		// And: Gmail purchased secret trap in Round 1
+		// And: zmail purchased secret trap in Round 1
 		session.destinations[0].spam_trap_active = {
 			round: 1,
 			announced: false
@@ -168,7 +168,7 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 		// Then: Spam trap should still be active
 		const spamTrapResult = results.espResults.SendWave.spamTraps;
 		expect(spamTrapResult).toBeDefined();
-		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.Gmail).toBeGreaterThan(0);
+		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.zmail).toBeGreaterThan(0);
 	});
 
 	test('no spam trap active when spam_trap_active is undefined', async () => {
@@ -202,9 +202,9 @@ describe('Spam Trap Activation Timing - Phase 1.2', () => {
 		const spamTrapResult = results.espResults.SendWave.spamTraps;
 		expect(spamTrapResult).toBeDefined();
 		// re_engagement base risk is 3%, no list hygiene, no network → 0.03
-		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.Gmail).toBe(0.03);
+		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.zmail).toBe(0.03);
 		// Network multiplier should be 1 (not 3), so risk stays at adjusted level
-		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.Gmail).toBeLessThan(0.09);
+		expect(spamTrapResult!.perClient[0].networkMultipliedRisk.zmail).toBeLessThan(0.09);
 	});
 });
 
@@ -315,33 +315,33 @@ describe('Spam Trap Reset Between Rounds - Phase 1.2.2', () => {
 			currentRound: 2
 		});
 
-		// Gmail: secret trap in R2
+		// zmail: secret trap in R2
 		session.destinations[0].spam_trap_active = {
 			round: 2,
 			announced: false
 		};
 
-		// Outlook: announced trap in R2
+		// intake: announced trap in R2
 		session.destinations[1].spam_trap_active = {
 			round: 2,
 			announced: true
 		};
 
-		// Yahoo: no trap
+		// yagle: no trap
 		session.destinations[2].spam_trap_active = undefined;
 
 		// When: Advancing to Round 3
 		const newRound = 3;
 
-		// Then: Gmail's secret trap should be reset
-		const gmailShouldReset = newRound > session.destinations[0].spam_trap_active!.round;
-		expect(gmailShouldReset).toBe(true);
+		// Then: zmail's secret trap should be reset
+		const zmailShouldReset = newRound > session.destinations[0].spam_trap_active!.round;
+		expect(zmailShouldReset).toBe(true);
 
-		// Then: Outlook's announced trap should NOT be reset yet
-		const outlookShouldReset = newRound > session.destinations[1].spam_trap_active!.round + 1;
-		expect(outlookShouldReset).toBe(false);
+		// Then: intake's announced trap should NOT be reset yet
+		const intakeShouldReset = newRound > session.destinations[1].spam_trap_active!.round + 1;
+		expect(intakeShouldReset).toBe(false);
 
-		// Then: Yahoo has nothing to reset
+		// Then: yagle has nothing to reset
 		expect(session.destinations[2].spam_trap_active).toBeUndefined();
 	});
 });

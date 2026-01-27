@@ -9,7 +9,7 @@ Satisfaction increases significantly when spam is successfully blocked
 Satisfaction decreases moderately when legitimate emails are blocked (false positives)
 Satisfaction decreases heavily when spam gets through
 Destination tech modifies filtering effectiveness
-To create diversity in the game play for the destination, we will perhaps use different formula per destination (for instance, having Yahoo users more tolerant to spam)
+To create diversity in the game play for the destination, we will perhaps use different formula per destination (for instance, having yagle users more tolerant to spam)
 
 Destination Tech Impact on Filtering:
 javascript// Base filtering effectiveness by level (from src/lib/utils/filtering.ts)
@@ -88,7 +88,7 @@ Actual implementation tests will use CURRENT values (0/35/65/85) from code.
 gherkinFeature: User Satisfaction Calculation
 
 Scenario: Good filtering rewarded
-  Given Gmail has NO filtering tech
+  Given zmail has NO filtering tech
   And receives from SendWave:
     - Volume: 100K
     - Spam rate: 5%
@@ -101,7 +101,7 @@ Scenario: Good filtering rewarded
   # Better than 64% in previous version
 
 Scenario: Strict filtering less punishing
-  Given Gmail has Content Filtering tech
+  Given zmail has Content Filtering tech
   And receives from BadESP:
     - Volume: 100K
     - Spam rate: 8%
@@ -114,7 +114,7 @@ Scenario: Strict filtering less punishing
   # Excellent satisfaction for good spam blocking
 
 Scenario: Maximum filtering still viable
-  Given Yahoo has ALL filtering tech
+  Given yagle has ALL filtering tech
   And receives from SpamKing:
     - Volume: 200K
     - Spam rate: 10%
@@ -129,7 +129,7 @@ Scenario: Maximum filtering still viable
   # High satisfaction despite false positives
 
 Scenario: Poor filtering heavily penalized
-  Given Outlook has no tech
+  Given intake has no tech
   And receives from multiple ESPs:
     - Average spam rate: 6%
     - All set to Permissive
@@ -141,7 +141,7 @@ Scenario: Poor filtering heavily penalized
   # Poor satisfaction due to spam getting through
 
 Scenario: Balanced portfolio with tech
-  Given Gmail has ML Filtering
+  Given zmail has ML Filtering
   And receives from:
     | ESP      | Volume | Spam% | Filter     |
     | Premium  | 150K   | 1%    | Permissive |
@@ -197,9 +197,9 @@ Components:
 javascript
 // Different base revenues reflecting their market position
 base_revenue = {
-  Gmail:   300,  // Largest player, highest revenue
-  Outlook: 200,  // Medium player, moderate revenue
-  Yahoo:   150   // Smaller player, lower revenue
+  zmail:   300,  // Largest player, highest revenue
+  intake: 200,  // Medium player, moderate revenue
+  yagle:   150   // Smaller player, lower revenue
 }
 
 // Volume bonus (additive to base)
@@ -219,21 +219,21 @@ satisfaction_multiplier = {
 // Final formula
 destination_revenue = (base_revenue + volume_bonus) * satisfaction_multiplier
 Detailed Calculation Examples:
-javascript// Gmail - High volume, good satisfaction
+javascript// zmail - High volume, good satisfaction
 base_revenue = 300
 total_volume = 600000
 volume_bonus = (600000 / 100000) * 20 = 120
 user_satisfaction = 82  // Very Good → 1.3 multiplier
 revenue = (300 + 120) * 1.3 = 420 * 1.3 = 546 credits
 
-// Yahoo - Lower volume, moderate satisfaction  
+// yagle - Lower volume, moderate satisfaction  
 base_revenue = 150
 total_volume = 200000
 volume_bonus = (200000 / 100000) * 20 = 40
 user_satisfaction = 72  // Acceptable → 0.95 multiplier
 revenue = (150 + 40) * 0.95 = 190 * 0.95 = 180.5 credits
 
-// Outlook - Crisis despite high volume
+// intake - Crisis despite high volume
 base_revenue = 200
 total_volume = 800000  // Lots of spam
 volume_bonus = (800000 / 100000) * 20 = 160
@@ -243,8 +243,8 @@ revenue = (200 + 160) * 0.3 = 360 * 0.3 = 108 credits
 Test Cases:
 gherkinFeature: Destination Revenue with Volume Bonus
 
-Scenario: Gmail baseline performance
-  Given Gmail has:
+Scenario: zmail baseline performance
+  Given zmail has:
     - User satisfaction: 76% (Good)
     - Processed volume: 500K emails
   When calculating revenue
@@ -253,8 +253,8 @@ Scenario: Gmail baseline performance
   And satisfaction_multiplier = 1.1
   And total_revenue = (300 + 100) * 1.1 = 440 credits
 
-Scenario: Yahoo excellent filtering, low volume
-  Given Yahoo has:
+Scenario: yagle excellent filtering, low volume
+  Given yagle has:
     - User satisfaction: 92% (Excellent)
     - Processed volume: 150K emails
   When calculating revenue
@@ -264,8 +264,8 @@ Scenario: Yahoo excellent filtering, low volume
   And total_revenue = (150 + 30) * 1.5 = 270 credits
   # Good return despite low volume due to excellent satisfaction
 
-Scenario: Outlook high volume but poor satisfaction
-  Given Outlook has:
+Scenario: intake high volume but poor satisfaction
+  Given intake has:
     - User satisfaction: 55% (Poor)
     - Processed volume: 700K emails
   When calculating revenue
@@ -275,8 +275,8 @@ Scenario: Outlook high volume but poor satisfaction
   And total_revenue = (200 + 140) * 0.6 = 204 credits
   # High volume partially offsets poor satisfaction
 
-Scenario: Gmail maximum performance
-  Given Gmail has:
+Scenario: zmail maximum performance
+  Given zmail has:
     - User satisfaction: 95% (Excellent)
     - Processed volume: 800K emails
   When calculating revenue
@@ -286,8 +286,8 @@ Scenario: Gmail maximum performance
   And total_revenue = (300 + 160) * 1.5 = 690 credits
   # Maximum revenue potential
 
-Scenario: Yahoo crisis mode
-  Given Yahoo has:
+Scenario: yagle crisis mode
+  Given yagle has:
     - User satisfaction: 40% (Crisis)
     - Processed volume: 300K emails
   When calculating revenue
@@ -297,8 +297,8 @@ Scenario: Yahoo crisis mode
   And total_revenue = (150 + 60) * 0.3 = 63 credits
   # Devastating impact of crisis satisfaction
 
-Scenario: Outlook balanced scenario
-  Given Outlook has:
+Scenario: intake balanced scenario
+  Given intake has:
     - User satisfaction: 78% (Good)
     - Processed volume: 400K emails
   When calculating revenue
@@ -307,8 +307,8 @@ Scenario: Outlook balanced scenario
   And satisfaction_multiplier = 1.1
   And total_revenue = (200 + 80) * 1.1 = 308 credits
 
-Scenario: Gmail low volume but good satisfaction
-  Given Gmail has:
+Scenario: zmail low volume but good satisfaction
+  Given zmail has:
     - User satisfaction: 85% (Very Good)
     - Processed volume: 200K emails
   When calculating revenue
@@ -318,7 +318,7 @@ Scenario: Gmail low volume but good satisfaction
   And total_revenue = (300 + 40) * 1.3 = 442 credits
   # Base revenue cushions low volume impact
 Expected Revenue Ranges:
-Gmail (base 300):
+zmail (base 300):
 
 Best case (800K volume, 95% satisfaction): 690 credits
 Good case (500K volume, 80% satisfaction): 520 credits
@@ -326,7 +326,7 @@ Base case (400K volume, 75% satisfaction): 418 credits
 Poor case (600K volume, 55% satisfaction): 252 credits
 Worst case (300K volume, 40% satisfaction): 108 credits
 
-Outlook (base 200):
+intake (base 200):
 
 Best case (800K volume, 95% satisfaction): 540 credits
 Good case (500K volume, 80% satisfaction): 390 credits
@@ -334,7 +334,7 @@ Base case (400K volume, 75% satisfaction): 308 credits
 Poor case (600K volume, 55% satisfaction): 192 credits
 Worst case (300K volume, 40% satisfaction): 78 credits
 
-Yahoo (base 150):
+yagle (base 150):
 
 Best case (800K volume, 95% satisfaction): 465 credits
 Good case (500K volume, 80% satisfaction): 325 credits
@@ -346,7 +346,7 @@ Key Design Benefits:
 
 Satisfaction amplifies everything: Good satisfaction multiplies both base revenue AND volume bonus
 Volume always helps: More emails = more revenue, but only if satisfaction is maintained
-Market position matters: Gmail's higher base gives them a cushion, Yahoo must work harder
+Market position matters: zmail's higher base gives them a cushion, yagle must work harder
 Clear incentives: Process lots of email while keeping users happy
 Dramatic swings possible: Excellence is highly rewarded, failure is severely punished
 

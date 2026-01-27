@@ -62,15 +62,15 @@ Feature: Victory Screen
   Scenario: Display reputation standings per kingdom
     Given "SendBolt" has the following reputation values:
       | Kingdom | Reputation |
-      | Gmail   | 90         |
-      | Outlook | 88         |
-      | Yahoo   | 85         |
+      | zmail   | 90         |
+      | intake | 88         |
+      | yagle   | 85         |
     When the reputation section is displayed for "SendBolt"
     Then each kingdom shows:
       | Kingdom | Reputation | Visual Indicator          |
-      | Gmail   | 90         | Green bar (90% filled)    |
-      | Outlook | 88         | Green bar (88% filled)    |
-      | Yahoo   | 85         | Green bar (85% filled)    |
+      | zmail   | 90         | Green bar (90% filled)    |
+      | intake | 88         | Green bar (88% filled)    |
+      | yagle   | 85         | Green bar (85% filled)    |
     And the weighted average is shown: "88.25 (Excellent)"
     And reputation bars use color coding:
       | Range   | Color  | Label      |
@@ -112,7 +112,7 @@ Feature: Victory Screen
   # ============================================================================
 
   Scenario: Display disqualified ESP in leaderboard
-    Given "SendWave" is disqualified with reason "Reputation below 60 in: Yahoo"
+    Given "SendWave" is disqualified with reason "Reputation below 60 in: yagle"
     And "SendWave" has total score 77.75
     When the leaderboard is displayed
     Then "SendWave" appears in the ranking based on score
@@ -120,7 +120,7 @@ Feature: Victory Screen
     And a "DISQUALIFIED" badge is displayed prominently
     And the disqualification reason is shown below the name:
       """
-      ⚠️ Disqualified: Yahoo reputation (55) below minimum requirement (60)
+      ⚠️ Disqualified: yagle reputation (55) below minimum requirement (60)
       """
     And reputation values are still visible showing the failing kingdom in red
     And score breakdown is still accessible via expand button
@@ -160,24 +160,24 @@ Feature: Victory Screen
   Scenario: Display spam blocking effectiveness per destination
     Given the following spam blocking stats:
       | Destination | Spam Sent | Spam Blocked | Block Rate |
-      | Gmail       | 10000     | 8000         | 80%        |
-      | Outlook     | 8000      | 6000         | 75%        |
-      | Yahoo       | 5000      | 4000         | 80%        |
+      | zmail       | 10000     | 8000         | 80%        |
+      | intake     | 8000      | 6000         | 75%        |
+      | yagle       | 5000      | 4000         | 80%        |
     When the spam blocking effectiveness section is displayed
     Then each destination shows:
       | Destination | Visual              | Label            |
-      | Gmail       | Green bar (80%)     | 8K / 10K blocked |
-      | Outlook     | Yellow bar (75%)    | 6K / 8K blocked  |
-      | Yahoo       | Green bar (80%)     | 4K / 5K blocked  |
+      | zmail       | Green bar (80%)     | 8K / 10K blocked |
+      | intake     | Yellow bar (75%)    | 6K / 8K blocked  |
+      | yagle       | Green bar (80%)     | 4K / 5K blocked  |
     And the combined blocking rate is shown: "78% average"
     And a congratulatory message: "Great job protecting users from spam!"
 
   Scenario: Display user satisfaction rating
     Given the following false positive stats:
       | Destination | Legitimate Emails | False Positives | Rate  |
-      | Gmail       | 20000             | 200             | 1.0%  |
-      | Outlook     | 15000             | 150             | 1.0%  |
-      | Yahoo       | 10000             | 100             | 1.0%  |
+      | zmail       | 20000             | 200             | 1.0%  |
+      | intake     | 15000             | 150             | 1.0%  |
+      | yagle       | 10000             | 100             | 1.0%  |
     When the user satisfaction section is displayed
     Then the combined false positive rate is shown: "1.0%"
     And the user satisfaction score is displayed: "19.80 / 20 points"
@@ -262,9 +262,9 @@ Feature: Victory Screen
     When a player clicks "View Individual Destinations"
     Then a breakdown per destination is shown:
       | Destination | Spam Blocked | Block Rate | False Positives | FP Rate |
-      | Gmail       | 8000/10000   | 80%        | 200/20000       | 1.0%    |
-      | Outlook     | 6000/8000    | 75%        | 150/15000       | 1.0%    |
-      | Yahoo       | 4000/5000    | 80%        | 100/10000       | 1.0%    |
+      | zmail       | 8000/10000   | 80%        | 200/20000       | 1.0%    |
+      | intake     | 6000/8000    | 75%        | 150/15000       | 1.0%    |
+      | yagle       | 4000/5000    | 80%        | 100/10000       | 1.0%    |
     And each destination's contribution to collaborative score is shown
 
   # ============================================================================

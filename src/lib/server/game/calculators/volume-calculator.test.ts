@@ -515,13 +515,13 @@ describe('Volume Calculator - Iteration 6: Per-Destination Volumes', () => {
 			});
 
 			expect(result.totalVolume).toBe(30000);
-			expect(result.perDestination.Gmail).toBe(15000); // 50%
-			expect(result.perDestination.Outlook).toBe(9000); // 30%
-			expect(result.perDestination.Yahoo).toBe(6000); // 20%
+			expect(result.perDestination.zmail).toBe(15000); // 50%
+			expect(result.perDestination.intake).toBe(9000); // 30%
+			expect(result.perDestination.yagle).toBe(6000); // 20%
 
-			expect(result.clientVolumes[0].perDestination.Gmail).toBe(15000);
-			expect(result.clientVolumes[0].perDestination.Outlook).toBe(9000);
-			expect(result.clientVolumes[0].perDestination.Yahoo).toBe(6000);
+			expect(result.clientVolumes[0].perDestination.zmail).toBe(15000);
+			expect(result.clientVolumes[0].perDestination.intake).toBe(9000);
+			expect(result.clientVolumes[0].perDestination.yagle).toBe(6000);
 		});
 
 		test('distribution applies after volume adjustments', () => {
@@ -553,9 +553,9 @@ describe('Volume Calculator - Iteration 6: Per-Destination Volumes', () => {
 			expect(result.totalVolume).toBe(34000);
 
 			// Distribution applied to adjusted volume
-			expect(result.perDestination.Gmail).toBe(17000); // 50%
-			expect(result.perDestination.Outlook).toBe(10200); // 30%
-			expect(result.perDestination.Yahoo).toBe(6800); // 20%
+			expect(result.perDestination.zmail).toBe(17000); // 50%
+			expect(result.perDestination.intake).toBe(10200); // 30%
+			expect(result.perDestination.yagle).toBe(6800); // 20%
 		});
 	});
 
@@ -584,9 +584,9 @@ describe('Volume Calculator - Iteration 6: Per-Destination Volumes', () => {
 			});
 
 			expect(result.totalVolume).toBe(60000);
-			expect(result.perDestination.Gmail).toBe(30000); // 50% of 60K
-			expect(result.perDestination.Outlook).toBe(18000); // 30% of 60K
-			expect(result.perDestination.Yahoo).toBe(12000); // 20% of 60K
+			expect(result.perDestination.zmail).toBe(30000); // 50% of 60K
+			expect(result.perDestination.intake).toBe(18000); // 30% of 60K
+			expect(result.perDestination.yagle).toBe(12000); // 20% of 60K
 		});
 	});
 
@@ -599,9 +599,9 @@ describe('Volume Calculator - Iteration 6: Per-Destination Volumes', () => {
 			});
 
 			expect(result.totalVolume).toBe(0);
-			expect(result.perDestination.Gmail).toBe(0);
-			expect(result.perDestination.Outlook).toBe(0);
-			expect(result.perDestination.Yahoo).toBe(0);
+			expect(result.perDestination.zmail).toBe(0);
+			expect(result.perDestination.intake).toBe(0);
+			expect(result.perDestination.yagle).toBe(0);
 		});
 	});
 });

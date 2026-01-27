@@ -19,7 +19,7 @@ export interface DestinationToolValidation {
  * Validate tool purchase attempt
  *
  * Checks:
- * 1. Kingdom availability (e.g., ML System unavailable for Yahoo)
+ * 1. Kingdom availability (e.g., ML System unavailable for yagle)
  * 2. Already owned (unless single-round tool like Spam Trap)
  * 3. Prerequisites met (Auth Validator L1 → L2 → L3)
  * 4. Sufficient budget
@@ -29,7 +29,7 @@ export function validateToolPurchase(
 	tool: DestinationTool
 ): DestinationToolValidation {
 	// Check kingdom availability
-	const kingdom = destination.kingdom || 'Gmail';
+	const kingdom = destination.kingdom || 'zmail';
 	if (!tool.availability[kingdom]) {
 		return {
 			canPurchase: false,

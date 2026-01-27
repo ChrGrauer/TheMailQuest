@@ -34,8 +34,8 @@ test.describe('Facilitator Dashboard Real-time Sync Debug', () => {
 		page.on('console', (msg) => console.log(`[FACILITATOR] ${msg.text()}`));
 
 		// Given: a game in Round 2 Planning phase
-		// alicePage is ESP (SendWave), bobPage is Destination (Gmail)
-		const { roomCode, alicePage: alice, gmailPage: bob } = await createGameInSecondRound(page, context);
+		// alicePage is ESP (SendWave), bobPage is Destination (zmail)
+		const { roomCode, alicePage: alice, zmailPage: bob } = await createGameInSecondRound(page, context);
 
 		alice.on('console', (msg) => console.log(`[ALICE] ${msg.text()}`));
 		bob.on('console', (msg) => console.log(`[BOB] ${msg.text()}`));

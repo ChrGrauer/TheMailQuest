@@ -63,7 +63,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -112,7 +112,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -120,14 +120,14 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
 
 			// When - Lock in destination
-			const result = lockInDestination(session.roomCode, 'Gmail');
+			const result = lockInDestination(session.roomCode, 'zmail');
 
 			// Then
 			expect(result.success).toBe(true);
 			expect(result.locked_in).toBe(true);
 
 			const updatedSession = getSession(session.roomCode);
-			const destination = updatedSession?.destinations.find((d) => d.name === 'Gmail');
+			const destination = updatedSession?.destinations.find((d) => d.name === 'zmail');
 			expect(destination?.locked_in).toBe(true);
 			expect(destination?.locked_in_at).toBeInstanceOf(Date);
 		});
@@ -154,7 +154,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -205,7 +205,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -253,7 +253,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -295,7 +295,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });

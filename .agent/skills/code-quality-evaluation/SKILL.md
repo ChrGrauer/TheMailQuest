@@ -217,16 +217,16 @@ export const validateClient = (client) => {
 ```javascript
 // ❌ BAD: Testing same logic multiple times
 describe('calculateReputation', () => {
-    test('with Gmail at 85', () => {
-        expect(calculateReputation('gmail', 85)).toBe('good');
+    test('with zmail at 85', () => {
+        expect(calculateReputation('zmail', 85)).toBe('good');
     });
     
-    test('with Gmail at 90', () => {
-        expect(calculateReputation('gmail', 90)).toBe('excellent');
+    test('with zmail at 90', () => {
+        expect(calculateReputation('zmail', 90)).toBe('excellent');
     });
     
-    test('with Gmail at 95', () => { // Redundant!
-        expect(calculateReputation('gmail', 95)).toBe('excellent');
+    test('with zmail at 95', () => { // Redundant!
+        expect(calculateReputation('zmail', 95)).toBe('excellent');
     });
 });
 ```
@@ -236,10 +236,10 @@ describe('calculateReputation', () => {
 // ✅ GOOD: Single test with multiple cases
 describe('calculateReputation', () => {
     test.each([
-        ['gmail', 85, 'good'],
-        ['gmail', 90, 'excellent'],
-        ['outlook', 50, 'poor'],
-        ['yahoo', 70, 'good']
+        ['zmail', 85, 'good'],
+        ['zmail', 90, 'excellent'],
+        ['intake', 50, 'poor'],
+        ['yagle', 70, 'good']
     ])('%s with score %i returns %s', (destination, score, expected) => {
         expect(calculateReputation(destination, score)).toBe(expected);
     });

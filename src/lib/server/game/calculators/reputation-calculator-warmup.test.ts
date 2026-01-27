@@ -28,7 +28,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -44,10 +44,10 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(0);
-			expect(result.perDestination['Gmail'].clientImpact).toBe(2); // Low risk
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(2); // +2 per warmed client
-			expect(result.perDestination['Gmail'].totalChange).toBe(4); // 0 + 2 + 2
+			expect(result.perDestination['zmail'].techBonus).toBe(0);
+			expect(result.perDestination['zmail'].clientImpact).toBe(2); // Low risk
+			expect(result.perDestination['zmail'].warmupBonus).toBe(2); // +2 per warmed client
+			expect(result.perDestination['zmail'].totalChange).toBe(4); // 0 + 2 + 2
 		});
 
 		test('warmed High risk client: reputation impact mitigated', () => {
@@ -66,7 +66,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -82,9 +82,9 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].clientImpact).toBe(-4);
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(2);
-			expect(result.perDestination['Gmail'].totalChange).toBe(-2); // -4 + 2 = -2
+			expect(result.perDestination['zmail'].clientImpact).toBe(-4);
+			expect(result.perDestination['zmail'].warmupBonus).toBe(2);
+			expect(result.perDestination['zmail'].totalChange).toBe(-2); // -4 + 2 = -2
 		});
 
 		test('warmed Medium risk client: net positive reputation', () => {
@@ -103,7 +103,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -121,9 +121,9 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].clientImpact).toBe(-1);
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(2);
-			expect(result.perDestination['Gmail'].totalChange).toBe(1); // -1 + 2 = +1
+			expect(result.perDestination['zmail'].clientImpact).toBe(-1);
+			expect(result.perDestination['zmail'].warmupBonus).toBe(2);
+			expect(result.perDestination['zmail'].totalChange).toBe(1); // -1 + 2 = +1
 		});
 	});
 
@@ -152,7 +152,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client1, client2],
 				clientStates: {
 					'client-1': {
@@ -179,8 +179,8 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 			// Client impact: (15K × +2 + 17.5K × -1) / 32.5K = (30 - 17.5) / 32.5 = +0.38
 			expect(result.volumeWeightedClientImpact).toBeCloseTo(0.38, 2);
 			// Warmup bonus (volume-weighted): (15k × +2 + 17.5k × +2) / 32.5k = 65k / 32.5k = +2.0
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(2);
-			expect(result.perDestination['Gmail'].totalChange).toBeCloseTo(2.38, 2);
+			expect(result.perDestination['zmail'].warmupBonus).toBe(2);
+			expect(result.perDestination['zmail'].totalChange).toBeCloseTo(2.38, 2);
 		});
 
 		test('mixed: one warmed, one not', () => {
@@ -202,7 +202,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [warmed, notWarmed],
 				clientStates: {
 					'client-1': {
@@ -227,8 +227,8 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 			// Client impact: (15K × +2 + 80K × -4) / 95K = (30 - 320) / 95 = -3.05
 			expect(result.volumeWeightedClientImpact).toBeCloseTo(-3.05, 2);
 			// Warmup bonus (volume-weighted): (15k × +2) / 95k = 30k / 95k = +0.316
-			expect(result.perDestination['Gmail'].warmupBonus).toBeCloseTo(0.32, 2);
-			expect(result.perDestination['Gmail'].totalChange).toBeCloseTo(-2.74, 1); // -3.05 + 0.32 ≈ -2.74
+			expect(result.perDestination['zmail'].warmupBonus).toBeCloseTo(0.32, 2);
+			expect(result.perDestination['zmail'].totalChange).toBeCloseTo(-2.74, 1); // -3.05 + 0.32 ≈ -2.74
 		});
 	});
 
@@ -249,7 +249,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim', 'dmarc'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -265,10 +265,10 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(10);
-			expect(result.perDestination['Gmail'].clientImpact).toBe(2);
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(2);
-			expect(result.perDestination['Gmail'].totalChange).toBe(14); // 10 + 2 + 2
+			expect(result.perDestination['zmail'].techBonus).toBe(10);
+			expect(result.perDestination['zmail'].clientImpact).toBe(2);
+			expect(result.perDestination['zmail'].warmupBonus).toBe(2);
+			expect(result.perDestination['zmail'].totalChange).toBe(14); // 10 + 2 + 2
 		});
 
 		test('re_engagement with warmup + list hygiene + tech', () => {
@@ -287,7 +287,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -305,10 +305,10 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(5); // SPF + DKIM
-			expect(result.perDestination['Gmail'].clientImpact).toBe(-4); // High risk
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(2);
-			expect(result.perDestination['Gmail'].totalChange).toBe(3); // 5 - 4 + 2 = 3
+			expect(result.perDestination['zmail'].techBonus).toBe(5); // SPF + DKIM
+			expect(result.perDestination['zmail'].clientImpact).toBe(-4); // High risk
+			expect(result.perDestination['zmail'].warmupBonus).toBe(2);
+			expect(result.perDestination['zmail'].totalChange).toBe(3); // 5 - 4 + 2 = 3
 		});
 	});
 
@@ -329,7 +329,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
-				destinations: ['Gmail', 'Outlook', 'Yahoo'],
+				destinations: ['zmail', 'intake', 'yagle'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -346,14 +346,14 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 			});
 
 			// All destinations get same warmup bonus
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(2);
-			expect(result.perDestination['Outlook'].warmupBonus).toBe(2);
-			expect(result.perDestination['Yahoo'].warmupBonus).toBe(2);
+			expect(result.perDestination['zmail'].warmupBonus).toBe(2);
+			expect(result.perDestination['intake'].warmupBonus).toBe(2);
+			expect(result.perDestination['yagle'].warmupBonus).toBe(2);
 
 			// Total: tech (2) + client (2) + warmup (2) = 6
-			expect(result.perDestination['Gmail'].totalChange).toBe(6);
-			expect(result.perDestination['Outlook'].totalChange).toBe(6);
-			expect(result.perDestination['Yahoo'].totalChange).toBe(6);
+			expect(result.perDestination['zmail'].totalChange).toBe(6);
+			expect(result.perDestination['intake'].totalChange).toBe(6);
+			expect(result.perDestination['yagle'].totalChange).toBe(6);
 		});
 	});
 
@@ -374,7 +374,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -390,7 +390,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].breakdown).toEqual([
+			expect(result.perDestination['zmail'].breakdown).toEqual([
 				{ source: 'Authentication Tech', value: 5 },
 				{ source: 'Client Risk', value: 2 },
 				{ source: 'Warmup Bonus', value: 2 }
@@ -408,7 +408,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -422,8 +422,8 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(0);
-			expect(result.perDestination['Gmail'].totalChange).toBe(2); // Only client impact
+			expect(result.perDestination['zmail'].warmupBonus).toBe(0);
+			expect(result.perDestination['zmail'].totalChange).toBe(2); // Only client impact
 		});
 
 		test('warmup client but paused: no warmup bonus', () => {
@@ -437,7 +437,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [activeClient, pausedWarmupClient],
 				clientStates: {
 					'client-1': {
@@ -460,7 +460,7 @@ describe('Reputation Calculator - Iteration 5: Warmup Bonus', () => {
 			});
 
 			// Only count active warmed clients
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(0);
+			expect(result.perDestination['zmail'].warmupBonus).toBe(0);
 		});
 	});
 });

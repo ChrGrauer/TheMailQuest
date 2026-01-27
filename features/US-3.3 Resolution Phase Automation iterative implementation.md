@@ -130,14 +130,14 @@ gherkin
 Feature: Reputation-Based Delivery Success
 
 Scenario: Good reputation delivery
-  Given ESP "SendWave" has reputation 75 at Gmail (Good zone)
+  Given ESP "SendWave" has reputation 75 at zmail (Good zone)
   And ESP has 1 active premium_brand client (350 base revenue)
   When resolution phase calculates
   Then delivery success should be 85%
   And actual revenue should be 297.5 (350 × 0.85)
 
 Scenario: Poor reputation impact
-  Given ESP "SendWave" has reputation 40 at Gmail (Poor zone)
+  Given ESP "SendWave" has reputation 40 at zmail (Poor zone)
   And ESP has 2 active clients (300 total base revenue)
   When resolution phase calculates
   Then delivery success should be 50%
@@ -146,9 +146,9 @@ Scenario: Poor reputation impact
 Scenario: Multiple destination weighted average
   Given ESP "SendWave" has:
     | Destination | Reputation | Weight |
-    | Gmail       | 80        | 50%    |
-    | Outlook     | 70        | 30%    |
-    | Yahoo       | 60        | 20%    |
+    | zmail       | 80        | 50%    |
+    | intake     | 70        | 30%    |
+    | yagle       | 60        | 20%    |
   When resolution phase calculates weighted reputation
   Then weighted reputation should be 73
   And delivery zone should be "Good"
@@ -193,9 +193,9 @@ Scenario: DMARC enforcement in Round 3
 
 Scenario: Gradual reputation improvement
   Given ESP "SendWave" has SPF and DKIM
-  And current reputation at Gmail is 70
+  And current reputation at zmail is 70
   When resolution phase calculates
-  Then new reputation at Gmail should be 75 (70 + 2 + 3)
+  Then new reputation at zmail should be 75 (70 + 2 + 3)
 ```
 
 ---
@@ -230,7 +230,7 @@ Scenario: Mixed risk portfolio
 
 Scenario: High-risk client cascade check
   Given ESP "SendWave" has 3 aggressive_marketer clients
-  And current reputation at Gmail is 65
+  And current reputation at zmail is 65
   When resolution phase calculates
   Then reputation change should be -12 (3 × -4)
   And new reputation would be 53
@@ -340,22 +340,22 @@ gherkin
 Feature: Destination Filtering System
 
 Scenario: Strict filtering on poor reputation ESP
-  Given Gmail has "Strict" filtering on "BluePost"
-  And BluePost has reputation 55 at Gmail
+  Given zmail has "Strict" filtering on "BluePost"
+  And BluePost has reputation 55 at zmail
   When resolution phase calculates for BluePost
   Then spam reduction should be 65%
   And legitimate email blocked should be 8%
   And effective delivery should be 42% (50% base - 8%)
 
 Scenario: Permissive filtering allows more through
-  Given Yahoo has "Permissive" filtering on all ESPs
-  And SendWave has reputation 75 at Yahoo
+  Given yagle has "Permissive" filtering on all ESPs
+  And SendWave has reputation 75 at yagle
   When resolution phase calculates
   Then no filtering penalties apply
   And delivery success remains at base 85%
 
 Scenario: Maximum filtering near-total block
-  Given Outlook sets "Maximum" filtering on "SpamKing"
+  Given intake sets "Maximum" filtering on "SpamKing"
   When resolution phase calculates
   Then spam reduction should be 85%
   And legitimate blocked should be 15%
@@ -425,9 +425,9 @@ Feature: Incident Card Effects
 
 Scenario: Botnet attack affects all ESPs
   Given round 3 incident is "Botnet Attack"
-  And SendWave has reputation 75 at Gmail
+  And SendWave has reputation 75 at zmail
   When resolution phase applies incident
-  Then SendWave reputation at Gmail should be 70
+  Then SendWave reputation at zmail should be 70
   And all other ESPs should also lose 5 reputation
 
 Scenario: Black Friday volume boost
@@ -473,8 +473,8 @@ gherkin
 ```gherkin
 Feature: Destination Coordination
 
-Scenario: Gmail-Outlook coordination
-  Given Gmail and Outlook have active coordination
+Scenario: zmail-intake coordination
+  Given zmail and intake have active coordination
   And they both filter "SpamKing" ESP
   When resolution phase calculates
   Then filtering effectiveness increases 15%
@@ -511,19 +511,19 @@ Feature: Complete Resolution System
 
 Scenario: Complex ESP resolution
   Given ESP "SendWave" in Round 3 with:
-    - Reputations: Gmail 72, Outlook 68, Yahoo 70
+    - Reputations: zmail 72, intake 68, yagle 70
     - Clients: 1 premium_brand (active), 1 aggressive_marketer (active), 1 growing_startup (paused)
     - Tech: SPF, DKIM, DMARC, Content Filtering
     - Services: warmup on aggressive_marketer
     - Incidents: Botnet Attack (-5 reputation)
-  And Gmail has Moderate filtering on SendWave
+  And zmail has Moderate filtering on SendWave
   When complete resolution phase runs
   Then calculate:
     1. Base volume: 70K (premium_brand 30K + aggressive_marketer 40K with warmup)
-    2. Incident impact: Rep becomes Gmail 67, Outlook 63, Yahoo 65
+    2. Incident impact: Rep becomes zmail 67, intake 63, yagle 65
     3. Client reputation: +2 (premium_brand) -2 (aggressive_marketer warmed) = 0
     4. Tech reputation: +10 (SPF+DKIM+DMARC)
-    5. Final reputation: Gmail 77, Outlook 73, Yahoo 75
+    5. Final reputation: zmail 77, intake 73, yagle 75
     6. Weighted average: 75.2 (Good zone)
     7. Delivery base: 85%
     8. Auth bonus: +25%
@@ -537,7 +537,7 @@ Scenario: Cascade failure scenario
   Given ESP "RiskyBiz" has:
     - All aggressive_marketer clients
     - No authentication
-    - Reputation 62 at Gmail
+    - Reputation 62 at zmail
     - Round 3 (DMARC required)
   When resolution runs
   Then DMARC penalty: 80% rejection
@@ -558,7 +558,7 @@ yaml
 ```yaml
 ESP_minimal:
   - name: "TestESP"
-    reputation: { gmail: 75, outlook: 75, yahoo: 75 }
+    reputation: { zmail: 75, intake: 75, yagle: 75 }
     clients: 
       - { type: "premium_brand", status: "active", volume: 30000, revenue: 350 }
     tech: ["SPF"]
@@ -576,7 +576,7 @@ yaml
 ```yaml
 ESP_standard:
   - name: "TestESP"
-    reputation: { gmail: 70, outlook: 70, yahoo: 70 }
+    reputation: { zmail: 70, intake: 70, yagle: 70 }
     clients:
       - { type: "premium_brand", status: "active", volume: 30000, revenue: 350 }
       - { type: "aggressive_marketer", status: "active", volume: 80000, revenue: 320, 
@@ -584,7 +584,7 @@ ESP_standard:
     tech: ["SPF", "DKIM", "Content_Filtering"]
     
 Destination_Settings:
-  gmail: { filtering_level: "Moderate", filtering_target: "TestESP" }
+  zmail: { filtering_level: "Moderate", filtering_target: "TestESP" }
 
 Expected_Output:
   volume: 110000
@@ -607,9 +607,9 @@ ESP_complex:
     
 Full_State:
   all_esps: ["TestESP", "Competitor1", "Competitor2", "Competitor3", "Competitor4"]
-  all_destinations: ["Gmail", "Outlook", "Yahoo"]
+  all_destinations: ["zmail", "intake", "yagle"]
   coordination: 
-    - { destinations: ["Gmail", "Outlook"], active: true }
+    - { destinations: ["zmail", "intake"], active: true }
     
 Expected_Full_Resolution:
   # Complete calculation chain with all mechanics

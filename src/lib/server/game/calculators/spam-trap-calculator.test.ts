@@ -19,7 +19,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
 				],
 				totalVolume: 30000,
-				perDestination: { Gmail: 15000, Outlook: 9000, Yahoo: 6000 }
+				perDestination: { zmail: 15000, intake: 9000, yagle: 6000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -36,7 +36,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			expect(result.perClient).toHaveLength(1);
@@ -52,7 +52,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 35000, adjustedVolume: 35000, adjustments: {} }
 				],
 				totalVolume: 35000,
-				perDestination: { Gmail: 17500, Outlook: 10500, Yahoo: 7000 }
+				perDestination: { zmail: 17500, intake: 10500, yagle: 7000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -69,7 +69,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			expect(result.perClient[0].baseRisk).toBe(0.015);
@@ -83,7 +83,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 50000, adjustedVolume: 50000, adjustments: {} }
 				],
 				totalVolume: 50000,
-				perDestination: { Gmail: 25000, Outlook: 15000, Yahoo: 10000 }
+				perDestination: { zmail: 25000, intake: 15000, yagle: 10000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -100,7 +100,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			expect(result.perClient[0].baseRisk).toBe(0.03);
@@ -114,7 +114,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
 				],
 				totalVolume: 80000,
-				perDestination: { Gmail: 40000, Outlook: 24000, Yahoo: 16000 }
+				perDestination: { zmail: 40000, intake: 24000, yagle: 16000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -131,7 +131,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			expect(result.perClient[0].baseRisk).toBe(0.05);
@@ -145,7 +145,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 40000, adjustedVolume: 40000, adjustments: {} }
 				],
 				totalVolume: 40000,
-				perDestination: { Gmail: 20000, Outlook: 12000, Yahoo: 8000 }
+				perDestination: { zmail: 20000, intake: 12000, yagle: 8000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -162,7 +162,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			expect(result.perClient[0].baseRisk).toBe(0.025);
@@ -178,7 +178,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 68000, adjustments: {} }
 				],
 				totalVolume: 68000,
-				perDestination: { Gmail: 34000, Outlook: 20400, Yahoo: 13600 }
+				perDestination: { zmail: 34000, intake: 20400, yagle: 13600 }
 			};
 
 			const result = calculateSpamTraps({
@@ -197,7 +197,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			expect(result.perClient[0].baseRisk).toBe(0.05); // Base stays 5%
@@ -212,7 +212,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 50000, adjustedVolume: 42500, adjustments: {} }
 				],
 				totalVolume: 42500,
-				perDestination: { Gmail: 21250, Outlook: 12750, Yahoo: 8500 }
+				perDestination: { zmail: 21250, intake: 12750, yagle: 8500 }
 			};
 
 			const result = calculateSpamTraps({
@@ -231,7 +231,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			expect(result.perClient[0].baseRisk).toBe(0.03);
@@ -248,7 +248,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
 				],
 				totalVolume: 80000,
-				perDestination: { Gmail: 40000, Outlook: 24000, Yahoo: 16000 }
+				perDestination: { zmail: 40000, intake: 24000, yagle: 16000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -265,12 +265,12 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: true, Outlook: false, Yahoo: false } // Gmail has network
+				spamTrapNetworkActive: { zmail: true, intake: false, yagle: false } // zmail has network
 			});
 
-			expect(result.perClient[0].networkMultipliedRisk.Gmail).toBeCloseTo(0.15, 5); // 5% * 3 = 15%
-			expect(result.perClient[0].networkMultipliedRisk.Outlook).toBeCloseTo(0.05, 5); // No network
-			expect(result.perClient[0].networkMultipliedRisk.Yahoo).toBeCloseTo(0.05, 5); // No network
+			expect(result.perClient[0].networkMultipliedRisk.zmail).toBeCloseTo(0.15, 5); // 5% * 3 = 15%
+			expect(result.perClient[0].networkMultipliedRisk.intake).toBeCloseTo(0.05, 5); // No network
+			expect(result.perClient[0].networkMultipliedRisk.yagle).toBeCloseTo(0.05, 5); // No network
 		});
 
 		test('Network + List Hygiene: both apply', () => {
@@ -281,7 +281,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 68000, adjustments: {} }
 				],
 				totalVolume: 68000,
-				perDestination: { Gmail: 34000, Outlook: 20400, Yahoo: 13600 }
+				perDestination: { zmail: 34000, intake: 20400, yagle: 13600 }
 			};
 
 			const result = calculateSpamTraps({
@@ -300,14 +300,14 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: true, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: true, intake: false, yagle: false }
 			});
 
 			// Adjusted risk after List Hygiene: 5% * 0.6 = 3%
-			// Network multiplier: 3% * 3 = 9% at Gmail
+			// Network multiplier: 3% * 3 = 9% at zmail
 			expect(result.perClient[0].adjustedRisk).toBe(0.03);
-			expect(result.perClient[0].networkMultipliedRisk.Gmail).toBe(0.09);
-			expect(result.perClient[0].networkMultipliedRisk.Outlook).toBe(0.03);
+			expect(result.perClient[0].networkMultipliedRisk.zmail).toBe(0.09);
+			expect(result.perClient[0].networkMultipliedRisk.intake).toBe(0.03);
 		});
 	});
 
@@ -323,7 +323,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: 'client-2', baseVolume: 50000, adjustedVolume: 50000, adjustments: {} }
 				],
 				totalVolume: 130000,
-				perDestination: { Gmail: 65000, Outlook: 39000, Yahoo: 26000 }
+				perDestination: { zmail: 65000, intake: 39000, yagle: 26000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -346,7 +346,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			expect(result.perClient).toHaveLength(2);
@@ -370,7 +370,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
 				],
 				totalVolume: 80000,
-				perDestination: { Gmail: 40000, Outlook: 24000, Yahoo: 16000 }
+				perDestination: { zmail: 40000, intake: 24000, yagle: 16000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -387,7 +387,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TRAP-HIT',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			// trapHit should be boolean
@@ -408,7 +408,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 30000, adjustedVolume: 30000, adjustments: {} }
 				],
 				totalVolume: 30000,
-				perDestination: { Gmail: 15000, Outlook: 9000, Yahoo: 6000 }
+				perDestination: { zmail: 15000, intake: 9000, yagle: 6000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -425,7 +425,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'NO-TRAP',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			// With very low risk, trap unlikely to hit
@@ -450,7 +450,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: 'client-2', baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
 				],
 				totalVolume: 160000,
-				perDestination: { Gmail: 80000, Outlook: 48000, Yahoo: 32000 }
+				perDestination: { zmail: 80000, intake: 48000, yagle: 32000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -473,7 +473,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'MULTI-TRAP',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: true, Outlook: true, Yahoo: true } // All networks active
+				spamTrapNetworkActive: { zmail: true, intake: true, yagle: true } // All networks active
 			});
 
 			// Even if multiple traps hit, penalty should never exceed -5
@@ -491,7 +491,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
 				],
 				totalVolume: 80000,
-				perDestination: { Gmail: 40000, Outlook: 24000, Yahoo: 16000 }
+				perDestination: { zmail: 40000, intake: 24000, yagle: 16000 }
 			};
 
 			const params = {
@@ -508,7 +508,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'SEED-TEST',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			};
 
 			const result1 = calculateSpamTraps(params);
@@ -527,7 +527,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: client.id, baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
 				],
 				totalVolume: 80000,
-				perDestination: { Gmail: 40000, Outlook: 24000, Yahoo: 16000 }
+				perDestination: { zmail: 40000, intake: 24000, yagle: 16000 }
 			};
 
 			const result1 = calculateSpamTraps({
@@ -544,7 +544,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'SEED-A',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			const result2 = calculateSpamTraps({
@@ -561,7 +561,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'SEED-B', // Different room code
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			// Different seeds should produce different rolls (very likely)
@@ -581,7 +581,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 					{ clientId: 'client-2', baseVolume: 80000, adjustedVolume: 80000, adjustments: {} }
 				],
 				totalVolume: 110000,
-				perDestination: { Gmail: 55000, Outlook: 33000, Yahoo: 22000 }
+				perDestination: { zmail: 55000, intake: 33000, yagle: 22000 }
 			};
 
 			const result = calculateSpamTraps({
@@ -604,7 +604,7 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 				roomCode: 'TEST-ROOM',
 				round: 1,
 				espName: 'TestESP',
-				spamTrapNetworkActive: { Gmail: false, Outlook: false, Yahoo: false }
+				spamTrapNetworkActive: { zmail: false, intake: false, yagle: false }
 			});
 
 			// Total base risk: 0.5% + 5% = 5.5%

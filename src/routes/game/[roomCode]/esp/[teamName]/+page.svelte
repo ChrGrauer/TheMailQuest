@@ -55,7 +55,7 @@
 	// Team data
 	let credits = $state(1000);
 	let pendingCosts = $state(0);
-	let reputation = $state<Record<string, number>>({ Gmail: 70, Outlook: 70, Yahoo: 70 });
+	let reputation = $state<Record<string, number>>({ zmail: 70, intake: 70, yagle: 70 });
 	let clients = $state<
 		Array<{
 			name: string;
@@ -87,9 +87,9 @@
 
 	// Destinations with weights
 	let destinations = $state([
-		{ name: 'Gmail', weight: 50 },
-		{ name: 'Outlook', weight: 30 },
-		{ name: 'Yahoo', weight: 20 }
+		{ name: 'zmail', weight: 50 },
+		{ name: 'intake', weight: 30 },
+		{ name: 'yagle', weight: 20 }
 	]);
 
 	// UI state (via composable)
@@ -169,7 +169,7 @@
 
 			// Update team data
 			credits = data.team.credits || 1000;
-			reputation = data.team.reputation || { Gmail: 70, Outlook: 70, Yahoo: 70 };
+			reputation = data.team.reputation || { zmail: 70, intake: 70, yagle: 70 };
 			clients = data.team.active_clients || [];
 			availableClientsCount = data.team.available_clients_count || 0;
 			ownedTech = data.team.owned_tech_upgrades || []; // US-2.3
@@ -534,7 +534,7 @@
 
 	/**
 	 * Calculate overall reputation as weighted average
-	 * Gmail: 50%, Outlook: 30%, Yahoo: 20%
+	 * zmail: 50%, intake: 30%, yagle: 20%
 	 */
 	function calculateOverallReputation(
 		rep: Record<string, number>,

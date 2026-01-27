@@ -26,7 +26,7 @@ function createTestSession(): GameSession {
 				clients: [],
 				technical_stack: [],
 				credits: 1000,
-				reputation: { Gmail: 75, Outlook: 70, Yahoo: 65 },
+				reputation: { zmail: 75, intake: 70, yagle: 65 },
 				active_clients: [],
 				owned_tech_upgrades: ['spf', 'dkim'],
 				round_history: [],
@@ -39,7 +39,7 @@ function createTestSession(): GameSession {
 				clients: [],
 				technical_stack: [],
 				credits: 800,
-				reputation: { Gmail: 80, Outlook: 75, Yahoo: 70 },
+				reputation: { zmail: 80, intake: 75, yagle: 70 },
 				active_clients: [],
 				owned_tech_upgrades: ['spf'],
 				round_history: [],
@@ -48,24 +48,24 @@ function createTestSession(): GameSession {
 		],
 		destinations: [
 			{
-				name: 'Gmail',
-				kingdom: 'Gmail',
+				name: 'zmail',
+				kingdom: 'zmail',
 				players: ['player-3'],
 				budget: 500,
 				filtering_policies: {},
 				esp_reputation: { SendWave: 75, MailMonkey: 80 }
 			},
 			{
-				name: 'Outlook',
-				kingdom: 'Outlook',
+				name: 'intake',
+				kingdom: 'intake',
 				players: ['player-4'],
 				budget: 400,
 				filtering_policies: {},
 				esp_reputation: { SendWave: 70, MailMonkey: 75 }
 			},
 			{
-				name: 'Yahoo',
-				kingdom: 'Yahoo',
+				name: 'yagle',
+				kingdom: 'yagle',
 				players: ['player-5'],
 				budget: 300,
 				filtering_policies: {},
@@ -104,22 +104,22 @@ describe('Incident Effects Manager - All ESPs Reputation Loss', () => {
 		};
 
 		// Store initial reputation values
-		const sendwaveInitialGmail = session.esp_teams[0].reputation.Gmail;
-		const mailmonkeyInitialOutlook = session.esp_teams[1].reputation.Outlook;
+		const sendwaveInitialzmail = session.esp_teams[0].reputation.zmail;
+		const mailmonkeyInitialintake = session.esp_teams[1].reputation.intake;
 
 		const result = applyIncidentEffects(session, incident);
 
 		expect(result.success).toBe(true);
 
 		// Verify SendWave reputation decreased by 5 for all destinations
-		expect(session.esp_teams[0].reputation.Gmail).toBe(sendwaveInitialGmail - 5); // 75 -> 70
-		expect(session.esp_teams[0].reputation.Outlook).toBe(65); // 70 -> 65
-		expect(session.esp_teams[0].reputation.Yahoo).toBe(60); // 65 -> 60
+		expect(session.esp_teams[0].reputation.zmail).toBe(sendwaveInitialzmail - 5); // 75 -> 70
+		expect(session.esp_teams[0].reputation.intake).toBe(65); // 70 -> 65
+		expect(session.esp_teams[0].reputation.yagle).toBe(60); // 65 -> 60
 
 		// Verify MailMonkey reputation decreased by 5 for all destinations
-		expect(session.esp_teams[1].reputation.Gmail).toBe(75); // 80 -> 75
-		expect(session.esp_teams[1].reputation.Outlook).toBe(mailmonkeyInitialOutlook - 5); // 75 -> 70
-		expect(session.esp_teams[1].reputation.Yahoo).toBe(65); // 70 -> 65
+		expect(session.esp_teams[1].reputation.zmail).toBe(75); // 80 -> 75
+		expect(session.esp_teams[1].reputation.intake).toBe(mailmonkeyInitialintake - 5); // 75 -> 70
+		expect(session.esp_teams[1].reputation.yagle).toBe(65); // 70 -> 65
 	});
 
 	it('should clamp reputation at 0 (cannot go negative)', () => {
@@ -144,9 +144,9 @@ describe('Incident Effects Manager - All ESPs Reputation Loss', () => {
 		applyIncidentEffects(session, incident);
 
 		// All reputation values should be clamped at 0
-		expect(session.esp_teams[0].reputation.Gmail).toBe(0);
-		expect(session.esp_teams[0].reputation.Outlook).toBe(0);
-		expect(session.esp_teams[0].reputation.Yahoo).toBe(0);
+		expect(session.esp_teams[0].reputation.zmail).toBe(0);
+		expect(session.esp_teams[0].reputation.intake).toBe(0);
+		expect(session.esp_teams[0].reputation.yagle).toBe(0);
 	});
 
 	it('should clamp reputation at 100 (cannot exceed maximum)', () => {
@@ -171,8 +171,8 @@ describe('Incident Effects Manager - All ESPs Reputation Loss', () => {
 		applyIncidentEffects(session, incident);
 
 		// All reputation values should be clamped at 100
-		expect(session.esp_teams[0].reputation.Gmail).toBeLessThanOrEqual(100);
-		expect(session.esp_teams[1].reputation.Gmail).toBeLessThanOrEqual(100);
+		expect(session.esp_teams[0].reputation.zmail).toBeLessThanOrEqual(100);
+		expect(session.esp_teams[1].reputation.zmail).toBeLessThanOrEqual(100);
 	});
 
 	it('should return detailed changes for ESP reputation', () => {
@@ -202,8 +202,8 @@ describe('Incident Effects Manager - All ESPs Reputation Loss', () => {
 		// Check SendWave changes
 		expect(result.changes.espChanges['SendWave']).toBeDefined();
 		expect(result.changes.espChanges['SendWave'].reputation).toBeDefined();
-		expect(result.changes.espChanges['SendWave'].reputation?.Gmail).toBe(-5);
-		expect(result.changes.espChanges['SendWave'].reputation?.Outlook).toBe(-5);
+		expect(result.changes.espChanges['SendWave'].reputation?.zmail).toBe(-5);
+		expect(result.changes.espChanges['SendWave'].reputation?.intake).toBe(-5);
 
 		// Check MailMonkey changes
 		expect(result.changes.espChanges['MailMonkey']).toBeDefined();
@@ -299,14 +299,14 @@ describe('Incident Effects Manager - All Destinations Budget Gain', () => {
 		expect(result.changes.destinationChanges).toBeDefined();
 
 		// Check all destination changes
-		expect(result.changes.destinationChanges['Gmail']).toBeDefined();
-		expect(result.changes.destinationChanges['Gmail'].budget).toBe(100);
+		expect(result.changes.destinationChanges['zmail']).toBeDefined();
+		expect(result.changes.destinationChanges['zmail'].budget).toBe(100);
 
-		expect(result.changes.destinationChanges['Outlook']).toBeDefined();
-		expect(result.changes.destinationChanges['Outlook'].budget).toBe(100);
+		expect(result.changes.destinationChanges['intake']).toBeDefined();
+		expect(result.changes.destinationChanges['intake'].budget).toBe(100);
 
-		expect(result.changes.destinationChanges['Yahoo']).toBeDefined();
-		expect(result.changes.destinationChanges['Yahoo'].budget).toBe(100);
+		expect(result.changes.destinationChanges['yagle']).toBeDefined();
+		expect(result.changes.destinationChanges['yagle'].budget).toBe(100);
 	});
 });
 
@@ -398,7 +398,7 @@ describe('Incident Effects Manager - Notifications', () => {
 
 		// Store initial state
 		const initialCredits = session.esp_teams[0].credits;
-		const initialReputation = session.esp_teams[0].reputation.Gmail;
+		const initialReputation = session.esp_teams[0].reputation.zmail;
 		const initialBudget = session.destinations[0].budget;
 
 		const result = applyIncidentEffects(session, incident);
@@ -407,7 +407,7 @@ describe('Incident Effects Manager - Notifications', () => {
 
 		// Verify no state changes
 		expect(session.esp_teams[0].credits).toBe(initialCredits);
-		expect(session.esp_teams[0].reputation.Gmail).toBe(initialReputation);
+		expect(session.esp_teams[0].reputation.zmail).toBe(initialReputation);
 		expect(session.destinations[0].budget).toBe(initialBudget);
 
 		// Verify notification in result
@@ -453,8 +453,8 @@ describe('Incident Effects Manager - Combined Effects', () => {
 		expect(result.success).toBe(true);
 
 		// Verify ESP reputation changes
-		expect(session.esp_teams[0].reputation.Gmail).toBe(70); // 75 - 5
-		expect(session.esp_teams[1].reputation.Gmail).toBe(75); // 80 - 5
+		expect(session.esp_teams[0].reputation.zmail).toBe(70); // 75 - 5
+		expect(session.esp_teams[1].reputation.zmail).toBe(75); // 80 - 5
 
 		// Verify destination budget changes
 		expect(session.destinations[0].budget).toBe(600); // 500 + 100
@@ -505,7 +505,7 @@ describe('Incident Effects Manager - Reputation Set (Phase 5)', () => {
 	});
 
 	it('should set reputation to fixed value for selected ESP (INC-020)', () => {
-		// SendWave reputation: Gmail: 75, Outlook: 70, Yahoo: 65
+		// SendWave reputation: zmail: 75, intake: 70, yagle: 65
 		const incident: IncidentCard = {
 			id: 'INC-020',
 			name: 'Reputation Reset',
@@ -529,14 +529,14 @@ describe('Incident Effects Manager - Reputation Set (Phase 5)', () => {
 		expect(result.success).toBe(true);
 
 		// SendWave reputation should be set to 70 for all destinations
-		expect(session.esp_teams[0].reputation.Gmail).toBe(70);
-		expect(session.esp_teams[0].reputation.Outlook).toBe(70);
-		expect(session.esp_teams[0].reputation.Yahoo).toBe(70);
+		expect(session.esp_teams[0].reputation.zmail).toBe(70);
+		expect(session.esp_teams[0].reputation.intake).toBe(70);
+		expect(session.esp_teams[0].reputation.yagle).toBe(70);
 
 		// MailMonkey should be unchanged
-		expect(session.esp_teams[1].reputation.Gmail).toBe(80);
-		expect(session.esp_teams[1].reputation.Outlook).toBe(75);
-		expect(session.esp_teams[1].reputation.Yahoo).toBe(70);
+		expect(session.esp_teams[1].reputation.zmail).toBe(80);
+		expect(session.esp_teams[1].reputation.intake).toBe(75);
+		expect(session.esp_teams[1].reputation.yagle).toBe(70);
 	});
 
 	it('should return detailed changes for reputation_set effect', () => {
@@ -558,7 +558,7 @@ describe('Incident Effects Manager - Reputation Set (Phase 5)', () => {
 			]
 		};
 
-		// SendWave initial: Gmail: 75, Outlook: 70, Yahoo: 65
+		// SendWave initial: zmail: 75, intake: 70, yagle: 65
 		const result = applyIncidentEffects(session, incident, 'SendWave');
 
 		expect(result.success).toBe(true);
@@ -566,9 +566,9 @@ describe('Incident Effects Manager - Reputation Set (Phase 5)', () => {
 		expect(result.changes.espChanges['SendWave'].reputation).toBeDefined();
 
 		// Changes should reflect delta from original values
-		expect(result.changes.espChanges['SendWave'].reputation?.Gmail).toBe(-5); // 75 -> 70 = -5
-		expect(result.changes.espChanges['SendWave'].reputation?.Outlook).toBe(0); // 70 -> 70 = 0
-		expect(result.changes.espChanges['SendWave'].reputation?.Yahoo).toBe(5); // 65 -> 70 = +5
+		expect(result.changes.espChanges['SendWave'].reputation?.zmail).toBe(-5); // 75 -> 70 = -5
+		expect(result.changes.espChanges['SendWave'].reputation?.intake).toBe(0); // 70 -> 70 = 0
+		expect(result.changes.espChanges['SendWave'].reputation?.yagle).toBe(5); // 65 -> 70 = +5
 	});
 
 	it('should clamp reputation_set value to valid range (0-100)', () => {
@@ -593,9 +593,9 @@ describe('Incident Effects Manager - Reputation Set (Phase 5)', () => {
 		applyIncidentEffects(session, incident, 'SendWave');
 
 		// Should be clamped to 100
-		expect(session.esp_teams[0].reputation.Gmail).toBe(100);
-		expect(session.esp_teams[0].reputation.Outlook).toBe(100);
-		expect(session.esp_teams[0].reputation.Yahoo).toBe(100);
+		expect(session.esp_teams[0].reputation.zmail).toBe(100);
+		expect(session.esp_teams[0].reputation.intake).toBe(100);
+		expect(session.esp_teams[0].reputation.yagle).toBe(100);
 	});
 
 	it('should handle reputation_set with value 0', () => {
@@ -620,9 +620,9 @@ describe('Incident Effects Manager - Reputation Set (Phase 5)', () => {
 		applyIncidentEffects(session, incident, 'SendWave');
 
 		// Should be set to 0
-		expect(session.esp_teams[0].reputation.Gmail).toBe(0);
-		expect(session.esp_teams[0].reputation.Outlook).toBe(0);
-		expect(session.esp_teams[0].reputation.Yahoo).toBe(0);
+		expect(session.esp_teams[0].reputation.zmail).toBe(0);
+		expect(session.esp_teams[0].reputation.intake).toBe(0);
+		expect(session.esp_teams[0].reputation.yagle).toBe(0);
 	});
 
 	it('should fail for selected_esp without selectedTeam parameter', () => {
@@ -649,7 +649,7 @@ describe('Incident Effects Manager - Reputation Set (Phase 5)', () => {
 
 		// Should fail or skip the effect
 		// Reputation should remain unchanged
-		expect(session.esp_teams[0].reputation.Gmail).toBe(75);
-		expect(session.esp_teams[0].reputation.Outlook).toBe(70);
+		expect(session.esp_teams[0].reputation.zmail).toBe(75);
+		expect(session.esp_teams[0].reputation.intake).toBe(70);
 	});
 });

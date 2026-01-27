@@ -174,12 +174,12 @@ test.describe('Resolution Execution Trigger', () => {
 		await bobPage.click('button:has-text("Join Game")');
 		await bobPage.waitForTimeout(500);
 
-		const gmailPage = await context.newPage();
-		await gmailPage.goto(`/lobby/${roomCodeValue}`);
-		await gmailPage.click('text=Gmail');
-		await gmailPage.locator('input[name="displayName"]').fill('Carol');
-		await gmailPage.click('button:has-text("Join Game")');
-		await gmailPage.waitForTimeout(500);
+		const zmailPage = await context.newPage();
+		await zmailPage.goto(`/lobby/${roomCodeValue}`);
+		await zmailPage.click('text=zmail');
+		await zmailPage.locator('input[name="displayName"]').fill('Carol');
+		await zmailPage.click('button:has-text("Join Game")');
+		await zmailPage.waitForTimeout(500);
 
 		// Start game
 		await page.click('text=Start Game');
@@ -188,7 +188,7 @@ test.describe('Resolution Execution Trigger', () => {
 		// When: Resolution executes
 		await alicePage.locator('[data-testid="lock-in-button"]').click();
 		await bobPage.locator('[data-testid="lock-in-button"]').click();
-		await gmailPage.locator('[data-testid="lock-in-button"]').click();
+		await zmailPage.locator('[data-testid="lock-in-button"]').click();
 		await alicePage.waitForTimeout(2000);
 
 		// Then: Both ESPs should see their own team names in consequences

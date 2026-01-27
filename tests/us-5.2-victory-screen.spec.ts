@@ -103,7 +103,7 @@ test.describe('US-5.2: Victory Screen', () => {
 	test('All players see victory screen after calculation', async ({ page, context }) => {
 		const roomCode = await createTestSession(page);
 		const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
-		const gmailPage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'Gmail');
+		const zmailPage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'zmail');
 		await page.waitForTimeout(500);
 
 		// Start game
@@ -111,25 +111,25 @@ test.describe('US-5.2: Victory Screen', () => {
 		await alicePage.waitForURL(/\/game\/.*\/esp\/sendwave/, { timeout: 10000 });
 
 		// Advance to Round 4 consequences
-		await advanceToRound(page, [alicePage, gmailPage], 4);
-		await lockInAllPlayers([alicePage, gmailPage]);
+		await advanceToRound(page, [alicePage, zmailPage], 4);
+		await lockInAllPlayers([alicePage, zmailPage]);
 
 		// Calculate scores
 		await page.getByTestId('calculate-final-scores-button').click();
 
 		// Assert: Both ESP and Destination players see victory screen
 		await alicePage.waitForSelector('[data-testid="victory-screen"]', { timeout: 15000 });
-		await gmailPage.waitForSelector('[data-testid="victory-screen"]', { timeout: 15000 });
+		await zmailPage.waitForSelector('[data-testid="victory-screen"]', { timeout: 15000 });
 
 		await expect(alicePage.getByTestId('victory-screen')).toBeVisible();
-		await expect(gmailPage.getByTestId('victory-screen')).toBeVisible();
+		await expect(zmailPage.getByTestId('victory-screen')).toBeVisible();
 
 		// Facilitator verification (US-5.2 additional requirement)
 		await expect(page.getByTestId('victory-screen')).toBeVisible();
 		await expect(page.getByTestId('esp-leaderboard')).toBeVisible();
 		await expect(page.getByTestId('destination-results')).toBeVisible();
 
-		await closePages(page, alicePage, gmailPage);
+		await closePages(page, alicePage, zmailPage);
 	});
 
 	/**

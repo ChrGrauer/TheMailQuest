@@ -47,7 +47,7 @@ export interface PlanningPhaseFixture {
 
 export interface DestinationGameFixture {
 	facilitatorPage: Page;
-	gmailPage: Page;
+	zmailPage: Page;
 	alicePage: Page;
 	bobPage: Page;
 	roomCode: string;
@@ -63,8 +63,8 @@ export interface Round4ConsequencesFixture {
 export interface MultipleDestinationsFixture {
 	facilitatorPage: Page;
 	alicePage: Page;
-	gmailPage: Page;
-	yahooPage: Page;
+	zmailPage: Page;
+	yaglePage: Page;
 	roomCode: string;
 }
 
@@ -137,25 +137,25 @@ export const test = base.extend<GameFixtures>({
 	},
 
 	/**
-	 * Fixture: Game with destination player (Gmail) and 2 ESP players
+	 * Fixture: Game with destination player (zmail) and 2 ESP players
 	 * Use for: Destination dashboard tests, filtering tests, resolution data tests
 	 */
 	destinationGame: async ({ page, context }, use) => {
-		const { roomCode, gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+		const { roomCode, zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 			page,
 			context
 		);
 
 		await use({
 			facilitatorPage: page,
-			gmailPage,
+			zmailPage,
 			alicePage,
 			bobPage,
 			roomCode
 		});
 
 		// Cleanup
-		await closePages(gmailPage, alicePage, bobPage);
+		await closePages(zmailPage, alicePage, bobPage);
 	},
 
 	/**
@@ -178,33 +178,33 @@ export const test = base.extend<GameFixtures>({
 	},
 
 	/**
-	 * Fixture: Game with multiple destination players (Gmail + Yahoo)
+	 * Fixture: Game with multiple destination players (zmail + yagle)
 	 * Use for: Tests requiring multiple destinations to compare consequences
 	 */
 	multipleDestinations: async ({ page, context }, use) => {
 		const roomCode = await createTestSession(page);
 		const alicePage = await addPlayer(context, roomCode, 'Alice', 'ESP', 'SendWave');
-		const gmailPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'Gmail');
-		const yahooPage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'Yahoo');
+		const zmailPage = await addPlayer(context, roomCode, 'Carol', 'Destination', 'zmail');
+		const yaglePage = await addPlayer(context, roomCode, 'Diana', 'Destination', 'yagle');
 		await page.waitForTimeout(500);
 
 		// Start game
 		await page.getByRole('button', { name: /start game/i }).click();
 
 		// Wait for destinations to load
-		await gmailPage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 });
-		await yahooPage.waitForURL(`/game/${roomCode}/destination/yahoo`, { timeout: 10000 });
+		await zmailPage.waitForURL(`/game/${roomCode}/destination/zmail`, { timeout: 10000 });
+		await yaglePage.waitForURL(`/game/${roomCode}/destination/yagle`, { timeout: 10000 });
 
 		await use({
 			facilitatorPage: page,
 			alicePage,
-			gmailPage,
-			yahooPage,
+			zmailPage,
+			yaglePage,
 			roomCode
 		});
 
 		// Cleanup
-		await closePages(alicePage, gmailPage, yahooPage);
+		await closePages(alicePage, zmailPage, yaglePage);
 	}
 });
 

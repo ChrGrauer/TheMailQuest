@@ -68,7 +68,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -120,7 +120,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -181,7 +181,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Carol',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -198,11 +198,11 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			const updatedSession = getSession(session.roomCode);
 			const sendWave = updatedSession?.esp_teams.find((t) => t.name === 'SendWave');
 			const mailMonkey = updatedSession?.esp_teams.find((t) => t.name === 'MailMonkey');
-			const gmail = updatedSession?.destinations.find((d) => d.name === 'Gmail');
+			const zmail = updatedSession?.destinations.find((d) => d.name === 'zmail');
 
 			expect(sendWave?.locked_in).toBe(true);
 			expect(mailMonkey?.locked_in).toBe(true);
-			expect(gmail?.locked_in).toBe(true);
+			expect(zmail?.locked_in).toBe(true);
 		});
 	});
 
@@ -227,32 +227,32 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
 			allocateResources({ roomCode: session.roomCode });
 			await transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
 
-			// Gmail votes to investigate SendWave
+			// zmail votes to investigate SendWave
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'SendWave'
 			});
 
 			const preLockSession = getSession(session.roomCode);
-			const preLockBudget = preLockSession?.destinations.find((d) => d.name === 'Gmail')?.budget;
+			const preLockBudget = preLockSession?.destinations.find((d) => d.name === 'zmail')?.budget;
 
 			// When
-			const result = lockInDestination(session.roomCode, 'Gmail');
+			const result = lockInDestination(session.roomCode, 'zmail');
 
 			// Then: lock-in succeeds but budget NOT charged (per feature spec: "only charged if investigation triggers")
 			expect(result.success).toBe(true);
 			const postLockSession = getSession(session.roomCode);
-			const gmail = postLockSession?.destinations.find((d) => d.name === 'Gmail');
+			const zmail = postLockSession?.destinations.find((d) => d.name === 'zmail');
 			// Budget should remain unchanged at lock-in - charge only happens at resolution if 2/3 consensus reached
-			expect(gmail?.budget).toBe(preLockBudget);
+			expect(zmail?.budget).toBe(preLockBudget);
 		});
 
 		test('Given destination with insufficient budget for vote, When validating lock-in, Then validation fails', async () => {
@@ -271,27 +271,27 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
 			allocateResources({ roomCode: session.roomCode });
 			await transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
 
-			// Gmail votes to investigate SendWave
+			// zmail votes to investigate SendWave
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'SendWave'
 			});
 
-			// Set Gmail's budget to 30 (less than 50 investigation cost)
+			// Set zmail's budget to 30 (less than 50 investigation cost)
 			const currentSession = getSession(session.roomCode);
-			const gmail = currentSession?.destinations.find((d) => d.name === 'Gmail');
-			gmail!.budget = 30;
+			const zmail = currentSession?.destinations.find((d) => d.name === 'zmail');
+			zmail!.budget = 30;
 
 			// When
-			const validation = validateDestinationLockIn(gmail!);
+			const validation = validateDestinationLockIn(zmail!);
 
 			// Then
 			expect(validation.isValid).toBe(false);
@@ -314,38 +314,38 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
 			allocateResources({ roomCode: session.roomCode });
 			await transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
 
-			// Gmail votes to investigate SendWave
+			// zmail votes to investigate SendWave
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'SendWave'
 			});
 
-			// Set Gmail's budget to 30 (less than 50 investigation cost)
+			// Set zmail's budget to 30 (less than 50 investigation cost)
 			const currentSession = getSession(session.roomCode);
-			const gmail = currentSession?.destinations.find((d) => d.name === 'Gmail');
-			gmail!.budget = 30;
+			const zmail = currentSession?.destinations.find((d) => d.name === 'zmail');
+			zmail!.budget = 30;
 
 			// When - Auto-lock all players
 			autoLockAllPlayers(session.roomCode);
 
-			// Then - Gmail is locked in
+			// Then - zmail is locked in
 			const postLockSession = getSession(session.roomCode);
-			const lockedGmail = postLockSession?.destinations.find((d) => d.name === 'Gmail');
-			expect(lockedGmail?.locked_in).toBe(true);
+			const lockedzmail = postLockSession?.destinations.find((d) => d.name === 'zmail');
+			expect(lockedzmail?.locked_in).toBe(true);
 
 			// And - Vote was auto-removed
-			expect(lockedGmail?.pending_investigation_vote).toBeUndefined();
+			expect(lockedzmail?.pending_investigation_vote).toBeUndefined();
 
 			// And - Budget unchanged (vote was removed, not charged)
-			expect(lockedGmail?.budget).toBe(30);
+			expect(lockedzmail?.budget).toBe(30);
 		});
 	});
 });

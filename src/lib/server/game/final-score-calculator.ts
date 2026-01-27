@@ -37,7 +37,7 @@ import type {
  * Calculate the reputation score component for an ESP
  * Applies kingdom weights and converts to a 0-50 point score
  *
- * @param reputation - Per-kingdom reputation values (Gmail, Outlook, Yahoo)
+ * @param reputation - Per-kingdom reputation values (zmail, intake, yagle)
  * @returns Weighted reputation (0-100) and score (0-50 points)
  */
 export function calculateReputationScore(
@@ -237,7 +237,7 @@ export function calculateCoordinationBonus(
 /**
  * Calculate destination collaborative score
  *
- * @param stats - Per-destination stats (Gmail, Outlook, Yahoo)
+ * @param stats - Per-destination stats (zmail, intake, yagle)
  * @param investigationHistory - Optional investigation history for coordination bonus
  * @returns Collaborative score result with breakdown
  */
@@ -330,9 +330,9 @@ export function aggregateResolutionHistory(
 	const espRevenues: Record<string, number> = {};
 	const espRoundHistory: Record<string, RoundMetrics[]> = {};
 	const destinationStats: Record<string, DestinationInputStats> = {
-		Gmail: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 0 },
-		Outlook: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 0 },
-		Yahoo: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 0 }
+		zmail: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 0 },
+		intake: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 0 },
+		yagle: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 0 }
 	};
 
 	for (const entry of history) {

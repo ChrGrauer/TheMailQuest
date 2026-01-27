@@ -60,7 +60,7 @@ describe('Feature: Timer Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -98,7 +98,7 @@ describe('Feature: Timer Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -147,7 +147,7 @@ describe('Feature: Timer Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -199,7 +199,7 @@ describe('Feature: Timer Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -247,7 +247,7 @@ describe('Feature: Timer Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -300,7 +300,7 @@ describe('Feature: Timer Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -340,7 +340,7 @@ describe('Feature: Timer Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -382,7 +382,7 @@ describe('Feature: Timer Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -424,7 +424,7 @@ describe('Feature: Timer Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });

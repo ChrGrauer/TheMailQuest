@@ -22,12 +22,12 @@ export const SCORE_WEIGHTS = {
  * These weights determine how much each destination contributes to weighted reputation
  * Must sum to 1.0 (representing 100%)
  *
- * Rationale: Gmail has highest market share, followed by Outlook, then Yahoo
+ * Rationale: zmail has highest market share, followed by intake, then yagle
  */
 export const KINGDOM_WEIGHTS: Record<string, number> = {
-	Gmail: 0.5, // 50% weight - largest email provider
-	Outlook: 0.3, // 30% weight - second largest
-	Yahoo: 0.2 // 20% weight - third largest
+	zmail: 0.5, // 50% weight - largest email provider
+	intake: 0.3, // 30% weight - second largest
+	yagle: 0.2 // 20% weight - third largest
 };
 
 /**

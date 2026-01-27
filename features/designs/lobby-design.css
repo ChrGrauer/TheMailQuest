@@ -1,601 +1,490 @@
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lobby - Mail Quest</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #f8faf9 0%, #e8f5f0 100%);
-            min-height: 100vh;
-            color: #1a1a1a;
-        }
-
-        /* Header */
-        .header {
-            background: white;
-            padding: 1.5rem 2rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.25rem;
-        }
-
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0B5540;
-        }
-
-        .room-code-display {
-            background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
-            color: white;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .room-code-label {
-            font-size: 0.875rem;
-            opacity: 0.9;
-        }
-
-        .room-code {
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-        }
-
-        .copy-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-            font-size: 0.875rem;
-        }
-
-        .copy-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        .lobby-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-
-        /* Section Card */
-        .section-card {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #E5E7EB;
-        }
-
-        .section-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0B5540;
-        }
-
-        .section-count {
-            margin-left: auto;
-            background: #F3F4F6;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #6B7280;
-        }
-
-        /* ESP Teams */
-        .teams-grid {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .team-slot {
-            background: #F9FAFB;
-            border: 2px solid #E5E7EB;
-            border-radius: 8px;
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .team-slot.occupied {
-            background: linear-gradient(135deg, #D1FAE5 0%, #F0FDF4 100%);
-            border-color: #10B981;
-        }
-
-        .team-slot.occupied:hover {
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-        }
-
-        .team-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.25rem;
-        }
-
-        .team-slot.occupied .team-avatar {
-            background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
-            color: white;
-        }
-
-        .team-slot:not(.occupied) .team-avatar {
-            background: #E5E7EB;
-            color: #9CA3AF;
-        }
-
-        .team-info {
-            flex: 1;
-        }
-
-        .team-name {
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 0.25rem;
-        }
-
-        .team-players {
-            font-size: 0.875rem;
-            color: #6B7280;
-        }
-
-        .team-slot:not(.occupied) .team-name {
-            color: #9CA3AF;
-        }
-
-        .team-status {
-            padding: 0.375rem 0.875rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .team-status.ready {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .team-status.waiting {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        .team-status.empty {
-            background: #F3F4F6;
-            color: #6B7280;
-        }
-
-        /* Destinations */
-        .destination-slot {
-            background: #F9FAFB;
-            border: 2px solid #E5E7EB;
-            border-radius: 8px;
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .destination-slot.occupied {
-            background: linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%);
-            border-color: #3B82F6;
-        }
-
-        .destination-slot.occupied:hover {
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-        }
-
-        .destination-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .destination-slot.occupied .destination-icon {
-            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
-        }
-
-        .destination-slot:not(.occupied) .destination-icon {
-            background: #E5E7EB;
-        }
-
-        /* Game Status */
-        .game-status {
-            grid-column: 1 / -1;
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-        }
-
-        .status-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-
-        .status-info {
-            flex: 1;
-        }
-
-        .status-message {
-            font-size: 1.25rem;
-            color: #4B5563;
-            margin-bottom: 0.5rem;
-        }
-
-        .ready-count {
-            font-size: 1rem;
-            color: #6B7280;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .ready-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #10B981;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        .status-actions {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .btn {
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
-            color: white;
-            box-shadow: 0 4px 16px rgba(11, 85, 64, 0.3);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(11, 85, 64, 0.4);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background: white;
-            color: #6B7280;
-            border: 2px solid #E5E7EB;
-        }
-
-        .btn-secondary:hover {
-            background: #F9FAFB;
-            border-color: #D1D5DB;
-        }
-
-        /* Instructions */
-        .instructions {
-            grid-column: 1 / -1;
-            background: linear-gradient(135deg, #FEF3C7 0%, #FEF9E7 100%);
-            border: 2px solid #FCD34D;
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .instructions-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #92400E;
-            margin-bottom: 1rem;
-        }
-
-        .instructions-list {
-            list-style: none;
-            display: grid;
-            gap: 0.75rem;
-        }
-
-        .instructions-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            color: #78350F;
-            font-size: 0.9375rem;
-        }
-
-        .instructions-list li::before {
-            content: "→";
-            color: #D97706;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .lobby-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .game-status {
-                grid-column: 1;
-            }
-
-            .instructions {
-                grid-column: 1;
-            }
-
-            .status-content {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .status-actions {
-                width: 100%;
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <div class="logo-icon">MQ</div>
-                <span class="logo-text">Mail Quest</span>
-            </div>
-            <div class="room-code-display">
-                <div>
-                    <div class="room-code-label">Room Code</div>
-                    <div class="room-code" id="roomCode">ABC123</div>
-                </div>
-                <button class="copy-btn" onclick="copyRoomCode()">📋 Copy</button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="container">
-        <div class="lobby-layout">
-            <!-- ESP Teams Section -->
-            <div class="section-card">
-                <div class="section-header">
-                    <div class="section-icon">📧</div>
-                    <h2 class="section-title">ESP Teams</h2>
-                    <span class="section-count">3 / 5</span>
-                </div>
-                <div class="teams-grid">
-                    <div class="team-slot occupied">
-                        <div class="team-avatar">SW</div>
-                        <div class="team-info">
-                            <div class="team-name">SendWave</div>
-                            <div class="team-players">Alice, Bob (2 players)</div>
-                        </div>
-                        <span class="team-status ready">✓ Ready</span>
-                    </div>
-
-                    <div class="team-slot occupied">
-                        <div class="team-avatar">MM</div>
-                        <div class="team-info">
-                            <div class="team-name">MailMonkey</div>
-                            <div class="team-players">Charlie, Diana, Eve (3 players)</div>
-                        </div>
-                        <span class="team-status ready">✓ Ready</span>
-                    </div>
-
-                    <div class="team-slot occupied">
-                        <div class="team-avatar">BP</div>
-                        <div class="team-info">
-                            <div class="team-name">BluePost</div>
-                            <div class="team-players">Frank (1 player)</div>
-                        </div>
-                        <span class="team-status waiting">⏳ Waiting</span>
-                    </div>
-
-                    <div class="team-slot">
-                        <div class="team-avatar">SB</div>
-                        <div class="team-info">
-                            <div class="team-name">SendBolt</div>
-                            <div class="team-players">Waiting for players...</div>
-                        </div>
-                        <span class="team-status empty">Empty</span>
-                    </div>
-
-                    <div class="team-slot">
-                        <div class="team-avatar">RM</div>
-                        <div class="team-info">
-                            <div class="team-name">RocketMail</div>
-                            <div class="team-players">Waiting for players...</div>
-                        </div>
-                        <span class="team-status empty">Empty</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Destinations Section -->
-            <div class="section-card">
-                <div class="section-header">
-                    <div class="section-icon">🏰</div>
-                    <h2 class="section-title">Destinations</h2>
-                    <span class="section-count">2 / 3</span>
-                </div>
-                <div class="teams-grid">
-                    <div class="destination-slot occupied">
-                        <div class="destination-icon">📬</div>
-                        <div class="team-info">
-                            <div class="team-name">Gmail</div>
-                            <div class="team-players">Grace, Henry (2 players)</div>
-                        </div>
-                        <span class="team-status ready">✓ Ready</span>
-                    </div>
-
-                    <div class="destination-slot occupied">
-                        <div class="destination-icon">📮</div>
-                        <div class="team-info">
-                            <div class="team-name">Outlook</div>
-                            <div class="team-players">Iris (1 player)</div>
-                        </div>
-                        <span class="team-status waiting">⏳ Waiting</span>
-                    </div>
-
-                    <div class="destination-slot">
-                        <div class="destination-icon">📪</div>
-                        <div class="team-info">
-                            <div class="team-name">Yahoo</div>
-                            <div class="team-players">Waiting for players...</div>
-                        </div>
-                        <span class="team-status empty">Empty</span>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <script>
-        // Copy room code to clipboard
-        function copyRoomCode() {
-            const roomCode = document.getElementById('roomCode').textContent;
-            navigator.clipboard.writeText(roomCode).then(() => {
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = '✓ Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            });
-        }
-
-        // Simulate real-time updates (in real app, this would be WebSocket)
-        function simulateRealtimeUpdates() {
-            // Animation of new players joining
-            const emptySlots = document.querySelectorAll('.team-slot:not(.occupied)');
-            if (emptySlots.length > 0) {
-                // Simulate player joining after 3 seconds
-                setTimeout(() => {
-                    const slot = emptySlots[0];
-                    slot.classList.add('occupied');
-                    // Update UI accordingly
-                }, 3000);
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // simulateRealtimeUpdates(); // Uncomment for demo
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Lobby - Mail Quest</title><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"><style>* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #f8faf9 0%, #e8f5f0 100%);
+    min-height: 100vh;
+    color: #1a1a1a;
+}
+
+/* Header */
+.header {
+    background: white;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0B5540;
+}
+
+.room-code-display {
+    background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.room-code-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.room-code {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.copy-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Main Container */
+.container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.lobby-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+/* Section Card */
+.section-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #E5E7EB;
+}
+
+.section-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0B5540;
+}
+
+.section-count {
+    margin-left: auto;
+    background: #F3F4F6;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6B7280;
+}
+
+/* ESP Teams */
+.teams-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.team-slot {
+    background: #F9FAFB;
+    border: 2px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.team-slot.occupied {
+    background: linear-gradient(135deg, #D1FAE5 0%, #F0FDF4 100%);
+    border-color: #10B981;
+}
+
+.team-slot.occupied:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.team-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.team-slot.occupied .team-avatar {
+    background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
+    color: white;
+}
+
+.team-slot:not(.occupied) .team-avatar {
+    background: #E5E7EB;
+    color: #9CA3AF;
+}
+
+.team-info {
+    flex: 1;
+}
+
+.team-name {
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.25rem;
+}
+
+.team-players {
+    font-size: 0.875rem;
+    color: #6B7280;
+}
+
+.team-slot:not(.occupied) .team-name {
+    color: #9CA3AF;
+}
+
+.team-status {
+    padding: 0.375rem 0.875rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.team-status.ready {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.team-status.waiting {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.team-status.empty {
+    background: #F3F4F6;
+    color: #6B7280;
+}
+
+/* Destinations */
+.destination-slot {
+    background: #F9FAFB;
+    border: 2px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.destination-slot.occupied {
+    background: linear-gradient(135deg, #DBEAFE 0%, #EFF6FF 100%);
+    border-color: #3B82F6;
+}
+
+.destination-slot.occupied:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.destination-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.destination-slot.occupied .destination-icon {
+    background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+}
+
+.destination-slot:not(.occupied) .destination-icon {
+    background: #E5E7EB;
+}
+
+/* Game Status */
+.game-status {
+    grid-column: 1 / -1;
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.status-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.status-info {
+    flex: 1;
+}
+
+.status-message {
+    font-size: 1.25rem;
+    color: #4B5563;
+    margin-bottom: 0.5rem;
+}
+
+.ready-count {
+    font-size: 1rem;
+    color: #6B7280;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ready-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10B981;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.status-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #0B5540 0%, #10B981 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(11, 85, 64, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(11, 85, 64, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: white;
+    color: #6B7280;
+    border: 2px solid #E5E7EB;
+}
+
+.btn-secondary:hover {
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+}
+
+/* Instructions */
+.instructions {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #FEF3C7 0%, #FEF9E7 100%);
+    border: 2px solid #FCD34D;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.instructions-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #92400E;
+    margin-bottom: 1rem;
+}
+
+.instructions-list {
+    list-style: none;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.instructions-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    color: #78350F;
+    font-size: 0.9375rem;
+}
+
+.instructions-list li::before {
+    content: "→";
+    color: #D97706;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .lobby-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .game-status {
+        grid-column: 1;
+    }
+
+    .instructions {
+        grid-column: 1;
+    }
+
+    .status-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .status-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+</style></head><body>< !-- Header --><header class="header"><div class="header-content"><div class="logo"><div class="logo-icon">MQ</div><span class="logo-text">Mail Quest</span></div><div class="room-code-display"><div><div class="room-code-label">Room Code</div><div class="room-code" id="roomCode">ABC123</div></div><button class="copy-btn" onclick="copyRoomCode()">📋 Copy</button></div></div></header>< !-- Main Content --><main class="container"><div class="lobby-layout">< !-- ESP Teams Section --><div class="section-card"><div class="section-header"><div class="section-icon">📧</div><h2 class="section-title">ESP Teams</h2><span class="section-count">3 / 5</span></div><div class="teams-grid"><div class="team-slot occupied"><div class="team-avatar">SW</div><div class="team-info"><div class="team-name">SendWave</div><div class="team-players">Alice,
+Bob (2 players)</div></div><span class="team-status ready">✓ Ready</span></div><div class="team-slot occupied"><div class="team-avatar">MM</div><div class="team-info"><div class="team-name">MailMonkey</div><div class="team-players">Charlie,
+Diana,
+Eve (3 players)</div></div><span class="team-status ready">✓ Ready</span></div><div class="team-slot occupied"><div class="team-avatar">BP</div><div class="team-info"><div class="team-name">BluePost</div><div class="team-players">Frank (1 player)</div></div><span class="team-status waiting">⏳ Waiting</span></div><div class="team-slot"><div class="team-avatar">SB</div><div class="team-info"><div class="team-name">SendBolt</div><div class="team-players">Waiting for players...</div></div><span class="team-status empty">Empty</span></div><div class="team-slot"><div class="team-avatar">RM</div><div class="team-info"><div class="team-name">RocketMail</div><div class="team-players">Waiting for players...</div></div><span class="team-status empty">Empty</span></div></div></div>< !-- Destinations Section --><div class="section-card"><div class="section-header"><div class="section-icon">🏰</div><h2 class="section-title">Destinations</h2><span class="section-count">2 / 3</span></div><div class="teams-grid"><div class="destination-slot occupied"><div class="destination-icon">📬</div><div class="team-info"><div class="team-name">zmail</div><div class="team-players">Grace,
+Henry (2 players)</div></div><span class="team-status ready">✓ Ready</span></div><div class="destination-slot occupied"><div class="destination-icon">📮</div><div class="team-info"><div class="team-name">intake</div><div class="team-players">Iris (1 player)</div></div><span class="team-status waiting">⏳ Waiting</span></div><div class="destination-slot"><div class="destination-icon">📪</div><div class="team-info"><div class="team-name">yagle</div><div class="team-players">Waiting for players...</div></div><span class="team-status empty">Empty</span></div></div></div></div></main><script> // Copy room code to clipboard
+
+function copyRoomCode() {
+    const roomCode=document.getElementById('roomCode').textContent;
+
+    navigator.clipboard.writeText(roomCode).then(()=> {
+            const btn=event.target;
+            const originalText=btn.textContent;
+            btn.textContent='✓ Copied!';
+
+            setTimeout(()=> {
+                    btn.textContent=originalText;
+                }
+
+                , 2000);
         });
-    </script>
-</body>
-</html>
+}
+
+// Simulate real-time updates (in real app, this would be WebSocket)
+function simulateRealtimeUpdates() {
+    // Animation of new players joining
+    const emptySlots=document.querySelectorAll('.team-slot:not(.occupied)');
+
+    if (emptySlots.length > 0) {
+
+        // Simulate player joining after 3 seconds
+        setTimeout(()=> {
+                const slot=emptySlots[0];
+                slot.classList.add('occupied');
+                // Update UI accordingly
+            }
+
+            , 3000);
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', ()=> {
+        // simulateRealtimeUpdates(); // Uncomment for demo
+    });
+</script></body></html>

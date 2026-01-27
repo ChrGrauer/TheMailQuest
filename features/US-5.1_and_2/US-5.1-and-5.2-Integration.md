@@ -43,9 +43,9 @@ interface FinalScoreOutput {
       weightedReputation: number;  // 0-100
     };
     reputationByKingdom: {
-      gmail: number;
-      outlook: number;
-      yahoo: number;
+      zmail: number;
+      intake: number;
+      yagle: number;
     };
     totalRevenue: number;
     totalTechInvestments: number;
@@ -152,9 +152,9 @@ interface FinalScoreOutput {
         "weightedReputation": 88.5
       },
       "reputationByKingdom": {
-        "gmail": 90,
-        "outlook": 88,
-        "yahoo": 85
+        "zmail": 90,
+        "intake": 88,
+        "yagle": 85
       },
       "totalRevenue": 2000,
       "totalTechInvestments": 820
@@ -423,7 +423,7 @@ From Victory Screen, players can:
 **US-5.2:** Plays celebration animation, shows trophy, confetti, success banner for destinations
 
 ### Scenario B: High Score but Disqualified
-**US-5.1:** Calculates SendWave has score 77.75 but reputation 55 in Yahoo, marks as disqualified
+**US-5.1:** Calculates SendWave has score 77.75 but reputation 55 in yagle, marks as disqualified
 **US-5.2:** Shows SendWave in leaderboard but grayed out, displays warning badge and reason, shows educational message about importance of all destinations
 
 ### Scenario C: All Disqualified

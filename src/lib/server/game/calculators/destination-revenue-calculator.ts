@@ -21,7 +21,7 @@ import {
  * Calculate revenue for a destination
  *
  * Formula:
- * - base_revenue = kingdom-specific constant (Gmail: 300, Outlook: 200, Yahoo: 150)
+ * - base_revenue = kingdom-specific constant (zmail: 300, intake: 200, yagle: 150)
  * - volume_bonus = (total_volume / 100000) * 20
  * - satisfaction_multiplier = tier-based (0.3 to 1.5)
  * - total_revenue = (base_revenue + volume_bonus) * satisfaction_multiplier

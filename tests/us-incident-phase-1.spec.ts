@@ -102,10 +102,10 @@ test.describe('Incident Cards Phase 1: Manual Triggering', () => {
 test.describe('Incident Cards Phase 1: Effect Application', () => {
 	let alicePage: Page;
 	let bobPage: Page;
-	let gmailPage: Page;
+	let zmailPage: Page;
 
 	test.afterEach(async ({ page }) => {
-		await closePages(page, alicePage, bobPage, gmailPage);
+		await closePages(page, alicePage, bobPage, zmailPage);
 	});
 
 	test('Industry Scandal affects all ESP teams and destinations', async ({ page, context }) => {
@@ -113,27 +113,27 @@ test.describe('Incident Cards Phase 1: Effect Application', () => {
 		const result = await createGameWithDestinationPlayer(page, context);
 		alicePage = result.alicePage;
 		bobPage = result.bobPage;
-		gmailPage = result.gmailPage;
-		const players = [alicePage, bobPage, gmailPage];
+		zmailPage = result.zmailPage;
+		const players = [alicePage, bobPage, zmailPage];
 
 		// Lock in all players to advance to Round 2
 		await advanceToRound(page, players, 2);
 
 		// Get initial values before triggering incident
-		// Alice's ESP (SendWave) reputation with Gmail
-		const aliceRepElement = alicePage.getByTestId('reputation-gmail');
+		// Alice's ESP (SendWave) reputation with zmail
+		const aliceRepElement = alicePage.getByTestId('reputation-zmail');
 		const aliceInitialRepText = await aliceRepElement.textContent();
 		const aliceInitialRep = parseInt(aliceInitialRepText || '70', 10);
 
-		// Bob's ESP (MailMonkey) reputation with Gmail
-		const bobRepElement = bobPage.getByTestId('reputation-gmail');
+		// Bob's ESP (MailMonkey) reputation with zmail
+		const bobRepElement = bobPage.getByTestId('reputation-zmail');
 		const bobInitialRepText = await bobRepElement.textContent();
 		const bobInitialRep = parseInt(bobInitialRepText || '70', 10);
 
-		// Gmail's budget
-		const gmailBudgetElement = gmailPage.getByTestId('budget-current');
-		const gmailInitialBudgetText = await gmailBudgetElement.textContent();
-		const gmailInitialBudget = parseInt(gmailInitialBudgetText?.match(/\d+/)?.[0] || '1000', 10);
+		// zmail's budget
+		const zmailBudgetElement = zmailPage.getByTestId('budget-current');
+		const zmailInitialBudgetText = await zmailBudgetElement.textContent();
+		const zmailInitialBudget = parseInt(zmailInitialBudgetText?.match(/\d+/)?.[0] || '1000', 10);
 
 		// Trigger INC-006 (Industry Scandal) - Round 2 incident
 		await triggerIncident(page, 'INC-006', undefined, players);
@@ -148,10 +148,10 @@ test.describe('Incident Cards Phase 1: Effect Application', () => {
 		const bobFinalRep = parseInt(bobFinalRepText || '70', 10);
 		expect(bobFinalRep).toBe(bobInitialRep - 5);
 
-		// Gmail should gain 100 budget
-		const gmailFinalBudgetText = await gmailBudgetElement.textContent();
-		const gmailFinalBudget = parseInt(gmailFinalBudgetText?.match(/\d+/)?.[0] || '1000', 10);
-		expect(gmailFinalBudget).toBe(gmailInitialBudget + 100);
+		// zmail should gain 100 budget
+		const zmailFinalBudgetText = await zmailBudgetElement.textContent();
+		const zmailFinalBudget = parseInt(zmailFinalBudgetText?.match(/\d+/)?.[0] || '1000', 10);
+		expect(zmailFinalBudget).toBe(zmailInitialBudget + 100);
 	});
 
 	test('incident history is collapsible', async ({ page, context }) => {
@@ -311,17 +311,17 @@ test.describe('Incident Cards Phase 1: Round-Based Filtering', () => {
 test.describe('Incident Cards Phase 1: WebSocket Sync', () => {
 	let alicePage: Page;
 	let bobPage: Page;
-	let gmailPage: Page;
+	let zmailPage: Page;
 
 	test.afterEach(async ({ page }) => {
-		await closePages(page, alicePage, bobPage, gmailPage);
+		await closePages(page, alicePage, bobPage, zmailPage);
 	});
 
 	test('incident card displays synchronously across all clients', async ({ page, context }) => {
 		const result = await createGameWithDestinationPlayer(page, context);
 		alicePage = result.alicePage;
 		bobPage = result.bobPage;
-		gmailPage = result.gmailPage;
+		zmailPage = result.zmailPage;
 
 		// Facilitator triggers incident
 		await page.click('[data-testid="drama-trigger-incident-button"]');
@@ -335,7 +335,7 @@ test.describe('Incident Cards Phase 1: WebSocket Sync', () => {
 		await expect(page.getByTestId('drama-card-display')).toBeVisible();
 		await expect(alicePage.getByTestId('drama-card-display')).toBeVisible();
 		await expect(bobPage.getByTestId('drama-card-display')).toBeVisible();
-		await expect(gmailPage.getByTestId('drama-card-display')).toBeVisible();
+		await expect(zmailPage.getByTestId('drama-card-display')).toBeVisible();
 
 		// All should show the same incident title
 		await expect(page.getByTestId('drama-card-title')).toContainText('Regulation Announcement');
@@ -343,7 +343,7 @@ test.describe('Incident Cards Phase 1: WebSocket Sync', () => {
 			'Regulation Announcement'
 		);
 		await expect(bobPage.getByTestId('drama-card-title')).toContainText('Regulation Announcement');
-		await expect(gmailPage.getByTestId('drama-card-title')).toContainText(
+		await expect(zmailPage.getByTestId('drama-card-title')).toContainText(
 			'Regulation Announcement'
 		);
 	});

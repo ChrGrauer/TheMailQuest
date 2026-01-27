@@ -61,11 +61,11 @@ Scenario: ESP player sees consequences screen structure
 ### Scenario 1.3: Consequences screen displays for Destination player
 ```gherkin
 Scenario: Destination player sees consequences screen structure
-  Given I am logged in as Destination player "Grace" from "Gmail"
+  Given I am logged in as Destination player "Grace" from "zmail"
   And the game transitions to "Consequences" phase for Round 2
   When I view my consequences screen
   Then I should see a header showing "Round 2 Results"
-  And I should see my destination name "Gmail" prominently displayed
+  And I should see my destination name "zmail" prominently displayed
   And I should see the following sections:
     | Section Title              |
     | Spam Blocking Summary      |
@@ -145,26 +145,26 @@ Scenario: Display revenue earned from each client
 Scenario: Display how each client affected reputation at each destination
   Given I am ESP player "Alice" from "SendWave"
   And in Round 2 my clients had the following reputation impacts:
-    | Client              | Gmail Impact | Outlook Impact | Yahoo Impact |
+    | Client              | zmail Impact | intake Impact | yagle Impact |
     | Premium Brand Co.   | +2           | +2             | +1           |
     | Growing Startup     | +1           | 0              | +1           |
     | Aggressive Marketer | -3           | -4             | -2           |
   When I view each client's detail card
   Then "Premium Brand Co." should show:
     | Destination | Impact | Visual |
-    | Gmail       | +2     | Green ↑ |
-    | Outlook     | +2     | Green ↑ |
-    | Yahoo       | +1     | Green ↑ |
+    | zmail       | +2     | Green ↑ |
+    | intake     | +2     | Green ↑ |
+    | yagle       | +1     | Green ↑ |
   And "Growing Startup" should show:
     | Destination | Impact | Visual |
-    | Gmail       | +1     | Green ↑ |
-    | Outlook     | 0      | Gray =  |
-    | Yahoo       | +1     | Green ↑ |
+    | zmail       | +1     | Green ↑ |
+    | intake     | 0      | Gray =  |
+    | yagle       | +1     | Green ↑ |
   And "Aggressive Marketer" should show:
     | Destination | Impact | Visual  |
-    | Gmail       | -3     | Red ↓   |
-    | Outlook     | -4     | Red ↓   |
-    | Yahoo       | -2     | Red ↓   |
+    | zmail       | -3     | Red ↓   |
+    | intake     | -4     | Red ↓   |
+    | yagle       | -2     | Red ↓   |
 ```
 
 ### Scenario 2.4: Reputation changes per destination for ESP
@@ -173,20 +173,20 @@ Scenario: Display updated reputation scores with change indicators
   Given I am ESP player "Alice" from "SendWave"
   And at the start of Round 2 my reputations were:
     | Destination | Previous Score |
-    | Gmail       | 82             |
-    | Outlook     | 69             |
-    | Yahoo       | 55             |
+    | zmail       | 82             |
+    | intake     | 69             |
+    | yagle       | 55             |
   And in Round 2 my total reputation changes were:
     | Destination | Change |
-    | Gmail       | +3     |
-    | Outlook     | -1     |
-    | Yahoo       | +4     |
+    | zmail       | +3     |
+    | intake     | -1     |
+    | yagle       | +4     |
   When I view the "Reputation Changes" section
   Then I should see:
     | Destination | Old Score | New Score | Change | Visual Indicator |
-    | Gmail       | 82        | 85        | +3 ↑   | Green badge      |
-    | Outlook     | 69        | 68        | -1 ↓   | Orange badge     |
-    | Yahoo       | 55        | 59        | +4 ↑   | Green badge      |
+    | zmail       | 82        | 85        | +3 ↑   | Green badge      |
+    | intake     | 69        | 68        | -1 ↓   | Orange badge     |
+    | yagle       | 55        | 59        | +4 ↑   | Green badge      |
   And each reputation bar should animate from old score to new score
   And the change indicator should be clearly visible next to the new score
 ```
@@ -216,14 +216,14 @@ Scenario: Display updated budget after round resolution
 ```gherkin
 Scenario: Display critical alerts about reputation thresholds
   Given I am ESP player "Alice" from "SendWave"
-  And in Round 2 my Gmail reputation dropped from 62 to 58
+  And in Round 2 my zmail reputation dropped from 62 to 58
   And the "Warning" threshold is 60
   And the "Critical" threshold is 40
   When I view the "Alerts & Notifications" section
   Then I should see a warning alert:
     """
-    ⚠️ Gmail reputation dropped to Warning zone (58)
-    Your reputation at Gmail fell below 60. Further drops may result in increased filtering.
+    ⚠️ zmail reputation dropped to Warning zone (58)
+    Your reputation at zmail fell below 60. Further drops may result in increased filtering.
     """
   And the alert should have an orange/yellow background
   And the alert should include an icon indicating severity level
@@ -233,13 +233,13 @@ Scenario: Display critical alerts about reputation thresholds
 ```gherkin
 Scenario: Display positive achievements when unlocking new opportunities
   Given I am ESP player "Alice" from "SendWave"
-  And in Round 2 my Gmail reputation increased to 85
+  And in Round 2 my zmail reputation increased to 85
   And reaching 85+ reputation unlocks "Premium Enterprise Client" tier
   When I view the "Alerts & Notifications" section
   Then I should see a success notification:
     """
     🎉 New Client Tier Unlocked: Premium Enterprise
-    Your excellent Gmail reputation (85) has unlocked access to premium enterprise clients in the marketplace!
+    Your excellent zmail reputation (85) has unlocked access to premium enterprise clients in the marketplace!
     """
   And the notification should have a green background
   And the notification should include a celebration icon
@@ -283,7 +283,7 @@ Feature: Destination Spam Blocking Display
   So that I can evaluate my filtering strategy
 
 Scenario: Display overall spam blocking statistics
-  Given I am Destination player "Grace" from "Gmail"
+  Given I am Destination player "Grace" from "zmail"
   And in Round 2 the total email volume targeting my destination was:
     | Category        | Volume  |
     | Legitimate      | 315,000 |
@@ -313,7 +313,7 @@ Scenario: Display overall spam blocking statistics
 ### Scenario 3.2: False positive impact display
 ```gherkin
 Scenario: Display false positive statistics and impact
-  Given I am Destination player "Grace" from "Gmail"
+  Given I am Destination player "Grace" from "zmail"
   And in Round 2 I had:
     | Metric                  | Value   | Calculation                    |
     | Legitimate Emails Sent  | 315,000 | Total legitimate volume        |
@@ -335,7 +335,7 @@ Scenario: Display false positive statistics and impact
 ### Scenario 3.3: ESP-specific filtering breakdown
 ```gherkin
 Scenario: Display filtering effectiveness per ESP
-  Given I am Destination player "Grace" from "Gmail"
+  Given I am Destination player "Grace" from "zmail"
   And in Round 2 my filtering decisions per ESP were:
     | ESP        | Filtering Level | Spam Blocked | Spam Missed | FP Count |
     | SendWave   | Permissive     | 2,000        | 500         | 800      |
@@ -356,7 +356,7 @@ Scenario: Display filtering effectiveness per ESP
 ### Scenario 3.4: User satisfaction change for Destination
 ```gherkin
 Scenario: Display user satisfaction score and changes
-  Given I am Destination player "Grace" from "Gmail"
+  Given I am Destination player "Grace" from "zmail"
   And at the start of Round 2 my user satisfaction was 78%
   And in Round 2 my filtering decisions resulted in:
     | Factor                  | Percentage of Volume | Impact Multiplier | Points Impact |
@@ -389,8 +389,8 @@ Scenario: Display user satisfaction score and changes
 ### Scenario 3.5: Destination revenue display
 ```gherkin
 Scenario: Display revenue earned based on performance
-  Given I am Destination player "Grace" from "Gmail"
-  And Gmail has the following in Round 2:
+  Given I am Destination player "Grace" from "zmail"
+  And zmail has the following in Round 2:
     | Metric                    | Value   |
     | Base Revenue              | 300     |
     | Total Emails Processed    | 500,000 |
@@ -409,7 +409,7 @@ Scenario: Display revenue earned based on performance
     """
     Revenue Calculation:
 
-    Base Revenue: 300 credits (Gmail's base)
+    Base Revenue: 300 credits (zmail's base)
     Volume Bonus: (500,000 / 100,000) × 20 = 100 credits
     Subtotal: 300 + 100 = 400 credits
 
@@ -421,7 +421,7 @@ Scenario: Display revenue earned based on performance
     """
 
   # NOTE: Destination Revenue Formula (US-3.3 Iteration 6.1):
-  # base_revenue = { Gmail: 300, Outlook: 200, Yahoo: 150 }
+  # base_revenue = { zmail: 300, intake: 200, yagle: 150 }
   # volume_bonus = (total_emails_processed / 100000) × 20
   # satisfaction_multiplier = based on satisfaction brackets (90-100: 1.5, 80-89: 1.3, etc.)
   # final_revenue = (base_revenue + volume_bonus) × satisfaction_multiplier
@@ -430,7 +430,7 @@ Scenario: Display revenue earned based on performance
 ### Scenario 3.6: ESP behavior alerts for Destination
 ```gherkin
 Scenario: Display alerts about problematic ESP behavior
-  Given I am Destination player "Grace" from "Gmail"
+  Given I am Destination player "Grace" from "zmail"
   And in Round 2 "BluePost" had:
     | Metric                | Value |
     | Spam Complaint Rate   | 2.8%  |
@@ -452,7 +452,7 @@ Scenario: Display alerts about problematic ESP behavior
 ### Scenario 3.7: ESP improvement recognition
 ```gherkin
 Scenario: Display positive alerts for improving ESP behavior
-  Given I am Destination player "Grace" from "Gmail"
+  Given I am Destination player "Grace" from "zmail"
   And in Round 2 "MailMonkey" had:
     | Metric                  | Value |
     | Previous Reputation     | 58    |
@@ -615,8 +615,8 @@ Scenario: Alerts are displayed in order of priority
   Given I have multiple alerts of different severities
   And the alerts are:
     | Type        | Message                                    |
-    | Critical    | Gmail reputation in critical zone (38)    |
-    | Warning     | Outlook reputation dropped to warning (58) |
+    | Critical    | zmail reputation in critical zone (38)    |
+    | Warning     | intake reputation dropped to warning (58) |
     | Info        | DMARC providing +5 bonus                   |
     | Success     | New client tier unlocked                   |
   When I view the "Alerts & Notifications" section
@@ -676,9 +676,9 @@ Scenario: Consequences screen is accessible to all players
     | Escape    | Close tooltips or modals              |
   And screen readers should announce:
     | Element               | Announcement Example                              |
-    | Reputation change     | "Gmail reputation increased from 82 to 85, up 3 points" |
+    | Reputation change     | "zmail reputation increased from 82 to 85, up 3 points" |
     | Budget update         | "Budget increased from 1,450 to 1,650 credits"    |
-    | Alert                 | "Warning: Gmail reputation dropped to warning zone"|
+    | Alert                 | "Warning: zmail reputation dropped to warning zone"|
 ```
 
 ### Scenario 4.11: Interactive elements for exploration

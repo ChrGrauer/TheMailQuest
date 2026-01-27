@@ -3,7 +3,7 @@ round 1 ESP stat overwiew in destination dashboard
 spam complains should be '-'
 
 # Destination consequence dashboards
-for instance here: http://localhost:4173/game/NLWNQH/destination/yahoo
+for instance here: http://localhost:4173/game/NLWNQH/destination/yagle
 ## proposition:
 keep main metrics at the top of the dashbaord on the same line : total volume processed and User satisfaction (with the warning message is nice, but we should also say why it is decreasing)
 then the budget and revenue data (as-is)

@@ -27,9 +27,9 @@ describe('Resolution Application Manager', () => {
 					technical_stack: [],
 					credits: 1000,
 					reputation: {
-						Gmail: 70,
-						Outlook: 70,
-						Yahoo: 70
+						zmail: 70,
+						intake: 70,
+						yagle: 70
 					},
 					active_clients: [],
 					owned_tech_upgrades: [],
@@ -40,7 +40,7 @@ describe('Resolution Application Manager', () => {
 			],
 			destinations: [
 				{
-					name: 'Gmail',
+					name: 'zmail',
 					players: ['dest-player1'],
 					budget: 500,
 					filtering_policies: {},
@@ -77,21 +77,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
 									totalChange: 0,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
 									totalChange: 0,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
@@ -145,21 +145,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
 									totalChange: 0,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
 									totalChange: 0,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
@@ -214,21 +214,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 2,
 									clientImpact: 3,
 									warmupBonus: 0,
 									totalChange: 5,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 2,
 									clientImpact: 1,
 									warmupBonus: 0,
 									totalChange: 3,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 2,
 									clientImpact: -1,
 									warmupBonus: 0,
@@ -252,9 +252,9 @@ describe('Resolution Application Manager', () => {
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(session.esp_teams[0].reputation.Gmail).toBe(75); // 70 + 5
-			expect(session.esp_teams[0].reputation.Outlook).toBe(73); // 70 + 3
-			expect(session.esp_teams[0].reputation.Yahoo).toBe(71); // 70 + 1
+			expect(session.esp_teams[0].reputation.zmail).toBe(75); // 70 + 5
+			expect(session.esp_teams[0].reputation.intake).toBe(73); // 70 + 3
+			expect(session.esp_teams[0].reputation.yagle).toBe(71); // 70 + 1
 		});
 
 		it('should apply negative reputation changes', () => {
@@ -281,21 +281,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 0,
 									clientImpact: -10,
 									warmupBonus: 0,
 									totalChange: -10,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 0,
 									clientImpact: -5,
 									warmupBonus: 0,
 									totalChange: -5,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 0,
 									clientImpact: -3,
 									warmupBonus: 0,
@@ -319,14 +319,14 @@ describe('Resolution Application Manager', () => {
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(session.esp_teams[0].reputation.Gmail).toBe(60); // 70 - 10
-			expect(session.esp_teams[0].reputation.Outlook).toBe(65); // 70 - 5
-			expect(session.esp_teams[0].reputation.Yahoo).toBe(67); // 70 - 3
+			expect(session.esp_teams[0].reputation.zmail).toBe(60); // 70 - 10
+			expect(session.esp_teams[0].reputation.intake).toBe(65); // 70 - 5
+			expect(session.esp_teams[0].reputation.yagle).toBe(67); // 70 - 3
 		});
 
 		it('should clamp reputation to maximum of 100', () => {
 			// Given
-			session.esp_teams[0].reputation.Gmail = 95;
+			session.esp_teams[0].reputation.zmail = 95;
 
 			const results: ResolutionResults = {
 				espResults: {
@@ -350,21 +350,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 5,
 									clientImpact: 5,
 									warmupBonus: 0,
 									totalChange: 10,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
 									totalChange: 0,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
@@ -388,12 +388,12 @@ describe('Resolution Application Manager', () => {
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(session.esp_teams[0].reputation.Gmail).toBe(100); // Clamped to 100
+			expect(session.esp_teams[0].reputation.zmail).toBe(100); // Clamped to 100
 		});
 
 		it('should clamp reputation to minimum of 0', () => {
 			// Given
-			session.esp_teams[0].reputation.Gmail = 5;
+			session.esp_teams[0].reputation.zmail = 5;
 
 			const results: ResolutionResults = {
 				espResults: {
@@ -417,21 +417,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 0,
 									clientImpact: -10,
 									warmupBonus: 0,
 									totalChange: -10,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
 									totalChange: 0,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
@@ -455,12 +455,12 @@ describe('Resolution Application Manager', () => {
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(session.esp_teams[0].reputation.Gmail).toBe(0); // Clamped to 0
+			expect(session.esp_teams[0].reputation.zmail).toBe(0); // Clamped to 0
 		});
 
 		it('should initialize missing reputation values to 70', () => {
 			// Given
-			delete session.esp_teams[0].reputation.Gmail;
+			delete session.esp_teams[0].reputation.zmail;
 
 			const results: ResolutionResults = {
 				espResults: {
@@ -484,21 +484,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 5,
 									clientImpact: 0,
 									warmupBonus: 0,
 									totalChange: 5,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
 									totalChange: 0,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
@@ -522,7 +522,7 @@ describe('Resolution Application Manager', () => {
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(session.esp_teams[0].reputation.Gmail).toBe(75); // 70 (default) + 5
+			expect(session.esp_teams[0].reputation.zmail).toBe(75); // 70 (default) + 5
 		});
 	});
 
@@ -537,9 +537,9 @@ describe('Resolution Application Manager', () => {
 				technical_stack: [],
 				credits: 800,
 				reputation: {
-					Gmail: 60,
-					Outlook: 65,
-					Yahoo: 55
+					zmail: 60,
+					intake: 65,
+					yagle: 55
 				},
 				active_clients: [],
 				owned_tech_upgrades: [],
@@ -570,21 +570,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 0,
 									clientImpact: 5,
 									warmupBonus: 0,
 									totalChange: 5,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 0,
 									clientImpact: 3,
 									warmupBonus: 0,
 									totalChange: 3,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 0,
 									clientImpact: 2,
 									warmupBonus: 0,
@@ -620,21 +620,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 0,
 									clientImpact: -5,
 									warmupBonus: 0,
 									totalChange: -5,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 0,
 									clientImpact: -3,
 									warmupBonus: 0,
 									totalChange: -3,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 0,
 									clientImpact: -2,
 									warmupBonus: 0,
@@ -662,11 +662,11 @@ describe('Resolution Application Manager', () => {
 
 			// Check SendWave
 			expect(session.esp_teams[0].credits).toBe(1297.5); // 1000 + 297.5
-			expect(session.esp_teams[0].reputation.Gmail).toBe(75); // 70 + 5
+			expect(session.esp_teams[0].reputation.zmail).toBe(75); // 70 + 5
 
 			// Check MailMonkey
 			expect(session.esp_teams[1].credits).toBe(927.5); // 800 + 127.5
-			expect(session.esp_teams[1].reputation.Gmail).toBe(55); // 60 - 5
+			expect(session.esp_teams[1].reputation.zmail).toBe(55); // 60 - 5
 		});
 	});
 
@@ -712,21 +712,21 @@ describe('Resolution Application Manager', () => {
 						},
 						reputation: {
 							perDestination: {
-								Gmail: {
+								zmail: {
 									techBonus: 2.7,
 									clientImpact: 1.4,
 									warmupBonus: 0,
 									totalChange: 4.1,
 									breakdown: []
 								},
-								Outlook: {
+								intake: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
 									totalChange: 0,
 									breakdown: []
 								},
-								Yahoo: {
+								yagle: {
 									techBonus: 0,
 									clientImpact: 0,
 									warmupBonus: 0,
@@ -750,7 +750,7 @@ describe('Resolution Application Manager', () => {
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(session.esp_teams[0].reputation.Gmail).toBe(74); // 70 + 4.1 rounded to 74
+			expect(session.esp_teams[0].reputation.zmail).toBe(74); // 70 + 4.1 rounded to 74
 		});
 	});
 });

@@ -77,7 +77,7 @@ describe('Feature: Game Lobby Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			validation = canStartGame(session.roomCode);
@@ -96,7 +96,7 @@ describe('Feature: Game Lobby Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			const validation = canStartGame(session.roomCode);
@@ -126,7 +126,7 @@ describe('Feature: Game Lobby Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			// Verify initial state
@@ -171,7 +171,7 @@ describe('Feature: Game Lobby Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			// When - Non-facilitator tries to start game
@@ -230,7 +230,7 @@ describe('Feature: Game Lobby Management - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({

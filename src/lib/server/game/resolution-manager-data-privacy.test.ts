@@ -74,8 +74,8 @@ describe('Resolution Manager - Phase 3.3.1: Data Privacy - Satisfaction Not Visi
 		const results = await executeResolution(session, 'TEST-123');
 
 		// Then: Destination results should include aggregated satisfaction
-		expect(results.destinationResults.Gmail).toBeDefined();
-		expect(results.destinationResults.Gmail.aggregatedSatisfaction).toBeDefined();
-		expect(typeof results.destinationResults.Gmail.aggregatedSatisfaction).toBe('number');
+		expect(results.destinationResults.zmail).toBeDefined();
+		expect(results.destinationResults.zmail.aggregatedSatisfaction).toBeDefined();
+		expect(typeof results.destinationResults.zmail.aggregatedSatisfaction).toBe('number');
 	});
 });

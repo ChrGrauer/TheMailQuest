@@ -65,7 +65,7 @@ Feature: Game Lobby Management
   Scenario: Clicking Start Game launches resource allocation phase
     Given the facilitator is on the lobby page
     And player "Alice" has joined as "SendWave" team
-    And player "Bob" has joined as "Gmail" destination
+    And player "Bob" has joined as "zmail" destination
     And the "Start Game" button is enabled
     When the facilitator clicks the "Start Game" button
     Then the game should transition from "lobby" phase to "resource_allocation" phase

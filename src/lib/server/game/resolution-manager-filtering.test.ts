@@ -18,7 +18,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { Gmail: 85, Outlook: 70, Yahoo: 60 }, // Good/Good/Warning zones
+					reputation: { zmail: 85, intake: 70, yagle: 60 }, // Good/Good/Warning zones
 					clients: [client],
 					clientStates: {
 						'client-1': {
@@ -45,23 +45,23 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 		// When: Resolution executes
 		const results = await executeResolution(session, 'TEST-123');
 
-		// Then: Gmail delivery = 85% base - 3% filtering = 82%
-		expect(results.espResults.SendWave.delivery.Gmail.zone).toBe('good');
-		expect(results.espResults.SendWave.delivery.Gmail.finalRate).toBe(0.82); // 0.85 - 0.03
-		expect(results.espResults.SendWave.delivery.Gmail.filteringPenalty).toBe(0.03);
+		// Then: zmail delivery = 85% base - 3% filtering = 82%
+		expect(results.espResults.SendWave.delivery.zmail.zone).toBe('good');
+		expect(results.espResults.SendWave.delivery.zmail.finalRate).toBe(0.82); // 0.85 - 0.03
+		expect(results.espResults.SendWave.delivery.zmail.filteringPenalty).toBe(0.03);
 
-		// Then: Outlook delivery = 85% base - 3% filtering = 82%
-		expect(results.espResults.SendWave.delivery.Outlook.zone).toBe('good');
-		expect(results.espResults.SendWave.delivery.Outlook.finalRate).toBe(0.82);
-		expect(results.espResults.SendWave.delivery.Outlook.filteringPenalty).toBe(0.03);
+		// Then: intake delivery = 85% base - 3% filtering = 82%
+		expect(results.espResults.SendWave.delivery.intake.zone).toBe('good');
+		expect(results.espResults.SendWave.delivery.intake.finalRate).toBe(0.82);
+		expect(results.espResults.SendWave.delivery.intake.filteringPenalty).toBe(0.03);
 
-		// Then: Yahoo delivery = 70% base - 3% filtering = 67%
-		expect(results.espResults.SendWave.delivery.Yahoo.zone).toBe('warning');
-		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBeCloseTo(0.67, 2);
-		expect(results.espResults.SendWave.delivery.Yahoo.filteringPenalty).toBe(0.03);
+		// Then: yagle delivery = 70% base - 3% filtering = 67%
+		expect(results.espResults.SendWave.delivery.yagle.zone).toBe('warning');
+		expect(results.espResults.SendWave.delivery.yagle.finalRate).toBeCloseTo(0.67, 2);
+		expect(results.espResults.SendWave.delivery.yagle.filteringPenalty).toBe(0.03);
 
 		// Then: Aggregate delivery rate is volume-weighted
-		// Gmail: 15000 * 0.82 = 12300, Outlook: 9000 * 0.82 = 7380, Yahoo: 6000 * 0.67 = 4020
+		// zmail: 15000 * 0.82 = 12300, intake: 9000 * 0.82 = 7380, yagle: 6000 * 0.67 = 4020
 		// Total: (12300 + 7380 + 4020) / 30000 = 23700 / 30000 = 0.79
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBeCloseTo(0.79, 2);
 	});
@@ -74,7 +74,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { Gmail: 80, Outlook: 80, Yahoo: 80 }, // Good zone everywhere
+					reputation: { zmail: 80, intake: 80, yagle: 80 }, // Good zone everywhere
 					clients: [client],
 					clientStates: {
 						'client-1': {
@@ -94,37 +94,37 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			level: 'permissive',
 			spamReduction: 0,
 			falsePositives: 0
-		}; // Gmail: 0%
+		}; // zmail: 0%
 		session.destinations[1].filtering_policies['SendWave'] = {
 			espName: 'SendWave',
 			level: 'strict',
 			spamReduction: 65,
 			falsePositives: 8
-		}; // Outlook: 8%
+		}; // intake: 8%
 		session.destinations[2].filtering_policies['SendWave'] = {
 			espName: 'SendWave',
 			level: 'maximum',
 			spamReduction: 85,
 			falsePositives: 15
-		}; // Yahoo: 15%
+		}; // yagle: 15%
 
 		// When: Resolution executes
 		const results = await executeResolution(session, 'TEST-123');
 
-		// Then: Gmail no filtering penalty (permissive)
-		expect(results.espResults.SendWave.delivery.Gmail.finalRate).toBe(0.85); // 0.85 - 0.0
-		expect(results.espResults.SendWave.delivery.Gmail.filteringPenalty).toBeUndefined();
+		// Then: zmail no filtering penalty (permissive)
+		expect(results.espResults.SendWave.delivery.zmail.finalRate).toBe(0.85); // 0.85 - 0.0
+		expect(results.espResults.SendWave.delivery.zmail.filteringPenalty).toBeUndefined();
 
-		// Then: Outlook strict filtering (8% penalty)
-		expect(results.espResults.SendWave.delivery.Outlook.finalRate).toBeCloseTo(0.77, 2); // 0.85 - 0.08
-		expect(results.espResults.SendWave.delivery.Outlook.filteringPenalty).toBe(0.08);
+		// Then: intake strict filtering (8% penalty)
+		expect(results.espResults.SendWave.delivery.intake.finalRate).toBeCloseTo(0.77, 2); // 0.85 - 0.08
+		expect(results.espResults.SendWave.delivery.intake.filteringPenalty).toBe(0.08);
 
-		// Then: Yahoo maximum filtering (15% penalty)
-		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBe(0.7); // 0.85 - 0.15
-		expect(results.espResults.SendWave.delivery.Yahoo.filteringPenalty).toBe(0.15);
+		// Then: yagle maximum filtering (15% penalty)
+		expect(results.espResults.SendWave.delivery.yagle.finalRate).toBe(0.7); // 0.85 - 0.15
+		expect(results.espResults.SendWave.delivery.yagle.filteringPenalty).toBe(0.15);
 
 		// Then: Aggregate delivery rate reflects different filtering
-		// Gmail: 15000 * 0.85 = 12750, Outlook: 9000 * 0.77 = 6930, Yahoo: 6000 * 0.7 = 4200
+		// zmail: 15000 * 0.85 = 12750, intake: 9000 * 0.77 = 6930, yagle: 6000 * 0.7 = 4200
 		// Total: (12750 + 6930 + 4200) / 30000 = 23880 / 30000 = 0.796
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBeCloseTo(0.796, 2);
 	});
@@ -133,11 +133,11 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 		// Given: Two clients with different destination distributions
 		const premium = buildTestClient('premium_brand', {
 			id: 'client-1',
-			destination_distribution: { Gmail: 60, Outlook: 30, Yahoo: 10 } // Heavy Gmail
+			destination_distribution: { zmail: 60, intake: 30, yagle: 10 } // Heavy zmail
 		});
 		const startup = buildTestClient('growing_startup', {
 			id: 'client-2',
-			destination_distribution: { Gmail: 30, Outlook: 40, Yahoo: 30 } // Balanced
+			destination_distribution: { zmail: 30, intake: 40, yagle: 30 } // Balanced
 		});
 
 		const session = buildTestSession({
@@ -145,7 +145,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { Gmail: 80, Outlook: 80, Yahoo: 80 },
+					reputation: { zmail: 80, intake: 80, yagle: 80 },
 					clients: [premium, startup],
 					clientStates: {
 						'client-1': {
@@ -179,17 +179,17 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 		const results = await executeResolution(session, 'TEST-123');
 
 		// Then: All destinations have same delivery rate (same rep + filtering)
-		expect(results.espResults.SendWave.delivery.Gmail.finalRate).toBe(0.82); // 0.85 - 0.03
-		expect(results.espResults.SendWave.delivery.Outlook.finalRate).toBe(0.82);
-		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBe(0.82);
+		expect(results.espResults.SendWave.delivery.zmail.finalRate).toBe(0.82); // 0.85 - 0.03
+		expect(results.espResults.SendWave.delivery.intake.finalRate).toBe(0.82);
+		expect(results.espResults.SendWave.delivery.yagle.finalRate).toBe(0.82);
 
 		// Then: Volume correctly distributed per destination
-		// Premium: 30000 total, 60% Gmail = 18000, 30% Outlook = 9000, 10% Yahoo = 3000
-		// Startup: 35000 total, 30% Gmail = 10500, 40% Outlook = 14000, 30% Yahoo = 10500
-		// Totals: Gmail = 28500, Outlook = 23000, Yahoo = 13500
-		expect(results.espResults.SendWave.volume.perDestination.Gmail).toBe(28500);
-		expect(results.espResults.SendWave.volume.perDestination.Outlook).toBe(23000);
-		expect(results.espResults.SendWave.volume.perDestination.Yahoo).toBe(13500);
+		// Premium: 30000 total, 60% zmail = 18000, 30% intake = 9000, 10% yagle = 3000
+		// Startup: 35000 total, 30% zmail = 10500, 40% intake = 14000, 30% yagle = 10500
+		// Totals: zmail = 28500, intake = 23000, yagle = 13500
+		expect(results.espResults.SendWave.volume.perDestination.zmail).toBe(28500);
+		expect(results.espResults.SendWave.volume.perDestination.intake).toBe(23000);
+		expect(results.espResults.SendWave.volume.perDestination.yagle).toBe(13500);
 
 		// Then: Aggregate is 82% (all destinations same rate, so volume weights don't matter)
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.82);
@@ -205,7 +205,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			teams: [
 				{
 					name: 'SendWave',
-					reputation: { Gmail: 80, Outlook: 80, Yahoo: 80 },
+					reputation: { zmail: 80, intake: 80, yagle: 80 },
 					clients: [team1Client],
 					clientStates: {
 						'sw-client-1': {
@@ -218,7 +218,7 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 				},
 				{
 					name: 'MailMonkey',
-					reputation: { Gmail: 80, Outlook: 80, Yahoo: 80 },
+					reputation: { zmail: 80, intake: 80, yagle: 80 },
 					clients: [team2Client],
 					clientStates: {
 						'mm-client-1': {
@@ -232,26 +232,26 @@ describe('Resolution Manager - Iteration 6: Per-Destination Filtering', () => {
 			]
 		});
 
-		// Only SendWave has filtering at Gmail
+		// Only SendWave has filtering at zmail
 		session.destinations[0].filtering_policies['SendWave'] = {
 			espName: 'SendWave',
 			level: 'strict',
 			spamReduction: 65,
 			falsePositives: 8
-		}; // Gmail: 8%
+		}; // zmail: 8%
 
 		// When: Resolution executes
 		const results = await executeResolution(session, 'TEST-123');
 
-		// Then: SendWave has filtering penalty at Gmail only
-		expect(results.espResults.SendWave.delivery.Gmail.finalRate).toBeCloseTo(0.77, 2); // 0.85 - 0.08
-		expect(results.espResults.SendWave.delivery.Outlook.finalRate).toBe(0.85); // No filtering
-		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBe(0.85); // No filtering
+		// Then: SendWave has filtering penalty at zmail only
+		expect(results.espResults.SendWave.delivery.zmail.finalRate).toBeCloseTo(0.77, 2); // 0.85 - 0.08
+		expect(results.espResults.SendWave.delivery.intake.finalRate).toBe(0.85); // No filtering
+		expect(results.espResults.SendWave.delivery.yagle.finalRate).toBe(0.85); // No filtering
 
 		// Then: MailMonkey has no filtering anywhere (permissive by default)
-		expect(results.espResults.MailMonkey.delivery.Gmail.finalRate).toBe(0.85);
-		expect(results.espResults.MailMonkey.delivery.Outlook.finalRate).toBe(0.85);
-		expect(results.espResults.MailMonkey.delivery.Yahoo.finalRate).toBe(0.85);
+		expect(results.espResults.MailMonkey.delivery.zmail.finalRate).toBe(0.85);
+		expect(results.espResults.MailMonkey.delivery.intake.finalRate).toBe(0.85);
+		expect(results.espResults.MailMonkey.delivery.yagle.finalRate).toBe(0.85);
 		expect(results.espResults.MailMonkey.aggregateDeliveryRate).toBe(0.85);
 	});
 });

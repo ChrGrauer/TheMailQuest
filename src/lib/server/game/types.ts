@@ -25,7 +25,7 @@ export interface ESPTeam {
 	technical_stack: string[];
 	// US-1.4: Resource allocation fields
 	credits: number; // PRIMARY FIELD: Current team budget. Updated by resolution phase with earned revenue.
-	reputation: Record<string, number>; // per destination: { Gmail: 70, Outlook: 70, ... }
+	reputation: Record<string, number>; // per destination: { zmail: 70, intake: 70, ... }
 	active_clients: string[];
 	owned_tech_upgrades: string[]; // US-2.3: Owned technical upgrade IDs (e.g., ['spf', 'dkim'])
 	round_history: any[];
@@ -55,7 +55,7 @@ export interface ESPTeam {
 
 export interface Destination {
 	name: string;
-	kingdom?: 'Gmail' | 'Outlook' | 'Yahoo'; // US-2.6.2: Kingdom for pricing
+	kingdom?: 'zmail' | 'intake' | 'yagle'; // US-2.6.2: Kingdom for pricing
 	players: string[];
 	budget: number;
 	revenue?: number; // US-3.3 Iteration 6.1: Revenue earned per round
@@ -126,9 +126,9 @@ export interface Client {
 	status?: 'Active' | 'Paused' | 'Suspended'; // Status for acquired clients in portfolio (US-2.4.0)
 	destination_distribution: {
 		// US-3.3: Resolution Phase Automation - Iteration 6
-		Gmail: number; // Percentage (0-100)
-		Outlook: number; // Percentage (0-100)
-		Yahoo: number; // Percentage (0-100)
+		zmail: number; // Percentage (0-100)
+		intake: number; // Percentage (0-100)
+		yagle: number; // Percentage (0-100)
 	};
 }
 
@@ -244,7 +244,7 @@ export interface GameSession {
 export interface GameConfiguration {
 	esp_starting_credits: number;
 	esp_starting_reputation: number;
-	destination_budgets: Record<string, number>; // { Gmail: 500, Outlook: 350, Yahoo: 200 }
+	destination_budgets: Record<string, number>; // { zmail: 500, intake: 350, yagle: 200 }
 	planning_phase_duration: number; // in seconds
 }
 
@@ -361,7 +361,7 @@ export interface AutoCorrectionLog {
 export interface InvestigationHistoryEntry {
 	round: number; // Round when investigation occurred
 	targetEsp: string; // ESP team that was investigated
-	voters: string[]; // Destination names that voted (e.g., ['Gmail', 'Outlook'])
+	voters: string[]; // Destination names that voted (e.g., ['zmail', 'intake'])
 	result: InvestigationResult; // Outcome of the investigation
 	timestamp: Date; // When investigation completed
 }

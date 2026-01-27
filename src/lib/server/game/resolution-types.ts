@@ -37,9 +37,9 @@ export interface ClientVolumeData {
 	adjustments: VolumeAdjustments;
 	perDestination: {
 		// Iteration 6: per-destination volume split
-		Gmail: number;
-		Outlook: number;
-		Yahoo: number;
+		zmail: number;
+		intake: number;
+		yagle: number;
 	};
 }
 
@@ -49,9 +49,9 @@ export interface VolumeResult {
 	totalVolume: number;
 	perDestination: {
 		// Iteration 6: aggregated per-destination volumes
-		Gmail: number;
-		Outlook: number;
-		Yahoo: number;
+		zmail: number;
+		intake: number;
+		yagle: number;
 	};
 }
 
@@ -255,7 +255,7 @@ export interface SatisfactionResult {
  * US 3.3: Iteration 6.1
  */
 export interface DestinationRevenueParams {
-	kingdom: string; // Gmail, Outlook, or Yahoo
+	kingdom: string; // zmail, intake, or yagle
 	totalVolume: number; // Total emails processed by this destination
 	userSatisfaction: number; // Aggregated user satisfaction (0-100)
 }
@@ -278,9 +278,9 @@ export interface DestinationRevenueResult {
  * Iteration 6: Each destination has its own delivery calculation
  */
 export interface PerDestinationDelivery {
-	Gmail: DeliveryResult;
-	Outlook: DeliveryResult;
-	Yahoo: DeliveryResult;
+	zmail: DeliveryResult;
+	intake: DeliveryResult;
+	yagle: DeliveryResult;
 }
 
 export interface ESPResolutionResult {

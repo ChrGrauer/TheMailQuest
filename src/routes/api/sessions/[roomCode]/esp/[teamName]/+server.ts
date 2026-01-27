@@ -106,10 +106,10 @@ export const GET: RequestHandler = async ({ params }) => {
 			remaining_players: remainingPlayersCount, // US-3.2
 			timer: session.timer
 				? {
-						duration: session.timer.duration,
-						remaining: timerRemaining,
-						isRunning: session.timer.isRunning
-					}
+					duration: session.timer.duration,
+					remaining: timerRemaining,
+					isRunning: session.timer.isRunning
+				}
 				: null,
 			resolution_history: session.resolution_history || [] // US-3.5: Resolution history for all rounds
 		},
@@ -132,13 +132,13 @@ export const GET: RequestHandler = async ({ params }) => {
 
 /**
  * Get destination market weight
- * Based on game design (Gmail: 50%, Outlook: 30%, Yahoo: 20%)
+ * Based on game design (zmail: 50%, intake: 30%, yagle: 20%)
  */
 function getDestinationWeight(destinationName: string): number {
 	const weights: Record<string, number> = {
-		Gmail: 50,
-		Outlook: 30,
-		Yahoo: 20
+		zmail: 50,
+		intake: 30,
+		yagle: 20
 	};
 
 	return weights[destinationName] || 0;

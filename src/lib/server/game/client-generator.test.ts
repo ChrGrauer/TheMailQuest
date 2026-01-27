@@ -22,7 +22,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 		test('Given an ESP team name, When generating client stock, Then 13 unique clients are created', () => {
 			// Given
 			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 
 			// When
 			const clients = generateClientStockForTeam(teamName, destinations);
@@ -44,7 +44,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 		test('Given an ESP team, When generating clients, Then IDs follow pattern "client-{teamName}-{index}"', () => {
 			// Given
 			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 
 			// When
 			const clients = generateClientStockForTeam(teamName, destinations);
@@ -58,7 +58,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 		test('Given client profiles, When generating clients, Then correct distribution is maintained (2 Premium, 3 Growing, 3 Re-engagement, 2 Aggressive, 3 Event)', () => {
 			// Given
 			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 
 			// When
 			const clients = generateClientStockForTeam(teamName, destinations);
@@ -82,7 +82,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 
 	describe('Scenario: Apply ±10% variance to client values', () => {
 		const teamName = 'SendWave';
-		const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+		const destinations = ['zmail', 'intake', 'yagle'];
 
 		test.each([
 			['cost', 'baseCost', true],
@@ -119,7 +119,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 		test('Given Premium Brand clients, When generating, Then they require SPF+DKIM+DMARC and reputation >= 85', () => {
 			// Given
 			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 
 			// When
 			const clients = generateClientStockForTeam(teamName, destinations);
@@ -140,7 +140,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 		test('Given non-Premium clients, When generating, Then they have no requirements', () => {
 			// Given
 			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 
 			// When
 			const clients = generateClientStockForTeam(teamName, destinations);
@@ -155,7 +155,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 
 	describe('Scenario: Client availability by round', () => {
 		const teamName = 'SendWave';
-		const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+		const destinations = ['zmail', 'intake', 'yagle'];
 
 		test.each([
 			[
@@ -186,7 +186,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 		test('Given CLIENT_NAMES list, When generating clients, Then all names come from the predefined list', () => {
 			// Given
 			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 
 			// When
 			const clients = generateClientStockForTeam(teamName, destinations);
@@ -201,7 +201,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 			// Given
 			const team1 = 'SendWave';
 			const team2 = 'MailMonkey';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 
 			// When
 			const clients1 = generateClientStockForTeam(team1, destinations);
@@ -225,7 +225,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 		test('Given client profiles, When generating, Then risk levels match profile', () => {
 			// Given
 			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 
 			// When
 			const clients = generateClientStockForTeam(teamName, destinations);
@@ -243,7 +243,7 @@ describe('Feature: Client Marketplace - Client Generator', () => {
 		test('Given generated clients, When checking status, Then status is undefined (not yet acquired)', () => {
 			// Given
 			const teamName = 'SendWave';
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 
 			// When
 			const clients = generateClientStockForTeam(teamName, destinations);

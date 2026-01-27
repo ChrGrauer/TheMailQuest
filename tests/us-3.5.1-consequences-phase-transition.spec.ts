@@ -79,7 +79,7 @@ test.describe('US-3.5 Scenario 1.1: Transition to Consequences Phase', () => {
 		await expect(alicePage.locator('[data-testid="consequences-team-name"]')).toContainText(
 			'SendWave'
 		);
-		await expect(bobPage.locator('[data-testid="consequences-team-name"]')).toContainText('Gmail');
+		await expect(bobPage.locator('[data-testid="consequences-team-name"]')).toContainText('zmail');
 	});
 
 	test('Resolution phase executes in background before consequences', async ({ page, context }) => {

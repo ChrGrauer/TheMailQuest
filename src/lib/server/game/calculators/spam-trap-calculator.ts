@@ -63,7 +63,7 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 	let totalAdjustedRisk = 0;
 	const hitClientIds: string[] = [];
 	const hitDestinations = new Set<string>();
-	const hitsPerDestination: Record<string, number> = { Gmail: 0, Outlook: 0, Yahoo: 0 };
+	const hitsPerDestination: Record<string, number> = { zmail: 0, intake: 0, yagle: 0 };
 
 	for (const client of params.clients) {
 		const clientVolumeData = params.volumeData.clientVolumes.find(
@@ -98,7 +98,7 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 
 		// 3. Apply spam trap network multiplier per destination
 		const networkMultipliedRisk: Record<string, number> = {};
-		const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+		const destinations = ['zmail', 'intake', 'yagle'];
 
 		for (const dest of destinations) {
 			const networkActive = params.spamTrapNetworkActive[dest] || false;
@@ -152,7 +152,7 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 	const perDestinationPenalty: Record<string, number> = {};
 	let cappedAtMax = false;
 
-	for (const dest of ['Gmail', 'Outlook', 'Yahoo']) {
+	for (const dest of ['zmail', 'intake', 'yagle']) {
 		const hits = hitsPerDestination[dest];
 		if (hits > 0) {
 			const uncapped = hits * -5;

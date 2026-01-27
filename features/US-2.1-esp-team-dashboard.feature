@@ -47,14 +47,14 @@ Feature: ESP Team Dashboard
   Scenario: Reputation per destination is displayed with color-coded gauges
     Given ESP team "SendWave" has the following reputation:
       | Destination | Reputation |
-      | Gmail       | 85         |
-      | Outlook     | 72         |
-      | Yahoo       | 58         |
+      | zmail       | 85         |
+      | intake     | 72         |
+      | yagle       | 58         |
     When player "Alice" views the dashboard
     Then reputation gauges should be displayed for each destination
-    And the Gmail gauge should show "85" with excellent/green styling
-    And the Outlook gauge should show "72" with good/blue styling
-    And the Yahoo gauge should show "58" with warning/orange styling
+    And the zmail gauge should show "85" with excellent/green styling
+    And the intake gauge should show "72" with good/blue styling
+    And the yagle gauge should show "58" with warning/orange styling
 
   Scenario: Reputation color coding follows defined thresholds
     Given ESP team "SendWave" has reputation scores across different ranges
@@ -68,16 +68,16 @@ Feature: ESP Team Dashboard
       | 0-29            | Black  | Blacklist |
 
   Scenario: Visual warning appears when reputation drops to warning zone
-    Given ESP team "SendWave" has Gmail reputation at 65
+    Given ESP team "SendWave" has zmail reputation at 65
     When the round starts
-    Then a visual warning should appear for Gmail reputation
+    Then a visual warning should appear for zmail reputation
     And the warning should indicate "Warning Zone"
     And the gauge should change to orange/warning styling
 
   Scenario: Visual alert appears when reputation drops to danger zone
-    Given ESP team "SendWave" has Gmail reputation at 45
+    Given ESP team "SendWave" has zmail reputation at 45
     When the round starts
-    Then a visual alert should appear for Gmail reputation
+    Then a visual alert should appear for zmail reputation
     And the alert should indicate "Danger Zone"
     And the gauge should change to red/poor styling
     And the alert should be more prominent than a warning
@@ -87,9 +87,9 @@ Feature: ESP Team Dashboard
     When player "Alice" views the dashboard
     Then each destination should display its market weight:
       | Destination | Weight |
-      | Gmail       | 50%    |
-      | Outlook     | 30%    |
-      | Yahoo       | 20%    |
+      | zmail       | 50%    |
+      | intake     | 30%    |
+      | yagle       | 20%    |
     And the weight should be shown near each reputation gauge
 
   # ============================================================================
@@ -336,11 +336,11 @@ Feature: ESP Team Dashboard
   #   - Forecast available after decisions
   #
   # Reputation:
-  #   - Per destination (Gmail, Outlook, Yahoo)
+  #   - Per destination (zmail, intake, yagle)
   #   - Color-coded: Excellent (90+, green), Good (70-89, blue),
   #     Warning (50-69, orange), Poor (30-49, red), Blacklist (0-29, black)
   #   - Visual warnings in warning/danger zones
-  #   - Destination weights shown (Gmail 50%, Outlook 30%, Yahoo 20%)
+  #   - Destination weights shown (zmail 50%, intake 30%, yagle 20%)
   #
   # Active Clients:
   #   - List view with name, status, revenue, volume, risk

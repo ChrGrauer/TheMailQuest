@@ -48,7 +48,7 @@ Feature: Create Game Session
       | esp_team_slots        | 5                                                        |
       | destination_slots     | 3                                                        |
       | esp_team_names        | SendWave, MailMonkey, BluePost, SendBolt, RocketMail     |
-      | destination_names     | Gmail, Outlook, Yahoo                                    |
+      | destination_names     | zmail, intake, yagle                                    |
 
   Scenario: ESP team slots are initialized empty
     Given a facilitator creates a new game session

@@ -9,9 +9,9 @@ import { calculateDestinationRevenue } from './destination-revenue-calculator';
 
 describe('Destination Revenue Calculator - Iteration 6.1', () => {
 	describe('Base revenue by kingdom', () => {
-		test('Gmail base revenue is 300', () => {
+		test('zmail base revenue is 300', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 76 // Good tier: 1.1 multiplier
 			});
@@ -19,9 +19,9 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 			expect(result.baseRevenue).toBe(300);
 		});
 
-		test('Outlook base revenue is 200', () => {
+		test('intake base revenue is 200', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Outlook',
+				kingdom: 'intake',
 				totalVolume: 0,
 				userSatisfaction: 76
 			});
@@ -29,9 +29,9 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 			expect(result.baseRevenue).toBe(200);
 		});
 
-		test('Yahoo base revenue is 150', () => {
+		test('yagle base revenue is 150', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Yahoo',
+				kingdom: 'yagle',
 				totalVolume: 0,
 				userSatisfaction: 76
 			});
@@ -43,7 +43,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 	describe('Volume bonus calculation', () => {
 		test('100K volume = 20 credits bonus', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 100000,
 				userSatisfaction: 76
 			});
@@ -53,7 +53,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('500K volume = 100 credits bonus', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 500000,
 				userSatisfaction: 76
 			});
@@ -63,7 +63,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('800K volume = 160 credits bonus', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 800000,
 				userSatisfaction: 76
 			});
@@ -73,7 +73,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('50K volume (half unit) = 10 credits bonus', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 50000,
 				userSatisfaction: 76
 			});
@@ -85,13 +85,13 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 	describe('Satisfaction multiplier tiers', () => {
 		test('Excellent tier (90-100): 1.5× multiplier', () => {
 			const result95 = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 95
 			});
 
 			const result90 = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 90
 			});
@@ -103,7 +103,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Very Good tier (80-89): 1.3× multiplier', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 85
 			});
@@ -114,7 +114,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Good tier (75-79): 1.1× multiplier', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 76
 			});
@@ -125,7 +125,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Acceptable tier (70-74): 0.95× multiplier', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 72
 			});
@@ -136,7 +136,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Warning tier (60-69): 0.8× multiplier', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 65
 			});
@@ -147,7 +147,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Poor tier (50-59): 0.6× multiplier', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 55
 			});
@@ -158,7 +158,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Crisis tier (0-49): 0.3× multiplier', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 40
 			});
@@ -169,9 +169,9 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 	});
 
 	describe('Revenue formula: (base + volume_bonus) × satisfaction_multiplier', () => {
-		test('Gmail baseline performance: 76% satisfaction, 500K volume = 440 credits', () => {
+		test('zmail baseline performance: 76% satisfaction, 500K volume = 440 credits', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 500000,
 				userSatisfaction: 76
 			});
@@ -186,9 +186,9 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 			expect(result.totalRevenue).toBe(440);
 		});
 
-		test('Yahoo excellent filtering, low volume: 92% satisfaction, 150K volume = 270 credits', () => {
+		test('yagle excellent filtering, low volume: 92% satisfaction, 150K volume = 270 credits', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Yahoo',
+				kingdom: 'yagle',
 				totalVolume: 150000,
 				userSatisfaction: 92
 			});
@@ -203,9 +203,9 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 			expect(result.totalRevenue).toBe(270);
 		});
 
-		test('Outlook high volume but poor satisfaction: 55% satisfaction, 700K volume = 204 credits', () => {
+		test('intake high volume but poor satisfaction: 55% satisfaction, 700K volume = 204 credits', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Outlook',
+				kingdom: 'intake',
 				totalVolume: 700000,
 				userSatisfaction: 55
 			});
@@ -220,9 +220,9 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 			expect(result.totalRevenue).toBe(204);
 		});
 
-		test('Gmail maximum performance: 95% satisfaction, 800K volume = 690 credits', () => {
+		test('zmail maximum performance: 95% satisfaction, 800K volume = 690 credits', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 800000,
 				userSatisfaction: 95
 			});
@@ -237,9 +237,9 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 			expect(result.totalRevenue).toBe(690);
 		});
 
-		test('Yahoo crisis mode: 40% satisfaction, 300K volume = 63 credits', () => {
+		test('yagle crisis mode: 40% satisfaction, 300K volume = 63 credits', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Yahoo',
+				kingdom: 'yagle',
 				totalVolume: 300000,
 				userSatisfaction: 40
 			});
@@ -254,9 +254,9 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 			expect(result.totalRevenue).toBe(63);
 		});
 
-		test('Outlook balanced scenario: 78% satisfaction, 400K volume = 308 credits', () => {
+		test('intake balanced scenario: 78% satisfaction, 400K volume = 308 credits', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Outlook',
+				kingdom: 'intake',
 				totalVolume: 400000,
 				userSatisfaction: 78
 			});
@@ -271,9 +271,9 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 			expect(result.totalRevenue).toBe(308);
 		});
 
-		test('Gmail low volume but good satisfaction: 85% satisfaction, 200K volume = 442 credits', () => {
+		test('zmail low volume but good satisfaction: 85% satisfaction, 200K volume = 442 credits', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 200000,
 				userSatisfaction: 85
 			});
@@ -292,7 +292,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 	describe('Edge cases', () => {
 		test('Zero volume = zero bonus', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 0,
 				userSatisfaction: 95
 			});
@@ -303,7 +303,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Very low satisfaction still generates some revenue', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Yahoo',
+				kingdom: 'yagle',
 				totalVolume: 200000,
 				userSatisfaction: 10
 			});
@@ -316,7 +316,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Satisfaction at exactly 100 = excellent tier', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 100000,
 				userSatisfaction: 100
 			});
@@ -327,7 +327,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Satisfaction at exactly 0 = crisis tier', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 100000,
 				userSatisfaction: 0
 			});
@@ -340,7 +340,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 	describe('Volume bonus calculation precision', () => {
 		test('Handles non-round volumes correctly', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Gmail',
+				kingdom: 'zmail',
 				totalVolume: 123456,
 				userSatisfaction: 80
 			});
@@ -351,7 +351,7 @@ describe('Destination Revenue Calculator - Iteration 6.1', () => {
 
 		test('Revenue is rounded to whole numbers', () => {
 			const result = calculateDestinationRevenue({
-				kingdom: 'Outlook',
+				kingdom: 'intake',
 				totalVolume: 333333,
 				userSatisfaction: 77
 			});

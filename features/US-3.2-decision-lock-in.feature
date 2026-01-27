@@ -32,16 +32,16 @@ Feature: Decision Lock-In
     And game state should show "SendWave" as locked
 
   Scenario: Destination successfully locks in filtering decisions
-    Given "Gmail" has set filtering levels:
+    Given "zmail" has set filtering levels:
       | esp        | filter_level |
       | BluePost   | Strict       |
       | MailMonkey | Moderate     |
-    And "Gmail" has budget of 800 credits
-    When "Gmail" clicks the "Lock In" button
-    Then "Gmail" decisions should be marked as locked
-    And "Gmail" dashboard should become read-only
-    And "Gmail" should see "Locked In ✓" confirmation
-    And game state should show "Gmail" as locked
+    And "zmail" has budget of 800 credits
+    When "zmail" clicks the "Lock In" button
+    Then "zmail" decisions should be marked as locked
+    And "zmail" dashboard should become read-only
+    And "zmail" should see "Locked In ✓" confirmation
+    And game state should show "zmail" as locked
 
   # ============================================================================
   # SECTION 2: LOCK-IN BUTTON STATE
@@ -84,7 +84,7 @@ Feature: Decision Lock-In
     Given "SendWave" has locked in and sees "7 players remaining"
     When "BluePost" locks in their decisions
     Then "SendWave" should see "6 players remaining"
-    When "Gmail" locks in their decisions
+    When "zmail" locks in their decisions
     Then "SendWave" should see "5 players remaining"
 
   # ============================================================================
@@ -198,10 +198,10 @@ Feature: Decision Lock-In
     And modals should display "Locked In - View Only" banner
 
   Scenario: Destination dashboard becomes read-only after lock-in
-    Given "Gmail" has locked in their decisions
-    When "Gmail" views their Destination dashboard
-    Then "Gmail" should not be able to change filtering levels for any ESP
-    And "Gmail" should not be able to purchase new tools
+    Given "zmail" has locked in their decisions
+    When "zmail" views their Destination dashboard
+    Then "zmail" should not be able to change filtering levels for any ESP
+    And "zmail" should not be able to purchase new tools
     And modals (Filtering Controls, Tech Shop) can still be opened
     But all action buttons within modals should be disabled
     And modals should display "Locked In - View Only" banner
@@ -227,7 +227,7 @@ Feature: Decision Lock-In
       | info  | Timer expired - auto-locking all players      |
       | info  | Auto-locked player: SendWave (valid)          |
       | info  | Auto-locked player: BluePost (valid)          |
-      | info  | Auto-locked player: Gmail (valid)             |
+      | info  | Auto-locked player: zmail (valid)             |
 
   Scenario: Auto-correction during auto-lock is logged
     Given Planning Phase timer expires

@@ -75,7 +75,7 @@ test.describe('Feature: Game Lobby Management - E2E', () => {
 			await expect(page.locator('text=/minimum.*required|at least.*destination/i')).toBeVisible();
 
 			// Case 2: Add 1 Destination - button should be enabled
-			const bobPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'Gmail');
+			const bobPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'zmail');
 			await page.waitForTimeout(500); // Wait for WebSocket update
 
 			await expect(startGameButton).toBeEnabled();

@@ -77,36 +77,36 @@ test.describe('Feature: Decision Lock-In', () => {
 			page,
 			context
 		}) => {
-			// Given: "Gmail" has set filtering levels
-			const { alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			// Given: "zmail" has set filtering levels
+			const { alicePage, bobPage, zmailPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
-			// And: "Gmail" has budget of 800 credits
-			await gmailPage.evaluate(() => {
+			// And: "zmail" has budget of 800 credits
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.setCredits(800);
 			});
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.waitForTimeout(500);
 
-			// When: "Gmail" clicks the "Lock In" button
-			const lockInButton = gmailPage.locator('[data-testid="lock-in-button"]');
+			// When: "zmail" clicks the "Lock In" button
+			const lockInButton = zmailPage.locator('[data-testid="lock-in-button"]');
 			await expect(lockInButton).toBeEnabled();
 			await lockInButton.click();
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.waitForTimeout(500);
 
-			// Then: "Gmail" decisions should be marked as locked
-			// And: "Gmail" dashboard should become read-only
-			// And: "Gmail" should see "Locked In ✓" confirmation
-			const confirmation = gmailPage.locator('[data-testid="lock-in-confirmation"]');
+			// Then: "zmail" decisions should be marked as locked
+			// And: "zmail" dashboard should become read-only
+			// And: "zmail" should see "Locked In ✓" confirmation
+			const confirmation = zmailPage.locator('[data-testid="lock-in-confirmation"]');
 			await expect(confirmation).toBeVisible();
 			await expect(confirmation).toContainText('Locked In');
 
-			// And: game state should show "Gmail" as locked
+			// And: game state should show "zmail" as locked
 			// (Verified via WebSocket - implementation will handle this)
 
 			await closePages(page, alicePage, bobPage);
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 		});
 	});
 
@@ -230,7 +230,7 @@ test.describe('Feature: Decision Lock-In', () => {
 				bluePostPage,
 				sendBoltPage,
 				rocketMailPage,
-				gmailPage
+				zmailPage
 			} = await createGameWith5ESPTeams(page, context);
 
 			// When: "SendWave" locks in their decisions
@@ -260,7 +260,7 @@ test.describe('Feature: Decision Lock-In', () => {
 				bluePostPage,
 				sendBoltPage,
 				rocketMailPage,
-				gmailPage
+				zmailPage
 			);
 		});
 
@@ -272,7 +272,7 @@ test.describe('Feature: Decision Lock-In', () => {
 				bluePostPage,
 				sendBoltPage,
 				rocketMailPage,
-				gmailPage
+				zmailPage
 			} = await createGameWith5ESPTeams(page, context);
 
 			// And: "SendWave" has locked in and sees "5 players remaining"
@@ -291,10 +291,10 @@ test.describe('Feature: Decision Lock-In', () => {
 			// Then: "SendWave" should see "4 players remaining"
 			await expect(remainingCount).toContainText('4', { timeout: 2000 });
 
-			// When: "Gmail" locks in their decisions
-			const gmailLockInButton = gmailPage.locator('[data-testid="lock-in-button"]');
-			await gmailLockInButton.click();
-			await gmailPage.waitForTimeout(500);
+			// When: "zmail" locks in their decisions
+			const zmailLockInButton = zmailPage.locator('[data-testid="lock-in-button"]');
+			await zmailLockInButton.click();
+			await zmailPage.waitForTimeout(500);
 
 			// Then: "SendWave" should see "3 players remaining"
 			await expect(remainingCount).toContainText('3', { timeout: 2000 });
@@ -306,7 +306,7 @@ test.describe('Feature: Decision Lock-In', () => {
 				bluePostPage,
 				sendBoltPage,
 				rocketMailPage,
-				gmailPage
+				zmailPage
 			);
 		});
 	});
@@ -492,7 +492,7 @@ test.describe('Feature: Decision Lock-In', () => {
 				bluePostPage,
 				sendBoltPage,
 				rocketMailPage,
-				gmailPage
+				zmailPage
 			} = await createGameWith5ESPTeams(page, context);
 
 			// And: Planning Phase timer shows 2:30 remaining (timer still running)
@@ -513,9 +513,9 @@ test.describe('Feature: Decision Lock-In', () => {
 			const remainingCount = sendWavePage.locator('[data-testid="remaining-players-count"]');
 			await expect(remainingCount).toContainText('1');
 
-			// When: the last player (Gmail) locks in their decisions
-			await gmailPage.locator('[data-testid="lock-in-button"]').click();
-			await gmailPage.waitForTimeout(1000);
+			// When: the last player (zmail) locks in their decisions
+			await zmailPage.locator('[data-testid="lock-in-button"]').click();
+			await zmailPage.waitForTimeout(1000);
 
 			// Then: Planning Phase should end immediately
 			// And: Resolution Phase should start (could go to fast to get caught by test)
@@ -532,7 +532,7 @@ test.describe('Feature: Decision Lock-In', () => {
 				bluePostPage,
 				sendBoltPage,
 				rocketMailPage,
-				gmailPage
+				zmailPage
 			);
 		});
 
@@ -709,37 +709,37 @@ test.describe('Feature: Decision Lock-In', () => {
 			page,
 			context
 		}) => {
-			// Given: "Gmail" has locked in their decisions
-			const { alicePage, bobPage, gmailPage } = await createGameWithDestinationPlayer(
+			// Given: "zmail" has locked in their decisions
+			const { alicePage, bobPage, zmailPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
-			await gmailPage.locator('[data-testid="lock-in-button"]').click();
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.locator('[data-testid="lock-in-button"]').click();
+			await zmailPage.waitForTimeout(500);
 
-			// When: "Gmail" views their Destination dashboard
+			// When: "zmail" views their Destination dashboard
 
 			// But: Modals can still be opened for viewing (if clicked programmatically)
 			// But: Modals can still be opened for viewing (buttons remain enabled)
 			// Click filtering controls button
-			await gmailPage.click('[data-testid="filtering-controls-button"]');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.click('[data-testid="filtering-controls-button"]');
+			await zmailPage.waitForTimeout(300);
 
 			// Then: Modal should open with "View Only" banner
-			const filteringModal = gmailPage.locator('[data-testid="filtering-controls-modal"]');
+			const filteringModal = zmailPage.locator('[data-testid="filtering-controls-modal"]');
 			await expect(filteringModal).toBeVisible();
 
-			const viewOnlyBanner = gmailPage.locator('[data-testid="view-only-banner"]');
+			const viewOnlyBanner = zmailPage.locator('[data-testid="view-only-banner"]');
 			await expect(viewOnlyBanner).toBeVisible();
 			await expect(viewOnlyBanner).toContainText('Locked In - View Only');
 
 			// And: All filtering sliders should be disabled
-			const filteringSlider = gmailPage.locator('[data-testid="filtering-slider"]').first();
+			const filteringSlider = zmailPage.locator('[data-testid="filtering-slider"]').first();
 			await expect(filteringSlider).toBeDisabled();
 
 			await closePages(page, alicePage, bobPage);
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 		});
 	});
 });

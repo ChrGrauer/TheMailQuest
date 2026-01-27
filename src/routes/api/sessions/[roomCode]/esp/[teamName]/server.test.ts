@@ -48,7 +48,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 		// Add destinations
 		session.destinations = [
 			{
-				name: 'Gmail',
+				name: 'zmail',
 				players: ['Charlie'],
 				budget: 0,
 				filtering_policies: {},
@@ -56,7 +56,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 				user_satisfaction: 0
 			},
 			{
-				name: 'Outlook',
+				name: 'intake',
 				players: ['David'],
 				budget: 0,
 				filtering_policies: {},
@@ -64,7 +64,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 				user_satisfaction: 0
 			},
 			{
-				name: 'Yahoo',
+				name: 'yagle',
 				players: ['Eve'],
 				budget: 0,
 				filtering_policies: {},
@@ -108,9 +108,9 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 		expect(data.team.name).toBe('SendWave');
 		expect(data.team.credits).toBe(1000); // From resource allocation
 		expect(data.team.reputation).toEqual({
-			Gmail: 70,
-			Outlook: 70,
-			Yahoo: 70
+			zmail: 70,
+			intake: 70,
+			yagle: 70
 		});
 		expect(data.team.active_clients).toEqual([]);
 		expect(data.team.owned_tech_upgrades).toEqual([]);
@@ -148,13 +148,13 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 		expect(data.destinations).toBeDefined();
 		expect(data.destinations).toHaveLength(3);
 
-		const gmail = data.destinations.find((d: any) => d.name === 'Gmail');
-		const outlook = data.destinations.find((d: any) => d.name === 'Outlook');
-		const yahoo = data.destinations.find((d: any) => d.name === 'Yahoo');
+		const zmail = data.destinations.find((d: any) => d.name === 'zmail');
+		const intake = data.destinations.find((d: any) => d.name === 'intake');
+		const yagle = data.destinations.find((d: any) => d.name === 'yagle');
 
-		expect(gmail.weight).toBe(50);
-		expect(outlook.weight).toBe(30);
-		expect(yahoo.weight).toBe(20);
+		expect(zmail.weight).toBe(50);
+		expect(intake.weight).toBe(30);
+		expect(yagle.weight).toBe(20);
 	});
 
 	it('should calculate timer remaining time correctly', async () => {

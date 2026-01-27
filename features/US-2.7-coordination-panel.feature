@@ -19,16 +19,16 @@ Feature: US-2.7 Coordination Panel (Destination)
       | RocketMail  | 1150   |
     And the following Destination players exist:
       | player_name | destination | budget |
-      | Grace       | Gmail       | 500    |
-      | Henry       | Outlook     | 500    |
-      | Iris        | Yahoo       | 500    |
+      | Grace       | zmail       | 500    |
+      | Henry       | intake     | 500    |
+      | Iris        | yagle       | 500    |
 
   # ============================================================================
   # SECTION 1: INVESTIGATION VOTING INTERFACE
   # ============================================================================
 
   Scenario: Display coordination panel with ESP targets and voting controls
-    Given I am Destination player "Grace" from "Gmail"
+    Given I am Destination player "Grace" from "zmail"
     When I open the Coordination Panel
     Then I should see a section titled "Joint Investigation"
     And I should see all 5 ESP teams as selectable investigation targets
@@ -36,7 +36,7 @@ Feature: US-2.7 Coordination Panel (Destination)
     And I should see the cost displayed as "50 credits per voting destination (only charged if investigation triggers)"
 
   Scenario: Select, change, and clear investigation vote
-    Given I am Destination player "Grace" from "Gmail"
+    Given I am Destination player "Grace" from "zmail"
     And I open the Coordination Panel
     When I select "BluePost" as my investigation target
     Then "BluePost" should show as my selected vote
@@ -47,14 +47,14 @@ Feature: US-2.7 Coordination Panel (Destination)
     Then I should have no active investigation vote
 
   Scenario: Real-time updates show other destinations' votes
-    Given I am Destination player "Grace" from "Gmail"
+    Given I am Destination player "Grace" from "zmail"
     And I open the Coordination Panel
-    When Destination player "Henry" from "Outlook" votes to investigate "BluePost"
+    When Destination player "Henry" from "intake" votes to investigate "BluePost"
     Then I should see "BluePost" update to "1/3 votes" in real-time
-    And I should see "Outlook" listed as a voter for "BluePost"
+    And I should see "intake" listed as a voter for "BluePost"
 
   Scenario: Insufficient budget disables voting
-    Given I am Destination player "Grace" from "Gmail"
+    Given I am Destination player "Grace" from "zmail"
     And I have 30 credits budget
     When I open the Coordination Panel
     Then all ESP vote buttons should be disabled
@@ -67,17 +67,17 @@ Feature: US-2.7 Coordination Panel (Destination)
   Scenario Outline: Investigation trigger based on vote distribution
     Given the following investigation votes are locked in:
       | destination | target   |
-      | Gmail       | <gmail>  |
-      | Outlook     | <outlook>|
-      | Yahoo       | <yahoo>  |
+      | zmail       | <zmail>  |
+      | intake     | <intake>|
+      | yagle       | <yagle>  |
     When the planning phase ends and resolution begins
     Then investigation launched should be "<triggered>"
     And credits charged should be "<charged>"
 
     Examples:
-      | gmail    | outlook  | yahoo    | triggered | charged                    |
-      | BluePost | BluePost | (none)   | yes       | Gmail: 50, Outlook: 50     |
-      | BluePost | BluePost | BluePost | yes       | Gmail: 50, Outlook: 50, Yahoo: 50 |
+      | zmail    | intake  | yagle    | triggered | charged                    |
+      | BluePost | BluePost | (none)   | yes       | zmail: 50, intake: 50     |
+      | BluePost | BluePost | BluePost | yes       | zmail: 50, intake: 50, yagle: 50 |
       | BluePost | (none)   | (none)   | no        | none                       |
       | BluePost | SendWave | (none)   | no        | none                       |
       | BluePost | SendWave | MailMonkey | no      | none                       |
@@ -166,7 +166,7 @@ Feature: US-2.7 Coordination Panel (Destination)
       | Suspended Client | Risky Marketer       |
       | Risk Level       | High                 |
       | Onboarding       | Missing warm-up      |
-    And this includes "Yahoo" who did not vote for the investigation
+    And this includes "yagle" who did not vote for the investigation
 
   Scenario: All destinations see investigation results with no violation
     Given an investigation against "SendBolt" found no violations
@@ -206,8 +206,8 @@ Feature: US-2.7 Coordination Panel (Destination)
   Scenario: Investigation history tracks all investigations
     Given the following investigations occurred:
       | round | target   | result                  | voters         |
-      | 2     | BluePost | Suspended: Risky Marketer | Gmail, Outlook |
-      | 3     | SendBolt | No violations found     | Gmail, Yahoo   |
+      | 2     | BluePost | Suspended: Risky Marketer | zmail, intake |
+      | 3     | SendBolt | No violations found     | zmail, yagle   |
     When I view the investigation history in the Coordination Panel
     Then I should see both investigations in reverse chronological order
     And each entry should show round, target, result, and voters
@@ -224,14 +224,14 @@ Feature: US-2.7 Coordination Panel (Destination)
   # ============================================================================
 
   Scenario: Display budget reservation for investigation vote
-    Given I am Destination player "Grace" from "Gmail"
+    Given I am Destination player "Grace" from "zmail"
     And I have 500 credits budget
     When I vote to investigate "BluePost"
     Then I should see my budget display as "450 available (50 reserved)"
     And the reservation display should match ESP onboarding pattern
 
   Scenario: Vote automatically removed if budget insufficient at lock-in
-    Given I am Destination player "Grace" from "Gmail"
+    Given I am Destination player "Grace" from "zmail"
     And I have 100 credits budget
     And I vote to investigate "BluePost" (reserved: 50 credits)
     And I purchase tools totaling 80 credits
@@ -246,6 +246,6 @@ Feature: US-2.7 Coordination Panel (Destination)
 
   Scenario: Voting only available before lock-in during planning phase
     Given the game is in planning phase
-    And Destination player "Grace" from "Gmail" has locked-in their decisions
-    When Destination player "Grace" from "Gmail" opens the Coordination Panel
+    And Destination player "Grace" from "zmail" has locked-in their decisions
+    When Destination player "Grace" from "zmail" opens the Coordination Panel
     Then the voting controls should be disabled

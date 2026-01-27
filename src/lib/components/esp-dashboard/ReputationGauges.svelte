@@ -28,9 +28,9 @@
 	let {
 		reputation,
 		destinations = [
-			{ name: 'Gmail', weight: 50 },
-			{ name: 'Outlook', weight: 30 },
-			{ name: 'Yahoo', weight: 20 }
+			{ name: 'zmail', weight: 50 },
+			{ name: 'intake', weight: 30 },
+			{ name: 'yagle', weight: 20 }
 		]
 	}: Props = $props();
 

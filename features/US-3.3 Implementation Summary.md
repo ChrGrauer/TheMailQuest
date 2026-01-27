@@ -142,7 +142,7 @@ All clarification questions have been answered and documented:
 - Config updated: "+2 reputation bonus per destination (applies to each destination separately)"
 - US 3.3 line 261: Clarified "applies to each destination separately"
 - Constant added: `WARMUP_REPUTATION_BONUS = 2`
-- **Example:** If ESP sends to Gmail, Outlook, Yahoo, each destination gets +2 reputation from warmup client
+- **Example:** If ESP sends to zmail, intake, yagle, each destination gets +2 reputation from warmup client
 
 ---
 

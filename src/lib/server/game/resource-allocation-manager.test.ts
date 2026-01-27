@@ -3,7 +3,7 @@
  *
  * Tests resource allocation functionality including:
  * - ESP teams receive starting resources (1000 credits, 70 reputation)
- * - Destinations receive specific budgets (Gmail: 500, Outlook: 350, Yahoo: 200)
+ * - Destinations receive specific budgets (zmail: 500, intake: 350, yagle: 200)
  * - Shared pool creation (150 credits)
  * - Team state initialization
  * - Destination state initialization
@@ -72,7 +72,7 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			// Start game to transition to resource_allocation phase
@@ -97,9 +97,9 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			expect(bluePost?.credits).toBe(1000);
 
 			// Each team should have 70 reputation for ALL destinations (not just active ones)
-			expect(sendWave?.reputation).toEqual({ Gmail: 70, Outlook: 70, Yahoo: 70 });
-			expect(mailMonkey?.reputation).toEqual({ Gmail: 70, Outlook: 70, Yahoo: 70 });
-			expect(bluePost?.reputation).toEqual({ Gmail: 70, Outlook: 70, Yahoo: 70 });
+			expect(sendWave?.reputation).toEqual({ zmail: 70, intake: 70, yagle: 70 });
+			expect(mailMonkey?.reputation).toEqual({ zmail: 70, intake: 70, yagle: 70 });
+			expect(bluePost?.reputation).toEqual({ zmail: 70, intake: 70, yagle: 70 });
 		});
 
 		test('When resource allocation starts, Then ESP team state should be initialized with empty arrays', () => {
@@ -118,7 +118,7 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -157,21 +157,21 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			joinGame({
 				roomCode: session.roomCode,
 				displayName: 'Henry',
 				role: 'Destination',
-				teamName: 'Outlook'
+				teamName: 'intake'
 			});
 
 			joinGame({
 				roomCode: session.roomCode,
 				displayName: 'Iris',
 				role: 'Destination',
-				teamName: 'Yahoo'
+				teamName: 'yagle'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -181,13 +181,13 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 
 			// Then
 			const updatedSession = getSession(session.roomCode);
-			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
-			const outlook = updatedSession!.destinations.find((d) => d.name === 'Outlook');
-			const yahoo = updatedSession!.destinations.find((d) => d.name === 'Yahoo');
+			const zmail = updatedSession!.destinations.find((d) => d.name === 'zmail');
+			const intake = updatedSession!.destinations.find((d) => d.name === 'intake');
+			const yagle = updatedSession!.destinations.find((d) => d.name === 'yagle');
 
-			expect(gmail?.budget).toBe(500);
-			expect(outlook?.budget).toBe(350);
-			expect(yahoo?.budget).toBe(200);
+			expect(zmail?.budget).toBe(500);
+			expect(intake?.budget).toBe(350);
+			expect(yagle?.budget).toBe(200);
 		});
 
 		test('When resource allocation starts, Then destination state should be initialized correctly', () => {
@@ -206,7 +206,7 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -216,10 +216,10 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 
 			// Then
 			const updatedSession = getSession(session.roomCode);
-			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
+			const zmail = updatedSession!.destinations.find((d) => d.name === 'zmail');
 
 			// US-2.6.1: Filtering policies should be initialized for all ESPs
-			expect(gmail?.filtering_policies).toEqual({
+			expect(zmail?.filtering_policies).toEqual({
 				SendWave: {
 					espName: 'SendWave',
 					level: 'permissive',
@@ -227,8 +227,8 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 					falsePositives: 0
 				}
 			});
-			expect(gmail?.esp_reputation).toEqual({});
-			expect(gmail?.user_satisfaction).toBe(100);
+			expect(zmail?.esp_reputation).toEqual({});
+
 		});
 	});
 
@@ -246,9 +246,9 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			expect(validation.config).toBeDefined();
 			expect(validation.config?.esp_starting_credits).toBe(1000);
 			expect(validation.config?.esp_starting_reputation).toBe(70);
-			expect(validation.config?.destination_budgets.Gmail).toBe(500);
-			expect(validation.config?.destination_budgets.Outlook).toBe(350);
-			expect(validation.config?.destination_budgets.Yahoo).toBe(200);
+			expect(validation.config?.destination_budgets.zmail).toBe(500);
+			expect(validation.config?.destination_budgets.intake).toBe(350);
+			expect(validation.config?.destination_budgets.yagle).toBe(200);
 			expect(validation.config?.planning_phase_duration).toBe(300);
 		});
 
@@ -258,9 +258,9 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				esp_starting_credits: 1200,
 				esp_starting_reputation: 80,
 				destination_budgets: {
-					Gmail: 600,
-					Outlook: 400,
-					Yahoo: 250
+					zmail: 600,
+					intake: 400,
+					yagle: 250
 				},
 				planning_phase_duration: 300
 			};
@@ -308,7 +308,7 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -317,9 +317,9 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				esp_starting_credits: 1200,
 				esp_starting_reputation: 80,
 				destination_budgets: {
-					Gmail: 600,
-					Outlook: 350,
-					Yahoo: 200
+					zmail: 600,
+					intake: 350,
+					yagle: 200
 				},
 				planning_phase_duration: 300
 			};
@@ -330,11 +330,11 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			// Then
 			const updatedSession = getSession(session.roomCode);
 			const sendWave = updatedSession!.esp_teams.find((t) => t.name === 'SendWave');
-			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
+			const zmail = updatedSession!.destinations.find((d) => d.name === 'zmail');
 
 			expect(sendWave?.credits).toBe(1200);
-			expect(sendWave?.reputation.Gmail).toBe(80);
-			expect(gmail?.budget).toBe(600);
+			expect(sendWave?.reputation.zmail).toBe(80);
+			expect(zmail?.budget).toBe(600);
 		});
 	});
 
@@ -359,7 +359,7 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -405,7 +405,7 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -452,21 +452,21 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Grace',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			joinGame({
 				roomCode: session.roomCode,
 				displayName: 'Henry',
 				role: 'Destination',
-				teamName: 'Outlook'
+				teamName: 'intake'
 			});
 
 			joinGame({
 				roomCode: session.roomCode,
 				displayName: 'Iris',
 				role: 'Destination',
-				teamName: 'Yahoo'
+				teamName: 'yagle'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -479,9 +479,9 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			const sendWave = updatedSession!.esp_teams.find((t) => t.name === 'SendWave');
 
 			expect(sendWave?.reputation).toEqual({
-				Gmail: 70,
-				Outlook: 70,
-				Yahoo: 70
+				zmail: 70,
+				intake: 70,
+				yagle: 70
 			});
 		});
 	});

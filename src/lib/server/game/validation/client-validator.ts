@@ -16,11 +16,11 @@ import type { ESPTeam, Client, Destination } from '../types';
 export interface ClientAcquisitionValidation {
 	canAcquire: boolean;
 	reason?:
-		| 'insufficient_credits'
-		| 'missing_tech'
-		| 'insufficient_reputation'
-		| 'client_not_found'
-		| 'already_owned';
+	| 'insufficient_credits'
+	| 'missing_tech'
+	| 'insufficient_reputation'
+	| 'client_not_found'
+	| 'already_owned';
 	missingTech?: string[];
 	requiredReputation?: number;
 	actualReputation?: number;
@@ -28,12 +28,12 @@ export interface ClientAcquisitionValidation {
 
 /**
  * Destination market weights for overall reputation calculation
- * Gmail: 50%, Outlook: 30%, Yahoo: 20%
+ * zmail: 50%, intake: 30%, yagle: 20%
  */
 const DESTINATION_WEIGHTS: Record<string, number> = {
-	Gmail: 50,
-	Outlook: 30,
-	Yahoo: 20
+	zmail: 50,
+	intake: 30,
+	yagle: 20
 };
 
 /**

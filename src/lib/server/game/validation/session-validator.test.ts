@@ -73,7 +73,7 @@ describe('Session Validator', () => {
 				roomCode: session.roomCode,
 				displayName: 'Player3',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			const result = canJoinSession(session.roomCode);
@@ -97,7 +97,7 @@ describe('Session Validator', () => {
 			});
 
 			// Fill all 3 destinations
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 			destinations.forEach((dest, index) => {
 				joinGame({
 					roomCode: session.roomCode,
@@ -160,19 +160,19 @@ describe('Session Validator', () => {
 				roomCode: session.roomCode,
 				displayName: 'P5',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 			joinGame({
 				roomCode: session.roomCode,
 				displayName: 'P6',
 				role: 'Destination',
-				teamName: 'Outlook'
+				teamName: 'intake'
 			});
 			joinGame({
 				roomCode: session.roomCode,
 				displayName: 'P7',
 				role: 'Destination',
-				teamName: 'Yahoo'
+				teamName: 'yagle'
 			});
 
 			const result = canJoinSession(session.roomCode);
@@ -221,7 +221,7 @@ describe('Session Validator', () => {
 				});
 			});
 
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 			destinations.forEach((dest, index) => {
 				joinGame({
 					roomCode: session.roomCode,
@@ -267,19 +267,19 @@ describe('Session Validator', () => {
 				roomCode: session.roomCode,
 				displayName: 'P5',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 			joinGame({
 				roomCode: session.roomCode,
 				displayName: 'P6',
 				role: 'Destination',
-				teamName: 'Outlook'
+				teamName: 'intake'
 			});
 			joinGame({
 				roomCode: session.roomCode,
 				displayName: 'P7',
 				role: 'Destination',
-				teamName: 'Yahoo'
+				teamName: 'yagle'
 			});
 
 			const freshSession = getSession(session.roomCode)!;

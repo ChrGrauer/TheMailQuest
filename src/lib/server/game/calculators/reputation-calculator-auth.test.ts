@@ -16,100 +16,100 @@ describe('Reputation Calculator - Iteration 3: Authentication Impact', () => {
 		test('no tech = 0 bonus', () => {
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(0);
-			expect(result.perDestination['Gmail'].totalChange).toBe(0);
+			expect(result.perDestination['zmail'].techBonus).toBe(0);
+			expect(result.perDestination['zmail'].totalChange).toBe(0);
 		});
 
 		test('SPF only = +2 reputation', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(2);
-			expect(result.perDestination['Gmail'].totalChange).toBe(2);
+			expect(result.perDestination['zmail'].techBonus).toBe(2);
+			expect(result.perDestination['zmail'].totalChange).toBe(2);
 		});
 
 		test('SPF + DKIM = +5 reputation', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(5);
-			expect(result.perDestination['Gmail'].totalChange).toBe(5);
+			expect(result.perDestination['zmail'].techBonus).toBe(5);
+			expect(result.perDestination['zmail'].totalChange).toBe(5);
 		});
 
 		test('full stack (SPF + DKIM + DMARC) = +10 reputation', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim', 'dmarc'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(10);
-			expect(result.perDestination['Gmail'].totalChange).toBe(10);
+			expect(result.perDestination['zmail'].techBonus).toBe(10);
+			expect(result.perDestination['zmail'].totalChange).toBe(10);
 		});
 
 		test('DKIM only (without SPF) = +3 reputation', () => {
 			// No dependency checking in calculator - that's handled elsewhere
 			const result = calculateReputationChanges({
 				techStack: ['dkim'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(3);
-			expect(result.perDestination['Gmail'].totalChange).toBe(3);
+			expect(result.perDestination['zmail'].techBonus).toBe(3);
+			expect(result.perDestination['zmail'].totalChange).toBe(3);
 		});
 
 		test('DMARC only (without dependencies) = +5 reputation', () => {
 			// No dependency checking in calculator - that's handled elsewhere
 			const result = calculateReputationChanges({
 				techStack: ['dmarc'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(5);
-			expect(result.perDestination['Gmail'].totalChange).toBe(5);
+			expect(result.perDestination['zmail'].techBonus).toBe(5);
+			expect(result.perDestination['zmail'].totalChange).toBe(5);
 		});
 
 		test('empty tech array = 0 bonus', () => {
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(0);
+			expect(result.perDestination['zmail'].techBonus).toBe(0);
 		});
 	});
 
@@ -117,40 +117,40 @@ describe('Reputation Calculator - Iteration 3: Authentication Impact', () => {
 		test('tech bonus applies to all destinations equally', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim', 'dmarc'],
-				destinations: ['Gmail', 'Outlook', 'Yahoo'],
+				destinations: ['zmail', 'intake', 'yagle'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(10);
-			expect(result.perDestination['Outlook'].techBonus).toBe(10);
-			expect(result.perDestination['Yahoo'].techBonus).toBe(10);
+			expect(result.perDestination['zmail'].techBonus).toBe(10);
+			expect(result.perDestination['intake'].techBonus).toBe(10);
+			expect(result.perDestination['yagle'].techBonus).toBe(10);
 
-			expect(result.perDestination['Gmail'].totalChange).toBe(10);
-			expect(result.perDestination['Outlook'].totalChange).toBe(10);
-			expect(result.perDestination['Yahoo'].totalChange).toBe(10);
+			expect(result.perDestination['zmail'].totalChange).toBe(10);
+			expect(result.perDestination['intake'].totalChange).toBe(10);
+			expect(result.perDestination['yagle'].totalChange).toBe(10);
 		});
 
 		test('single destination receives bonus', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail']).toBeDefined();
-			expect(result.perDestination['Gmail'].techBonus).toBe(5);
+			expect(result.perDestination['zmail']).toBeDefined();
+			expect(result.perDestination['zmail'].techBonus).toBe(5);
 		});
 
 		test('three destinations all receive same bonus', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
-				destinations: ['Gmail', 'Outlook', 'Yahoo'],
+				destinations: ['zmail', 'intake', 'yagle'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
@@ -158,9 +158,9 @@ describe('Reputation Calculator - Iteration 3: Authentication Impact', () => {
 			});
 
 			expect(Object.keys(result.perDestination)).toHaveLength(3);
-			expect(result.perDestination['Gmail'].techBonus).toBe(2);
-			expect(result.perDestination['Outlook'].techBonus).toBe(2);
-			expect(result.perDestination['Yahoo'].techBonus).toBe(2);
+			expect(result.perDestination['zmail'].techBonus).toBe(2);
+			expect(result.perDestination['intake'].techBonus).toBe(2);
+			expect(result.perDestination['yagle'].techBonus).toBe(2);
 		});
 
 		test('empty destinations array returns empty result', () => {
@@ -181,14 +181,14 @@ describe('Reputation Calculator - Iteration 3: Authentication Impact', () => {
 		test('breakdown includes tech bonus entry', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].breakdown).toContainEqual({
+			expect(result.perDestination['zmail'].breakdown).toContainEqual({
 				source: 'Authentication Tech',
 				value: 5
 			});
@@ -197,14 +197,14 @@ describe('Reputation Calculator - Iteration 3: Authentication Impact', () => {
 		test('breakdown shows 0 when no tech', () => {
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].breakdown).toContainEqual({
+			expect(result.perDestination['zmail'].breakdown).toContainEqual({
 				source: 'Authentication Tech',
 				value: 0
 			});
@@ -213,18 +213,18 @@ describe('Reputation Calculator - Iteration 3: Authentication Impact', () => {
 		test('multiple destinations each have their own breakdown', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim', 'dmarc'],
-				destinations: ['Gmail', 'Outlook'],
+				destinations: ['zmail', 'intake'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].breakdown).toContainEqual({
+			expect(result.perDestination['zmail'].breakdown).toContainEqual({
 				source: 'Authentication Tech',
 				value: 10
 			});
-			expect(result.perDestination['Outlook'].breakdown).toContainEqual({
+			expect(result.perDestination['intake'].breakdown).toContainEqual({
 				source: 'Authentication Tech',
 				value: 10
 			});
@@ -235,33 +235,33 @@ describe('Reputation Calculator - Iteration 3: Authentication Impact', () => {
 		test('clientImpact is 0 (Iteration 4)', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].clientImpact).toBe(0);
+			expect(result.perDestination['zmail'].clientImpact).toBe(0);
 		});
 
 		test('warmupBonus is 0 (Iteration 5)', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].warmupBonus).toBe(0);
+			expect(result.perDestination['zmail'].warmupBonus).toBe(0);
 		});
 
 		test('volumeWeightedClientImpact is 0 (Iteration 4)', () => {
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData: emptyVolumeData,

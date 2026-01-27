@@ -7,7 +7,7 @@ Feature: US-8.2-0.1 - Facilitator Basic Controls
   Background:
     Given a game session exists with room code "CTRL01"
     And the game has 2 ESP teams: "SendWave" and "MailMonkey"
-    And the game has 2 destinations: "Gmail" and "Outlook"
+    And the game has 2 destinations: "zmail" and "intake"
     And facilitator "Facilitator" is managing the game
 
   # ========================================================================
@@ -73,12 +73,12 @@ Feature: US-8.2-0.1 - Facilitator Basic Controls
     And the current phase is "planning"
     And the timer shows 120 seconds remaining
     And ESP "SendWave" player is viewing their dashboard
-    And destination "Gmail" player is viewing their dashboard
+    And destination "zmail" player is viewing their dashboard
     When the facilitator clicks "Extend Timer" button
     Then the timer should show approximately 180 seconds remaining
     And an action log entry should be created for "Timer Extended"
     Then ESP "SendWave" player should see timer showing approximately 180 seconds
-    And destination "Gmail" player should see timer showing approximately 180 seconds
+    And destination "zmail" player should see timer showing approximately 180 seconds
     # Second click
     When the facilitator clicks "Extend Timer" button
     Then the timer should show approximately 240 seconds remaining
@@ -129,13 +129,13 @@ Feature: US-8.2-0.1 - Facilitator Basic Controls
   Scenario: End current phase removes investigation votes if destination has insufficient budget
     Given the game is in round 2
     And the current phase is "planning"
-    And destination "Gmail" has budget 30
-    And destination "Gmail" has a pending investigation vote for ESP "SendWave"
+    And destination "zmail" has budget 30
+    And destination "zmail" has a pending investigation vote for ESP "SendWave"
     # Investigation costs 50 > 30 budget
-    And destination "Gmail" has NOT locked in their decisions
+    And destination "zmail" has NOT locked in their decisions
     When the facilitator clicks "End Current Phase" button
     And the facilitator confirms the action
-    Then the investigation vote from "Gmail" should be removed
+    Then the investigation vote from "zmail" should be removed
     And the game should transition to "resolution" phase
 
   # ========================================================================

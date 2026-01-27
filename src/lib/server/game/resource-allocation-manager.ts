@@ -25,9 +25,9 @@ const DEFAULT_CONFIGURATION: GameConfiguration = {
 	esp_starting_credits: 1000,
 	esp_starting_reputation: 70,
 	destination_budgets: {
-		Gmail: 500,
-		Outlook: 350,
-		Yahoo: 200
+		zmail: 500,
+		intake: 350,
+		yagle: 200
 	},
 	planning_phase_duration: 300 // 5 minutes
 };

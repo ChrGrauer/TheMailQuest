@@ -39,15 +39,15 @@ async function getLogger() {
  */
 function calculateAggregateDeliveryRate(
 	perDestinationDelivery: Record<string, number>,
-	perDestinationVolume: { Gmail: number; Outlook: number; Yahoo: number }
+	perDestinationVolume: { zmail: number; intake: number; yagle: number }
 ): number {
 	const totalDeliveredVolume =
-		perDestinationVolume.Gmail * perDestinationDelivery.Gmail +
-		perDestinationVolume.Outlook * perDestinationDelivery.Outlook +
-		perDestinationVolume.Yahoo * perDestinationDelivery.Yahoo;
+		perDestinationVolume.zmail * perDestinationDelivery.zmail +
+		perDestinationVolume.intake * perDestinationDelivery.intake +
+		perDestinationVolume.yagle * perDestinationDelivery.yagle;
 
 	const totalVolume =
-		perDestinationVolume.Gmail + perDestinationVolume.Outlook + perDestinationVolume.Yahoo;
+		perDestinationVolume.zmail + perDestinationVolume.intake + perDestinationVolume.yagle;
 
 	return totalVolume > 0 ? totalDeliveredVolume / totalVolume : 0;
 }
@@ -93,15 +93,15 @@ export async function executeResolution(
 
 		// 2. Calculate per-destination delivery (Iteration 6)
 		const perDestinationDelivery: PerDestinationDelivery = {
-			Gmail: { finalRate: 0, baseRate: 0, authBonus: 0, zone: '', breakdown: [] },
-			Outlook: { finalRate: 0, baseRate: 0, authBonus: 0, zone: '', breakdown: [] },
-			Yahoo: { finalRate: 0, baseRate: 0, authBonus: 0, zone: '', breakdown: [] }
+			zmail: { finalRate: 0, baseRate: 0, authBonus: 0, zone: '', breakdown: [] },
+			intake: { finalRate: 0, baseRate: 0, authBonus: 0, zone: '', breakdown: [] },
+			yagle: { finalRate: 0, baseRate: 0, authBonus: 0, zone: '', breakdown: [] }
 		};
 
 		const perDestinationDeliveryRates: Record<string, number> = {};
 
 		for (const destination of session.destinations) {
-			const destName = destination.name as 'Gmail' | 'Outlook' | 'Yahoo';
+			const destName = destination.name as 'zmail' | 'intake' | 'yagle';
 			const destReputation = team.reputation[destination.name]; // Use capitalized key to match storage
 			// Get filtering level from policy object, fallback to permissive
 			const filteringPolicy = destination.filtering_policies[team.name];
@@ -323,7 +323,7 @@ export async function executeResolution(
 		const ownedTools: Record<string, string[]> = {};
 
 		for (const destination of session.destinations) {
-			const destName = destination.name as 'Gmail' | 'Outlook' | 'Yahoo';
+			const destName = destination.name as 'zmail' | 'intake' | 'yagle';
 			const policy = destination.filtering_policies[team.name];
 			filteringPolicies[destName] = policy?.level || 'permissive';
 			ownedTools[destName] = destination.owned_tools || [];
@@ -368,7 +368,7 @@ export async function executeResolution(
 	results.destinationResults = {};
 
 	for (const destination of session.destinations) {
-		const destName = destination.name as 'Gmail' | 'Outlook' | 'Yahoo';
+		const destName = destination.name as 'zmail' | 'intake' | 'yagle';
 
 		// Aggregate satisfaction across all ESPs (volume-weighted)
 		let totalVolume = 0;

@@ -1,5 +1,5 @@
 // Quick check script to test reputation storage
-const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+const destinations = ['zmail', 'intake', 'yagle'];
 const reputation = {};
 
 for (const destName of destinations) {
@@ -7,7 +7,7 @@ for (const destName of destinations) {
 }
 
 console.log('Stored reputation:', reputation);
-console.log('Gmail:', reputation['Gmail']);
-console.log('Outlook:', reputation['Outlook']);
-console.log('Yahoo:', reputation['Yahoo']);
-console.log('gmail (lowercase):', reputation['gmail']);
+console.log('zmail:', reputation['zmail']);
+console.log('intake:', reputation['intake']);
+console.log('yagle:', reputation['yagle']);
+console.log('zmail (lowercase):', reputation['zmail']);

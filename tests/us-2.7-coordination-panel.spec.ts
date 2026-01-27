@@ -82,9 +82,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 	test.describe.configure({ mode: 'serial' });
 
 	test.describe('Section 1: Investigation Voting Interface', () => {
-		let gmailPage: Page,
-			outlookPage: Page,
-			yahooPage: Page,
+		let zmailPage: Page,
+			intakePage: Page,
+			yaglePage: Page,
 			sendWavePage: Page,
 			mailMonkeyPage: Page,
 			bluePostPage: Page;
@@ -92,9 +92,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 		test.afterEach(async ({ page }) => {
 			await closePages(
 				page,
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
@@ -107,35 +107,35 @@ test.describe('US-2.7: Coordination Panel', () => {
 		}) => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
-			// When: Gmail opens the Coordination Panel
-			await gmailPage.click('[data-testid="coordination-panel-button"]');
-			await gmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
+			// When: zmail opens the Coordination Panel
+			await zmailPage.click('[data-testid="coordination-panel-button"]');
+			await zmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
 
 			// Then: I should see a section titled "Joint Investigation"
-			await expect(gmailPage.locator('[data-testid="joint-investigation-section"]')).toBeVisible();
-			await expect(gmailPage.locator('[data-testid="joint-investigation-section"]')).toContainText(
+			await expect(zmailPage.locator('[data-testid="joint-investigation-section"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="joint-investigation-section"]')).toContainText(
 				'Joint Investigation'
 			);
 
 			// And: I should see all 3 ESP teams as selectable investigation targets
-			await expect(gmailPage.locator('[data-testid="esp-target-sendwave"]')).toBeVisible();
-			await expect(gmailPage.locator('[data-testid="esp-target-mailmonkey"]')).toBeVisible();
-			await expect(gmailPage.locator('[data-testid="esp-target-bluepost"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="esp-target-sendwave"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="esp-target-mailmonkey"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="esp-target-bluepost"]')).toBeVisible();
 
 			// And: each target should show "0/3 votes"
-			await expect(gmailPage.locator('[data-testid="vote-count-sendwave"]')).toContainText('0/3');
-			await expect(gmailPage.locator('[data-testid="vote-count-mailmonkey"]')).toContainText('0/3');
-			await expect(gmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('0/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-sendwave"]')).toContainText('0/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-mailmonkey"]')).toContainText('0/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('0/3');
 
 			// And: I should see the cost displayed
-			await expect(gmailPage.locator('[data-testid="investigation-cost-info"]')).toContainText(
+			await expect(zmailPage.locator('[data-testid="investigation-cost-info"]')).toContainText(
 				'50 credits'
 			);
 		});
@@ -143,112 +143,112 @@ test.describe('US-2.7: Coordination Panel', () => {
 		test('Select, change, and clear investigation vote using UI', async ({ page, context }) => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
-			// And: Gmail opens the Coordination Panel
-			await gmailPage.click('[data-testid="coordination-panel-button"]');
-			await gmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
+			// And: zmail opens the Coordination Panel
+			await zmailPage.click('[data-testid="coordination-panel-button"]');
+			await zmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
 
 			// When: I click to select "BluePost" as my investigation target
-			await gmailPage.click('[data-testid="vote-button-bluepost"]');
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.click('[data-testid="vote-button-bluepost"]');
+			await zmailPage.waitForTimeout(500);
 
 			// Then: "BluePost" should show as my selected vote
-			await expect(gmailPage.locator('[data-testid="esp-target-bluepost"]')).toHaveAttribute(
+			await expect(zmailPage.locator('[data-testid="esp-target-bluepost"]')).toHaveAttribute(
 				'data-selected',
 				'true'
 			);
-			await expect(gmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('1/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('1/3');
 
 			// When: I click to select "SendWave" instead
-			await gmailPage.click('[data-testid="vote-button-sendwave"]');
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.click('[data-testid="vote-button-sendwave"]');
+			await zmailPage.waitForTimeout(500);
 
 			// Then: "SendWave" should show as my selected vote
-			await expect(gmailPage.locator('[data-testid="esp-target-sendwave"]')).toHaveAttribute(
+			await expect(zmailPage.locator('[data-testid="esp-target-sendwave"]')).toHaveAttribute(
 				'data-selected',
 				'true'
 			);
 			// And: "BluePost" should no longer show my vote
-			await expect(gmailPage.locator('[data-testid="esp-target-bluepost"]')).toHaveAttribute(
+			await expect(zmailPage.locator('[data-testid="esp-target-bluepost"]')).toHaveAttribute(
 				'data-selected',
 				'false'
 			);
-			await expect(gmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('0/3');
-			await expect(gmailPage.locator('[data-testid="vote-count-sendwave"]')).toContainText('1/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('0/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-sendwave"]')).toContainText('1/3');
 
 			// When: I click to deselect "SendWave" (clicking again on selected)
-			await gmailPage.click('[data-testid="vote-button-sendwave"]');
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.click('[data-testid="vote-button-sendwave"]');
+			await zmailPage.waitForTimeout(500);
 
 			// Then: I should have no active investigation vote
-			await expect(gmailPage.locator('[data-testid="esp-target-sendwave"]')).toHaveAttribute(
+			await expect(zmailPage.locator('[data-testid="esp-target-sendwave"]')).toHaveAttribute(
 				'data-selected',
 				'false'
 			);
-			await expect(gmailPage.locator('[data-testid="vote-count-sendwave"]')).toContainText('0/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-sendwave"]')).toContainText('0/3');
 		});
 
 		test('Real-time updates show other destinations votes', async ({ page, context }) => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
-			// And: Gmail has the Coordination Panel open
-			await gmailPage.click('[data-testid="coordination-panel-button"]');
-			await gmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
+			// And: zmail has the Coordination Panel open
+			await zmailPage.click('[data-testid="coordination-panel-button"]');
+			await zmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
 
-			// When: Outlook opens their panel and votes for "BluePost"
-			await outlookPage.click('[data-testid="coordination-panel-button"]');
-			await outlookPage.waitForSelector('[data-testid="coordination-panel-modal"]');
-			await outlookPage.click('[data-testid="vote-button-bluepost"]');
+			// When: intake opens their panel and votes for "BluePost"
+			await intakePage.click('[data-testid="coordination-panel-button"]');
+			await intakePage.waitForSelector('[data-testid="coordination-panel-modal"]');
+			await intakePage.click('[data-testid="vote-button-bluepost"]');
 
-			// Then: Gmail should see "BluePost" update to "1/3 votes" in real-time
-			await expect(gmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('1/3', {
+			// Then: zmail should see "BluePost" update to "1/3 votes" in real-time
+			await expect(zmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('1/3', {
 				timeout: 5000
 			});
 
-			// And: Gmail should see "Outlook" listed as a voter for "BluePost"
-			await expect(gmailPage.locator('[data-testid="voters-bluepost"]')).toContainText('Outlook');
+			// And: zmail should see "intake" listed as a voter for "BluePost"
+			await expect(zmailPage.locator('[data-testid="voters-bluepost"]')).toContainText('intake');
 		});
 
 		test('Insufficient budget disables voting', async ({ page, context }) => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
-			// And: Gmail has only 30 credits budget (less than 50 required)
-			await gmailPage.evaluate(() => {
+			// And: zmail has only 30 credits budget (less than 50 required)
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.setBudget(30);
 			});
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.waitForTimeout(500);
 
-			// When: Gmail opens the Coordination Panel
-			await gmailPage.click('[data-testid="coordination-panel-button"]');
-			await gmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
+			// When: zmail opens the Coordination Panel
+			await zmailPage.click('[data-testid="coordination-panel-button"]');
+			await zmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
 
 			// Then: all ESP vote buttons should be disabled
-			await expect(gmailPage.locator('[data-testid="vote-button-sendwave"]')).toBeDisabled();
-			await expect(gmailPage.locator('[data-testid="vote-button-mailmonkey"]')).toBeDisabled();
-			await expect(gmailPage.locator('[data-testid="vote-button-bluepost"]')).toBeDisabled();
+			await expect(zmailPage.locator('[data-testid="vote-button-sendwave"]')).toBeDisabled();
+			await expect(zmailPage.locator('[data-testid="vote-button-mailmonkey"]')).toBeDisabled();
+			await expect(zmailPage.locator('[data-testid="vote-button-bluepost"]')).toBeDisabled();
 
 			// And: should display "Not enough budget" message
-			await expect(gmailPage.locator('[data-testid="budget-insufficient-message"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="budget-insufficient-message"]')).toBeVisible();
 		});
 	});
 
@@ -257,9 +257,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 	// ============================================================================
 
 	test.describe('Section 2: Investigation Trigger Logic', () => {
-		let gmailPage: Page,
-			outlookPage: Page,
-			yahooPage: Page,
+		let zmailPage: Page,
+			intakePage: Page,
+			yaglePage: Page,
 			sendWavePage: Page,
 			mailMonkeyPage: Page,
 			bluePostPage: Page;
@@ -267,9 +267,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 		test.afterEach(async ({ page }) => {
 			await closePages(
 				page,
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
@@ -283,65 +283,65 @@ test.describe('US-2.7: Coordination Panel', () => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
 			const { roomCode } = result;
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
 			// US-2.7: Capture console logs for destination pages
-			gmailPage.on('console', msg => console.log(`[BROWSER GMAIL] ${msg.text()}`));
-			outlookPage.on('console', msg => console.log(`[BROWSER OUTLOOK] ${msg.text()}`));
-			yahooPage.on('console', msg => console.log(`[BROWSER YAHOO] ${msg.text()}`));
+			zmailPage.on('console', msg => console.log(`[BROWSER zmail] ${msg.text()}`));
+			intakePage.on('console', msg => console.log(`[BROWSER intake] ${msg.text()}`));
+			yaglePage.on('console', msg => console.log(`[BROWSER yagle] ${msg.text()}`));
 
 			// Record initial budgets
-			const gmailBudgetBefore = await extractBudget(gmailPage, 'budget-current');
-			const outlookBudgetBefore = await extractBudget(outlookPage, 'budget-current');
-			const yahooBudgetBefore = await extractBudget(yahooPage, 'budget-current');
+			const zmailBudgetBefore = await extractBudget(zmailPage, 'budget-current');
+			const intakeBudgetBefore = await extractBudget(intakePage, 'budget-current');
+			const yagleBudgetBefore = await extractBudget(yaglePage, 'budget-current');
 
-			// And: Gmail and Outlook vote to investigate BluePost (2/3 threshold met)
-			await castInvestigationVote(gmailPage, roomCode, 'Gmail', 'BluePost');
-			await castInvestigationVote(outlookPage, roomCode, 'Outlook', 'BluePost');
-			// Yahoo abstains
+			// And: zmail and intake vote to investigate BluePost (2/3 threshold met)
+			await castInvestigationVote(zmailPage, roomCode, 'zmail', 'BluePost');
+			await castInvestigationVote(intakePage, roomCode, 'intake', 'BluePost');
+			// yagle abstains
 
 			// When: all players lock in and resolution runs
 			await lockInAllPlayers([
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
 			]);
 
 			// Wait for consequences phase
-			await gmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
+			await zmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
 
 			// Then: investigation should be triggered against BluePost
-			await expect(gmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible({
+			await expect(zmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible({
 				timeout: 10000
 			});
-			await expect(gmailPage.locator('[data-testid="investigation-target"]')).toContainText(
+			await expect(zmailPage.locator('[data-testid="investigation-target"]')).toContainText(
 				'BluePost'
 			);
 
-			// And: Gmail and Outlook should be charged 50 credits each
-			const gmailBudgetAfter = await extractBudget(gmailPage, 'budget-current');
-			const outlookBudgetAfter = await extractBudget(outlookPage, 'budget-current');
-			const yahooBudgetAfter = await extractBudget(yahooPage, 'budget-current');
+			// And: zmail and intake should be charged 50 credits each
+			const zmailBudgetAfter = await extractBudget(zmailPage, 'budget-current');
+			const intakeBudgetAfter = await extractBudget(intakePage, 'budget-current');
+			const yagleBudgetAfter = await extractBudget(yaglePage, 'budget-current');
 
 			// Extract revenue earned by each destination
-			const gmailRevenue = await extractBudget(gmailPage, 'revenue-earned');
-			const outlookRevenue = await extractBudget(outlookPage, 'revenue-earned');
-			const yahooRevenue = await extractBudget(yahooPage, 'revenue-earned');
+			const zmailRevenue = await extractBudget(zmailPage, 'revenue-earned');
+			const intakeRevenue = await extractBudget(intakePage, 'revenue-earned');
+			const yagleRevenue = await extractBudget(yaglePage, 'revenue-earned');
 
 			// Formula: budgetBefore - budgetAfter + revenue = investigation cost (50 for voters, 0 for non-voters)
 			// Voters charged 50 credits
-			expect(gmailBudgetBefore - gmailBudgetAfter + gmailRevenue).toBe(50);
-			expect(outlookBudgetBefore - outlookBudgetAfter + outlookRevenue).toBe(50);
-			// Yahoo didn't vote, not charged
-			expect(yahooBudgetBefore - yahooBudgetAfter + yahooRevenue).toBe(0);
+			expect(zmailBudgetBefore - zmailBudgetAfter + zmailRevenue).toBe(50);
+			expect(intakeBudgetBefore - intakeBudgetAfter + intakeRevenue).toBe(50);
+			// yagle didn't vote, not charged
+			expect(yagleBudgetBefore - yagleBudgetAfter + yagleRevenue).toBe(0);
 		});
 
 		test('Investigation does not trigger without consensus and no credits charged', async ({
@@ -351,51 +351,51 @@ test.describe('US-2.7: Coordination Panel', () => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
 			const { roomCode } = result;
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
 			// Record initial budgets
-			const gmailBudgetBefore = await extractBudget(gmailPage, 'budget-current');
-			const outlookBudgetBefore = await extractBudget(outlookPage, 'budget-current');
+			const zmailBudgetBefore = await extractBudget(zmailPage, 'budget-current');
+			const intakeBudgetBefore = await extractBudget(intakePage, 'budget-current');
 
 			// And: votes are split (no 2/3 consensus)
-			await castInvestigationVote(gmailPage, roomCode, 'Gmail', 'BluePost');
-			await castInvestigationVote(outlookPage, roomCode, 'Outlook', 'SendWave');
-			// Yahoo abstains
+			await castInvestigationVote(zmailPage, roomCode, 'zmail', 'BluePost');
+			await castInvestigationVote(intakePage, roomCode, 'intake', 'SendWave');
+			// yagle abstains
 
 			// When: all players lock in and resolution runs
 			await lockInAllPlayers([
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
 			]);
 
 			// Wait for consequences phase
-			await gmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
+			await zmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
 
 			// Then: no investigation should be triggered
 			await expect(
-				gmailPage.locator('[data-testid="investigation-result-section"]')
+				zmailPage.locator('[data-testid="investigation-result-section"]')
 			).not.toBeVisible();
 
 			// And: no credits should be charged to voters
-			const gmailBudgetAfter = await extractBudget(gmailPage, 'budget-current');
-			const outlookBudgetAfter = await extractBudget(outlookPage, 'budget-current');
+			const zmailBudgetAfter = await extractBudget(zmailPage, 'budget-current');
+			const intakeBudgetAfter = await extractBudget(intakePage, 'budget-current');
 
 			// Extract revenue earned by each destination
-			const gmailRevenue = await extractBudget(gmailPage, 'revenue-earned');
-			const outlookRevenue = await extractBudget(outlookPage, 'revenue-earned');
+			const zmailRevenue = await extractBudget(zmailPage, 'revenue-earned');
+			const intakeRevenue = await extractBudget(intakePage, 'revenue-earned');
 
 			// Formula: budgetBefore - budgetAfter + revenue = 0 (no investigation cost when no consensus)
-			expect(gmailBudgetBefore - gmailBudgetAfter + gmailRevenue).toBe(0);
-			expect(outlookBudgetBefore - outlookBudgetAfter + outlookRevenue).toBe(0);
+			expect(zmailBudgetBefore - zmailBudgetAfter + zmailRevenue).toBe(0);
+			expect(intakeBudgetBefore - intakeBudgetAfter + intakeRevenue).toBe(0);
 		});
 	});
 
@@ -404,9 +404,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 	// ============================================================================
 
 	test.describe('Section 3: Investigation Resolution', () => {
-		let gmailPage: Page,
-			outlookPage: Page,
-			yahooPage: Page,
+		let zmailPage: Page,
+			intakePage: Page,
+			yaglePage: Page,
 			sendWavePage: Page,
 			mailMonkeyPage: Page,
 			bluePostPage: Page;
@@ -414,9 +414,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 		test.afterEach(async ({ page }) => {
 			await closePages(
 				page,
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
@@ -430,9 +430,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
 			const { roomCode } = result;
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
@@ -455,31 +455,31 @@ test.describe('US-2.7: Coordination Panel', () => {
 			);
 			await bluePostPage.waitForTimeout(500);
 
-			// And: Gmail and Outlook vote to investigate BluePost (2/3 threshold met)
-			await castInvestigationVote(gmailPage, roomCode, 'Gmail', 'BluePost');
-			await castInvestigationVote(outlookPage, roomCode, 'Outlook', 'BluePost');
+			// And: zmail and intake vote to investigate BluePost (2/3 threshold met)
+			await castInvestigationVote(zmailPage, roomCode, 'zmail', 'BluePost');
+			await castInvestigationVote(intakePage, roomCode, 'intake', 'BluePost');
 
 			// When: all players lock in and resolution runs
 			await lockInAllPlayers([
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
 			]);
 
 			// Wait for consequences phase
-			await gmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
+			await zmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
 
 			// Then: investigation result should show violation found
-			await expect(gmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible();
-			await expect(gmailPage.locator('[data-testid="investigation-result-message"]')).toContainText(
+			await expect(zmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="investigation-result-message"]')).toContainText(
 				'Bad practices found'
 			);
 
 			// And: the client should be suspended
-			await expect(gmailPage.locator('[data-testid="suspended-client-name"]')).toContainText(
+			await expect(zmailPage.locator('[data-testid="suspended-client-name"]')).toContainText(
 				reEngagementClient.name
 			);
 
@@ -509,35 +509,35 @@ test.describe('US-2.7: Coordination Panel', () => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
 			const { roomCode } = result;
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
 			// BluePost has no acquired clients (empty portfolio = no violations possible)
 
-			// And: Gmail and Outlook vote to investigate BluePost
-			await castInvestigationVote(gmailPage, roomCode, 'Gmail', 'BluePost');
-			await castInvestigationVote(outlookPage, roomCode, 'Outlook', 'BluePost');
+			// And: zmail and intake vote to investigate BluePost
+			await castInvestigationVote(zmailPage, roomCode, 'zmail', 'BluePost');
+			await castInvestigationVote(intakePage, roomCode, 'intake', 'BluePost');
 
 			// When: all players lock in and resolution runs
 			await lockInAllPlayers([
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
 			]);
 
 			// Wait for consequences phase
-			await gmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
+			await zmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
 
 			// Then: investigation result should show "No violations detected"
-			await expect(gmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible();
-			await expect(gmailPage.locator('[data-testid="investigation-result-message"]')).toContainText(
+			await expect(zmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="investigation-result-message"]')).toContainText(
 				'No violations detected'
 			);
 		});
@@ -548,9 +548,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 	// ============================================================================
 
 	test.describe('Section 8: Budget Reservation', () => {
-		let gmailPage: Page,
-			outlookPage: Page,
-			yahooPage: Page,
+		let zmailPage: Page,
+			intakePage: Page,
+			yaglePage: Page,
 			sendWavePage: Page,
 			mailMonkeyPage: Page,
 			bluePostPage: Page;
@@ -558,9 +558,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 		test.afterEach(async ({ page }) => {
 			await closePages(
 				page,
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
@@ -573,69 +573,69 @@ test.describe('US-2.7: Coordination Panel', () => {
 		}) => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
-			// Get Gmail's initial budget
-			const initialBudget = await extractBudget(gmailPage, 'budget-current');
+			// Get zmail's initial budget
+			const initialBudget = await extractBudget(zmailPage, 'budget-current');
 
-			// When: Gmail votes to investigate BluePost via UI
-			await gmailPage.click('[data-testid="coordination-panel-button"]');
-			await gmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
-			await gmailPage.click('[data-testid="vote-button-bluepost"]');
-			await gmailPage.waitForTimeout(500);
+			// When: zmail votes to investigate BluePost via UI
+			await zmailPage.click('[data-testid="coordination-panel-button"]');
+			await zmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
+			await zmailPage.click('[data-testid="vote-button-bluepost"]');
+			await zmailPage.waitForTimeout(500);
 
 			// Close modal to see dashboard
-			await gmailPage.click('[data-testid="close-coordination-panel"]');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.click('[data-testid="close-coordination-panel"]');
+			await zmailPage.waitForTimeout(300);
 
 			// Then: budget display should show available (current - 50 reserved)
 			// Using same pattern as ESP dashboard: budget-current and budget-forecast
-			const displayedBudget = await extractBudget(gmailPage, 'budget-current');
+			const displayedBudget = await extractBudget(zmailPage, 'budget-current');
 			expect(displayedBudget).toBe(initialBudget - 50);
 
 			// And: should show pending costs indicator
-			await expect(gmailPage.locator('[data-testid="pending-costs"]')).toContainText('50');
+			await expect(zmailPage.locator('[data-testid="pending-costs"]')).toContainText('50');
 		});
 
 		test('Vote auto-removed if budget insufficient at lock-in', async ({ page, context }) => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
 			const { roomCode } = result;
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
-			// And: Gmail votes to investigate BluePost (50 credits reserved)
-			await castInvestigationVote(gmailPage, roomCode, 'Gmail', 'BluePost');
+			// And: zmail votes to investigate BluePost (50 credits reserved)
+			await castInvestigationVote(zmailPage, roomCode, 'zmail', 'BluePost');
 
-			// And: Gmail purchases ml_system (500 credits) - now over budget
-			await gmailPage.click('[data-testid="tech-shop-button"]');
-			await gmailPage.waitForSelector('[data-testid="tech-shop-modal"]');
-			await gmailPage.click('[data-tool-id="ml_system"] [data-testid="purchase-button"]');
+			// And: zmail purchases ml_system (500 credits) - now over budget
+			await zmailPage.click('[data-testid="tech-shop-button"]');
+			await zmailPage.waitForSelector('[data-testid="tech-shop-modal"]');
+			await zmailPage.click('[data-tool-id="ml_system"] [data-testid="purchase-button"]');
 			// Confirm the purchase (required for expensive items that spend all budget)
-			await gmailPage.click('[data-testid="confirm-purchase-button"]');
-			await gmailPage.waitForTimeout(500);
-			await gmailPage.click('[data-testid="close-tech-shop"]');
+			await zmailPage.click('[data-testid="confirm-purchase-button"]');
+			await zmailPage.waitForTimeout(500);
+			await zmailPage.click('[data-testid="close-tech-shop"]');
 
-			// When: Gmail attempts to lock in
-			await gmailPage.locator('[data-testid="lock-in-button"]').click();
-			await gmailPage.waitForTimeout(1000);
+			// When: zmail attempts to lock in
+			await zmailPage.locator('[data-testid="lock-in-button"]').click();
+			await zmailPage.waitForTimeout(1000);
 
 			// Then: the investigation vote should be auto-removed
-			const votesAfter = await getInvestigationVotes(gmailPage, roomCode, 'Gmail');
+			const votesAfter = await getInvestigationVotes(zmailPage, roomCode, 'zmail');
 			expect(votesAfter.myVote).toBeNull();
 
-			// And: Gmail should see notification about vote removal
-			await expect(gmailPage.locator('[data-testid="auto-correction-message"]')).toBeVisible();
-			await expect(gmailPage.locator('[data-testid="auto-correction-message"]')).toContainText(
+			// And: zmail should see notification about vote removal
+			await expect(zmailPage.locator('[data-testid="auto-correction-message"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="auto-correction-message"]')).toContainText(
 				'investigation vote'
 			);
 		});
@@ -646,9 +646,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 	// ============================================================================
 
 	test.describe('Section 9: Phase Restrictions', () => {
-		let gmailPage: Page,
-			outlookPage: Page,
-			yahooPage: Page,
+		let zmailPage: Page,
+			intakePage: Page,
+			yaglePage: Page,
 			sendWavePage: Page,
 			mailMonkeyPage: Page,
 			bluePostPage: Page;
@@ -656,9 +656,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 		test.afterEach(async ({ page }) => {
 			await closePages(
 				page,
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
@@ -669,29 +669,29 @@ test.describe('US-2.7: Coordination Panel', () => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
 			const { roomCode } = result;
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
-			// And: Gmail has locked in their decisions
-			await gmailPage.locator('[data-testid="lock-in-button"]').click();
-			await gmailPage.waitForTimeout(500);
+			// And: zmail has locked in their decisions
+			await zmailPage.locator('[data-testid="lock-in-button"]').click();
+			await zmailPage.waitForTimeout(500);
 
-			// When: Gmail opens the Coordination Panel
-			await gmailPage.click('[data-testid="coordination-panel-button"]');
-			await gmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
+			// When: zmail opens the Coordination Panel
+			await zmailPage.click('[data-testid="coordination-panel-button"]');
+			await zmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
 
 			// Then: the voting controls should be disabled
-			await expect(gmailPage.locator('[data-testid="view-only-banner"]')).toBeVisible();
-			await expect(gmailPage.locator('[data-testid="vote-button-sendwave"]')).toBeDisabled();
-			await expect(gmailPage.locator('[data-testid="vote-button-mailmonkey"]')).toBeDisabled();
-			await expect(gmailPage.locator('[data-testid="vote-button-bluepost"]')).toBeDisabled();
+			await expect(zmailPage.locator('[data-testid="view-only-banner"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="vote-button-sendwave"]')).toBeDisabled();
+			await expect(zmailPage.locator('[data-testid="vote-button-mailmonkey"]')).toBeDisabled();
+			await expect(zmailPage.locator('[data-testid="vote-button-bluepost"]')).toBeDisabled();
 
 			// And: attempting to vote via API should fail
-			const voteResult = await castInvestigationVote(gmailPage, roomCode, 'Gmail', 'BluePost');
+			const voteResult = await castInvestigationVote(zmailPage, roomCode, 'zmail', 'BluePost');
 			expect(voteResult.success).toBe(false);
 			expect(voteResult.error).toContain('Cannot vote after locking in');
 		});
@@ -702,9 +702,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 	// ============================================================================
 
 	test.describe('Section 5 & 6: Investigation Results Display', () => {
-		let gmailPage: Page,
-			outlookPage: Page,
-			yahooPage: Page,
+		let zmailPage: Page,
+			intakePage: Page,
+			yaglePage: Page,
 			sendWavePage: Page,
 			mailMonkeyPage: Page,
 			bluePostPage: Page;
@@ -712,9 +712,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 		test.afterEach(async ({ page }) => {
 			await closePages(
 				page,
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
@@ -728,44 +728,44 @@ test.describe('US-2.7: Coordination Panel', () => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
 			const { roomCode } = result;
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
-			// And: Gmail and Outlook vote to investigate BluePost
-			await castInvestigationVote(gmailPage, roomCode, 'Gmail', 'BluePost');
-			await castInvestigationVote(outlookPage, roomCode, 'Outlook', 'BluePost');
+			// And: zmail and intake vote to investigate BluePost
+			await castInvestigationVote(zmailPage, roomCode, 'zmail', 'BluePost');
+			await castInvestigationVote(intakePage, roomCode, 'intake', 'BluePost');
 
 			// When: all players lock in
 			await lockInAllPlayers([
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
 			]);
 
 			// Wait for consequences phase on all pages
-			await gmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
-			await outlookPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
-			await yahooPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
+			await zmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
+			await intakePage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
+			await yaglePage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
 			await bluePostPage.waitForSelector('[data-testid="esp-consequences"]', { timeout: 15000 });
 			await sendWavePage.waitForSelector('[data-testid="esp-consequences"]', { timeout: 15000 });
 
 			// Then: all destinations should see investigation results
-			await expect(gmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="investigation-result-section"]')).toBeVisible();
 			await expect(
-				outlookPage.locator('[data-testid="investigation-result-section"]')
+				intakePage.locator('[data-testid="investigation-result-section"]')
 			).toBeVisible();
-			// Yahoo didn't vote but should still see results
-			await expect(yahooPage.locator('[data-testid="investigation-result-section"]')).toBeVisible();
+			// yagle didn't vote but should still see results
+			await expect(yaglePage.locator('[data-testid="investigation-result-section"]')).toBeVisible();
 
 			// And: results should show the target ESP
-			await expect(gmailPage.locator('[data-testid="investigation-target"]')).toContainText(
+			await expect(zmailPage.locator('[data-testid="investigation-target"]')).toContainText(
 				'BluePost'
 			);
 
@@ -785,9 +785,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 	// ============================================================================
 
 	test.describe('Section 7: Investigation History', () => {
-		let gmailPage: Page,
-			outlookPage: Page,
-			yahooPage: Page,
+		let zmailPage: Page,
+			intakePage: Page,
+			yaglePage: Page,
 			sendWavePage: Page,
 			mailMonkeyPage: Page,
 			bluePostPage: Page;
@@ -795,9 +795,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 		test.afterEach(async ({ page }) => {
 			await closePages(
 				page,
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
@@ -808,49 +808,49 @@ test.describe('US-2.7: Coordination Panel', () => {
 			// Given: a game with 3 destinations and 3 ESPs
 			const result = await createGameWith3DestinationsAnd3ESPs(page, context);
 			const { roomCode } = result;
-			gmailPage = result.gmailPage;
-			outlookPage = result.outlookPage;
-			yahooPage = result.yahooPage;
+			zmailPage = result.zmailPage;
+			intakePage = result.intakePage;
+			yaglePage = result.yaglePage;
 			sendWavePage = result.sendWavePage;
 			mailMonkeyPage = result.mailMonkeyPage;
 			bluePostPage = result.bluePostPage;
 
-			// And: Gmail voted to investigate BluePost in round 1 (but not triggered - only 1 vote)
-			await castInvestigationVote(gmailPage, roomCode, 'Gmail', 'BluePost');
+			// And: zmail voted to investigate BluePost in round 1 (but not triggered - only 1 vote)
+			await castInvestigationVote(zmailPage, roomCode, 'zmail', 'BluePost');
 
 			// Verify vote is active
-			const votesBefore = await getInvestigationVotes(gmailPage, roomCode, 'Gmail');
+			const votesBefore = await getInvestigationVotes(zmailPage, roomCode, 'zmail');
 			expect(votesBefore.myVote).toBe('BluePost');
 
 			// Lock in all players (no investigation triggers - only 1 vote)
 			await lockInAllPlayers([
-				gmailPage,
-				outlookPage,
-				yahooPage,
+				zmailPage,
+				intakePage,
+				yaglePage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage
 			]);
 
 			// Wait for consequences phase
-			await gmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
+			await zmailPage.waitForSelector('[data-testid="consequences-header"]', { timeout: 15000 });
 
 			// Start next round (facilitator)
 			await page.click('[data-testid="start-next-round-button"]');
-			await gmailPage.waitForTimeout(2000);
+			await zmailPage.waitForTimeout(2000);
 
 			// When: Round 2 planning phase begins
-			// Then: Gmail should have no active vote
-			const votesAfter = await getInvestigationVotes(gmailPage, roomCode, 'Gmail');
+			// Then: zmail should have no active vote
+			const votesAfter = await getInvestigationVotes(zmailPage, roomCode, 'zmail');
 			expect(votesAfter.myVote).toBeNull();
 
 			// And: when opening the Coordination Panel, all ESP targets should show "0/3 votes"
-			await gmailPage.click('[data-testid="coordination-panel-button"]');
-			await gmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
+			await zmailPage.click('[data-testid="coordination-panel-button"]');
+			await zmailPage.waitForSelector('[data-testid="coordination-panel-modal"]');
 
-			await expect(gmailPage.locator('[data-testid="vote-count-sendwave"]')).toContainText('0/3');
-			await expect(gmailPage.locator('[data-testid="vote-count-mailmonkey"]')).toContainText('0/3');
-			await expect(gmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('0/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-sendwave"]')).toContainText('0/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-mailmonkey"]')).toContainText('0/3');
+			await expect(zmailPage.locator('[data-testid="vote-count-bluepost"]')).toContainText('0/3');
 		});
 	});
 });

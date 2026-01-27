@@ -69,7 +69,7 @@ describe('Resolution Phase Handler', () => {
 					clients: [],
 					technical_stack: [],
 					credits: 1000,
-					reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
+					reputation: { zmail: 70, intake: 70, yagle: 70 },
 					active_clients: [],
 					owned_tech_upgrades: [],
 					round_history: [],
@@ -83,7 +83,7 @@ describe('Resolution Phase Handler', () => {
 					clients: [],
 					technical_stack: [],
 					credits: 1200,
-					reputation: { Gmail: 75, Outlook: 72, Yahoo: 68 },
+					reputation: { zmail: 75, intake: 72, yagle: 68 },
 					active_clients: [],
 					owned_tech_upgrades: [],
 					round_history: [],
@@ -93,24 +93,24 @@ describe('Resolution Phase Handler', () => {
 			],
 			destinations: [
 				{
-					name: 'Gmail',
-					kingdom: 'Inbox',
+					name: 'zmail',
+					kingdom: 'zmail',
 					players: [],
 					budget: 500,
 					owned_tools: ['content_analysis_filter'],
 					esp_metrics: { SendWave: { user_satisfaction: 80, spam_level: 5 } }
 				},
 				{
-					name: 'Outlook',
-					kingdom: 'Inbox',
+					name: 'intake',
+					kingdom: 'intake',
 					players: [],
 					budget: 500,
 					owned_tools: [],
 					esp_metrics: {}
 				},
 				{
-					name: 'Yahoo',
-					kingdom: 'Inbox',
+					name: 'yagle',
+					kingdom: 'yagle',
 					players: [],
 					budget: 500,
 					owned_tools: [],
@@ -131,14 +131,14 @@ describe('Resolution Phase Handler', () => {
 					teamName: 'SendWave',
 					totalRevenue: 500,
 					totalVolume: 10000,
-					reputationChanges: { Gmail: 2, Outlook: 1, Yahoo: 0 },
+					reputationChanges: { zmail: 2, intake: 1, yagle: 0 },
 					clientResults: []
 				},
 				MailMonkey: {
 					teamName: 'MailMonkey',
 					totalRevenue: 600,
 					totalVolume: 12000,
-					reputationChanges: { Gmail: 1, Outlook: 2, Yahoo: 1 },
+					reputationChanges: { zmail: 1, intake: 2, yagle: 1 },
 					clientResults: []
 				}
 			}
@@ -304,7 +304,7 @@ describe('Resolution Phase Handler', () => {
 				type: 'esp_dashboard_update',
 				teamName: 'SendWave',
 				credits: 1000,
-				reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 }
+				reputation: { zmail: 70, intake: 70, yagle: 70 }
 			});
 
 			// Should broadcast for MailMonkey
@@ -312,7 +312,7 @@ describe('Resolution Phase Handler', () => {
 				type: 'esp_dashboard_update',
 				teamName: 'MailMonkey',
 				credits: 1200,
-				reputation: { Gmail: 75, Outlook: 72, Yahoo: 68 }
+				reputation: { zmail: 75, intake: 72, yagle: 68 }
 			});
 		});
 
@@ -322,28 +322,28 @@ describe('Resolution Phase Handler', () => {
 
 			await vi.runAllTimersAsync();
 
-			// Should broadcast for Gmail with proper data
+			// Should broadcast for zmail with proper data
 			expect(mockBroadcast).toHaveBeenCalledWith('TEST01', {
 				type: 'destination_dashboard_update',
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				budget: 500,
 				owned_tools: ['content_analysis_filter'],
 				esp_metrics: { SendWave: { user_satisfaction: 80, spam_level: 5 } }
 			});
 
-			// Should broadcast for Outlook
+			// Should broadcast for intake
 			expect(mockBroadcast).toHaveBeenCalledWith('TEST01', {
 				type: 'destination_dashboard_update',
-				destinationName: 'Outlook',
+				destinationName: 'intake',
 				budget: 500,
 				owned_tools: [],
 				esp_metrics: {}
 			});
 
-			// Should broadcast for Yahoo
+			// Should broadcast for yagle
 			expect(mockBroadcast).toHaveBeenCalledWith('TEST01', {
 				type: 'destination_dashboard_update',
-				destinationName: 'Yahoo',
+				destinationName: 'yagle',
 				budget: 500,
 				owned_tools: [],
 				esp_metrics: {}

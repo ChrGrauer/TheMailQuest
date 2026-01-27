@@ -13,7 +13,7 @@ export const DestinationToolState = {
 	// Unique destination identifier
 	destination_id: String,
 
-	// Kingdom type (gmail, outlook, yahoo)
+	// Kingdom type (zmail, intake, yagle)
 	kingdom: String,
 
 	// Current authentication level (0-3)
@@ -54,9 +54,9 @@ export const DestinationToolState = {
  * Example destination state
  */
 export const ExampleDestinationState = {
-	gmail_destination: {
-		destination_id: 'dest_gmail_001',
-		kingdom: 'gmail',
+	zmail_destination: {
+		destination_id: 'dest_zmail_001',
+		kingdom: 'zmail',
 		authentication_level: 2,
 		owned_tools: {
 			content_analysis: {
@@ -92,9 +92,9 @@ export const ExampleDestinationState = {
 		last_updated: '2025-10-31T10:30:00Z'
 	},
 
-	outlook_destination: {
-		destination_id: 'dest_outlook_001',
-		kingdom: 'outlook',
+	intake_destination: {
+		destination_id: 'dest_intake_001',
+		kingdom: 'intake',
 		authentication_level: 3,
 		owned_tools: {
 			auth_validator_l1: {
@@ -139,9 +139,9 @@ export const ExampleDestinationState = {
 		last_updated: '2025-10-31T10:30:00Z'
 	},
 
-	yahoo_destination: {
-		destination_id: 'dest_yahoo_001',
-		kingdom: 'yahoo',
+	yagle_destination: {
+		destination_id: 'dest_yagle_001',
+		kingdom: 'yagle',
 		authentication_level: 1,
 		owned_tools: {
 			content_analysis: {

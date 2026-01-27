@@ -155,7 +155,7 @@ describe('Room Validator', () => {
 
 		test('should validate Destination names', () => {
 			const session = createGameSession();
-			const destNames = ['Gmail', 'Outlook', 'Yahoo'];
+			const destNames = ['zmail', 'intake', 'yagle'];
 
 			destNames.forEach((destName) => {
 				const isValid = isValidTeamName(session, 'Destination', destName);
@@ -165,7 +165,7 @@ describe('Room Validator', () => {
 
 		test('should reject invalid ESP team name', () => {
 			const session = createGameSession();
-			const invalidNames = ['InvalidTeam', 'Gmail', 'RandomName', ''];
+			const invalidNames = ['InvalidTeam', 'zmail', 'RandomName', ''];
 
 			invalidNames.forEach((teamName) => {
 				const isValid = isValidTeamName(session, 'ESP', teamName);
@@ -199,12 +199,12 @@ describe('Room Validator', () => {
 			const session = createGameSession();
 
 			// Correct case
-			expect(isValidTeamName(session, 'Destination', 'Gmail')).toBe(true);
+			expect(isValidTeamName(session, 'Destination', 'zmail')).toBe(true);
 
 			// Wrong case
-			expect(isValidTeamName(session, 'Destination', 'gmail')).toBe(false);
-			expect(isValidTeamName(session, 'Destination', 'GMAIL')).toBe(false);
-			expect(isValidTeamName(session, 'Destination', 'gMail')).toBe(false);
+			expect(isValidTeamName(session, 'Destination', 'Zmail')).toBe(false);
+			expect(isValidTeamName(session, 'Destination', 'ZMAIL')).toBe(false);
+			expect(isValidTeamName(session, 'Destination', 'zMail')).toBe(false);
 		});
 
 		test('should not accept ESP name as Destination', () => {
@@ -217,8 +217,8 @@ describe('Room Validator', () => {
 		test('should not accept Destination name as ESP', () => {
 			const session = createGameSession();
 
-			expect(isValidTeamName(session, 'ESP', 'Gmail')).toBe(false);
-			expect(isValidTeamName(session, 'ESP', 'Outlook')).toBe(false);
+			expect(isValidTeamName(session, 'ESP', 'zmail')).toBe(false);
+			expect(isValidTeamName(session, 'ESP', 'intake')).toBe(false);
 		});
 	});
 });

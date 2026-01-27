@@ -21,7 +21,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -36,8 +36,8 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			});
 
 			expect(result.volumeWeightedClientImpact).toBe(2);
-			expect(result.perDestination['Gmail'].clientImpact).toBe(2);
-			expect(result.perDestination['Gmail'].totalChange).toBe(2); // Tech (0) + Client (2)
+			expect(result.perDestination['zmail'].clientImpact).toBe(2);
+			expect(result.perDestination['zmail'].totalChange).toBe(2); // Tech (0) + Client (2)
 		});
 
 		test('single Medium risk client: -1 reputation', () => {
@@ -49,7 +49,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -64,8 +64,8 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			});
 
 			expect(result.volumeWeightedClientImpact).toBe(-1);
-			expect(result.perDestination['Gmail'].clientImpact).toBe(-1);
-			expect(result.perDestination['Gmail'].totalChange).toBe(-1);
+			expect(result.perDestination['zmail'].clientImpact).toBe(-1);
+			expect(result.perDestination['zmail'].totalChange).toBe(-1);
 		});
 
 		test('single High risk client: -4 reputation', () => {
@@ -77,7 +77,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -92,8 +92,8 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			});
 
 			expect(result.volumeWeightedClientImpact).toBe(-4);
-			expect(result.perDestination['Gmail'].clientImpact).toBe(-4);
-			expect(result.perDestination['Gmail'].totalChange).toBe(-4);
+			expect(result.perDestination['zmail'].clientImpact).toBe(-4);
+			expect(result.perDestination['zmail'].totalChange).toBe(-4);
 		});
 	});
 
@@ -112,7 +112,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [premium, aggressive],
 				clientStates: {
 					'client-1': {
@@ -134,7 +134,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			// Calculation: (30K × +2 + 80K × -4) / 110K = (60000 - 320000) / 110000 = -2.36...
 			expect(result.volumeWeightedClientImpact).toBeCloseTo(-2.36, 2);
-			expect(result.perDestination['Gmail'].clientImpact).toBeCloseTo(-2.36, 2);
+			expect(result.perDestination['zmail'].clientImpact).toBeCloseTo(-2.36, 2);
 		});
 
 		test('premium_brand (30K) + re_engagement (50K High) = -1.75', () => {
@@ -151,7 +151,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [premium, reengagement],
 				clientStates: {
 					'client-1': {
@@ -173,7 +173,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			// Calculation: (30K × +2 + 50K × -4) / 80K = (60000 - 200000) / 80000 = -1.75
 			expect(result.volumeWeightedClientImpact).toBe(-1.75);
-			expect(result.perDestination['Gmail'].clientImpact).toBe(-1.75);
+			expect(result.perDestination['zmail'].clientImpact).toBe(-1.75);
 		});
 
 		test('three Medium risk clients: -1 reputation', () => {
@@ -192,7 +192,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client1, client2, client3],
 				clientStates: {
 					'client-1': {
@@ -233,7 +233,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim', 'dmarc'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -247,9 +247,9 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(10);
-			expect(result.perDestination['Gmail'].clientImpact).toBe(2);
-			expect(result.perDestination['Gmail'].totalChange).toBe(12);
+			expect(result.perDestination['zmail'].techBonus).toBe(10);
+			expect(result.perDestination['zmail'].clientImpact).toBe(2);
+			expect(result.perDestination['zmail'].totalChange).toBe(12);
 		});
 
 		test('SPF+DKIM (+5) + mixed portfolio (-2.36) = +2.64 total', () => {
@@ -266,7 +266,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [premium, aggressive],
 				clientStates: {
 					'client-1': {
@@ -286,9 +286,9 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].techBonus).toBe(5);
-			expect(result.perDestination['Gmail'].clientImpact).toBeCloseTo(-2.36, 2);
-			expect(result.perDestination['Gmail'].totalChange).toBeCloseTo(2.64, 2);
+			expect(result.perDestination['zmail'].techBonus).toBe(5);
+			expect(result.perDestination['zmail'].clientImpact).toBeCloseTo(-2.36, 2);
+			expect(result.perDestination['zmail'].totalChange).toBeCloseTo(2.64, 2);
 		});
 
 		test('no auth + 3 High risk clients = -4 reputation disaster', () => {
@@ -307,7 +307,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client1, client2, client3],
 				clientStates: {
 					'client-1': {
@@ -335,7 +335,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			// All High risk: -4 impact regardless of volume distribution
 			expect(result.volumeWeightedClientImpact).toBe(-4);
-			expect(result.perDestination['Gmail'].totalChange).toBe(-4);
+			expect(result.perDestination['zmail'].totalChange).toBe(-4);
 		});
 	});
 
@@ -354,7 +354,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
-				destinations: ['Gmail', 'Outlook', 'Yahoo'],
+				destinations: ['zmail', 'intake', 'yagle'],
 				clients: [premium, aggressive],
 				clientStates: {
 					'client-1': {
@@ -375,14 +375,14 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			});
 
 			// All destinations get same client impact
-			expect(result.perDestination['Gmail'].clientImpact).toBeCloseTo(-2.36, 2);
-			expect(result.perDestination['Outlook'].clientImpact).toBeCloseTo(-2.36, 2);
-			expect(result.perDestination['Yahoo'].clientImpact).toBeCloseTo(-2.36, 2);
+			expect(result.perDestination['zmail'].clientImpact).toBeCloseTo(-2.36, 2);
+			expect(result.perDestination['intake'].clientImpact).toBeCloseTo(-2.36, 2);
+			expect(result.perDestination['yagle'].clientImpact).toBeCloseTo(-2.36, 2);
 
 			// All destinations get same total (tech 2 + client -2.36)
-			expect(result.perDestination['Gmail'].totalChange).toBeCloseTo(-0.36, 2);
-			expect(result.perDestination['Outlook'].totalChange).toBeCloseTo(-0.36, 2);
-			expect(result.perDestination['Yahoo'].totalChange).toBeCloseTo(-0.36, 2);
+			expect(result.perDestination['zmail'].totalChange).toBeCloseTo(-0.36, 2);
+			expect(result.perDestination['intake'].totalChange).toBeCloseTo(-0.36, 2);
+			expect(result.perDestination['yagle'].totalChange).toBeCloseTo(-0.36, 2);
 		});
 	});
 
@@ -396,7 +396,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: ['spf', 'dkim'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -410,7 +410,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].breakdown).toEqual([
+			expect(result.perDestination['zmail'].breakdown).toEqual([
 				{ source: 'Authentication Tech', value: 5 },
 				{ source: 'Client Risk', value: 2 },
 				{ source: 'Warmup Bonus', value: 0 }
@@ -426,7 +426,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					[client.id]: {
@@ -440,7 +440,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 				currentRound: 1
 			});
 
-			expect(result.perDestination['Gmail'].breakdown).toEqual([
+			expect(result.perDestination['zmail'].breakdown).toEqual([
 				{ source: 'Authentication Tech', value: 0 },
 				{ source: 'Client Risk', value: -4 },
 				{ source: 'Warmup Bonus', value: 0 }
@@ -454,7 +454,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: ['spf'],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [],
 				clientStates: {},
 				volumeData,
@@ -462,8 +462,8 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 			});
 
 			expect(result.volumeWeightedClientImpact).toBe(0);
-			expect(result.perDestination['Gmail'].clientImpact).toBe(0);
-			expect(result.perDestination['Gmail'].totalChange).toBe(2); // Only tech bonus
+			expect(result.perDestination['zmail'].clientImpact).toBe(0);
+			expect(result.perDestination['zmail'].totalChange).toBe(2); // Only tech bonus
 		});
 
 		test('paused client excluded from calculation', () => {
@@ -477,7 +477,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [activeClient, pausedClient],
 				clientStates: {
 					'client-1': {
@@ -519,7 +519,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			const result = calculateReputationChanges({
 				techStack: [],
-				destinations: ['Gmail'],
+				destinations: ['zmail'],
 				clients: [client],
 				clientStates: {
 					'client-1': {
@@ -537,7 +537,7 @@ describe('Reputation Calculator - Iteration 4: Client Risk Impact', () => {
 
 			// Impact calculated using adjusted volume (15K), not base volume
 			expect(result.volumeWeightedClientImpact).toBe(2); // Still +2 for Low risk
-			expect(result.perDestination['Gmail'].clientImpact).toBe(2);
+			expect(result.perDestination['zmail'].clientImpact).toBe(2);
 		});
 	});
 });

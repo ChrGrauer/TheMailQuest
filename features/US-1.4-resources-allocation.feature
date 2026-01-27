@@ -41,9 +41,9 @@ Feature: Resources Allocation and Game Start
   Scenario: Destinations receive starting resources
     Given 3 Destination players have joined the game:
       | Destination | Player Name | Budget |
-      | Gmail       | Grace       | 500    |
-      | Outlook     | Henry       | 350    |
-      | Yahoo       | Iris        | 200    |
+      | zmail       | Grace       | 500    |
+      | intake     | Henry       | 350    |
+      | yagle       | Iris        | 200    |
     When the resource allocation process starts
     Then each destination should receive their specific budget
     And each destination state should be initialized with:
@@ -92,10 +92,10 @@ Feature: Resources Allocation and Game Start
     Then player "Alice" should be automatically redirected to "/game/ABC123/esp/sendwave"
 
   Scenario: Destination player redirects to Destination dashboard
-    Given player "Grace" is a Destination player for "Gmail"
+    Given player "Grace" is a Destination player for "zmail"
     And the resource allocation has completed
     When the game transitions to Planning Phase
-    Then player "Grace" should be automatically redirected to "/game/ABC123/destination/gmail"
+    Then player "Grace" should be automatically redirected to "/game/ABC123/destination/zmail"
 
   Scenario: Facilitator redirects to facilitator dashboard
     Given the facilitator is on the lobby page
@@ -165,11 +165,11 @@ Feature: Resources Allocation and Game Start
       | Parameter            | Custom Value |
       | ESP Starting Credits | 1200         |
       | ESP Reputation       | 80           |
-      | Gmail Budget         | 600          |
+      | zmail Budget         | 600          |
     When the resource allocation process starts
     Then ESP teams should receive starting credits of 1200
     And ESP teams should receive starting reputation of 80
-    And Gmail should receive budget of 600
+    And zmail should receive budget of 600
 
   Scenario: No destinations joined the game
     Given only ESP teams have joined the game
@@ -215,7 +215,7 @@ Feature: Resources Allocation and Game Start
       | log entry                                  |
       | Resource allocation started for room ABC123|
       | Allocated 1000 credits to ESP team SendWave|
-      | Allocated 500 credits to destination Gmail |
+      | Allocated 500 credits to destination zmail |
       | Game transitioned to phase: planning       |
       | Resource allocation completed successfully |
     And the total allocation time should be logged
@@ -327,9 +327,9 @@ Feature: Resources Allocation and Game Start
   #   - Reputation: 70 (per destination)
   #
   # Destinations:
-  #   - Gmail: 500 credits
-  #   - Outlook: 350 credits
-  #   - Yahoo: 200 credits
+  #   - zmail: 500 credits
+  #   - intake: 350 credits
+  #   - yagle: 200 credits
   #
   # Timer Configuration:
   #   - Planning Phase: 5 minutes (300 seconds)

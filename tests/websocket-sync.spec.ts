@@ -77,7 +77,7 @@ test.describe('Feature: WebSocket Synchronization', () => {
 			await expect(alicePage.locator('text=ESP Teams: 1/5')).toBeVisible();
 
 			// When: Bob joins as Destination
-			const bobPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'Gmail');
+			const bobPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'zmail');
 			await page.waitForTimeout(500);
 
 			// Then: All clients see both counters updated

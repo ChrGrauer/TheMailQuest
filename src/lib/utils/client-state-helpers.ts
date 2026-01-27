@@ -21,7 +21,7 @@ export function hasWarmup(clientState: ClientState): boolean {
  * List hygiene creates both volume and spam trap modifiers with source: 'list_hygiene'
  */
 export function hasListHygiene(clientState: ClientState): boolean {
-	return clientState.volumeModifiers.some((m) => m.source === 'listHygiene');
+	return clientState.volumeModifiers.some((m) => m.source === 'list_hygiene');
 }
 
 /**

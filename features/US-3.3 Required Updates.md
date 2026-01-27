@@ -36,7 +36,7 @@ And base revenue should be 530 (excludes paused)
 
 **Current:**
 ```gherkin
-Given ESP "SendWave" has reputation 55 at Gmail (Poor zone)
+Given ESP "SendWave" has reputation 55 at zmail (Poor zone)
 And ESP has 2 active clients (300 total base revenue)
 When resolution phase calculates
 Then delivery success should be 50%
@@ -49,7 +49,7 @@ And actual revenue should be 150 (300 × 0.50)
 
 Option A - Keep reputation 55, fix zone:
 ```gherkin
-Given ESP "SendWave" has reputation 55 at Gmail (Warning zone)
+Given ESP "SendWave" has reputation 55 at zmail (Warning zone)
 And ESP has 2 active clients (300 total base revenue)
 When resolution phase calculates
 Then delivery success should be 70%
@@ -58,7 +58,7 @@ And actual revenue should be 210 (300 × 0.70)
 
 Option B - Keep Poor zone, fix reputation:
 ```gherkin
-Given ESP "SendWave" has reputation 40 at Gmail (Poor zone)
+Given ESP "SendWave" has reputation 40 at zmail (Poor zone)
 And ESP has 2 active clients (300 total base revenue)
 When resolution phase calculates
 Then delivery success should be 50%
@@ -465,7 +465,7 @@ All clarification questions have been answered and implemented:
 - Config updated in client-onboarding.ts
 - US 3.3 line 261 clarified
 - Constant added: `WARMUP_REPUTATION_BONUS = 2`
-- Example: If ESP sends to Gmail, Outlook, Yahoo, each gets +2 reputation
+- Example: If ESP sends to zmail, intake, yagle, each gets +2 reputation
 
 ---
 

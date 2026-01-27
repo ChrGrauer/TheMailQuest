@@ -30,7 +30,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			clients: [],
 			technical_stack: [],
 			credits: 1000,
-			reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
+			reputation: { zmail: 70, intake: 70, yagle: 70 },
 			active_clients: [],
 			owned_tech_upgrades: ['spf', 'dkim'],
 			round_history: [],
@@ -59,7 +59,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 	function createTestDestinations(): Destination[] {
 		return [
 			{
-				name: 'Gmail',
+				name: 'zmail',
 				players: [],
 				budget: 500,
 				filtering_policies: {},
@@ -67,7 +67,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 				user_satisfaction: 100
 			},
 			{
-				name: 'Outlook',
+				name: 'intake',
 				players: [],
 				budget: 350,
 				filtering_policies: {},
@@ -75,7 +75,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 				user_satisfaction: 100
 			},
 			{
-				name: 'Yahoo',
+				name: 'yagle',
 				players: [],
 				budget: 200,
 				filtering_policies: {},
@@ -87,9 +87,9 @@ describe('Feature: Client Marketplace - Validation', () => {
 
 	describe('Scenario: Calculate overall reputation (weighted average)', () => {
 		test('Given reputation scores and destination weights, When calculating, Then weighted average is correct', () => {
-			// Given - Gmail 50%, Outlook 30%, Yahoo 20%
+			// Given - zmail 50%, intake 30%, yagle 20%
 			const destinations = createTestDestinations();
-			const reputation = { Gmail: 90, Outlook: 80, Yahoo: 70 };
+			const reputation = { zmail: 90, intake: 80, yagle: 70 };
 
 			// When
 			const overall = calculateOverallReputation(reputation, destinations);
@@ -101,7 +101,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 		test('Given equal reputation scores, When calculating, Then result equals that score', () => {
 			// Given
 			const destinations = createTestDestinations();
-			const reputation = { Gmail: 75, Outlook: 75, Yahoo: 75 };
+			const reputation = { zmail: 75, intake: 75, yagle: 75 };
 
 			// When
 			const overall = calculateOverallReputation(reputation, destinations);
@@ -113,7 +113,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 		test('Given reputation scores, When calculating, Then result is rounded to nearest integer', () => {
 			// Given
 			const destinations = createTestDestinations();
-			const reputation = { Gmail: 85, Outlook: 72, Yahoo: 58 };
+			const reputation = { zmail: 85, intake: 72, yagle: 58 };
 
 			// When
 			const overall = calculateOverallReputation(reputation, destinations);
@@ -163,7 +163,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			const team = createTestTeam({
 				credits: 500,
 				owned_tech_upgrades: ['spf', 'dkim', 'dmarc'],
-				reputation: { Gmail: 90, Outlook: 85, Yahoo: 85 } // Overall = 87.5 → 88
+				reputation: { zmail: 90, intake: 85, yagle: 85 } // Overall = 87.5 → 88
 			});
 			const premiumClient = createTestClient({
 				type: 'premium_brand',
@@ -192,7 +192,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			const team = createTestTeam({
 				credits: 500,
 				owned_tech_upgrades: ['spf', 'dkim'], // Missing DMARC
-				reputation: { Gmail: 90, Outlook: 85, Yahoo: 85 }
+				reputation: { zmail: 90, intake: 85, yagle: 85 }
 			});
 			const premiumClient = createTestClient({
 				type: 'premium_brand',
@@ -221,7 +221,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			const team = createTestTeam({
 				credits: 500,
 				owned_tech_upgrades: [], // No tech
-				reputation: { Gmail: 90, Outlook: 85, Yahoo: 85 }
+				reputation: { zmail: 90, intake: 85, yagle: 85 }
 			});
 			const premiumClient = createTestClient({
 				type: 'premium_brand',
@@ -250,7 +250,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			const team = createTestTeam({
 				credits: 500,
 				owned_tech_upgrades: ['spf', 'dkim', 'dmarc'],
-				reputation: { Gmail: 82, Outlook: 78, Yahoo: 76 } // Overall = 80
+				reputation: { zmail: 82, intake: 78, yagle: 76 } // Overall = 80
 			});
 			const premiumClient = createTestClient({
 				type: 'premium_brand',
@@ -274,11 +274,11 @@ describe('Feature: Client Marketplace - Validation', () => {
 		});
 
 		test('Given team with reputation exactly 85, When validating premium client requiring 85, Then acquisition is allowed', () => {
-			// Given - Calculate exact 85: Gmail=85, Outlook=85, Yahoo=85
+			// Given - Calculate exact 85: zmail=85, intake=85, yagle=85
 			const team = createTestTeam({
 				credits: 500,
 				owned_tech_upgrades: ['spf', 'dkim', 'dmarc'],
-				reputation: { Gmail: 85, Outlook: 85, Yahoo: 85 } // Overall = 85
+				reputation: { zmail: 85, intake: 85, yagle: 85 } // Overall = 85
 			});
 			const premiumClient = createTestClient({
 				type: 'premium_brand',
@@ -355,7 +355,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			const team = createTestTeam({
 				credits: 500,
 				owned_tech_upgrades: ['spf'], // Missing DKIM and DMARC
-				reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 } // Overall = 70 (insufficient)
+				reputation: { zmail: 70, intake: 70, yagle: 70 } // Overall = 70 (insufficient)
 			});
 			const premiumClient = createTestClient({
 				type: 'premium_brand',
@@ -383,7 +383,7 @@ describe('Feature: Client Marketplace - Validation', () => {
 			const team = createTestTeam({
 				credits: 500,
 				owned_tech_upgrades: [], // No tech
-				reputation: { Gmail: 50, Outlook: 50, Yahoo: 50 } // Low reputation
+				reputation: { zmail: 50, intake: 50, yagle: 50 } // Low reputation
 			});
 			const growingStartupClient = createTestClient({
 				type: 'growing_startup',

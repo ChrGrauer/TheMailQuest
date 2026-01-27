@@ -116,7 +116,7 @@ describe('US-2.6.1: Filtering Policy Manager', () => {
 
 		beforeEach(() => {
 			destination = {
-				name: 'Gmail',
+				name: 'zmail',
 				players: ['player1'],
 				budget: 500,
 				filtering_policies: {},
@@ -131,7 +131,7 @@ describe('US-2.6.1: Filtering Policy Manager', () => {
 					clients: [],
 					technical_stack: [],
 					credits: 300,
-					reputation: { Gmail: 70 },
+					reputation: { zmail: 70 },
 					active_clients: [],
 					owned_tech_upgrades: [],
 					round_history: [],
@@ -144,7 +144,7 @@ describe('US-2.6.1: Filtering Policy Manager', () => {
 					clients: [],
 					technical_stack: [],
 					credits: 300,
-					reputation: { Gmail: 70 },
+					reputation: { zmail: 70 },
 					active_clients: [],
 					owned_tech_upgrades: [],
 					round_history: [],
@@ -188,7 +188,7 @@ describe('US-2.6.1: Filtering Policy Manager', () => {
 
 	describe('updateFilteringPolicy()', () => {
 		let roomCode: string;
-		const destName = 'Gmail';
+		const destName = 'zmail';
 		const espName = 'SendWave';
 
 		beforeEach(async () => {
@@ -199,7 +199,7 @@ describe('US-2.6.1: Filtering Policy Manager', () => {
 					{ name: 'SendWave', displayName: 'Alice' },
 					{ name: 'MailMonkey', displayName: 'Bob' }
 				],
-				destinations: [{ name: 'Gmail', displayName: 'Carol' }]
+				destinations: [{ name: 'zmail', displayName: 'Carol' }]
 			});
 			roomCode = session.roomCode;
 		});

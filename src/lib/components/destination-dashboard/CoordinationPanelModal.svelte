@@ -39,7 +39,7 @@
 	}: Props = $props();
 
 	const INVESTIGATION_COST = 50;
-	const TOTAL_DESTINATIONS = 3; // Gmail, Outlook, Yahoo
+	const TOTAL_DESTINATIONS = 3; // zmail, intake, yagle
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);

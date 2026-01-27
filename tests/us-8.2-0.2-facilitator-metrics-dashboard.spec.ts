@@ -100,11 +100,11 @@ test.describe('US-8.2-0.2: ESP Metrics Table', () => {
 		// Given: a game with ESP teams
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		// Then: SendWave should show reputation for Gmail (starting at 70)
+		// Then: SendWave should show reputation for zmail (starting at 70)
 		const sendWaveRow = page.locator('[data-testid="esp-row-SendWave"]');
-		await expect(sendWaveRow.locator('[data-testid="esp-rep-Gmail"]')).toContainText('70');
-		await expect(sendWaveRow.locator('[data-testid="esp-rep-Outlook"]')).toContainText('70');
-		await expect(sendWaveRow.locator('[data-testid="esp-rep-Yahoo"]')).toContainText('70');
+		await expect(sendWaveRow.locator('[data-testid="esp-rep-zmail"]')).toContainText('70');
+		await expect(sendWaveRow.locator('[data-testid="esp-rep-intake"]')).toContainText('70');
+		await expect(sendWaveRow.locator('[data-testid="esp-rep-yagle"]')).toContainText('70');
 
 		await closePages(page, alicePage, bobPage);
 	});
@@ -162,23 +162,23 @@ test.describe('US-8.2-0.2: Destination Metrics Table', () => {
 		// Given: a game with destinations
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		// Then: Gmail, Outlook, Yahoo rows should be visible
+		// Then: zmail, intake, yagle rows should be visible
 		const destTable = page.locator('[data-testid="destination-metrics-table"]');
-		await expect(destTable.locator('[data-testid="dest-row-Gmail"]')).toBeVisible();
-		await expect(destTable.locator('[data-testid="dest-row-Outlook"]')).toBeVisible();
-		await expect(destTable.locator('[data-testid="dest-row-Yahoo"]')).toBeVisible();
+		await expect(destTable.locator('[data-testid="dest-row-zmail"]')).toBeVisible();
+		await expect(destTable.locator('[data-testid="dest-row-intake"]')).toBeVisible();
+		await expect(destTable.locator('[data-testid="dest-row-yagle"]')).toBeVisible();
 
 		await closePages(page, alicePage, bobPage);
 	});
 
 	test('Destination metrics table displays budget column', async ({ page, context }) => {
-		// Given: a game with destinations (Bob joined Gmail)
+		// Given: a game with destinations (Bob joined zmail)
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		// Then: Gmail should show budget (500 is starting budget for Gmail)
+		// Then: zmail should show budget (500 is starting budget for zmail)
 		// Note: Only destinations with players get budget allocated
-		const gmailRow = page.locator('[data-testid="dest-row-Gmail"]');
-		await expect(gmailRow.locator('[data-testid="dest-budget"]')).toContainText('500');
+		const zmailRow = page.locator('[data-testid="dest-row-zmail"]');
+		await expect(zmailRow.locator('[data-testid="dest-budget"]')).toContainText('500');
 
 		await closePages(page, alicePage, bobPage);
 	});
@@ -187,9 +187,9 @@ test.describe('US-8.2-0.2: Destination Metrics Table', () => {
 		// Given: a game with destinations (no resolution yet, satisfaction N/A or 0)
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		// Then: Gmail should show satisfaction column
-		const gmailRow = page.locator('[data-testid="dest-row-Gmail"]');
-		await expect(gmailRow.locator('[data-testid="dest-satisfaction"]')).toBeVisible();
+		// Then: zmail should show satisfaction column
+		const zmailRow = page.locator('[data-testid="dest-row-zmail"]');
+		await expect(zmailRow.locator('[data-testid="dest-satisfaction"]')).toBeVisible();
 
 		await closePages(page, alicePage, bobPage);
 	});
@@ -201,9 +201,9 @@ test.describe('US-8.2-0.2: Destination Metrics Table', () => {
 		// Given: a game with destinations (no tech purchased yet)
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		// Then: Gmail should show all tech as not owned
-		const gmailRow = page.locator('[data-testid="dest-row-Gmail"]');
-		const techCell = gmailRow.locator('[data-testid="dest-tech-tools"]');
+		// Then: zmail should show all tech as not owned
+		const zmailRow = page.locator('[data-testid="dest-row-zmail"]');
+		const techCell = zmailRow.locator('[data-testid="dest-tech-tools"]');
 
 		// Should show Content Analysis as not owned
 		await expect(techCell.locator('[data-testid="tool-content_analysis_filter"]')).toBeVisible();
@@ -345,9 +345,9 @@ test.describe('US-8.2-0.2: Destination Tech Tools Display', () => {
 		// Given: a game with destinations
 		const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
-		// Then: Gmail tech cell should show all relevant tools
-		const gmailRow = page.locator('[data-testid="dest-row-Gmail"]');
-		const techCell = gmailRow.locator('[data-testid="dest-tech-tools"]');
+		// Then: zmail tech cell should show all relevant tools
+		const zmailRow = page.locator('[data-testid="dest-row-zmail"]');
+		const techCell = zmailRow.locator('[data-testid="dest-tech-tools"]');
 
 		await expect(techCell.locator('[data-testid="tool-content_analysis_filter"]')).toBeVisible();
 		await expect(techCell.locator('[data-testid="tool-auth_validator_l1"]')).toBeVisible();

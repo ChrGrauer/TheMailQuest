@@ -30,7 +30,7 @@ describe('Feature: Technical Infrastructure Shop - Validation', () => {
 			clients: [],
 			technical_stack: [],
 			credits: 1000,
-			reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 },
+			reputation: { zmail: 70, intake: 70, yagle: 70 },
 			active_clients: [],
 			owned_tech_upgrades: [],
 			round_history: [],

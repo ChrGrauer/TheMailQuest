@@ -7,7 +7,7 @@ Feature: US-8.2-0.0 - Facilitator Start Next Round
   Background:
     Given a game session exists with room code "GAME01"
     And the game has 2 ESP teams: "SendWave" and "MailMonkey"
-    And the game has 2 destinations: "Gmail" and "Outlook"
+    And the game has 2 destinations: "zmail" and "intake"
     And facilitator "Facilitator" is managing the game
 
   # ========================================================================
@@ -54,13 +54,13 @@ Feature: US-8.2-0.0 - Facilitator Start Next Round
     And the current phase is "consequences"
     And ESP "SendWave" is locked in at "2025-01-10T10:30:00Z"
     And ESP "MailMonkey" is locked in at "2025-01-10T10:31:00Z"
-    And destination "Gmail" is locked in at "2025-01-10T10:30:30Z"
-    And destination "Outlook" is locked in at "2025-01-10T10:31:30Z"
+    And destination "zmail" is locked in at "2025-01-10T10:30:30Z"
+    And destination "intake" is locked in at "2025-01-10T10:31:30Z"
     When the facilitator clicks "Start Next Round" button
     Then ESP "SendWave" should NOT be locked in
     And ESP "MailMonkey" should NOT be locked in
-    And destination "Gmail" should NOT be locked in
-    And destination "Outlook" should NOT be locked in
+    And destination "zmail" should NOT be locked in
+    And destination "intake" should NOT be locked in
 
   # ========================================================================
   # Scenario 4: Dashboard Read-Only Mode Exit
@@ -80,9 +80,9 @@ Feature: US-8.2-0.0 - Facilitator Start Next Round
   Scenario: 4.2 - Destination dashboards exit read-only mode when planning phase starts
     Given the game is in round 1
     And the current phase is "consequences"
-    And destination "Gmail" player is viewing their results
+    And destination "zmail" player is viewing their results
     When the facilitator clicks "Start Next Round" button
-    Then "Gmail" player is automatically directed to their dashboard
+    Then "zmail" player is automatically directed to their dashboard
     And the destination dashboard should exit read-only mode
     And the player should be able to adjust filtering levels
     And the player should be able to purchase tools
@@ -109,9 +109,9 @@ Feature: US-8.2-0.0 - Facilitator Start Next Round
   Scenario: 5.3 - Purchased destination tools remain owned in the next round
     Given the game is in round 1
     And the current phase is "consequences"
-    And destination "Gmail" owns tools: ["content_analysis_filter"]
+    And destination "zmail" owns tools: ["content_analysis_filter"]
     When the facilitator clicks "Start Next Round" button
-    Then destination "Gmail" should still own tools: ["content_analysis_filter"]
+    Then destination "zmail" should still own tools: ["content_analysis_filter"]
 
   Scenario: 5.4 - Paused clients remain paused in the next round
     Given the game is in round 1
@@ -184,9 +184,9 @@ Feature: US-8.2-0.0 - Facilitator Start Next Round
     Given the game is in round 1
     And the current phase is "consequences"
     And ESP "SendWave" player is viewing consequences
-    And destination "Gmail" player is viewing consequences
+    And destination "zmail" player is viewing consequences
     When the facilitator clicks "Start Next Round" button
     Then ESP "SendWave" player should see their planning phase dashboard
-    And destination "Gmail" player should see their planning phase dashboard
+    And destination "zmail" player should see their planning phase dashboard
     And both should see "Round 2" displayed
     And both should see the planning timer counting down

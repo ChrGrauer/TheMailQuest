@@ -58,7 +58,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 				alicePage.waitForURL(`/game/${roomCode}/esp/sendwave`, { timeout: 10000 }),
 				bobPage.waitForURL(`/game/${roomCode}/esp/mailmonkey`, { timeout: 10000 }),
 				charliePage.waitForURL(`/game/${roomCode}/esp/bluepost`, { timeout: 10000 }),
-				gracePage.waitForURL(`/game/${roomCode}/destination/gmail`, { timeout: 10000 }),
+				gracePage.waitForURL(`/game/${roomCode}/destination/zmail`, { timeout: 10000 }),
 				page.waitForURL(`/game/${roomCode}/facilitator`, { timeout: 10000 })
 			]);
 
@@ -159,7 +159,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 		}) => {
 			// Given - Only Destinations
 			const roomCode = await createTestSession(page);
-			const bobPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'Gmail');
+			const bobPage = await addPlayer(context, roomCode, 'Bob', 'Destination', 'zmail');
 			await page.waitForTimeout(500);
 
 			// Then - Start Game button should be disabled

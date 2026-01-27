@@ -67,7 +67,7 @@
 	const gameState = useGameState();
 
 	// Tech Shop state (US-2.6.2)
-	let kingdom = $state<'Gmail' | 'Outlook' | 'Yahoo'>('Gmail');
+	let kingdom = $state<'zmail' | 'intake' | 'yagle'>('zmail');
 	let authenticationLevel = $state(0);
 	let ownedTools = $state<string[]>([]);
 
@@ -140,7 +140,7 @@
 			spamLevel = data.destination.spam_level || 0;
 
 			// Tech Shop state (US-2.6.2)
-			kingdom = data.destination.kingdom || 'Gmail';
+			kingdom = data.destination.kingdom || 'zmail';
 			authenticationLevel = data.destination.authentication_level || 0;
 			ownedTools = data.destination.owned_tools || [];
 
@@ -590,7 +590,7 @@
 				getAuthLevel: () => authenticationLevel,
 				setAuthLevel: (value: number) => (authenticationLevel = value),
 				getKingdom: () => kingdom,
-				setKingdom: (value: 'Gmail' | 'Outlook' | 'Yahoo') => (kingdom = value),
+				setKingdom: (value: 'zmail' | 'intake' | 'yagle') => (kingdom = value),
 
 				// Filtering Controls test API (US-2.6.1) via composable
 				openFilteringControls: () => modals.openFilteringControls(),

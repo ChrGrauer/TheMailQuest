@@ -14,7 +14,7 @@ Feature: Final Score Calculation
 
   Scenario: Calculate final scores with clear winner
     Given the following ESP final stats after Round 4:
-      | ESP Name    | Gmail Rep | Outlook Rep | Yahoo Rep | Total Revenue | Tech Investments |
+      | ESP Name    | zmail Rep | intake Rep | yagle Rep | Total Revenue | Tech Investments |
       | SendWave    | 85        | 78          | 72        | 2400          | 600              |
       | MailMonkey  | 72        | 68          | 65        | 2800          | 450              |
       | BluePost    | 68        | 70          | 66        | 2200          | 550              |
@@ -46,9 +46,9 @@ Feature: Final Score Calculation
   Scenario: Calculate reputation score with weighted kingdoms
     Given an ESP "SendWave" with the following reputation:
       | Kingdom | Reputation |
-      | Gmail   | 80         |
-      | Outlook | 70         |
-      | Yahoo   | 60         |
+      | zmail   | 80         |
+      | intake | 70         |
+      | yagle   | 60         |
     When the system calculates the reputation score
     Then the weighted reputation is calculated as:
       """
@@ -107,27 +107,27 @@ Feature: Final Score Calculation
 
   Scenario: ESP disqualified for low reputation in one kingdom
     Given the following ESP final stats:
-      | ESP Name   | Gmail Rep | Outlook Rep | Yahoo Rep | Total Revenue | Tech Investments |
+      | ESP Name   | zmail Rep | intake Rep | yagle Rep | Total Revenue | Tech Investments |
       | SendWave   | 85        | 78          | 55        | 2400          | 600              |
       | MailMonkey | 75        | 70          | 68        | 2800          | 450              |
     When the facilitator triggers final score calculation
     Then "SendWave" is marked as disqualified
-    And the disqualification reason is "Reputation below 60 in: Yahoo"
+    And the disqualification reason is "Reputation below 60 in: yagle"
     And the score breakdown is still calculated for "SendWave"
     And the final ranking is displayed with "SendWave" grayed out:
       | Rank | ESP Name   | Total Score | Status       |
       | 1    | MailMonkey | 73.13       | Winner       |
       | -    | SendWave   | 77.75       | Disqualified |
-    And a message is displayed: "SendWave: Disqualified - Reputation below 60 in Yahoo"
+    And a message is displayed: "SendWave: Disqualified - Reputation below 60 in yagle"
     And the reputation values are visible on the results page
 
   Scenario: ESP disqualified for low reputation in multiple kingdoms
     Given an ESP "BluePost" with final stats:
-      | Gmail Rep | Outlook Rep | Yahoo Rep | Total Revenue | Tech Investments |
+      | zmail Rep | intake Rep | yagle Rep | Total Revenue | Tech Investments |
       | 55        | 58          | 62        | 2200          | 550              |
     When the system evaluates qualification
     Then "BluePost" is marked as disqualified
-    And the disqualification reason is "Reputation below 60 in: Gmail, Outlook"
+    And the disqualification reason is "Reputation below 60 in: zmail, intake"
 
   # ============================================================================
   # SCENARIO 4: All ESPs Disqualified
@@ -135,7 +135,7 @@ Feature: Final Score Calculation
 
   Scenario: All ESPs disqualified - show rankings for learning
     Given the following ESP final stats:
-      | ESP Name   | Gmail Rep | Outlook Rep | Yahoo Rep | Total Revenue | Tech Investments |
+      | ESP Name   | zmail Rep | intake Rep | yagle Rep | Total Revenue | Tech Investments |
       | SendWave   | 55        | 58          | 52        | 2400          | 600              |
       | MailMonkey | 58        | 55          | 50        | 2800          | 450              |
       | BluePost   | 52        | 60          | 48        | 2200          | 550              |
@@ -144,9 +144,9 @@ Feature: Final Score Calculation
     And the system displays message: "No qualified winner - All ESPs failed minimum reputation requirements"
     And the final ranking is displayed with all ESPs grayed out:
       | Rank | ESP Name   | Total Score | Status       | Failing Kingdoms    |
-      | -    | MailMonkey | 70.63       | Disqualified | Gmail, Outlook, Yahoo |
-      | -    | SendWave   | 72.25       | Disqualified | Gmail, Outlook, Yahoo |
-      | -    | BluePost   | 65.58       | Disqualified | Gmail, Yahoo          |
+      | -    | MailMonkey | 70.63       | Disqualified | zmail, intake, yagle |
+      | -    | SendWave   | 72.25       | Disqualified | zmail, intake, yagle |
+      | -    | BluePost   | 65.58       | Disqualified | zmail, yagle          |
     And scores are still shown for learning purposes
 
   # ============================================================================
@@ -155,7 +155,7 @@ Feature: Final Score Calculation
 
   Scenario: Two ESPs tied on total score - use weighted reputation
     Given the following ESP final stats:
-      | ESP Name | Gmail Rep | Outlook Rep | Yahoo Rep | Total Revenue | Tech Investments |
+      | ESP Name | zmail Rep | intake Rep | yagle Rep | Total Revenue | Tech Investments |
       | SendWave | 88        | 82          | 78        | 2400          | 600              |
       | BluePost | 82        | 88          | 85        | 2400          | 600              |
     When the facilitator triggers final score calculation
@@ -183,7 +183,7 @@ Feature: Final Score Calculation
 
   Scenario: All ESPs generated zero revenue
     Given the following ESP final stats:
-      | ESP Name   | Gmail Rep | Outlook Rep | Yahoo Rep | Total Revenue | Tech Investments |
+      | ESP Name   | zmail Rep | intake Rep | yagle Rep | Total Revenue | Tech Investments |
       | SendWave   | 75        | 70          | 68        | 0             | 600              |
       | MailMonkey | 72        | 68          | 65        | 0             | 450              |
     When the system calculates revenue scores
@@ -193,7 +193,7 @@ Feature: Final Score Calculation
 
   Scenario: Some ESPs have zero revenue while others don't
     Given the following ESP final stats:
-      | ESP Name   | Gmail Rep | Outlook Rep | Yahoo Rep | Total Revenue | Tech Investments |
+      | ESP Name   | zmail Rep | intake Rep | yagle Rep | Total Revenue | Tech Investments |
       | SendWave   | 75        | 70          | 68        | 2000          | 600              |
       | MailMonkey | 72        | 68          | 65        | 0             | 450              |
     When the system calculates revenue scores
@@ -207,9 +207,9 @@ Feature: Final Score Calculation
   Scenario: Calculate destination collaborative score with success
     Given the following Destination cumulative stats after Round 4:
       | Destination | Spam Blocked | Total Spam Sent | False Positives | Total Legitimate Emails | Coordinated Actions |
-      | Gmail       | 8000         | 10000           | 200             | 20000                   | 2                   |
-      | Outlook     | 6000         | 8000            | 150             | 15000                   | 2                   |
-      | Yahoo       | 4000         | 5000            | 100             | 10000                   | 2                   |
+      | zmail       | 8000         | 10000           | 200             | 20000                   | 2                   |
+      | intake     | 6000         | 8000            | 150             | 15000                   | 2                   |
+      | yagle       | 4000         | 5000            | 100             | 10000                   | 2                   |
     When the system calculates the destination collaborative score
     Then the Industry Protection score is calculated as:
       """
@@ -235,9 +235,9 @@ Feature: Final Score Calculation
   Scenario: Destinations fail collaborative score threshold
     Given the following Destination cumulative stats:
       | Destination | Spam Blocked | Total Spam Sent | False Positives | Total Legitimate Emails | Coordinated Actions |
-      | Gmail       | 4000         | 10000           | 500             | 20000                   | 0                   |
-      | Outlook     | 3000         | 8000            | 400             | 15000                   | 0                   |
-      | Yahoo       | 2000         | 5000            | 300             | 10000                   | 0                   |
+      | zmail       | 4000         | 10000           | 500             | 20000                   | 0                   |
+      | intake     | 3000         | 8000            | 400             | 15000                   | 0                   |
+      | yagle       | 2000         | 5000            | 300             | 10000                   | 0                   |
     When the system calculates the destination collaborative score
     Then the Industry Protection score is: "(9000 / 23000) × 40 = 15.65"
     And the Coordination Bonus is: "0 × 10 = 0"
@@ -280,9 +280,9 @@ Feature: Final Score Calculation
       | Technical Score    | 7.50   | 15%    |
       | Total Score        | 79.60  | 100%   |
     And reputation per kingdom is displayed:
-      | Gmail   | 88 |
-      | Outlook | 82 |
-      | Yahoo   | 78 |
+      | zmail   | 88 |
+      | intake | 82 |
+      | yagle   | 78 |
     And total revenue is displayed: "2400 credits"
     And technical investments are displayed: "600 credits"
 
@@ -295,9 +295,9 @@ Feature: Final Score Calculation
         "timestamp": "2025-01-17T14:30:00Z",
         "round": 4,
         "reputation": {
-          "gmail": 85,
-          "outlook": 78,
-          "yahoo": 72,
+          "zmail": 85,
+          "intake": 78,
+          "yagle": 72,
           "weighted": 80.5
         },
         "total_revenue": 2400,
@@ -322,21 +322,21 @@ Feature: Final Score Calculation
         "timestamp": "2025-01-17T14:30:00Z",
         "round": 4,
         "destinations": {
-          "gmail": {
+          "zmail": {
             "spam_blocked": 8000,
             "total_spam_sent": 10000,
             "false_positives": 200,
             "total_legitimate_emails": 20000,
             "coordinated_actions": 2
           },
-          "outlook": {
+          "intake": {
             "spam_blocked": 6000,
             "total_spam_sent": 8000,
             "false_positives": 150,
             "total_legitimate_emails": 15000,
             "coordinated_actions": 2
           },
-          "yahoo": {
+          "yagle": {
             "spam_blocked": 4000,
             "total_spam_sent": 5000,
             "false_positives": 100,
@@ -368,12 +368,12 @@ Feature: Final Score Calculation
 
   Scenario: Validate data ranges before calculation
     Given an ESP with reputation values:
-      | Gmail   | 150  |
-      | Outlook | -10  |
-      | Yahoo   | 75   |
+      | zmail   | 150  |
+      | intake | -10  |
+      | yagle   | 75   |
     When the system validates data before calculation
-    Then Gmail reputation is clamped to 100
-    And Outlook reputation is clamped to 0
+    Then zmail reputation is clamped to 100
+    And intake reputation is clamped to 0
     And a warning is logged: "Invalid reputation values detected and corrected"
     And calculation proceeds with corrected values
 

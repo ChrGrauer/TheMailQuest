@@ -142,15 +142,15 @@ Each incident card contains:
 - **Round**: 2
 - **Category**: Market
 - **Rarity**: Rare
-- **Description**: "Yahoo and Outlook announce a strategic partnership! They will share filtering policies this round to combat increasing spam."
+- **Description**: "yagle and intake announce a strategic partnership! They will share filtering policies this round to combat increasing spam."
 - **Educational Note**: Destinations sometimes coordinate to improve efficiency
 - **Duration**: This Round
 - **Effects**:
   ```yaml
   esp:
-    - notification: "Yahoo and Outlook using unified filtering"
+    - notification: "yagle and intake using unified filtering"
   destination:
-    - yahoo_outlook_shared_policy: true
+    - yagle_intake_shared_policy: true
     - coordination_cost: 0 # free this round
   ```
 - **Visual Theme**: Handshake, partnership announcement

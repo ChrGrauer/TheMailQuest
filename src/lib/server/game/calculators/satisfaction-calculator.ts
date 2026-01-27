@@ -133,7 +133,7 @@ function calculateDestinationSatisfaction(
 export function calculateSatisfaction(params: SatisfactionParams): SatisfactionResult {
 	const { volumeData, filteringPolicies, ownedTools, complaintRate } = params;
 
-	const destinations = ['Gmail', 'Outlook', 'Yahoo'] as const;
+	const destinations = ['zmail', 'intake', 'yagle'] as const;
 	const breakdown: SatisfactionBreakdownItem[] = [];
 	const perDestination: Record<string, number> = {};
 

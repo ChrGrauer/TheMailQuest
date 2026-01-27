@@ -24,25 +24,25 @@ declare global {
 
 test.describe('US-2.6.2: Destination Tech Shop', () => {
 	test.describe('Section 1: Display & Tool Catalog', () => {
-		test('Display kingdom-specific tool catalog for Gmail', async ({ page, context }) => {
-			// Create game session and navigate to Gmail destination dashboard
+		test('Display kingdom-specific tool catalog for zmail', async ({ page, context }) => {
+			// Create game session and navigate to zmail destination dashboard
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
 			// Open tech shop
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
 
-			// Verify Content Analysis Filter shows Gmail price (300)
+			// Verify Content Analysis Filter shows zmail price (300)
 			const contentAnalysisCard = destinationPage.locator(
 				'[data-tool-id="content_analysis_filter"]'
 			);
 			await expect(contentAnalysisCard.locator('[data-testid="tool-cost"]')).toContainText('300');
 
-			// Verify ML System shows Gmail price (500)
+			// Verify ML System shows zmail price (500)
 			const mlSystemCard = destinationPage.locator('[data-tool-id="ml_system"]');
 			await expect(mlSystemCard.locator('[data-testid="tool-cost"]')).toContainText('500');
 
@@ -57,19 +57,19 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await closePages(page, alicePage, bobPage);
 		});
 
-		test('Display kingdom-specific tool catalog for Yahoo', async ({ page, context }) => {
-			// Create game session and navigate to Yahoo destination dashboard
+		test('Display kingdom-specific tool catalog for yagle', async ({ page, context }) => {
+			// Create game session and navigate to yagle destination dashboard
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Yahoo'
+				'yagle'
 			);
 
 			// Open tech shop
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
 
-			// Verify Content Analysis Filter shows Yahoo price (160)
+			// Verify Content Analysis Filter shows yagle price (160)
 			const contentAnalysisCard = destinationPage.locator(
 				'[data-tool-id="content_analysis_filter"]'
 			);
@@ -88,11 +88,11 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 		});
 
 		test('Tool displays comprehensive information', async ({ page, context }) => {
-			// Create game session and navigate to Gmail destination dashboard
+			// Create game session and navigate to zmail destination dashboard
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
 			// Open tech shop
@@ -122,14 +122,14 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 
 	test.describe('Section 2: Basic Tool Purchase', () => {
 		test('Successfully purchase a permanent tool', async ({ page, context }) => {
-			// Create game session and navigate to Gmail destination dashboard
+			// Create game session and navigate to zmail destination dashboard
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
-			// Gmail gets 500 budget from server (no need to set it)
+			// zmail gets 500 budget from server (no need to set it)
 
 			// Open tech shop
 			await destinationPage.click('[data-testid="tech-shop-button"]');
@@ -155,14 +155,14 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 		});
 
 		test('Purchase fails when budget insufficient', async ({ page, context }) => {
-			// Create game session with Yahoo (200 budget)
+			// Create game session with yagle (200 budget)
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Yahoo'
+				'yagle'
 			);
 
-			// Yahoo has 200 budget. Purchase auth_validator_l1 (50) + auth_validator_l2 (50) + auth_validator_l3 (50) = 150
+			// yagle has 200 budget. Purchase auth_validator_l1 (50) + auth_validator_l2 (50) + auth_validator_l3 (50) = 150
 			// Remaining budget: 50
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
@@ -197,14 +197,14 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 		});
 
 		test('Confirmation dialog for expensive tools', async ({ page, context }) => {
-			// Create game session with Gmail (500 budget)
+			// Create game session with zmail (500 budget)
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
-			// Gmail has 500 budget, ML System costs 500 (entire budget)
+			// zmail has 500 budget, ML System costs 500 (entire budget)
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
 
@@ -231,11 +231,11 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 
 	test.describe('Section 3: Authentication Validator Progression', () => {
 		test('Authentication Validator requires sequential purchase', async ({ page, context }) => {
-			// Create game session with Gmail
+			// Create game session with zmail
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
 			await destinationPage.click('[data-testid="tech-shop-button"]');
@@ -261,14 +261,14 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 		});
 
 		test('Progressive Authentication Validator purchase', async ({ page, context }) => {
-			// Create game session with Outlook (350 budget)
+			// Create game session with intake (350 budget)
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Outlook'
+				'intake'
 			);
 
-			// Outlook has 350 budget
+			// intake has 350 budget
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
 
@@ -322,14 +322,14 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			page,
 			context
 		}) => {
-			// Create game session with Yahoo (200 budget)
+			// Create game session with yagle (200 budget)
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Yahoo'
+				'yagle'
 			);
 
-			// Yahoo has 200 budget
+			// yagle has 200 budget
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
 
@@ -356,14 +356,14 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 
 	test.describe('Section 5: Spam Trap Network', () => {
 		test('Purchase Spam Trap Network with announcement option', async ({ page, context }) => {
-			// Create game session with Gmail (500 budget)
+			// Create game session with zmail (500 budget)
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
-			// Gmail has 500 budget
+			// zmail has 500 budget
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
 
@@ -397,11 +397,11 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 		});
 
 		test('Spam Trap Network must be repurchased each round', async ({ page, context }) => {
-			// Given: the game is in round 1 planning with a Gmail destination
+			// Given: the game is in round 1 planning with a zmail destination
 			const { destinationPage, alicePage, bobPage, roomCode } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
 			// And: destination purchases Spam Trap Network (consumable/temporary)
@@ -486,12 +486,12 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 	});
 
 	test.describe('Section 7: Kingdom Constraints', () => {
-		test('ML System unavailable for Yahoo', async ({ page, context }) => {
-			// Create game session with Yahoo
+		test('ML System unavailable for yagle', async ({ page, context }) => {
+			// Create game session with yagle
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Yahoo'
+				'yagle'
 			);
 
 			await destinationPage.click('[data-testid="tech-shop-button"]');
@@ -510,12 +510,12 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await closePages(page, alicePage, bobPage);
 		});
 
-		test('ML System available for Gmail and Outlook', async ({ page, context }) => {
-			// Create game session with Gmail
+		test('ML System available for zmail and intake', async ({ page, context }) => {
+			// Create game session with zmail
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
 			await destinationPage.click('[data-testid="tech-shop-button"]');
@@ -533,14 +533,14 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 
 	test.describe('Section 9: Tool Management & Persistence', () => {
 		test('Owned tools display on main dashboard', async ({ page, context }) => {
-			// Create game session with Gmail (500 budget)
+			// Create game session with zmail (500 budget)
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
-			// Gmail has 500 budget
+			// zmail has 500 budget
 			// Purchase some tools
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
@@ -584,11 +584,11 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 		});
 
 		test('Tool ownership persists across rounds', async ({ page, context }) => {
-			// Given: the game is in round 1 planning with a Gmail destination
+			// Given: the game is in round 1 planning with a zmail destination
 			const { destinationPage, alicePage, bobPage, roomCode } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
 			// And: destination purchases permanent tools (not Spam Trap)
@@ -687,11 +687,11 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			// 2. Again when WebSocket update arrived with server-calculated budget
 			// Fix: Removed optimistic update, rely solely on WebSocket for authoritative state
 
-			// Create game session with Gmail (500 budget)
+			// Create game session with zmail (500 budget)
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
 			// Verify initial budget is 500 (uses budget-current test ID from DashboardHeader)
@@ -715,7 +715,7 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 			await expect(destinationPage.locator('[data-testid="budget-current"]')).toContainText('450');
 
 			// Make another purchase to further verify correct behavior
-			// Purchase Volume Throttling (cost: 200, Gmail price)
+			// Purchase Volume Throttling (cost: 200, zmail price)
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
 			await destinationPage.click(
@@ -736,14 +736,14 @@ test.describe('US-2.6.2: Destination Tech Shop', () => {
 
 	test.describe('Section 10: Logging', () => {
 		test('Tool purchase logging', async ({ page, context }) => {
-			// Create game session with Gmail (500 budget)
+			// Create game session with zmail (500 budget)
 			const { destinationPage, alicePage, bobPage } = await createGameWithDestination(
 				page,
 				context,
-				'Gmail'
+				'zmail'
 			);
 
-			// Gmail has 500 budget
+			// zmail has 500 budget
 			await destinationPage.click('[data-testid="tech-shop-button"]');
 			await destinationPage.waitForSelector('[data-testid="tech-shop-modal"]');
 			await destinationPage.click(

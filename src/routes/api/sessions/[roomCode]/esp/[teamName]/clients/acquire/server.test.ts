@@ -51,7 +51,7 @@ describe('POST /api/sessions/[roomCode]/esp/[teamName]/clients/acquire', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -97,7 +97,7 @@ describe('POST /api/sessions/[roomCode]/esp/[teamName]/clients/acquire', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -143,7 +143,7 @@ describe('POST /api/sessions/[roomCode]/esp/[teamName]/clients/acquire', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -157,7 +157,7 @@ describe('POST /api/sessions/[roomCode]/esp/[teamName]/clients/acquire', () => {
 
 			// Set high credits and reputation but missing tech
 			team!.credits = 5000;
-			team!.reputation = { Gmail: 90, Outlook: 90, Yahoo: 90 };
+			team!.reputation = { zmail: 90, intake: 90, yagle: 90 };
 			team!.owned_tech_upgrades = ['spf', 'dkim']; // Missing DMARC
 
 			// When
@@ -192,7 +192,7 @@ describe('POST /api/sessions/[roomCode]/esp/[teamName]/clients/acquire', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -207,7 +207,7 @@ describe('POST /api/sessions/[roomCode]/esp/[teamName]/clients/acquire', () => {
 			// Set high credits and all tech but low reputation
 			team!.credits = 5000;
 			team!.owned_tech_upgrades = ['spf', 'dkim', 'dmarc'];
-			team!.reputation = { Gmail: 82, Outlook: 78, Yahoo: 76 }; // Overall = 80
+			team!.reputation = { zmail: 82, intake: 78, yagle: 76 }; // Overall = 80
 
 			// When
 			const request = createRequestContext(session.roomCode, 'SendWave', {
@@ -256,7 +256,7 @@ describe('POST /api/sessions/[roomCode]/esp/[teamName]/clients/acquire', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });

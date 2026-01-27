@@ -33,12 +33,12 @@ Feature: Destination Tech Shop
 
     Examples:
       | kingdom | content_cost | ml_cost | ml_available | trap_cost | throttle_cost |
-      | Gmail   | 300          | 500     | true         | 250       | 200           |
-      | Outlook | 240          | 400     | true         | 200       | 150           |
-      | Yahoo   | 160          | N/A     | false        | 150       | 100           |
+      | zmail   | 300          | 500     | true         | 250       | 200           |
+      | intake | 240          | 400     | true         | 200       | 150           |
+      | yagle   | 160          | N/A     | false        | 150       | 100           |
 
   Scenario: Tool displays comprehensive information
-    Given I am playing as "Gmail" destination
+    Given I am playing as "zmail" destination
     And I open the tech shop
     When I view the "Content Analysis Filter" tool
     Then I should see:
@@ -68,12 +68,12 @@ Feature: Destination Tech Shop
 
     Examples:
       | kingdom | budget | tool_name            | remaining_budget |
-      | Gmail   | 500    | Content Analysis     | 200              |
-      | Outlook | 350    | Volume Throttling    | 200              |
-      | Yahoo   | 200    | Content Analysis     | 40               |
+      | zmail   | 500    | Content Analysis     | 200              |
+      | intake | 350    | Volume Throttling    | 200              |
+      | yagle   | 200    | Content Analysis     | 40               |
 
   Scenario: Purchase fails when budget insufficient
-    Given I am playing as "Yahoo" destination
+    Given I am playing as "yagle" destination
     And my current budget is 100
     And I open the tech shop
     When I attempt to purchase "Content Analysis" costing 160
@@ -83,7 +83,7 @@ Feature: Destination Tech Shop
     And the tool status should remain "Not Owned"
 
   Scenario: Confirmation dialog for expensive tools
-    Given I am playing as "Gmail" destination
+    Given I am playing as "zmail" destination
     And my current budget is 500
     And I open the tech shop
     When I click purchase on "ML System" costing 500
@@ -98,7 +98,7 @@ Feature: Destination Tech Shop
   # ============================================================================
 
   Scenario: Authentication Validator requires sequential purchase
-    Given I am playing as "Gmail" destination
+    Given I am playing as "zmail" destination
     And my authentication level is 0
     And I open the tech shop
     When I view "Auth Validator L2 (DKIM)"
@@ -109,7 +109,7 @@ Feature: Destination Tech Shop
     And I should see "Requires: SPF (Level 1) and DKIM (Level 2)"
 
   Scenario: Progressive Authentication Validator purchase
-    Given I am playing as "Outlook" destination
+    Given I am playing as "intake" destination
     And my current budget is 350
     And my authentication level is 0
     And I open the tech shop
@@ -127,7 +127,7 @@ Feature: Destination Tech Shop
     And my budget should be 200
 
   Scenario: Complete authentication stack is affordable for all kingdoms
-    Given I am playing as "Yahoo" destination
+    Given I am playing as "yagle" destination
     And my current budget is 200
     And my authentication level is 0
     When I calculate the total cost for all authentication levels
@@ -139,7 +139,7 @@ Feature: Destination Tech Shop
   # ============================================================================
 
   Scenario Outline: Authentication enforcement creates ESP traffic rejection
-    Given I am a "Gmail" destination
+    Given I am a "zmail" destination
     And I have purchased "Auth Validator <level>"
     And ESP "SendWave" has authentication status:
       | spf   | <esp_spf>   |
@@ -182,12 +182,12 @@ Feature: Destination Tech Shop
 
     Examples:
       | kingdom | budget | cost | announcement | remaining_budget |
-      | Gmail   | 500    | 250  | Announce     | 250              |
-      | Outlook | 350    | 200  | Keep Secret  | 150              |
-      | Yahoo   | 200    | 150  | Announce     | 50               |
+      | zmail   | 500    | 250  | Announce     | 250              |
+      | intake | 350    | 200  | Keep Secret  | 150              |
+      | yagle   | 200    | 150  | Announce     | 50               |
 
   Scenario: Spam Trap Network must be repurchased each round
-    Given I am playing as "Gmail" destination
+    Given I am playing as "zmail" destination
     And I purchased "Spam Trap Network" in round 1
     When round 2 begins
     Then "Spam Trap Network" should show status "Not Owned"
@@ -195,7 +195,7 @@ Feature: Destination Tech Shop
     And my previous announcement setting should not persist
 
   Scenario: Spam Trap Network triples trap hit probability
-    Given I am a "Outlook" destination
+    Given I am a "intake" destination
     And I have purchased and activated "Spam Trap Network" with "Keep Secret" option
     And ESP "BluePost" sends emails with baseline 2% trap hit probability
     When the delivery resolution phase calculates spam trap hits
@@ -211,7 +211,7 @@ Feature: Destination Tech Shop
   # ============================================================================
 
   Scenario: Tool effects apply globally to all ESPs
-    Given I am a "Gmail" destination
+    Given I am a "zmail" destination
     And I have purchased "Content Analysis Filter"
     And the game has 5 active ESPs: SendWave, MailMonkey, BluePost, SendBolt, RocketMail
     When the delivery resolution phase begins
@@ -220,7 +220,7 @@ Feature: Destination Tech Shop
     And no per-ESP configuration should be required
 
   Scenario Outline: Multiple tools stack additively
-    Given I am a "Outlook" destination
+    Given I am a "intake" destination
     And I have purchased the following tools:
       | tool_name            | spam_detection_bonus | false_positive_impact |
       | <tool1>              | <bonus1>             | <fp1>                 |
@@ -236,7 +236,7 @@ Feature: Destination Tech Shop
       | Content Analysis    | 15     | -2   | ML System              | 25     | -3   | 40          | -5       |
 
   Scenario: Complete tool stack with authentication
-    Given I am a "Gmail" destination
+    Given I am a "zmail" destination
     And I have purchased:
       | tool_name              | effect                    |
       | Content Analysis       | +15% spam, -2% FP         |
@@ -252,15 +252,15 @@ Feature: Destination Tech Shop
   # SECTION 7: KINGDOM-SPECIFIC CONSTRAINTS
   # ============================================================================
 
-  Scenario: ML System unavailable for Yahoo
-    Given I am playing as "Yahoo" destination
+  Scenario: ML System unavailable for yagle
+    Given I am playing as "yagle" destination
     When I open the tech shop
     Then "ML System" should show status "Unavailable"
     And I should see reason "Insufficient computational resources"
     And the purchase button should be disabled
 
-  Scenario: ML System available for Gmail and Outlook
-    Given I am playing as "Gmail" destination
+  Scenario: ML System available for zmail and intake
+    Given I am playing as "zmail" destination
     When I open the tech shop
     Then "ML System" should show status "Not Owned"
     And the purchase button should be enabled
@@ -271,7 +271,7 @@ Feature: Destination Tech Shop
   # ============================================================================
 
   Scenario: Real-time budget calculation during shopping
-    Given I am playing as "Outlook" destination
+    Given I am playing as "intake" destination
     And my current budget is 350
     And I open the tech shop
     When I select "Content Analysis" (240 credits) for purchase
@@ -282,7 +282,7 @@ Feature: Destination Tech Shop
     And the purchase button should be disabled
 
   Scenario: Budget sufficient for multiple small tools
-    Given I am playing as "Gmail" destination
+    Given I am playing as "zmail" destination
     And my current budget is 500
     When I select for purchase:
       | tool_name              | cost |
@@ -299,7 +299,7 @@ Feature: Destination Tech Shop
   # ============================================================================
 
   Scenario: Owned tools display on main dashboard
-    Given I am a "Gmail" destination
+    Given I am a "zmail" destination
     And I have purchased:
       | tool_name              | purchased_round |
       | Content Analysis       | 1               |
@@ -312,7 +312,7 @@ Feature: Destination Tech Shop
     And authentication level should show "Level 1 (SPF)"
 
   Scenario: Tool ownership persists across rounds
-    Given I am a "Gmail" destination
+    Given I am a "zmail" destination
     And I purchased "Content Analysis Filter" in round 1
     When round 2 begins
     Then "Content Analysis Filter" should still show status "Owned"
@@ -325,39 +325,39 @@ Feature: Destination Tech Shop
   # ============================================================================
 
   Scenario: Tool purchase logging
-    Given I am a "Outlook" destination
+    Given I am a "intake" destination
     When I successfully purchase "Volume Throttling" for 150 credits in round 2
     Then the system should log:
       | field            | value             |
       | event            | tool_purchased    |
       | tool_id          | volume_throttling |
-      | destination      | Outlook           |
-      | kingdom          | Outlook           |
+      | destination      | intake           |
+      | kingdom          | intake           |
       | acquisition_cost | 150               |
       | round            | 2                 |
       | timestamp        | [current_time]    |
 
   Scenario: Authentication level upgrade logging
-    Given I am a "Gmail" destination
+    Given I am a "zmail" destination
     When I purchase "Auth Validator L2 (DKIM)" upgrading from level 1 to level 2
     Then the system should log:
       | field            | value                   |
       | event            | auth_level_upgraded     |
-      | destination      | Gmail                   |
+      | destination      | zmail                   |
       | from_level       | 1                       |
       | to_level         | 2                       |
       | round            | 1                       |
       | timestamp        | [current_time]          |
 
   Scenario: ESP traffic rejection logging
-    Given I am a "Outlook" destination with Auth Validator L3
+    Given I am a "intake" destination with Auth Validator L3
     And ESP "MailMonkey" has no DMARC configured
     When delivery resolution rejects 50% of their traffic
     Then the system should log:
       | field                  | value                |
       | event                  | traffic_rejected     |
       | esp_id                 | MailMonkey           |
-      | destination_id         | Outlook              |
+      | destination_id         | intake              |
       | auth_level_required    | 3                    |
       | missing_auth           | DMARC                |
       | rejection_percentage   | 50                   |
@@ -365,12 +365,12 @@ Feature: Destination Tech Shop
       | timestamp              | [current_time]       |
 
   Scenario: Spam trap deployment logging
-    Given I am a "Gmail" destination
+    Given I am a "zmail" destination
     When I purchase "Spam Trap Network" with "Keep Secret" option in round 2
     Then the system should log:
       | field            | value                |
       | event            | spam_trap_deployed   |
-      | destination      | Gmail                |
+      | destination      | zmail                |
       | announced        | false                |
       | round            | 2                    |
       | cost             | 250                  |
@@ -388,7 +388,7 @@ Feature: Destination Tech Shop
   # - Spam Trap Network single-round activation with announcement options
   # - Tool effects applying globally to all ESPs
   # - Tool stacking (additive bonuses)
-  # - Kingdom-specific constraints (ML System unavailable for Yahoo)
+  # - Kingdom-specific constraints (ML System unavailable for yagle)
   # - Real-time budget calculation
   # - Tool persistence across rounds (except Spam Trap)
   # - Comprehensive logging of all tool actions

@@ -7,7 +7,7 @@ Feature: US-8.2-0.2 - Facilitator Metrics Dashboard
   Background:
     Given a game session exists with room code "METR01"
     And the game has 3 ESP teams: "SendWave", "MailMonkey", "BluePost"
-    And the game has 3 destinations: "Gmail", "Outlook", "Yahoo"
+    And the game has 3 destinations: "zmail", "intake", "yagle"
     And facilitator "Facilitator" is managing the game
     And the game is in round 2
     And the current phase is "planning"
@@ -37,7 +37,7 @@ Feature: US-8.2-0.2 - Facilitator Metrics Dashboard
   Scenario: ESP metrics table displays all required columns
     Given ESP "SendWave" has the following state:
       | budget     | 850                                    |
-      | reputation | Gmail:75, Outlook:70, Yahoo:65         |
+      | reputation | zmail:75, intake:70, yagle:65         |
       | spam_rate  | 1.2                                    |
       | clients    | premium_brand:1, growing_startup:2, aggressive_marketer:1 |
       | tech       | spf, dkim                              |
@@ -46,18 +46,18 @@ Feature: US-8.2-0.2 - Facilitator Metrics Dashboard
       | column              |
       | Team Name           |
       | Budget              |
-      | Gmail Rep           |
-      | Outlook Rep         |
-      | Yahoo Rep           |
+      | zmail Rep           |
+      | intake Rep         |
+      | yagle Rep           |
       | Spam Rate           |
       | Clients by Type     |
       | Tech Tools          |
     And the row for "SendWave" should display:
       | field           | value                                  |
       | Budget          | 850                                    |
-      | Gmail Rep       | 75                                     |
-      | Outlook Rep     | 70                                     |
-      | Yahoo Rep       | 65                                     |
+      | zmail Rep       | 75                                     |
+      | intake Rep     | 70                                     |
+      | yagle Rep       | 65                                     |
       | Spam Rate       | 1.2%                                   |
       | Clients by Type | 1 Premium, 2 Startup, 1 Aggressive     |
       | Tech Tools      | SPF ✓, DKIM ✓, DMARC ✗, Content ✗, Monitor ✗ |
@@ -98,7 +98,7 @@ Feature: US-8.2-0.2 - Facilitator Metrics Dashboard
   # ========================================================================
 
   Scenario: Destination metrics table displays all required columns
-    Given destination "Gmail" has the following state:
+    Given destination "zmail" has the following state:
       | budget            | 420                                    |
       | user_satisfaction | 78                                     |
       | owned_tools       | content_analysis_filter, auth_validator_l1, auth_validator_l2 |
@@ -109,16 +109,16 @@ Feature: US-8.2-0.2 - Facilitator Metrics Dashboard
       | Budget              |
       | User Satisfaction   |
       | Tech Tools          |
-    And the row for "Gmail" should display:
+    And the row for "zmail" should display:
       | field             | value                                  |
       | Budget            | 420                                    |
       | User Satisfaction | 78%                                    |
       | Tech Tools        | Content ✓, Auth L1 ✓, Auth L2 ✓, Auth L3 ✗, ML ✗, Trap ✗, Throttle ✗ |
 
   Scenario Outline: Destination tech tools display shows ownership status
-    Given destination "Outlook" owns tools: <owned_tools>
+    Given destination "intake" owns tools: <owned_tools>
     When the facilitator views the facilitator dashboard
-    Then the tech tools cell for "Outlook" should show:
+    Then the tech tools cell for "intake" should show:
       | tool                | status       |
       | Content Analysis    | <content>    |
       | Auth Validator L1   | <auth_l1>    |
@@ -153,14 +153,14 @@ Feature: US-8.2-0.2 - Facilitator Metrics Dashboard
     And the tech tools for "SendWave" should show DKIM as owned
 
   Scenario: Metrics update in real-time when destination changes filtering
-    Given destination "Gmail" has user satisfaction 80
+    Given destination "zmail" has user satisfaction 80
     When the facilitator views the facilitator dashboard
-    Then the user satisfaction for "Gmail" should show 80%
+    Then the user satisfaction for "zmail" should show 80%
     # After resolution with filtering decisions
     When the game transitions through resolution phase
-    And "Gmail" user satisfaction changes to 75
+    And "zmail" user satisfaction changes to 75
     Then the facilitator dashboard should update
-    And the user satisfaction for "Gmail" should show 75%
+    And the user satisfaction for "zmail" should show 75%
 
   Scenario: Metrics update in real-time when ESP acquires a client
     Given ESP "BluePost" has 2 growing_startup clients
@@ -201,6 +201,6 @@ Feature: US-8.2-0.2 - Facilitator Metrics Dashboard
       | BluePost   |
     And the Destination metrics table should have rows for:
       | destination |
-      | Gmail       |
-      | Outlook     |
-      | Yahoo       |
+      | zmail       |
+      | intake     |
+      | yagle       |

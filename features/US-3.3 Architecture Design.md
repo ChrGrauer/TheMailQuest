@@ -694,7 +694,7 @@ describe('Resolution Manager Integration', () => {
         currentRound: 1,
         teams: [
           buildTestTeam('SendWave', {
-            reputation: { gmail: 75, outlook: 75, yahoo: 75 }, // Good zone
+            reputation: { zmail: 75, intake: 75, yagle: 75 }, // Good zone
             clients: [client],
             clientStates: {
               [client.id]: { status: 'Active', has_warmup: false, has_list_hygiene: false, first_active_round: null }
@@ -814,7 +814,7 @@ export function buildTestTeam(config: TestTeamConfig): ESPTeam {
   return {
     name: config.name,
     credits: config.credits ?? 1000,
-    reputation: config.reputation ?? { gmail: 70, outlook: 70, yahoo: 70 },
+    reputation: config.reputation ?? { zmail: 70, intake: 70, yagle: 70 },
     active_clients: config.clients?.map(c => c.id) ?? [],
     available_clients: config.clients ?? [],
     client_states: config.clientStates ?? {},
@@ -825,9 +825,9 @@ export function buildTestTeam(config: TestTeamConfig): ESPTeam {
 }
 
 export function buildTestSession(config: TestSessionConfig): GameSession {
-  const destinations: Destination[] = (config.destinations ?? ['Gmail', 'Outlook', 'Yahoo']).map(name => ({
+  const destinations: Destination[] = (config.destinations ?? ['zmail', 'intake', 'yagle']).map(name => ({
     name,
-    kingdom: name as 'Gmail' | 'Outlook' | 'Yahoo',
+    kingdom: name as 'zmail' | 'intake' | 'yagle',
     esp_reputation: {},
     filtering_policies: {},
     owned_tools: [],
@@ -852,7 +852,7 @@ const session = buildTestSession({
   teams: [
     {
       name: 'SendWave',
-      reputation: { gmail: 75, outlook: 70, yahoo: 68 },
+      reputation: { zmail: 75, intake: 70, yagle: 68 },
       clients: [
         buildTestClient('premium_brand'),
         buildTestClient('growing_startup')

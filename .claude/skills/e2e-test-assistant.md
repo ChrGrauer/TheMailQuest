@@ -64,11 +64,11 @@ test('should do something', async ({ page, context }) => {
 // ❌ BAD - Manual setup (5+ lines)
 await alicePage.locator('[data-testid="lock-in-button"]').click();
 await bobPage.locator('[data-testid="lock-in-button"]').click();
-await gmailPage.locator('[data-testid="lock-in-button"]').click();
+await zmailPage.locator('[data-testid="lock-in-button"]').click();
 await page.waitForTimeout(2000);
 
 // ✅ GOOD - Use helper
-await lockInAllPlayers([alicePage, bobPage, gmailPage]);
+await lockInAllPlayers([alicePage, bobPage, zmailPage]);
 ```
 
 #### 3. **Invalid or Missing Test IDs**
@@ -183,8 +183,8 @@ Helpers should be stored in common files, not in test files.
 - `createGameInPlanningPhase(facilitatorPage, context)` - Game started, planning phase
 - `createGameWithDestinationPlayer(facilitatorPage, context)` - Includes acquired clients
 - `createGameInSecondRound(facilitatorPage, context)` - Advanced to round 2
-- `createGameWithYahooDestination(facilitatorPage, context)` - Yahoo-specific tests
-- `createGameWithDestination(facilitatorPage, context, 'Gmail'|'Outlook'|'Yahoo')` - Generic destination
+- `createGameWithyagleDestination(facilitatorPage, context)` - yagle-specific tests
+- `createGameWithDestination(facilitatorPage, context, 'zmail'|'intake'|'yagle')` - Generic destination
 - `createGameWith2ESPTeams(facilitatorPage, context)` - 2 ESP teams
 - `createGameWith3ESPTeams(facilitatorPage, context)` - 3 ESP teams
 - `createGameWith5ESPTeams(facilitatorPage, context)` - 5 ESP teams for filtering tests
@@ -275,15 +275,15 @@ test('should show success message after acquiring client', async ({ page, contex
 
 ```typescript
 test('should update filtering level after ESP loses reputation', async ({ page, context }) => {
-  const { alicePage, gmailPage, roomCode } = await createGameWithDestinationPlayer(page, context);
+  const { alicePage, zmailPage, roomCode } = await createGameWithDestinationPlayer(page, context);
 
   // Setup: API-based (fast, not what we're testing)
   const clientIds = await getAvailableClientIds(alicePage, roomCode, 'SendWave');
   await acquireClient(alicePage, roomCode, 'SendWave', clientIds[0]);
 
   // Test: UI-based (what we're actually testing)
-  await gmailPage.getByTestId('open-filtering-controls').click();
-  const filteringSlider = gmailPage.getByTestId('filtering-slider-sendwave');
+  await zmailPage.getByTestId('open-filtering-controls').click();
+  const filteringSlider = zmailPage.getByTestId('filtering-slider-sendwave');
   await expect(filteringSlider).toHaveAttribute('data-recommended', 'moderate');
 
   // Trigger reputation loss somehow...
@@ -343,7 +343,7 @@ Need to set up test state?
 2. Verify correct naming pattern (kebab-case)
 3. Use dynamic patterns correctly:
    - `filtering-item-{espName}` → `filtering-item-sendwave` (lowercase, no spaces)
-   - `reputation-{destName}` → `reputation-gmail` (lowercase)
+   - `reputation-{destName}` → `reputation-zmail` (lowercase)
    - `client-card-{index}` → `client-card-0`, `client-card-1`
    - `tech-item-{id}` → `tech-item-dmarc`
 
@@ -370,7 +370,7 @@ import { closePages } from './helpers/game-setup';
 
 test.afterEach(async () => {
   // Include ALL pages created in the test
-  await closePages(page, alicePage, bobPage, gmailPage);
+  await closePages(page, alicePage, bobPage, zmailPage);
 });
 ```
 
@@ -430,7 +430,7 @@ await expect(playerPage.locator(`text=${displayName}`)).toBeVisible();
 #### Testing Calculations
 ```typescript
 // ✅ Test specific business values
-const reputation = await alicePage.getByTestId('reputation-gmail');
+const reputation = await alicePage.getByTestId('reputation-zmail');
 await expect(reputation).toContainText('85'); // After resolution calculation
 
 // ❌ Don't just check visibility
@@ -503,7 +503,7 @@ test('should see real-time updates when player joins', async ({ page, context })
 // ✅ GOOD: Test feature-specific data, not the sync mechanism
 test('should update reputation with correct value after resolution', async ({ page, context }) => {
   const { alicePage } = await createGameInSecondRound(page, context);
-  const reputation = await alicePage.getByTestId('reputation-gmail');
+  const reputation = await alicePage.getByTestId('reputation-zmail');
   await expect(reputation).toContainText('85'); // Specific business value
 });
 ```

@@ -46,25 +46,25 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 	describe('Scenario: Cast investigation vote', () => {
 		test('Given a destination with sufficient budget, When they vote to investigate an ESP, Then the vote is recorded', async () => {
 			// Given - Create game with 3 destinations and ESPs
-			const { session, gmailDest } = await createGameInPlanningPhase();
+			const { session, zmailDest } = await createGameInPlanningPhase();
 
-			// When - Gmail votes to investigate BluePost
+			// When - zmail votes to investigate BluePost
 			const result = castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
 			// Then
 			expect(result.success).toBe(true);
 			expect(result.currentVotes).toBeDefined();
-			expect(result.currentVotes!['BluePost']).toContain('Gmail');
+			expect(result.currentVotes!['BluePost']).toContain('zmail');
 			expect(result.reservedCredits).toBe(50);
 
 			// Verify destination state updated
 			const updatedSession = getSession(session.roomCode);
-			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
-			expect(gmail?.pending_investigation_vote?.espName).toBe('BluePost');
+			const zmail = updatedSession!.destinations.find((d) => d.name === 'zmail');
+			expect(zmail?.pending_investigation_vote?.espName).toBe('BluePost');
 		});
 
 		test('Given a destination already voted, When they vote for a different ESP, Then the vote is changed', async () => {
@@ -72,21 +72,21 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			const { session } = await createGameInPlanningPhase();
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
 			// When - Change vote to SendWave
 			const result = castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'SendWave'
 			});
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(result.currentVotes!['SendWave']).toContain('Gmail');
-			expect(result.currentVotes!['BluePost'] || []).not.toContain('Gmail');
+			expect(result.currentVotes!['SendWave']).toContain('zmail');
+			expect(result.currentVotes!['BluePost'] || []).not.toContain('zmail');
 		});
 
 		test('Given multiple destinations, When they vote for the same ESP, Then votes accumulate', async () => {
@@ -96,20 +96,20 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// When - Two destinations vote for same ESP
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Outlook',
+				destinationName: 'intake',
 				targetEsp: 'BluePost'
 			});
 
 			// Then
 			const votes = getInvestigationVotes(session.roomCode);
 			expect(votes['BluePost']).toHaveLength(2);
-			expect(votes['BluePost']).toContain('Gmail');
-			expect(votes['BluePost']).toContain('Outlook');
+			expect(votes['BluePost']).toContain('zmail');
+			expect(votes['BluePost']).toContain('intake');
 		});
 	});
 
@@ -123,24 +123,24 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			const { session } = await createGameInPlanningPhase();
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
 			// When
 			const result = removeInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail'
+				destinationName: 'zmail'
 			});
 
 			// Then
 			expect(result.success).toBe(true);
-			expect(result.currentVotes!['BluePost'] || []).not.toContain('Gmail');
+			expect(result.currentVotes!['BluePost'] || []).not.toContain('zmail');
 
 			// Verify destination state cleared
 			const updatedSession = getSession(session.roomCode);
-			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
-			expect(gmail?.pending_investigation_vote).toBeUndefined();
+			const zmail = updatedSession!.destinations.find((d) => d.name === 'zmail');
+			expect(zmail?.pending_investigation_vote).toBeUndefined();
 		});
 
 		test('Given a destination with no active vote, When they try to remove, Then it succeeds gracefully', async () => {
@@ -150,7 +150,7 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// When - Try to remove a vote that doesn't exist
 			const result = removeInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail'
+				destinationName: 'zmail'
 			});
 
 			// Then - Should succeed (idempotent operation)
@@ -167,15 +167,15 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// Given
 			const { session } = await createGameInPlanningPhase();
 
-			// Reduce Gmail's budget to 30 credits
+			// Reduce zmail's budget to 30 credits
 			const updatedSession = getSession(session.roomCode);
-			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
-			gmail!.budget = 30;
+			const zmail = updatedSession!.destinations.find((d) => d.name === 'zmail');
+			zmail!.budget = 30;
 
 			// When
 			const result = castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
@@ -188,15 +188,15 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// Given
 			const { session } = await createGameInPlanningPhase();
 
-			// Set Gmail's budget to exactly 50 credits
+			// Set zmail's budget to exactly 50 credits
 			const updatedSession = getSession(session.roomCode);
-			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
-			gmail!.budget = 50;
+			const zmail = updatedSession!.destinations.find((d) => d.name === 'zmail');
+			zmail!.budget = 50;
 
 			// When
 			const result = castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
@@ -219,7 +219,7 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// When
 			const result = castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
@@ -234,15 +234,15 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// Given
 			const { session } = await createGameInPlanningPhase();
 
-			// Lock in Gmail
+			// Lock in zmail
 			const updatedSession = getSession(session.roomCode);
-			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
-			gmail!.locked_in = true;
+			const zmail = updatedSession!.destinations.find((d) => d.name === 'zmail');
+			zmail!.locked_in = true;
 
 			// When
 			const result = castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
@@ -258,19 +258,19 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// First cast a vote
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
-			// Then lock in Gmail
+			// Then lock in zmail
 			const updatedSession = getSession(session.roomCode);
-			const gmail = updatedSession!.destinations.find((d) => d.name === 'Gmail');
-			gmail!.locked_in = true;
+			const zmail = updatedSession!.destinations.find((d) => d.name === 'zmail');
+			zmail!.locked_in = true;
 
 			// When - Try to remove vote after lock-in
 			const result = removeInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail'
+				destinationName: 'zmail'
 			});
 
 			// Then
@@ -290,17 +290,17 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Outlook',
+				destinationName: 'intake',
 				targetEsp: 'BluePost'
 			});
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Yahoo',
+				destinationName: 'yagle',
 				targetEsp: 'SendWave'
 			});
 
@@ -309,10 +309,10 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 
 			// Then
 			expect(votes['BluePost']).toHaveLength(2);
-			expect(votes['BluePost']).toContain('Gmail');
-			expect(votes['BluePost']).toContain('Outlook');
+			expect(votes['BluePost']).toContain('zmail');
+			expect(votes['BluePost']).toContain('intake');
 			expect(votes['SendWave']).toHaveLength(1);
-			expect(votes['SendWave']).toContain('Yahoo');
+			expect(votes['SendWave']).toContain('yagle');
 		});
 
 		test('Given no votes, When getting votes, Then an empty object is returned', async () => {
@@ -339,7 +339,7 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// When
 			const result = castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'NonExistentESP'
 			});
 
@@ -368,7 +368,7 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// When
 			const result = castInvestigationVote({
 				roomCode: 'INVALID',
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
@@ -387,15 +387,15 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// Given
 			const { session } = await createGameInPlanningPhase();
 
-			// Gmail and Outlook vote for BluePost (2/3)
+			// zmail and intake vote for BluePost (2/3)
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Outlook',
+				destinationName: 'intake',
 				targetEsp: 'BluePost'
 			});
 
@@ -406,8 +406,8 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			expect(trigger.triggered).toBe(true);
 			expect(trigger.targetEsp).toBe('BluePost');
 			expect(trigger.voters).toHaveLength(2);
-			expect(trigger.voters).toContain('Gmail');
-			expect(trigger.voters).toContain('Outlook');
+			expect(trigger.voters).toContain('zmail');
+			expect(trigger.voters).toContain('intake');
 		});
 
 		test('Given 3/3 destinations vote for same ESP, When checking trigger, Then investigation is triggered', async () => {
@@ -417,17 +417,17 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// All 3 destinations vote for BluePost
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Outlook',
+				destinationName: 'intake',
 				targetEsp: 'BluePost'
 			});
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Yahoo',
+				destinationName: 'yagle',
 				targetEsp: 'BluePost'
 			});
 
@@ -444,10 +444,10 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// Given
 			const { session } = await createGameInPlanningPhase();
 
-			// Only Gmail votes for BluePost (1/3)
+			// Only zmail votes for BluePost (1/3)
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 
@@ -466,15 +466,15 @@ describe('Feature: US-2.7 Coordination Panel - Investigation Voting', () => {
 			// Votes split: BluePost(1), SendWave(1), no vote(1)
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Gmail',
+				destinationName: 'zmail',
 				targetEsp: 'BluePost'
 			});
 			castInvestigationVote({
 				roomCode: session.roomCode,
-				destinationName: 'Outlook',
+				destinationName: 'intake',
 				targetEsp: 'SendWave'
 			});
-			// Yahoo doesn't vote
+			// yagle doesn't vote
 
 			// When
 			const trigger = checkInvestigationTrigger(session.roomCode);
@@ -524,7 +524,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			const result = runInvestigation({
 				roomCode: session.roomCode,
 				targetEsp: 'BluePost',
-				voters: ['Gmail', 'Outlook']
+				voters: ['zmail', 'intake']
 			});
 
 			// Then
@@ -546,7 +546,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			const result = runInvestigation({
 				roomCode: session.roomCode,
 				targetEsp: 'BluePost',
-				voters: ['Gmail', 'Outlook']
+				voters: ['zmail', 'intake']
 			});
 
 			// Then
@@ -567,7 +567,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			const result = runInvestigation({
 				roomCode: session.roomCode,
 				targetEsp: 'BluePost',
-				voters: ['Gmail', 'Outlook']
+				voters: ['zmail', 'intake']
 			});
 
 			// Then
@@ -588,7 +588,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			const result = runInvestigation({
 				roomCode: session.roomCode,
 				targetEsp: 'BluePost',
-				voters: ['Gmail', 'Outlook']
+				voters: ['zmail', 'intake']
 			});
 
 			// Then
@@ -609,7 +609,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			const result = runInvestigation({
 				roomCode: session.roomCode,
 				targetEsp: 'BluePost',
-				voters: ['Gmail', 'Outlook']
+				voters: ['zmail', 'intake']
 			});
 
 			// Then
@@ -686,7 +686,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			const result = runInvestigation({
 				roomCode: session.roomCode,
 				targetEsp: 'BluePost',
-				voters: ['Gmail', 'Outlook']
+				voters: ['zmail', 'intake']
 			});
 
 			// Then
@@ -760,7 +760,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			const result = runInvestigation({
 				roomCode: session.roomCode,
 				targetEsp: 'BluePost',
-				voters: ['Gmail', 'Outlook']
+				voters: ['zmail', 'intake']
 			});
 
 			// Then
@@ -781,7 +781,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			const result = runInvestigation({
 				roomCode: session.roomCode,
 				targetEsp: 'BluePost',
-				voters: ['Gmail', 'Outlook']
+				voters: ['zmail', 'intake']
 			});
 
 			// Then
@@ -804,7 +804,7 @@ describe('Feature: US-2.7 Investigation Resolution', () => {
 			const result = runInvestigation({
 				roomCode: session.roomCode,
 				targetEsp: 'BluePost',
-				voters: ['Gmail', 'Outlook']
+				voters: ['zmail', 'intake']
 			});
 
 			// Then - Check the client is now suspended
@@ -852,19 +852,19 @@ async function createGameInPlanningPhase() {
 		roomCode: session.roomCode,
 		displayName: 'Grace',
 		role: 'Destination',
-		teamName: 'Gmail'
+		teamName: 'zmail'
 	});
 	joinGame({
 		roomCode: session.roomCode,
 		displayName: 'Henry',
 		role: 'Destination',
-		teamName: 'Outlook'
+		teamName: 'intake'
 	});
 	joinGame({
 		roomCode: session.roomCode,
 		displayName: 'Iris',
 		role: 'Destination',
-		teamName: 'Yahoo'
+		teamName: 'yagle'
 	});
 
 	// Start game and allocate resources
@@ -873,10 +873,10 @@ async function createGameInPlanningPhase() {
 	await transitionPhase({ roomCode: session.roomCode, toPhase: 'planning' });
 
 	const updatedSession = getSession(session.roomCode);
-	const gmailDest = updatedSession!.destinations.find((d) => d.name === 'Gmail');
+	const zmailDest = updatedSession!.destinations.find((d) => d.name === 'zmail');
 	const bluePostTeam = updatedSession!.esp_teams.find((t) => t.name === 'BluePost');
 
-	return { session: updatedSession!, gmailDest, bluePostTeam: bluePostTeam! };
+	return { session: updatedSession!, zmailDest, bluePostTeam: bluePostTeam! };
 }
 
 /**
@@ -890,7 +890,7 @@ interface ClientConfig {
 }
 
 async function createGameWithESPClient(config: ClientConfig) {
-	const { session, gmailDest, bluePostTeam } = await createGameInPlanningPhase();
+	const { session, zmailDest, bluePostTeam } = await createGameInPlanningPhase();
 
 	// Map lowercase risk to capitalized risk expected by Client type
 	const riskMap: Record<string, 'Low' | 'Medium' | 'High'> = {
@@ -950,5 +950,5 @@ async function createGameWithESPClient(config: ClientConfig) {
 		}
 	};
 
-	return { session, gmailDest, bluePostTeam };
+	return { session, zmailDest, bluePostTeam };
 }

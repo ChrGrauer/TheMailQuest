@@ -118,7 +118,7 @@ export function purchaseDestinationTool(
 
 	// Capture state before purchase for logging
 	const budgetBefore = destination.budget;
-	const kingdom = destination.kingdom || 'Gmail';
+	const kingdom = destination.kingdom || 'zmail';
 	const cost = tool.pricing[kingdom] || 0;
 
 	// Perform purchase - deduct budget

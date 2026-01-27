@@ -27,9 +27,9 @@ import type { InvestigationHistoryEntry } from './types';
 // ============================================================================
 
 describe('calculateReputationScore - Weighted Kingdom Reputation', () => {
-	test('should apply kingdom weights correctly: Gmail 50%, Outlook 30%, Yahoo 20%', () => {
+	test('should apply kingdom weights correctly: zmail 50%, intake 30%, yagle 20%', () => {
 		// Given: An ESP with different reputations per kingdom
-		const reputation = { Gmail: 80, Outlook: 70, Yahoo: 60 };
+		const reputation = { zmail: 80, intake: 70, yagle: 60 };
 
 		// When: Calculating the reputation score
 		const result = calculateReputationScore(reputation);
@@ -42,7 +42,7 @@ describe('calculateReputationScore - Weighted Kingdom Reputation', () => {
 
 	test('should handle maximum reputation (100 across all kingdoms)', () => {
 		// Given: Perfect reputation across all kingdoms
-		const reputation = { Gmail: 100, Outlook: 100, Yahoo: 100 };
+		const reputation = { zmail: 100, intake: 100, yagle: 100 };
 
 		// When: Calculating the reputation score
 		const result = calculateReputationScore(reputation);
@@ -54,7 +54,7 @@ describe('calculateReputationScore - Weighted Kingdom Reputation', () => {
 
 	test('should handle minimum reputation (0 across all kingdoms)', () => {
 		// Given: Zero reputation across all kingdoms
-		const reputation = { Gmail: 0, Outlook: 0, Yahoo: 0 };
+		const reputation = { zmail: 0, intake: 0, yagle: 0 };
 
 		// When: Calculating the reputation score
 		const result = calculateReputationScore(reputation);
@@ -66,7 +66,7 @@ describe('calculateReputationScore - Weighted Kingdom Reputation', () => {
 
 	test('should handle mixed reputation values from feature example', () => {
 		// Given: Example from US-5.1 Scenario 1 - SendBolt
-		const reputation = { Gmail: 90, Outlook: 88, Yahoo: 85 };
+		const reputation = { zmail: 90, intake: 88, yagle: 85 };
 
 		// When: Calculating the reputation score
 		const result = calculateReputationScore(reputation);
@@ -215,33 +215,33 @@ describe('calculateTechnicalScore - Investment-Based Scoring', () => {
 describe('checkQualification - Minimum Reputation Gates', () => {
 	test('should disqualify ESP with reputation below 60 in one kingdom', () => {
 		// Given: ESP with one kingdom below threshold
-		const reputation = { Gmail: 85, Outlook: 78, Yahoo: 55 };
+		const reputation = { zmail: 85, intake: 78, yagle: 55 };
 
 		// When: Checking qualification
 		const result = checkQualification(reputation);
 
 		// Then: Disqualified with reason
 		expect(result.qualified).toBe(false);
-		expect(result.failingKingdoms).toEqual(['Yahoo']);
-		expect(result.reason).toBe('Reputation below 60 in: Yahoo');
+		expect(result.failingKingdoms).toEqual(['yagle']);
+		expect(result.reason).toBe('Reputation below 60 in: yagle');
 	});
 
 	test('should disqualify ESP with multiple failing kingdoms', () => {
 		// Given: ESP with multiple kingdoms below threshold
-		const reputation = { Gmail: 55, Outlook: 58, Yahoo: 62 };
+		const reputation = { zmail: 55, intake: 58, yagle: 62 };
 
 		// When: Checking qualification
 		const result = checkQualification(reputation);
 
 		// Then: Disqualified listing all failing kingdoms
 		expect(result.qualified).toBe(false);
-		expect(result.failingKingdoms).toEqual(['Gmail', 'Outlook']);
-		expect(result.reason).toBe('Reputation below 60 in: Gmail, Outlook');
+		expect(result.failingKingdoms).toEqual(['zmail', 'intake']);
+		expect(result.reason).toBe('Reputation below 60 in: zmail, intake');
 	});
 
 	test('should qualify ESP with all kingdoms at or above 60', () => {
 		// Given: ESP meeting minimum requirements
-		const reputation = { Gmail: 85, Outlook: 78, Yahoo: 72 };
+		const reputation = { zmail: 85, intake: 78, yagle: 72 };
 
 		// When: Checking qualification
 		const result = checkQualification(reputation);
@@ -254,7 +254,7 @@ describe('checkQualification - Minimum Reputation Gates', () => {
 
 	test('should qualify ESP with exactly 60 in all kingdoms (boundary)', () => {
 		// Given: ESP exactly at boundary
-		const reputation = { Gmail: 60, Outlook: 60, Yahoo: 60 };
+		const reputation = { zmail: 60, intake: 60, yagle: 60 };
 
 		// When: Checking qualification
 		const result = checkQualification(reputation);
@@ -266,27 +266,27 @@ describe('checkQualification - Minimum Reputation Gates', () => {
 
 	test('should disqualify ESP with exactly 59 in one kingdom (boundary)', () => {
 		// Given: ESP one point below in one kingdom
-		const reputation = { Gmail: 60, Outlook: 60, Yahoo: 59 };
+		const reputation = { zmail: 60, intake: 60, yagle: 59 };
 
 		// When: Checking qualification
 		const result = checkQualification(reputation);
 
 		// Then: Disqualified
 		expect(result.qualified).toBe(false);
-		expect(result.failingKingdoms).toEqual(['Yahoo']);
+		expect(result.failingKingdoms).toEqual(['yagle']);
 	});
 
 	test('should disqualify ESP with all kingdoms failing', () => {
 		// Given: All kingdoms below threshold
-		const reputation = { Gmail: 55, Outlook: 58, Yahoo: 52 };
+		const reputation = { zmail: 55, intake: 58, yagle: 52 };
 
 		// When: Checking qualification
 		const result = checkQualification(reputation);
 
 		// Then: All kingdoms listed
 		expect(result.qualified).toBe(false);
-		expect(result.failingKingdoms).toEqual(['Gmail', 'Outlook', 'Yahoo']);
-		expect(result.reason).toBe('Reputation below 60 in: Gmail, Outlook, Yahoo');
+		expect(result.failingKingdoms).toEqual(['zmail', 'intake', 'yagle']);
+		expect(result.reason).toBe('Reputation below 60 in: zmail, intake, yagle');
 	});
 });
 
@@ -382,19 +382,19 @@ describe('calculateDestinationCollaborativeScore - Industry Protection', () => {
 	test('should calculate success scenario with high scores', () => {
 		// Given: Strong spam blocking and low false positives
 		const stats = {
-			Gmail: {
+			zmail: {
 				spamBlocked: 8000,
 				totalSpamSent: 10000,
 				falsePositives: 200,
 				legitimateEmails: 20000
 			},
-			Outlook: {
+			intake: {
 				spamBlocked: 6000,
 				totalSpamSent: 8000,
 				falsePositives: 150,
 				legitimateEmails: 15000
 			},
-			Yahoo: {
+			yagle: {
 				spamBlocked: 4000,
 				totalSpamSent: 5000,
 				falsePositives: 100,
@@ -420,19 +420,19 @@ describe('calculateDestinationCollaborativeScore - Industry Protection', () => {
 	test('should calculate failure scenario with low spam blocking', () => {
 		// Given: Poor spam blocking performance
 		const stats = {
-			Gmail: {
+			zmail: {
 				spamBlocked: 4000,
 				totalSpamSent: 10000,
 				falsePositives: 500,
 				legitimateEmails: 20000
 			},
-			Outlook: {
+			intake: {
 				spamBlocked: 3000,
 				totalSpamSent: 8000,
 				falsePositives: 400,
 				legitimateEmails: 15000
 			},
-			Yahoo: {
+			yagle: {
 				spamBlocked: 2000,
 				totalSpamSent: 5000,
 				falsePositives: 300,
@@ -454,9 +454,9 @@ describe('calculateDestinationCollaborativeScore - Industry Protection', () => {
 	test('should handle zero spam sent scenario', () => {
 		// Given: No spam was ever sent
 		const stats = {
-			Gmail: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 20000 },
-			Outlook: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 15000 },
-			Yahoo: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 10000 }
+			zmail: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 20000 },
+			intake: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 15000 },
+			yagle: { spamBlocked: 0, totalSpamSent: 0, falsePositives: 0, legitimateEmails: 10000 }
 		};
 
 		// When: Calculating collaborative score
@@ -473,19 +473,19 @@ describe('calculateDestinationCollaborativeScore - Industry Protection', () => {
 	test('should include per-destination breakdown', () => {
 		// Given: Stats for each destination
 		const stats = {
-			Gmail: {
+			zmail: {
 				spamBlocked: 8000,
 				totalSpamSent: 10000,
 				falsePositives: 200,
 				legitimateEmails: 20000
 			},
-			Outlook: {
+			intake: {
 				spamBlocked: 6000,
 				totalSpamSent: 8000,
 				falsePositives: 150,
 				legitimateEmails: 15000
 			},
-			Yahoo: {
+			yagle: {
 				spamBlocked: 4000,
 				totalSpamSent: 5000,
 				falsePositives: 100,
@@ -499,9 +499,9 @@ describe('calculateDestinationCollaborativeScore - Industry Protection', () => {
 		// Then: Per-destination stats should be included
 		expect(result.perDestination).toHaveLength(3);
 
-		const gmail = result.perDestination.find((d) => d.destinationName === 'Gmail');
-		expect(gmail?.blockingRate).toBeCloseTo(80, 0);
-		expect(gmail?.falsePositiveRate).toBeCloseTo(1.0, 1);
+		const zmail = result.perDestination.find((d) => d.destinationName === 'zmail');
+		expect(zmail?.blockingRate).toBeCloseTo(80, 0);
+		expect(zmail?.falsePositiveRate).toBeCloseTo(1.0, 1);
 	});
 });
 
@@ -533,22 +533,22 @@ describe('aggregateResolutionHistory - Multi-Round Data Collection', () => {
 			createMockResolutionHistoryEntry(
 				1,
 				{ SendWave: 500 },
-				{ SendWave: { Gmail: 72, Outlook: 68, Yahoo: 65 } }
+				{ SendWave: { zmail: 72, intake: 68, yagle: 65 } }
 			),
 			createMockResolutionHistoryEntry(
 				2,
 				{ SendWave: 600 },
-				{ SendWave: { Gmail: 75, Outlook: 70, Yahoo: 68 } }
+				{ SendWave: { zmail: 75, intake: 70, yagle: 68 } }
 			),
 			createMockResolutionHistoryEntry(
 				3,
 				{ SendWave: 700 },
-				{ SendWave: { Gmail: 78, Outlook: 73, Yahoo: 70 } }
+				{ SendWave: { zmail: 78, intake: 73, yagle: 70 } }
 			),
 			createMockResolutionHistoryEntry(
 				4,
 				{ SendWave: 800 },
-				{ SendWave: { Gmail: 85, Outlook: 78, Yahoo: 72 } }
+				{ SendWave: { zmail: 85, intake: 78, yagle: 72 } }
 			)
 		];
 
@@ -559,7 +559,7 @@ describe('aggregateResolutionHistory - Multi-Round Data Collection', () => {
 		expect(result.espRoundHistory.SendWave).toHaveLength(4);
 		expect(result.espRoundHistory.SendWave[0].round).toBe(1);
 		expect(result.espRoundHistory.SendWave[0].revenue).toBe(500);
-		expect(result.espRoundHistory.SendWave[3].reputationByKingdom.Gmail).toBe(85);
+		expect(result.espRoundHistory.SendWave[3].reputationByKingdom.zmail).toBe(85);
 	});
 
 	test('should handle missing ESP data in some rounds', () => {
@@ -590,13 +590,13 @@ describe('aggregateResolutionHistory - Multi-Round Data Collection', () => {
 							revenue: { actualRevenue: 500 },
 							volume: {
 								totalVolume: 10000,
-								perDestination: { Gmail: 5000, Outlook: 3000, Yahoo: 2000 }
+								perDestination: { zmail: 5000, intake: 3000, yagle: 2000 }
 							},
 							reputation: {
 								perDestination: {
-									Gmail: { newReputation: 70 },
-									Outlook: { newReputation: 70 },
-									Yahoo: { newReputation: 70 }
+									zmail: { newReputation: 70 },
+									intake: { newReputation: 70 },
+									yagle: { newReputation: 70 }
 								}
 							}
 						}
@@ -605,24 +605,24 @@ describe('aggregateResolutionHistory - Multi-Round Data Collection', () => {
 					espSatisfactionData: {
 						SendWave: {
 							aggregatedSatisfaction: 80,
-							perDestination: { Gmail: 82, Outlook: 78, Yahoo: 80 },
+							perDestination: { zmail: 82, intake: 78, yagle: 80 },
 							breakdown: [
 								{
-									destination: 'Gmail',
+									destination: 'zmail',
 									spam_blocked_volume: 400,
 									spam_through_volume: 100,
 									false_positive_volume: 50,
 									total_volume: 5000
 								},
 								{
-									destination: 'Outlook',
+									destination: 'intake',
 									spam_blocked_volume: 240,
 									spam_through_volume: 60,
 									false_positive_volume: 30,
 									total_volume: 3000
 								},
 								{
-									destination: 'Yahoo',
+									destination: 'yagle',
 									spam_blocked_volume: 160,
 									spam_through_volume: 40,
 									false_positive_volume: 20,
@@ -641,20 +641,20 @@ describe('aggregateResolutionHistory - Multi-Round Data Collection', () => {
 
 		// Then: Destination stats should be populated from espSatisfactionData
 		// totalSpamSent = spam_blocked + spam_through (not just spam_through)
-		expect(result.destinationStats.Gmail.spamBlocked).toBe(400);
-		expect(result.destinationStats.Gmail.totalSpamSent).toBe(500); // 400 + 100
-		expect(result.destinationStats.Gmail.falsePositives).toBe(50);
-		expect(result.destinationStats.Gmail.legitimateEmails).toBe(5000);
+		expect(result.destinationStats.zmail.spamBlocked).toBe(400);
+		expect(result.destinationStats.zmail.totalSpamSent).toBe(500); // 400 + 100
+		expect(result.destinationStats.zmail.falsePositives).toBe(50);
+		expect(result.destinationStats.zmail.legitimateEmails).toBe(5000);
 
-		expect(result.destinationStats.Outlook.spamBlocked).toBe(240);
-		expect(result.destinationStats.Outlook.totalSpamSent).toBe(300); // 240 + 60
-		expect(result.destinationStats.Outlook.falsePositives).toBe(30);
-		expect(result.destinationStats.Outlook.legitimateEmails).toBe(3000);
+		expect(result.destinationStats.intake.spamBlocked).toBe(240);
+		expect(result.destinationStats.intake.totalSpamSent).toBe(300); // 240 + 60
+		expect(result.destinationStats.intake.falsePositives).toBe(30);
+		expect(result.destinationStats.intake.legitimateEmails).toBe(3000);
 
-		expect(result.destinationStats.Yahoo.spamBlocked).toBe(160);
-		expect(result.destinationStats.Yahoo.totalSpamSent).toBe(200); // 160 + 40
-		expect(result.destinationStats.Yahoo.falsePositives).toBe(20);
-		expect(result.destinationStats.Yahoo.legitimateEmails).toBe(2000);
+		expect(result.destinationStats.yagle.spamBlocked).toBe(160);
+		expect(result.destinationStats.yagle.totalSpamSent).toBe(200); // 160 + 40
+		expect(result.destinationStats.yagle.falsePositives).toBe(20);
+		expect(result.destinationStats.yagle.legitimateEmails).toBe(2000);
 	});
 });
 
@@ -672,13 +672,13 @@ describe('calculateFinalScores - Complete Integration', () => {
 			teams: [
 				{
 					name: 'SendBolt',
-					reputation: { Gmail: 90, Outlook: 88, Yahoo: 85 },
+					reputation: { zmail: 90, intake: 88, yagle: 85 },
 					credits: 1000,
 					techStack: ['spf', 'dkim', 'dmarc', 'content-filtering', 'advanced-monitoring']
 				},
 				{
 					name: 'SendWave',
-					reputation: { Gmail: 85, Outlook: 78, Yahoo: 72 },
+					reputation: { zmail: 85, intake: 78, yagle: 72 },
 					credits: 1000,
 					techStack: ['spf', 'dkim', 'dmarc']
 				}
@@ -720,13 +720,13 @@ describe('calculateFinalScores - Complete Integration', () => {
 			teams: [
 				{
 					name: 'FailESP1',
-					reputation: { Gmail: 55, Outlook: 58, Yahoo: 52 },
+					reputation: { zmail: 55, intake: 58, yagle: 52 },
 					credits: 1000,
 					techStack: []
 				},
 				{
 					name: 'FailESP2',
-					reputation: { Gmail: 58, Outlook: 55, Yahoo: 50 },
+					reputation: { zmail: 58, intake: 55, yagle: 50 },
 					credits: 1000,
 					techStack: []
 				}
@@ -751,7 +751,7 @@ describe('calculateFinalScores - Complete Integration', () => {
 		const session = buildTestSession({
 			roomCode: 'META-TEST',
 			currentRound: 4,
-			teams: [{ name: 'TestESP', reputation: { Gmail: 70, Outlook: 70, Yahoo: 70 } }]
+			teams: [{ name: 'TestESP', reputation: { zmail: 70, intake: 70, yagle: 70 } }]
 		});
 		session.resolution_history = [createMockResolutionHistoryEntry(1, { TestESP: 500 })];
 
@@ -772,31 +772,31 @@ describe('calculateFinalScores - Complete Integration', () => {
 describe('Data Validation and Edge Cases', () => {
 	test('should clamp reputation values above 100', () => {
 		// Given: Invalid reputation value above 100
-		const reputation = { Gmail: 150, Outlook: 80, Yahoo: 75 };
+		const reputation = { zmail: 150, intake: 80, yagle: 75 };
 
 		// When: Calculating reputation score
 		const result = calculateReputationScore(reputation);
 
-		// Then: Gmail should be clamped to 100
+		// Then: zmail should be clamped to 100
 		// Weighted = (100×0.5) + (80×0.3) + (75×0.2) = 50 + 24 + 15 = 89
 		expect(result.weightedReputation).toBeCloseTo(89, 1);
 	});
 
 	test('should clamp reputation values below 0', () => {
 		// Given: Invalid reputation value below 0
-		const reputation = { Gmail: -10, Outlook: 80, Yahoo: 75 };
+		const reputation = { zmail: -10, intake: 80, yagle: 75 };
 
 		// When: Calculating reputation score
 		const result = calculateReputationScore(reputation);
 
-		// Then: Gmail should be clamped to 0
+		// Then: zmail should be clamped to 0
 		// Weighted = (0×0.5) + (80×0.3) + (75×0.2) = 0 + 24 + 15 = 39
 		expect(result.weightedReputation).toBeCloseTo(39, 1);
 	});
 
 	test('should round scores to 2 decimal places', () => {
 		// Given: Values that produce long decimals
-		const reputation = { Gmail: 73, Outlook: 67, Yahoo: 61 };
+		const reputation = { zmail: 73, intake: 67, yagle: 61 };
 
 		// When: Calculating reputation score
 		const result = calculateReputationScore(reputation);
@@ -815,7 +815,7 @@ describe('calculateCoordinationBonus - Investigation-Based Bonus', () => {
 	test('should return 10 points for single investigation', () => {
 		// Given: One investigation entry
 		const history = createMockInvestigationHistory([
-			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] }
+			{ round: 2, targetEsp: 'SendWave', voters: ['zmail', 'intake'] }
 		]);
 
 		// When: Calculating coordination bonus
@@ -828,8 +828,8 @@ describe('calculateCoordinationBonus - Investigation-Based Bonus', () => {
 	test('should return 20 points for two investigations', () => {
 		// Given: Two investigation entries
 		const history = createMockInvestigationHistory([
-			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] },
-			{ round: 3, targetEsp: 'MailMonkey', voters: ['Gmail', 'Yahoo'] }
+			{ round: 2, targetEsp: 'SendWave', voters: ['zmail', 'intake'] },
+			{ round: 3, targetEsp: 'MailMonkey', voters: ['zmail', 'yagle'] }
 		]);
 
 		// When: Calculating coordination bonus
@@ -842,9 +842,9 @@ describe('calculateCoordinationBonus - Investigation-Based Bonus', () => {
 	test('should return 30 points for three investigations (typical max)', () => {
 		// Given: Three investigation entries
 		const history = createMockInvestigationHistory([
-			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] },
-			{ round: 3, targetEsp: 'MailMonkey', voters: ['Gmail', 'Yahoo'] },
-			{ round: 4, targetEsp: 'BluePost', voters: ['Outlook', 'Yahoo'] }
+			{ round: 2, targetEsp: 'SendWave', voters: ['zmail', 'intake'] },
+			{ round: 3, targetEsp: 'MailMonkey', voters: ['zmail', 'yagle'] },
+			{ round: 4, targetEsp: 'BluePost', voters: ['intake', 'yagle'] }
 		]);
 
 		// When: Calculating coordination bonus
@@ -857,10 +857,10 @@ describe('calculateCoordinationBonus - Investigation-Based Bonus', () => {
 	test('should return 40 points for four investigations (absolute max)', () => {
 		// Given: Four investigation entries (one per round)
 		const history = createMockInvestigationHistory([
-			{ round: 1, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] },
-			{ round: 2, targetEsp: 'MailMonkey', voters: ['Gmail', 'Yahoo'] },
-			{ round: 3, targetEsp: 'BluePost', voters: ['Outlook', 'Yahoo'] },
-			{ round: 4, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook', 'Yahoo'] }
+			{ round: 1, targetEsp: 'SendWave', voters: ['zmail', 'intake'] },
+			{ round: 2, targetEsp: 'MailMonkey', voters: ['zmail', 'yagle'] },
+			{ round: 3, targetEsp: 'BluePost', voters: ['intake', 'yagle'] },
+			{ round: 4, targetEsp: 'SendWave', voters: ['zmail', 'intake', 'yagle'] }
 		]);
 
 		// When: Calculating coordination bonus
@@ -899,19 +899,19 @@ describe('calculateCoordinationBonus - Investigation-Based Bonus', () => {
 
 describe('calculateDestinationCollaborativeScore - With Coordination Bonus', () => {
 	const baseStats = {
-		Gmail: {
+		zmail: {
 			spamBlocked: 8000,
 			totalSpamSent: 10000,
 			falsePositives: 200,
 			legitimateEmails: 20000
 		},
-		Outlook: {
+		intake: {
 			spamBlocked: 6000,
 			totalSpamSent: 8000,
 			falsePositives: 150,
 			legitimateEmails: 15000
 		},
-		Yahoo: {
+		yagle: {
 			spamBlocked: 4000,
 			totalSpamSent: 5000,
 			falsePositives: 100,
@@ -922,7 +922,7 @@ describe('calculateDestinationCollaborativeScore - With Coordination Bonus', () 
 	test('should include coordination bonus in collaborative score', () => {
 		// Given: Stats + 1 investigation
 		const history = createMockInvestigationHistory([
-			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] }
+			{ round: 2, targetEsp: 'SendWave', voters: ['zmail', 'intake'] }
 		]);
 
 		// When: Calculating collaborative score with investigation history
@@ -937,7 +937,7 @@ describe('calculateDestinationCollaborativeScore - With Coordination Bonus', () 
 		// Given: Stats that produce ~71 points without coordination
 		// Adding investigation history to push over 80
 		const history = createMockInvestigationHistory([
-			{ round: 2, targetEsp: 'SendWave', voters: ['Gmail', 'Outlook'] }
+			{ round: 2, targetEsp: 'SendWave', voters: ['zmail', 'intake'] }
 		]);
 
 		// When: Calculating collaborative score
@@ -951,19 +951,19 @@ describe('calculateDestinationCollaborativeScore - With Coordination Bonus', () 
 	test('should clamp collaborative score at 100', () => {
 		// Given: Stats that produce high scores + many investigations
 		const perfectStats = {
-			Gmail: {
+			zmail: {
 				spamBlocked: 10000,
 				totalSpamSent: 10000,
 				falsePositives: 0,
 				legitimateEmails: 20000
 			},
-			Outlook: {
+			intake: {
 				spamBlocked: 8000,
 				totalSpamSent: 8000,
 				falsePositives: 0,
 				legitimateEmails: 15000
 			},
-			Yahoo: {
+			yagle: {
 				spamBlocked: 5000,
 				totalSpamSent: 5000,
 				falsePositives: 0,
@@ -974,10 +974,10 @@ describe('calculateDestinationCollaborativeScore - With Coordination Bonus', () 
 		// Industry Protection = 40 (100% blocked) + User Satisfaction = 40 (0 FP) + Coordination = 40
 		// Raw score = 120, should be clamped to 100
 		const history = createMockInvestigationHistory([
-			{ round: 1, targetEsp: 'ESP1', voters: ['Gmail', 'Outlook'] },
-			{ round: 2, targetEsp: 'ESP2', voters: ['Gmail', 'Yahoo'] },
-			{ round: 3, targetEsp: 'ESP3', voters: ['Outlook', 'Yahoo'] },
-			{ round: 4, targetEsp: 'ESP4', voters: ['Gmail', 'Outlook', 'Yahoo'] }
+			{ round: 1, targetEsp: 'ESP1', voters: ['zmail', 'intake'] },
+			{ round: 2, targetEsp: 'ESP2', voters: ['zmail', 'yagle'] },
+			{ round: 3, targetEsp: 'ESP3', voters: ['intake', 'yagle'] },
+			{ round: 4, targetEsp: 'ESP4', voters: ['zmail', 'intake', 'yagle'] }
 		]);
 
 		// When: Calculating collaborative score
@@ -1015,7 +1015,7 @@ describe('calculateFinalScores - With Investigation History', () => {
 			teams: [
 				{
 					name: 'SendBolt',
-					reputation: { Gmail: 90, Outlook: 88, Yahoo: 85 },
+					reputation: { zmail: 90, intake: 88, yagle: 85 },
 					credits: 1000,
 					techStack: ['spf', 'dkim', 'dmarc']
 				}
@@ -1032,8 +1032,8 @@ describe('calculateFinalScores - With Investigation History', () => {
 
 		// Add investigation history (2 investigations)
 		session.investigation_history = createMockInvestigationHistory([
-			{ round: 2, targetEsp: 'SendBolt', voters: ['Gmail', 'Outlook'] },
-			{ round: 3, targetEsp: 'SendBolt', voters: ['Gmail', 'Yahoo'] }
+			{ round: 2, targetEsp: 'SendBolt', voters: ['zmail', 'intake'] },
+			{ round: 3, targetEsp: 'SendBolt', voters: ['zmail', 'yagle'] }
 		]);
 
 		// When: Calculating final scores
@@ -1082,7 +1082,7 @@ function createMockESPResult(
 			technicalScore: 0,
 			weightedReputation
 		},
-		reputationByKingdom: { Gmail: 70, Outlook: 70, Yahoo: 70 },
+		reputationByKingdom: { zmail: 70, intake: 70, yagle: 70 },
 		totalRevenue: 0,
 		totalTechInvestments: 0,
 		roundHistory: []
@@ -1099,12 +1099,12 @@ function createMockResolutionHistoryEntry(
 	for (const [espName, revenue] of Object.entries(revenues)) {
 		espResults[espName] = {
 			revenue: { actualRevenue: revenue, baseRevenue: revenue, perClient: [] },
-			volume: { totalVolume: 10000, perDestination: { Gmail: 5000, Outlook: 3000, Yahoo: 2000 } },
+			volume: { totalVolume: 10000, perDestination: { zmail: 5000, intake: 3000, yagle: 2000 } },
 			reputation: {
 				perDestination: {
-					Gmail: { newReputation: reputations?.[espName]?.Gmail ?? 70 },
-					Outlook: { newReputation: reputations?.[espName]?.Outlook ?? 70 },
-					Yahoo: { newReputation: reputations?.[espName]?.Yahoo ?? 70 }
+					zmail: { newReputation: reputations?.[espName]?.zmail ?? 70 },
+					intake: { newReputation: reputations?.[espName]?.intake ?? 70 },
+					yagle: { newReputation: reputations?.[espName]?.yagle ?? 70 }
 				}
 			}
 		};

@@ -129,10 +129,10 @@ test.describe('Feature: Join Game Session - E2E', () => {
 			// Wait for Alice to be added
 			await expect(page.locator('text=Alice')).toBeVisible();
 
-			// Player Bob joins as Gmail destination
+			// Player Bob joins as zmail destination
 			const bobPage = await context.newPage();
 			await bobPage.goto(`/lobby/${roomCode}`);
-			await bobPage.click('text=Gmail');
+			await bobPage.click('text=zmail');
 			await bobPage.locator('input[name="displayName"]').fill('Bob');
 			await bobPage.click('button:has-text("Join Game")');
 
@@ -148,10 +148,10 @@ test.describe('Feature: Join Game Session - E2E', () => {
 			await expect(sendWaveSlot).toHaveAttribute('data-occupied', 'true');
 			await expect(sendWaveSlot.locator('text=Occupied')).toBeVisible();
 
-			// And Charlie should see Gmail as unavailable/occupied
-			const gmailSlot = charliePage.locator('[data-team="Gmail"]');
-			await expect(gmailSlot).toHaveAttribute('data-occupied', 'true');
-			await expect(gmailSlot.locator('text=Occupied')).toBeVisible();
+			// And Charlie should see zmail as unavailable/occupied
+			const zmailSlot = charliePage.locator('[data-team="zmail"]');
+			await expect(zmailSlot).toHaveAttribute('data-occupied', 'true');
+			await expect(zmailSlot.locator('text=Occupied')).toBeVisible();
 
 			// And Charlie should see the other 7 slots as available
 			const availableSlots = charliePage.locator('[data-occupied="false"]');
@@ -229,10 +229,10 @@ test.describe('Feature: Join Game Session - E2E', () => {
 			page,
 			context
 		}) => {
-			// Given player Alice has joined as Gmail destination
+			// Given player Alice has joined as zmail destination
 			const roomCode = await createTestSession(page);
 			await page.goto(`/lobby/${roomCode}`);
-			await page.click('text=Gmail');
+			await page.click('text=zmail');
 			await page.locator('input[name="displayName"]').fill('Alice');
 			await page.click('button:has-text("Join Game")');
 			await expect(page.locator('text=Alice')).toBeVisible();
@@ -244,12 +244,12 @@ test.describe('Feature: Join Game Session - E2E', () => {
 			// Wait for WebSocket to connect and receive updates
 			await bobPage.waitForTimeout(500);
 
-			// Then the Gmail slot should be disabled
-			const gmailSlot = bobPage.locator('[data-team="Gmail"]');
-			await expect(gmailSlot).toBeDisabled();
+			// Then the zmail slot should be disabled
+			const zmailSlot = bobPage.locator('[data-team="zmail"]');
+			await expect(zmailSlot).toBeDisabled();
 
 			// And it should be marked as occupied
-			await expect(gmailSlot).toHaveAttribute('data-occupied', 'true');
+			await expect(zmailSlot).toHaveAttribute('data-occupied', 'true');
 
 			// And show Alice's name
 			await expect(bobPage.locator('text=Alice')).toBeVisible();
@@ -293,7 +293,7 @@ test.describe('Feature: Join Game Session - E2E', () => {
 			}
 
 			// Fill all 3 destinations
-			const destinations = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinations = ['zmail', 'intake', 'yagle'];
 			for (let i = 0; i < destinations.length; i++) {
 				const playerPage = await context.newPage();
 				await playerPage.goto(`/lobby/${roomCode}`);

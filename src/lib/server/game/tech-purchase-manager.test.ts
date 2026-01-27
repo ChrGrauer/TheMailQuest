@@ -45,7 +45,7 @@ describe('Feature: Technical Infrastructure Shop - Purchase Manager', () => {
 			roomCode: testRoomCode,
 			displayName: 'Bob',
 			role: 'Destination',
-			teamName: 'Gmail'
+			teamName: 'zmail'
 		});
 
 		// Start game and allocate resources

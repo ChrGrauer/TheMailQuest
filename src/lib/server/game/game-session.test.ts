@@ -145,7 +145,7 @@ describe('Feature: Create Game Session - Business Logic', () => {
 
 			// Then: Destination names should be correct
 			const destinationNames = session.destinations.map((dest) => dest.name);
-			expect(destinationNames).toEqual(['Gmail', 'Outlook', 'Yahoo']);
+			expect(destinationNames).toEqual(['zmail', 'intake', 'yagle']);
 		});
 	});
 

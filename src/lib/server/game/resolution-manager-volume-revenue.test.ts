@@ -40,9 +40,9 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 
 		// Then: Per-destination delivery calculated (Iteration 6)
 		expect(results.espResults.SendWave.delivery).toBeDefined();
-		expect(results.espResults.SendWave.delivery.Gmail.finalRate).toBe(0.85); // Good zone (reputation 70)
-		expect(results.espResults.SendWave.delivery.Outlook.finalRate).toBe(0.85);
-		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBe(0.85);
+		expect(results.espResults.SendWave.delivery.zmail.finalRate).toBe(0.85); // Good zone (reputation 70)
+		expect(results.espResults.SendWave.delivery.intake.finalRate).toBe(0.85);
+		expect(results.espResults.SendWave.delivery.yagle.finalRate).toBe(0.85);
 
 		// Then: Aggregate delivery rate and revenue calculated correctly
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
@@ -86,9 +86,9 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 		expect(results.espResults.SendWave.volume.totalVolume).toBe(65000); // 30K + 35K
 
 		// Then: Per-destination delivery calculated (Iteration 6)
-		expect(results.espResults.SendWave.delivery.Gmail.finalRate).toBe(0.85); // Good zone (reputation 70)
-		expect(results.espResults.SendWave.delivery.Outlook.finalRate).toBe(0.85);
-		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBe(0.85);
+		expect(results.espResults.SendWave.delivery.zmail.finalRate).toBe(0.85); // Good zone (reputation 70)
+		expect(results.espResults.SendWave.delivery.intake.finalRate).toBe(0.85);
+		expect(results.espResults.SendWave.delivery.yagle.finalRate).toBe(0.85);
 
 		// Then: Aggregate delivery rate and revenue calculated correctly
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
@@ -140,9 +140,9 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 		expect(results.espResults.SendWave.volume.activeClients).toHaveLength(2);
 
 		// Then: Per-destination delivery calculated (Iteration 6)
-		expect(results.espResults.SendWave.delivery.Gmail.finalRate).toBe(0.85); // Good zone
-		expect(results.espResults.SendWave.delivery.Outlook.finalRate).toBe(0.85);
-		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBe(0.85);
+		expect(results.espResults.SendWave.delivery.zmail.finalRate).toBe(0.85); // Good zone
+		expect(results.espResults.SendWave.delivery.intake.finalRate).toBe(0.85);
+		expect(results.espResults.SendWave.delivery.yagle.finalRate).toBe(0.85);
 
 		// Then: Revenue calculated correctly
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
@@ -190,18 +190,18 @@ describe('Resolution Manager - Iteration 1: Basic Volume & Revenue', () => {
 
 		// Then: SendWave calculated correctly
 		expect(results.espResults.SendWave.volume.totalVolume).toBe(30000);
-		expect(results.espResults.SendWave.delivery.Gmail.finalRate).toBe(0.85);
-		expect(results.espResults.SendWave.delivery.Outlook.finalRate).toBe(0.85);
-		expect(results.espResults.SendWave.delivery.Yahoo.finalRate).toBe(0.85);
+		expect(results.espResults.SendWave.delivery.zmail.finalRate).toBe(0.85);
+		expect(results.espResults.SendWave.delivery.intake.finalRate).toBe(0.85);
+		expect(results.espResults.SendWave.delivery.yagle.finalRate).toBe(0.85);
 		expect(results.espResults.SendWave.aggregateDeliveryRate).toBe(0.85);
 		expect(results.espResults.SendWave.revenue.baseRevenue).toBe(350);
 		expect(results.espResults.SendWave.revenue.actualRevenue).toBe(298); // Math.round(350 * 0.85)
 
 		// Then: MailMonkey calculated independently
 		expect(results.espResults.MailMonkey.volume.totalVolume).toBe(50000);
-		expect(results.espResults.MailMonkey.delivery.Gmail.finalRate).toBe(0.85);
-		expect(results.espResults.MailMonkey.delivery.Outlook.finalRate).toBe(0.85);
-		expect(results.espResults.MailMonkey.delivery.Yahoo.finalRate).toBe(0.85);
+		expect(results.espResults.MailMonkey.delivery.zmail.finalRate).toBe(0.85);
+		expect(results.espResults.MailMonkey.delivery.intake.finalRate).toBe(0.85);
+		expect(results.espResults.MailMonkey.delivery.yagle.finalRate).toBe(0.85);
 		expect(results.espResults.MailMonkey.aggregateDeliveryRate).toBe(0.85);
 		expect(results.espResults.MailMonkey.revenue.baseRevenue).toBe(150);
 		expect(results.espResults.MailMonkey.revenue.actualRevenue).toBe(128); // Math.round(150 * 0.85)

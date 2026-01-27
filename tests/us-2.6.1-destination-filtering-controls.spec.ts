@@ -32,65 +32,65 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 	test.describe('Section 1: Modal UI & Navigation', () => {
 		test('Scenario: Open and close Filtering Controls modal', async ({ page, context }) => {
 			// Given: I am on the Destination dashboard
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// When: I click the "Filtering Controls" quick action button
-			const filteringButton = gmailPage.locator('[data-testid="filtering-controls-button"]');
+			const filteringButton = zmailPage.locator('[data-testid="filtering-controls-button"]');
 			await filteringButton.click();
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Then: the Filtering Controls modal should open
-			const modal = gmailPage.locator('[data-testid="filtering-controls-modal"]');
+			const modal = zmailPage.locator('[data-testid="filtering-controls-modal"]');
 			await expect(modal).toBeVisible();
 
 			// And: I should see modal header containing "Filtering Controls"
-			const modalHeader = gmailPage.locator('[data-testid="filtering-modal-title"]');
+			const modalHeader = zmailPage.locator('[data-testid="filtering-modal-title"]');
 			await expect(modalHeader).toContainText('Filtering Controls');
 
 			// And: I should see filtering items for all active ESPs
-			const espItems = gmailPage.locator('[data-testid^="filtering-item-"]');
+			const espItems = zmailPage.locator('[data-testid^="filtering-item-"]');
 			await expect(espItems).toHaveCount(2); // 2 ESP teams in test setup
 
 			// When: I click the close button "✕"
-			const closeButton = gmailPage.locator('[data-testid="filtering-modal-close"]');
+			const closeButton = zmailPage.locator('[data-testid="filtering-modal-close"]');
 			await closeButton.click();
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Then: the modal should close
 			await expect(modal).not.toBeVisible();
 
 			// And: all filtering settings should be preserved (verified in persistence tests)
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Close modal by clicking outside', async ({ page, context }) => {
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// Open modal
-			const filteringButton = gmailPage.locator('[data-testid="filtering-controls-button"]');
+			const filteringButton = zmailPage.locator('[data-testid="filtering-controls-button"]');
 			await filteringButton.click();
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
-			const modal = gmailPage.locator('[data-testid="filtering-controls-modal"]');
+			const modal = zmailPage.locator('[data-testid="filtering-controls-modal"]');
 			await expect(modal).toBeVisible();
 
 			// Click outside modal (on backdrop)
-			const backdrop = gmailPage.locator('[data-testid="modal-backdrop"]');
+			const backdrop = zmailPage.locator('[data-testid="modal-backdrop"]');
 			await backdrop.click({ position: { x: 10, y: 10 } });
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Modal should close
 			await expect(modal).not.toBeVisible();
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 	});
@@ -101,10 +101,10 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 
 	test.describe('Section 2: Viewing ESP Filtering Status', () => {
 		test('Scenario: View filtering controls with all active ESPs', async ({ page, context }) => {
-			// Given: I am a Destination player for "Gmail"
+			// Given: I am a Destination player for "zmail"
 			// And: all 5 ESP teams are active in the game
 			const {
-				gmailPage,
+				zmailPage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage,
@@ -113,17 +113,17 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			} = await createGameWith5ESPTeams(page, context);
 
 			// When: I open the Filtering Controls modal
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Then: I should see 5 ESP entries
-			const espItems = gmailPage.locator('[data-testid^="filtering-item-"]');
+			const espItems = zmailPage.locator('[data-testid^="filtering-item-"]');
 			await expect(espItems).toHaveCount(5);
 
-			// And: each ESP should display complete Gmail-specific metrics
-			const sendWaveItem = gmailPage.locator('[data-testid="filtering-item-sendwave"]');
+			// And: each ESP should display complete zmail-specific metrics
+			const sendWaveItem = zmailPage.locator('[data-testid="filtering-item-sendwave"]');
 
 			// ESP name
 			const espName = sendWaveItem.locator('[data-testid="filtering-esp-name"]');
@@ -151,7 +151,7 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 
 			await closePages(
 				page,
-				gmailPage,
+				zmailPage,
 				sendWavePage,
 				mailMonkeyPage,
 				bluePostPage,
@@ -167,18 +167,18 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 
 	test.describe('Section 3: Filtering Levels & Impact Display', () => {
 		test('Scenario: View filter impact for each filtering level', async ({ page, context }) => {
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// Open filtering controls
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
-			const sendWaveItem = gmailPage.locator('[data-testid="filtering-item-sendwave"]');
+			const sendWaveItem = zmailPage.locator('[data-testid="filtering-item-sendwave"]');
 			const slider = sendWaveItem.locator('[data-testid="filtering-slider"]');
 			const levelDisplay = sendWaveItem.locator('[data-testid="filtering-current-level"]');
 			const impactTitle = sendWaveItem.locator('[data-testid="filtering-impact-title"]');
@@ -214,7 +214,7 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			for (const level of levels) {
 				// When: I drag the slider to position
 				await slider.fill(level.position.toString());
-				await gmailPage.waitForTimeout(200);
+				await zmailPage.waitForTimeout(200);
 
 				// Then: the title should show correct text
 				await expect(impactTitle).toContainText(level.title);
@@ -229,23 +229,23 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 				await expect(falsePositives).toContainText(level.fp);
 			}
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Slider visual feedback and gradient', async ({ page, context }) => {
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// Open filtering controls
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
-			const sendWaveItem = gmailPage.locator('[data-testid="filtering-item-sendwave"]');
+			const sendWaveItem = zmailPage.locator('[data-testid="filtering-item-sendwave"]');
 			const slider = sendWaveItem.locator('[data-testid="filtering-slider"]');
 
 			// Then: the slider background should show a color gradient
@@ -270,16 +270,16 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 
 			// Test color coding for different levels
 			await slider.fill('0'); // Permissive
-			await gmailPage.waitForTimeout(200);
+			await zmailPage.waitForTimeout(200);
 			const permissiveColor = await levelDisplay.getAttribute('data-level-color');
 			expect(permissiveColor).toBe('green');
 
 			await slider.fill('2'); // Strict
-			await gmailPage.waitForTimeout(200);
+			await zmailPage.waitForTimeout(200);
 			const strictColor = await levelDisplay.getAttribute('data-level-color');
 			expect(strictColor).toBe('orange');
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 	});
@@ -294,69 +294,69 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			context
 		}) => {
 			// Given: Multiple ESP teams are active (SendWave, MailMonkey, BluePost)
-			const { gmailPage, sendWavePage, mailMonkeyPage, bluePostPage } =
+			const { zmailPage, sendWavePage, mailMonkeyPage, bluePostPage } =
 				await createGameWith3ESPTeams(page, context);
 
 			// Open filtering controls
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// When: I set the following filtering levels
 			// SendWave = Permissive (0)
-			const sendWaveSlider = gmailPage.locator(
+			const sendWaveSlider = zmailPage.locator(
 				'[data-testid="filtering-item-sendwave"] [data-testid="filtering-slider"]'
 			);
 			await sendWaveSlider.fill('0');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// MailMonkey = Moderate (1)
-			const mailMonkeySlider = gmailPage.locator(
+			const mailMonkeySlider = zmailPage.locator(
 				'[data-testid="filtering-item-mailmonkey"] [data-testid="filtering-slider"]'
 			);
 			await mailMonkeySlider.fill('1');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// BluePost = Strict (2)
-			const bluePostSlider = gmailPage.locator(
+			const bluePostSlider = zmailPage.locator(
 				'[data-testid="filtering-item-bluepost"] [data-testid="filtering-slider"]'
 			);
 			await bluePostSlider.fill('2');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Then: each ESP should display its respective impact
 			// SendWave: 0% spam reduction, 0% false positives
-			const sendWaveSpam = gmailPage.locator(
+			const sendWaveSpam = zmailPage.locator(
 				'[data-testid="filtering-item-sendwave"] [data-testid="filtering-spam-reduction"]'
 			);
-			const sendWaveFP = gmailPage.locator(
+			const sendWaveFP = zmailPage.locator(
 				'[data-testid="filtering-item-sendwave"] [data-testid="filtering-false-positives"]'
 			);
 			await expect(sendWaveSpam).toContainText('0%');
 			await expect(sendWaveFP).toContainText('0%');
 
 			// MailMonkey: 35% spam reduction, 3% false positives
-			const mailMonkeySpam = gmailPage.locator(
+			const mailMonkeySpam = zmailPage.locator(
 				'[data-testid="filtering-item-mailmonkey"] [data-testid="filtering-spam-reduction"]'
 			);
-			const mailMonkeyFP = gmailPage.locator(
+			const mailMonkeyFP = zmailPage.locator(
 				'[data-testid="filtering-item-mailmonkey"] [data-testid="filtering-false-positives"]'
 			);
 			await expect(mailMonkeySpam).toContainText('35%');
 			await expect(mailMonkeyFP).toContainText('3%');
 
 			// BluePost: 65% spam reduction, 8% false positives
-			const bluePostSpam = gmailPage.locator(
+			const bluePostSpam = zmailPage.locator(
 				'[data-testid="filtering-item-bluepost"] [data-testid="filtering-spam-reduction"]'
 			);
-			const bluePostFP = gmailPage.locator(
+			const bluePostFP = zmailPage.locator(
 				'[data-testid="filtering-item-bluepost"] [data-testid="filtering-false-positives"]'
 			);
 			await expect(bluePostSpam).toContainText('65%');
 			await expect(bluePostFP).toContainText('8%');
 
-			await closePages(page, gmailPage, sendWavePage, mailMonkeyPage, bluePostPage);
+			await closePages(page, zmailPage, sendWavePage, mailMonkeyPage, bluePostPage);
 		});
 	});
 
@@ -370,41 +370,41 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			context
 		}) => {
 			// Given: Game with 2 ESPs (SendWave and MailMonkey)
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// Given: I set filtering levels
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// SendWave = Strict (2)
-			const sendWaveSlider = gmailPage.locator(
+			const sendWaveSlider = zmailPage.locator(
 				'[data-testid="filtering-item-sendwave"] [data-testid="filtering-slider"]'
 			);
 			await sendWaveSlider.fill('2');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// MailMonkey = Moderate (1)
-			const mailMonkeySlider = gmailPage.locator(
+			const mailMonkeySlider = zmailPage.locator(
 				'[data-testid="filtering-item-mailmonkey"] [data-testid="filtering-slider"]'
 			);
 			await mailMonkeySlider.fill('1');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// When: I close the Filtering Controls modal
-			const closeButton = gmailPage.locator('[data-testid="filtering-modal-close"]');
+			const closeButton = zmailPage.locator('[data-testid="filtering-modal-close"]');
 			await closeButton.click();
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// And: I reopen the Filtering Controls modal
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Then: "SendWave" should still be at "Strict"
 			const sendWaveValue = await sendWaveSlider.inputValue();
@@ -415,64 +415,64 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			expect(mailMonkeyValue).toBe('1');
 
 			// And: impact values should be preserved
-			const sendWaveSpam = gmailPage.locator(
+			const sendWaveSpam = zmailPage.locator(
 				'[data-testid="filtering-item-sendwave"] [data-testid="filtering-spam-reduction"]'
 			);
 			await expect(sendWaveSpam).toContainText('65%');
 
-			const mailMonkeySpam = gmailPage.locator(
+			const mailMonkeySpam = zmailPage.locator(
 				'[data-testid="filtering-item-mailmonkey"] [data-testid="filtering-spam-reduction"]'
 			);
 			await expect(mailMonkeySpam).toContainText('35%');
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 
 		test('Scenario: Filtering maintains state across rounds', async ({ page, context }) => {
 			// Given: Game with 2 ESPs (SendWave and MailMonkey)
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// Given: I set filtering in Round 1
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// SendWave = Moderate (1)
-			const sendWaveSlider = gmailPage.locator(
+			const sendWaveSlider = zmailPage.locator(
 				'[data-testid="filtering-item-sendwave"] [data-testid="filtering-slider"]'
 			);
 			await sendWaveSlider.fill('1');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// MailMonkey = Strict (2)
-			const mailMonkeySlider = gmailPage.locator(
+			const mailMonkeySlider = zmailPage.locator(
 				'[data-testid="filtering-item-mailmonkey"] [data-testid="filtering-slider"]'
 			);
 			await mailMonkeySlider.fill('2');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Close modal
-			const closeButton = gmailPage.locator('[data-testid="filtering-modal-close"]');
+			const closeButton = zmailPage.locator('[data-testid="filtering-modal-close"]');
 			await closeButton.click();
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// When: Round 2 Planning phase begins (simulate round change)
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.setRound(2);
 				(window as any).__destinationDashboardTest.setPhase('planning');
 			});
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.waitForTimeout(500);
 
 			// Reopen modal
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Then: the filtering levels should remain unchanged
 			const sendWaveValue = await sendWaveSlider.inputValue();
@@ -483,11 +483,11 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 
 			// And: I can adjust them during the new Planning phase
 			await mailMonkeySlider.fill('3');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 			const newMailMonkeyValue = await mailMonkeySlider.inputValue();
 			expect(newMailMonkeyValue).toBe('3');
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 	});
@@ -499,19 +499,19 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 	test.describe('Section 6: Error Handling', () => {
 		test('Scenario: Handle dashboard API error and retry', async ({ page, context }) => {
 			// Given: I create a game with destination player but mock API to fail initially
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// Get room code from URL
-			const url = gmailPage.url();
+			const url = zmailPage.url();
 			const roomCode = url.match(/\/game\/([^/]+)\//)?.[1];
 
 			let apiCallCount = 0;
 
 			// Mock the dashboard API to fail on first retry, succeed on second
-			await gmailPage.route(`**/api/sessions/${roomCode}/destination/gmail`, (route) => {
+			await zmailPage.route(`**/api/sessions/${roomCode}/destination/zmail`, (route) => {
 				apiCallCount++;
 				if (apiCallCount === 1) {
 					// First refetch: simulate server error
@@ -527,28 +527,28 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			});
 
 			// Simulate an error state (as if initial load failed)
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.setError('Database connection failed');
 			});
 
 			// When: I open the Filtering Controls modal (use test API since UI might be hidden due to error)
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Then: I should see the error banner with database error message
-			const errorBanner = gmailPage.locator('[data-testid="filtering-error-banner"]');
+			const errorBanner = zmailPage.locator('[data-testid="filtering-error-banner"]');
 			await expect(errorBanner).toBeVisible();
 			await expect(errorBanner).toContainText('Database connection failed');
 
 			// And: I should see a retry button
-			const retryButton = gmailPage.locator('[data-testid="filtering-error-retry"]');
+			const retryButton = zmailPage.locator('[data-testid="filtering-error-retry"]');
 			await expect(retryButton).toBeVisible();
 
 			// When: I click the retry button (will trigger refetch and hit our mock)
 			await retryButton.click();
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.waitForTimeout(500);
 
 			// Then: Still shows error because first retry failed
 			await expect(errorBanner).toBeVisible();
@@ -556,44 +556,44 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 
 			// When: I click retry again (will succeed this time)
 			await retryButton.click();
-			await gmailPage.waitForTimeout(500);
+			await zmailPage.waitForTimeout(500);
 
 			// Then: Error banner should disappear
 			await expect(errorBanner).not.toBeVisible();
 
 			// And: ESP data should now be visible
-			const espItems = gmailPage.locator('[data-testid^="filtering-item-"]');
+			const espItems = zmailPage.locator('[data-testid^="filtering-item-"]');
 			await expect(espItems.first()).toBeVisible();
-			await expect(gmailPage.locator('[data-testid="filtering-item-sendwave"]')).toBeVisible();
-			await expect(gmailPage.locator('[data-testid="filtering-item-mailmonkey"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="filtering-item-sendwave"]')).toBeVisible();
+			await expect(zmailPage.locator('[data-testid="filtering-item-mailmonkey"]')).toBeVisible();
 
-			await closePages(page, gmailPage, alicePage, bobPage);
+			await closePages(page, zmailPage, alicePage, bobPage);
 		});
 
 		test('Scenario: Handle slider interaction error', async ({ page, context }) => {
-			const { gmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
+			const { zmailPage, alicePage, bobPage } = await createGameWithDestinationPlayer(
 				page,
 				context
 			);
 
 			// Open modal
-			await gmailPage.evaluate(() => {
+			await zmailPage.evaluate(() => {
 				(window as any).__destinationDashboardTest.openFilteringControls();
 			});
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Given: a slider control encounters a technical issue
 			// When: I attempt to adjust filtering and the operation fails
 			// (This will be simulated by the component when API fails)
 			// For now, we test that error handling structure exists
 
-			const sendWaveItem = gmailPage.locator('[data-testid="filtering-item-sendwave"]');
+			const sendWaveItem = zmailPage.locator('[data-testid="filtering-item-sendwave"]');
 			const slider = sendWaveItem.locator('[data-testid="filtering-slider"]');
 			const errorMessage = sendWaveItem.locator('[data-testid="filtering-slider-error"]');
 
 			// Try to change level
 			await slider.fill('2');
-			await gmailPage.waitForTimeout(300);
+			await zmailPage.waitForTimeout(300);
 
 			// Then: I should see error message "Failed to update filtering level"
 			// (In GREEN phase, this will be properly wired to API failures)
@@ -604,7 +604,7 @@ test.describe('Feature: US-2.6.1 Destination Filtering Controls', () => {
 			// And: I can retry the adjustment
 			// (Slider remains interactive)
 
-			await closePages(page, gmailPage);
+			await closePages(page, zmailPage);
 			await closePages(page, alicePage, bobPage);
 		});
 	});

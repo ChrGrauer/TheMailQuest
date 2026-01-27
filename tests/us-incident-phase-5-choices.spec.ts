@@ -70,7 +70,7 @@ test.describe('INC-017: Acquisition Offer', () => {
 		await advanceToRound(page, [alicePage, bobPage, destinationPage], 4);
 
 		// Get Alice's reputation before incident
-		const aliceRepElement = alicePage.getByTestId('reputation-gmail-score');
+		const aliceRepElement = alicePage.getByTestId('reputation-zmail-score');
 		const aliceInitialRep = await extractNumeric(aliceRepElement);
 
 		// Trigger INC-017 (Acquisition Offer) - should target Alice (highest rep)
@@ -184,7 +184,7 @@ test.describe('INC-018: Zero-Day Crisis', () => {
 		// Get initial values
 		const aliceInitialCredits = await extractBudget(alicePage, 'budget-current');
 		const bobInitialCredits = await extractBudget(bobPage, 'budget-current');
-		const bobRepElement = bobPage.getByTestId('reputation-gmail-score');
+		const bobRepElement = bobPage.getByTestId('reputation-zmail-score');
 		const bobInitialRep = await extractNumeric(bobRepElement);
 
 		// Trigger INC-018 (Zero-Day Crisis)
@@ -293,8 +293,8 @@ test.describe('INC-020: Reputation Reset Opportunity', () => {
 		expect(aliceNewCredits).toBe(aliceInitialCredits - 500);
 
 		// Alice's reputation is now 70 across all destinations
-		const aliceRepGmail = await extractNumeric(alicePage.getByTestId('reputation-gmail-score'));
-		expect(aliceRepGmail).toBe(70);
+		const aliceRepzmail = await extractNumeric(alicePage.getByTestId('reputation-zmail-score'));
+		expect(aliceRepzmail).toBe(70);
 	});
 
 	test('declining reset keeps current reputation and saves credits', async ({ page, context }) => {
@@ -320,7 +320,7 @@ test.describe('INC-020: Reputation Reset Opportunity', () => {
 
 		// Get Alice's values before incident
 		const aliceInitialCredits = await extractBudget(alicePage, 'budget-current');
-		const aliceRepElement = alicePage.getByTestId('reputation-gmail-score');
+		const aliceRepElement = alicePage.getByTestId('reputation-zmail-score');
 		const aliceInitialRep = await extractNumeric(aliceRepElement);
 
 		// Trigger INC-020

@@ -21,19 +21,19 @@ export interface DestinationTool {
 		trap_multiplier?: number; // For Spam Trap Network
 	};
 	pricing: {
-		Gmail: number | null;
-		Outlook: number | null;
-		Yahoo: number | null;
+		zmail: number | null;
+		intake: number | null;
+		yagle: number | null;
 	};
 	availability: {
-		Gmail: boolean;
-		Outlook: boolean;
-		Yahoo: boolean;
+		zmail: boolean;
+		intake: boolean;
+		yagle: boolean;
 	};
 	unavailable_reason?: {
-		Gmail?: string;
-		Outlook?: string;
-		Yahoo?: string;
+		zmail?: string;
+		intake?: string;
+		yagle?: string;
 	};
 }
 
@@ -54,14 +54,14 @@ export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
 			false_positive_impact: -2
 		},
 		pricing: {
-			Gmail: 300,
-			Outlook: 240,
-			Yahoo: 160
+			zmail: 300,
+			intake: 240,
+			yagle: 160
 		},
 		availability: {
-			Gmail: true,
-			Outlook: true,
-			Yahoo: true
+			zmail: true,
+			intake: true,
+			yagle: true
 		}
 	},
 
@@ -78,14 +78,14 @@ export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
 			false_positive_impact: 0
 		},
 		pricing: {
-			Gmail: 50,
-			Outlook: 50,
-			Yahoo: 50
+			zmail: 50,
+			intake: 50,
+			yagle: 50
 		},
 		availability: {
-			Gmail: true,
-			Outlook: true,
-			Yahoo: true
+			zmail: true,
+			intake: true,
+			yagle: true
 		}
 	},
 
@@ -103,14 +103,14 @@ export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
 			false_positive_impact: 0
 		},
 		pricing: {
-			Gmail: 50,
-			Outlook: 50,
-			Yahoo: 50
+			zmail: 50,
+			intake: 50,
+			yagle: 50
 		},
 		availability: {
-			Gmail: true,
-			Outlook: true,
-			Yahoo: true
+			zmail: true,
+			intake: true,
+			yagle: true
 		}
 	},
 
@@ -128,14 +128,14 @@ export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
 			false_positive_impact: 0
 		},
 		pricing: {
-			Gmail: 50,
-			Outlook: 50,
-			Yahoo: 50
+			zmail: 50,
+			intake: 50,
+			yagle: 50
 		},
 		availability: {
-			Gmail: true,
-			Outlook: true,
-			Yahoo: true
+			zmail: true,
+			intake: true,
+			yagle: true
 		}
 	},
 
@@ -152,17 +152,17 @@ export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
 			false_positive_impact: -3
 		},
 		pricing: {
-			Gmail: 500,
-			Outlook: 400,
-			Yahoo: null
+			zmail: 500,
+			intake: 400,
+			yagle: null
 		},
 		availability: {
-			Gmail: true,
-			Outlook: true,
-			Yahoo: false
+			zmail: true,
+			intake: true,
+			yagle: false
 		},
 		unavailable_reason: {
-			Yahoo: 'Insufficient computational resources'
+			yagle: 'Insufficient computational resources'
 		}
 	},
 
@@ -180,14 +180,14 @@ export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
 			trap_multiplier: 3
 		},
 		pricing: {
-			Gmail: 250,
-			Outlook: 200,
-			Yahoo: 150
+			zmail: 250,
+			intake: 200,
+			yagle: 150
 		},
 		availability: {
-			Gmail: true,
-			Outlook: true,
-			Yahoo: true
+			zmail: true,
+			intake: true,
+			yagle: true
 		}
 	},
 
@@ -204,14 +204,14 @@ export const DESTINATION_TOOLS: Record<string, DestinationTool> = {
 			false_positive_impact: -1
 		},
 		pricing: {
-			Gmail: 200,
-			Outlook: 150,
-			Yahoo: 100
+			zmail: 200,
+			intake: 150,
+			yagle: 100
 		},
 		availability: {
-			Gmail: true,
-			Outlook: true,
-			Yahoo: true
+			zmail: true,
+			intake: true,
+			yagle: true
 		}
 	}
 };

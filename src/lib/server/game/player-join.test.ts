@@ -139,14 +139,14 @@ describe('Feature: Join Game Session - Business Logic', () => {
 	});
 
 	describe('Scenario: Player selects Destination role and joins', () => {
-		test('Given a player is on the lobby page, when player selects Gmail destination with display name Bob, then player is added to the game session', () => {
+		test('Given a player is on the lobby page, when player selects zmail destination with display name Bob, then player is added to the game session', () => {
 			// Given
 			const session = createGameSession();
 			const request: JoinGameRequest = {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			};
 
 			// When
@@ -157,13 +157,13 @@ describe('Feature: Join Game Session - Business Logic', () => {
 			expect(result.playerId).toBeDefined();
 			expect(result.player?.displayName).toBe('Bob');
 			expect(result.player?.role).toBe('Destination');
-			expect(result.player?.teamName).toBe('Gmail');
+			expect(result.player?.teamName).toBe('zmail');
 
 			// Verify session is updated
 			const updatedSession = getSession(session.roomCode);
-			const gmailDestination = updatedSession?.destinations.find((d) => d.name === 'Gmail');
-			expect(gmailDestination?.players).toHaveLength(1);
-			expect(gmailDestination?.players[0]).toBe(result.playerId);
+			const zmailDestination = updatedSession?.destinations.find((d) => d.name === 'zmail');
+			expect(zmailDestination?.players).toHaveLength(1);
+			expect(zmailDestination?.players[0]).toBe(result.playerId);
 		});
 	});
 
@@ -249,14 +249,14 @@ describe('Feature: Join Game Session - Business Logic', () => {
 	});
 
 	describe('Scenario: Player cannot select already occupied Destination slot', () => {
-		test('Given Alice has joined as Gmail destination, when Bob tries to select Gmail destination, then the system prevents the selection', () => {
+		test('Given Alice has joined as zmail destination, when Bob tries to select zmail destination, then the system prevents the selection', () => {
 			// Given - Alice joins first
 			const session = createGameSession();
 			const aliceRequest: JoinGameRequest = {
 				roomCode: session.roomCode,
 				displayName: 'Alice',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			};
 			const aliceResult = joinGame(aliceRequest);
 			expect(aliceResult.success).toBe(true);
@@ -266,7 +266,7 @@ describe('Feature: Join Game Session - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			};
 			const bobResult = joinGame(bobRequest);
 
@@ -276,9 +276,9 @@ describe('Feature: Join Game Session - Business Logic', () => {
 
 			// Verify only Alice is in the destination
 			const updatedSession = getSession(session.roomCode);
-			const gmailDestination = updatedSession?.destinations.find((d) => d.name === 'Gmail');
-			expect(gmailDestination?.players).toHaveLength(1);
-			expect(gmailDestination?.players[0]).toBe(aliceResult.playerId);
+			const zmailDestination = updatedSession?.destinations.find((d) => d.name === 'zmail');
+			expect(zmailDestination?.players).toHaveLength(1);
+			expect(zmailDestination?.players[0]).toBe(aliceResult.playerId);
 		});
 	});
 
@@ -293,7 +293,7 @@ describe('Feature: Join Game Session - Business Logic', () => {
 
 			// When
 			const espTeamAvailability = isSlotAvailable(session.roomCode, 'ESP', 'SendWave');
-			const destinationAvailability = isSlotAvailable(session.roomCode, 'Destination', 'Gmail');
+			const destinationAvailability = isSlotAvailable(session.roomCode, 'Destination', 'zmail');
 
 			// Then
 			expect(espTeamAvailability).toBe(true);
@@ -301,7 +301,7 @@ describe('Feature: Join Game Session - Business Logic', () => {
 		});
 
 		test('Given a session with occupied slots, when checking those slots, then they are marked as unavailable', () => {
-			// Given - Alice joins SendWave, Bob joins Gmail
+			// Given - Alice joins SendWave, Bob joins zmail
 			const session = createGameSession();
 
 			joinGame({
@@ -315,20 +315,20 @@ describe('Feature: Join Game Session - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			// When
 			const sendWaveAvailable = isSlotAvailable(session.roomCode, 'ESP', 'SendWave');
-			const gmailAvailable = isSlotAvailable(session.roomCode, 'Destination', 'Gmail');
+			const zmailAvailable = isSlotAvailable(session.roomCode, 'Destination', 'zmail');
 			const mailMonkeyAvailable = isSlotAvailable(session.roomCode, 'ESP', 'MailMonkey');
-			const outlookAvailable = isSlotAvailable(session.roomCode, 'Destination', 'Outlook');
+			const intakeAvailable = isSlotAvailable(session.roomCode, 'Destination', 'intake');
 
 			// Then
 			expect(sendWaveAvailable).toBe(false);
-			expect(gmailAvailable).toBe(false);
+			expect(zmailAvailable).toBe(false);
 			expect(mailMonkeyAvailable).toBe(true);
-			expect(outlookAvailable).toBe(true);
+			expect(intakeAvailable).toBe(true);
 		});
 
 		test('Given a session, when getting all available slots, then correct slot info is returned', () => {
@@ -361,9 +361,9 @@ describe('Feature: Join Game Session - Business Logic', () => {
 			expect(mailMonkey?.playerCount).toBe(0);
 
 			// Check destinations are available
-			const gmail = slots?.destinations.find((d) => d.name === 'Gmail');
-			expect(gmail?.available).toBe(true);
-			expect(gmail?.playerCount).toBe(0);
+			const zmail = slots?.destinations.find((d) => d.name === 'zmail');
+			expect(zmail?.available).toBe(true);
+			expect(zmail?.playerCount).toBe(0);
 		});
 	});
 
@@ -399,7 +399,7 @@ describe('Feature: Join Game Session - Business Logic', () => {
 			// Given - Fill all 5 ESP teams and 3 destinations
 			const session = createGameSession();
 			const espTeamNames = ['SendWave', 'MailMonkey', 'BluePost', 'SendBolt', 'RocketMail'];
-			const destinationNames = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinationNames = ['zmail', 'intake', 'yagle'];
 
 			// Fill all ESP teams
 			espTeamNames.forEach((teamName, index) => {
@@ -512,7 +512,7 @@ describe('Feature: Join Game Session - Business Logic', () => {
 			// Given - Fill all slots
 			const session = createGameSession();
 			const espTeamNames = ['SendWave', 'MailMonkey', 'BluePost', 'SendBolt', 'RocketMail'];
-			const destinationNames = ['Gmail', 'Outlook', 'Yahoo'];
+			const destinationNames = ['zmail', 'intake', 'yagle'];
 
 			espTeamNames.forEach((teamName, index) => {
 				joinGame({
@@ -583,7 +583,7 @@ describe('Feature: Join Game Session - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Charlie',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			// When
@@ -681,7 +681,7 @@ describe('Feature: Join Game Session - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 			expect(destResult.success).toBe(true);
 
@@ -752,7 +752,7 @@ describe('Feature: Join Game Session - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			};
 			const joinResult = joinGame(request);
 			expect(joinResult.success).toBe(true);
@@ -800,7 +800,7 @@ describe('Feature: Join Game Session - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			// When

@@ -126,7 +126,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			spam_level: destination.spam_level || 0,
 			user_satisfaction: destination.user_satisfaction,
 			// US-2.6.2: Tech Shop fields
-			kingdom: destination.kingdom || 'Gmail',
+			kingdom: destination.kingdom || 'zmail',
 			owned_tools: destination.owned_tools || [],
 			authentication_level: destination.authentication_level || 0,
 			// US-2.6.1: Filtering Controls
@@ -144,10 +144,10 @@ export const GET: RequestHandler = async ({ params }) => {
 			remaining_players: remainingPlayersCount, // US-3.2
 			timer: session.timer
 				? {
-						duration: session.timer.duration,
-						remaining: timerRemaining,
-						isRunning: session.timer.isRunning
-					}
+					duration: session.timer.duration,
+					remaining: timerRemaining,
+					isRunning: session.timer.isRunning
+				}
 				: null,
 			resolution_history: session.resolution_history || [] // US-3.5: Resolution history for all rounds
 		},

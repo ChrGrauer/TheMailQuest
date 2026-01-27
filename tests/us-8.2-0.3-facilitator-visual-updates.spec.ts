@@ -14,7 +14,7 @@ import { createGameInPlanningPhase, closePages } from './helpers/game-setup';
 
 test.describe('US-8.2-0.3: Visual Updates', () => {
     test('Dashboard displays participant names', async ({ page, context }) => {
-        // Given: a game in planning phase with Alice (SendWave) and Bob (Gmail)
+        // Given: a game in planning phase with Alice (SendWave) and Bob (zmail)
         const { alicePage, bobPage } = await createGameInPlanningPhase(page, context);
 
         // Wait for facilitator page to load
@@ -26,8 +26,8 @@ test.describe('US-8.2-0.3: Visual Updates', () => {
         await expect(espRow.locator('.team-name')).toContainText('(Alice)');
 
         // Check Destination Table for participant name
-        const destRow = page.locator('[data-testid="dest-row-Gmail"]');
-        await expect(destRow.locator('.dest-name')).toContainText('Gmail');
+        const destRow = page.locator('[data-testid="dest-row-zmail"]');
+        await expect(destRow.locator('.dest-name')).toContainText('zmail');
         await expect(destRow.locator('.dest-name')).toContainText('(Bob)');
 
         await closePages(page, alicePage, bobPage);
@@ -40,7 +40,7 @@ test.describe('US-8.2-0.3: Visual Updates', () => {
         await page.waitForURL(/\/facilitator/);
 
         // Check Destination Lock-in status style (Plan phase = Planning...)
-        const destLockStatus = page.locator('[data-testid="dest-row-Gmail"] [data-testid="dest-lock-status"]');
+        const destLockStatus = page.locator('[data-testid="dest-row-zmail"] [data-testid="dest-lock-status"]');
         await expect(destLockStatus).toContainText('Planning...');
         await expect(destLockStatus.locator('.animate-pulse')).toBeVisible();
 

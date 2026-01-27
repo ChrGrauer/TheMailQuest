@@ -61,7 +61,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -70,7 +70,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 
 			// Lock both players
 			lockInESPTeam(session.roomCode, 'SendWave');
-			lockInDestination(session.roomCode, 'Gmail');
+			lockInDestination(session.roomCode, 'zmail');
 
 			// When
 			const currentSession = getSession(session.roomCode);
@@ -96,7 +96,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -139,7 +139,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Carol',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -186,7 +186,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Carol',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -206,7 +206,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			expect(result2.success).toBe(true);
 			expect(result2.all_locked).toBe(false); // Still 1 remaining
 
-			const result3 = lockInDestination(session.roomCode, 'Gmail');
+			const result3 = lockInDestination(session.roomCode, 'zmail');
 			expect(result3.success).toBe(true);
 			expect(result3.all_locked).toBe(true); // Now all locked
 
@@ -220,11 +220,11 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			// Verify all players are locked
 			const sendWave = currentSession?.esp_teams.find((t) => t.name === 'SendWave');
 			const mailMonkey = currentSession?.esp_teams.find((t) => t.name === 'MailMonkey');
-			const gmail = currentSession?.destinations.find((d) => d.name === 'Gmail');
+			const zmail = currentSession?.destinations.find((d) => d.name === 'zmail');
 
 			expect(sendWave?.locked_in).toBe(true);
 			expect(mailMonkey?.locked_in).toBe(true);
-			expect(gmail?.locked_in).toBe(true);
+			expect(zmail?.locked_in).toBe(true);
 		});
 
 		test('When last player locks in, Then all_locked flag should be true', () => {
@@ -243,7 +243,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -256,7 +256,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 			expect(result1.remaining_players).toBe(1);
 
 			// When - Lock last player
-			const result2 = lockInDestination(session.roomCode, 'Gmail');
+			const result2 = lockInDestination(session.roomCode, 'zmail');
 
 			// Then - all_locked should be true
 			expect(result2.all_locked).toBe(true);
@@ -294,7 +294,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });
@@ -325,7 +325,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				roomCode: session.roomCode,
 				displayName: 'Bob',
 				role: 'Destination',
-				teamName: 'Gmail'
+				teamName: 'zmail'
 			});
 
 			startGame({ roomCode: session.roomCode, facilitatorId });

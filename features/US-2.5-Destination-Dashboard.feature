@@ -26,9 +26,9 @@ Feature: Destination Kingdom Dashboard Display
 
     Examples:
       | destination |
-      | Gmail       |
-      | Outlook     |
-      | Yahoo       |
+      | zmail       |
+      | intake     |
+      | yagle       |
 
   # Note: Detailed testing of header and budget components is covered in 
   # ESP dashboard tests (US-2.1). This is a smoke test for Destination-specific data.
@@ -38,7 +38,7 @@ Feature: Destination Kingdom Dashboard Display
   # ============================================================================
 
   Scenario Outline: Dashboard displays statistics for all playing ESPs
-    Given I am logged in as a Destination player for "Gmail"
+    Given I am logged in as a Destination player for "zmail"
     And there are <num_esps> ESP teams active in the game
     And each ESP has traffic data to my destination
     When I view the ESP Statistics Overview section
@@ -60,7 +60,7 @@ Feature: Destination Kingdom Dashboard Display
       | 5        |
 
   Scenario: ESP statistics show complete data for each ESP
-    Given I am logged in as a Destination player for "Gmail"
+    Given I am logged in as a Destination player for "zmail"
     And the following ESP teams are active:
       | ESP Team      | Volume  | Reputation | Satisfaction | Spam Rate | Active Clients |
       | SendWave      | 185K    | 78         | 78%          | 0.04%      | 4              |
@@ -140,7 +140,7 @@ Feature: Destination Kingdom Dashboard Display
   # ============================================================================
 
   Scenario: Dashboard shows coordination status when no collaborations exist
-    Given I am logged in as a Destination player for "Yahoo"
+    Given I am logged in as a Destination player for "yagle"
     And I have no active collaborations with other destinations
     When I view the Inter-Destination Coordination card
     Then I should see "Active Collaborations: 0"
@@ -152,7 +152,7 @@ Feature: Destination Kingdom Dashboard Display
   # ============================================================================
 
   Scenario: Dashboard displays past volumes aggregated by ESP
-    Given I am logged in as a Destination player for "Gmail"
+    Given I am logged in as a Destination player for "zmail"
     And in the previous round, ESPs sent the following volumes to my destination:
       | ESP Team      | Volume  |
       | SendWave      | 165K    |
@@ -163,7 +163,7 @@ Feature: Destination Kingdom Dashboard Display
     And the total past volume should equal 508K
 
   Scenario: Dashboard displays current spam level based on previous rounds
-    Given I am logged in as a Destination player for "Gmail"
+    Given I am logged in as a Destination player for "zmail"
     And based on previous rounds my current spam level is calculated at 0.18%
     When I view my kingdom status
     Then I should see the current spam level indicator
@@ -175,7 +175,7 @@ Feature: Destination Kingdom Dashboard Display
   # ============================================================================
 
   Scenario: Owned technical upgrades are displayed
-    Given I am logged in as a Destination player for "Gmail"
+    Given I am logged in as a Destination player for "zmail"
     And has purchased the following tech:
       | Technology               | Status |
       | SPF Authentication Check | Active |
@@ -195,9 +195,9 @@ Feature: Destination Kingdom Dashboard Display
   Scenario: Each destination player sees only their own data
     Given multiple Destination players are viewing their dashboards:
       | Player  | Budget |
-      | Gmail   | 800    |
-      | Outlook | 600    |
-      | Yahoo   | 450    |
+      | zmail   | 800    |
+      | intake | 600    |
+      | yagle   | 450    |
     When each player views their dashboard
     Then each should see only their own budget value
     And ESP statistics should show data specific to their destination

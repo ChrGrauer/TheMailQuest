@@ -247,7 +247,7 @@ export class GameEngine {
 
 <!-- Usage -->
 <PlayerDashboard player={sendWaveData} role="esp" round={2} />
-<PlayerDashboard player={gmailData} role="destination" round={2} />
+<PlayerDashboard player={zmailData} role="destination" round={2} />
 ```
 
 ---
@@ -324,18 +324,18 @@ export function calculateDestinationScore(satisfaction, filtering, coordination)
 // reputation-calculator.test.js (250 lines)
 
 describe('calculateReputation', () => {
-    test('Gmail with score 85 returns good', () => {
-        const result = calculateReputation('gmail', 85);
+    test('zmail with score 85 returns good', () => {
+        const result = calculateReputation('zmail', 85);
         expect(result).toBe('good');
     });
     
-    test('Gmail with score 90 returns excellent', () => {
-        const result = calculateReputation('gmail', 90);
+    test('zmail with score 90 returns excellent', () => {
+        const result = calculateReputation('zmail', 90);
         expect(result).toBe('excellent');
     });
     
-    test('Gmail with score 95 returns excellent', () => {
-        const result = calculateReputation('gmail', 95);
+    test('zmail with score 95 returns excellent', () => {
+        const result = calculateReputation('zmail', 95);
         expect(result).toBe('excellent');
     });
     
@@ -352,14 +352,14 @@ describe('calculateReputation', () => {
     // ✅ Table-driven test with all cases
     test.each([
         // [destination, score, expected]
-        ['gmail', 95, 'excellent'],
-        ['gmail', 90, 'excellent'],
-        ['gmail', 85, 'good'],
-        ['gmail', 70, 'good'],
-        ['gmail', 50, 'poor'],
-        ['outlook', 95, 'excellent'],
-        ['outlook', 85, 'good'],
-        ['yahoo', 70, 'good']
+        ['zmail', 95, 'excellent'],
+        ['zmail', 90, 'excellent'],
+        ['zmail', 85, 'good'],
+        ['zmail', 70, 'good'],
+        ['zmail', 50, 'poor'],
+        ['intake', 95, 'excellent'],
+        ['intake', 85, 'good'],
+        ['yagle', 70, 'good']
     ])('%s with score %i returns %s', (destination, score, expected) => {
         const result = calculateReputation(destination, score);
         expect(result).toBe(expected);
@@ -480,7 +480,7 @@ describe('ReputationCalculator', () => {
         test('returns excellent for score above 85', () => {
             const calc = new ReputationCalculator();
             
-            const result = calc.calculate('gmail', 90);
+            const result = calc.calculate('zmail', 90);
             
             expect(result.rating).toBe('excellent');
             expect(result.score).toBe(90);
@@ -489,11 +489,11 @@ describe('ReputationCalculator', () => {
         test('applies destination weight correctly', () => {
             const calc = new ReputationCalculator();
             
-            // Gmail has 50% weight, Outlook 30%, Yahoo 20%
-            const gmail = calc.calculate('gmail', 80);
-            const outlook = calc.calculate('outlook', 80);
+            // zmail has 50% weight, intake 30%, yagle 20%
+            const zmail = calc.calculate('zmail', 80);
+            const intake = calc.calculate('intake', 80);
             
-            expect(gmail.weightedScore).toBeGreaterThan(outlook.weightedScore);
+            expect(zmail.weightedScore).toBeGreaterThan(intake.weightedScore);
         });
         
         test('throws error for unknown destination', () => {
@@ -507,8 +507,8 @@ describe('ReputationCalculator', () => {
         test('handles boundary values correctly', () => {
             const calc = new ReputationCalculator();
             
-            expect(calc.calculate('gmail', 0).rating).toBe('poor');
-            expect(calc.calculate('gmail', 100).rating).toBe('excellent');
+            expect(calc.calculate('zmail', 0).rating).toBe('poor');
+            expect(calc.calculate('zmail', 100).rating).toBe('excellent');
         });
     });
 });
@@ -549,7 +549,7 @@ export class GameState {
         // Initialize ESP data
         esp.budget = 1000;
         esp.clients = [];
-        esp.reputation = { gmail: 50, outlook: 50, yahoo: 50 };
+        esp.reputation = { zmail: 50, intake: 50, yagle: 50 };
         esp.technologies = { spf: false, dkim: false, dmarc: false };
         
         this.espPlayers.push(esp);
@@ -663,7 +663,7 @@ export class ESPManager {
             ...esp,
             budget: 1000,
             clients: [],
-            reputation: { gmail: 50, outlook: 50, yahoo: 50 },
+            reputation: { zmail: 50, intake: 50, yagle: 50 },
             technologies: { spf: false, dkim: false, dmarc: false }
         };
     }

@@ -58,10 +58,10 @@ Feature: Join Game Session
 
   Scenario: Player sees occupied slots as unavailable
     Given player "Alice" has joined as "SendWave" team
-    And player "Bob" has joined as "Gmail" destination
+    And player "Bob" has joined as "zmail" destination
     When a new player "Charlie" joins the lobby
     Then Charlie should see "SendWave" as unavailable/occupied
-    And Charlie should see "Gmail" as unavailable/occupied
+    And Charlie should see "zmail" as unavailable/occupied
     And Charlie should see the other 7 slots as available
 
   # ============================================================================
@@ -81,14 +81,14 @@ Feature: Join Game Session
 
   Scenario: Player selects Destination role and joins
     Given a player is on the lobby page
-    When the player selects "Gmail" destination slot
+    When the player selects "zmail" destination slot
     And the player enters display name "Bob"
     And the player confirms their selection
     Then the player should be added to the game session
     And the player's role should be "Destination"
-    And the player's team should be "Gmail"
+    And the player's team should be "zmail"
     And the player's display name should be "Bob"
-    And the "Gmail" slot should be marked as occupied
+    And the "zmail" slot should be marked as occupied
 
   Scenario: Player cannot join with empty display name
     Given a player is on the lobby page
@@ -111,8 +111,8 @@ Feature: Join Game Session
     And the player should remain on role selection
 
   Scenario: Player cannot select already occupied Destination slot
-    Given player "Alice" has joined as "Gmail" destination
-    When a new player "Bob" tries to select "Gmail" destination slot
+    Given player "Alice" has joined as "zmail" destination
+    When a new player "Bob" tries to select "zmail" destination slot
     Then the system should prevent the selection
     And the player should see a message "This role is already taken"
 
@@ -140,7 +140,7 @@ Feature: Join Game Session
     Given the lobby shows "ESP Teams: 0/5" and "Destinations: 0/3"
     When player "Alice" joins as "SendWave" team
     Then all players in the lobby should see "ESP Teams: 1/5"
-    When player "Bob" joins as "Gmail" destination
+    When player "Bob" joins as "zmail" destination
     Then all players in the lobby should see "Destinations: 1/3"
 
   # ============================================================================

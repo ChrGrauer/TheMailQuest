@@ -487,8 +487,8 @@ describe('Delivery Calculator - Iteration 6: Filtering Penalties', () => {
 
 	describe('Test case from feature file', () => {
 		test('Strict filtering on poor reputation ESP (line 342-349)', () => {
-			// Given Gmail has "Strict" filtering on "BluePost"
-			// And BluePost has reputation 55 at Gmail
+			// Given zmail has "Strict" filtering on "BluePost"
+			// And BluePost has reputation 55 at zmail
 			const result = calculateDeliverySuccess({
 				reputation: 55, // Warning zone
 				techStack: [],

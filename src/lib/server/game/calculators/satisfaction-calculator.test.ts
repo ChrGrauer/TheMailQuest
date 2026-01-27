@@ -11,18 +11,18 @@ import type { VolumeResult } from '../resolution-types';
 
 // Helper to build volume data for testing
 function buildVolumeData(totalVolume: number): VolumeResult {
-	const gmailVolume = totalVolume * 0.5;
-	const outlookVolume = totalVolume * 0.3;
-	const yahooVolume = totalVolume * 0.2;
+	const zmailVolume = totalVolume * 0.5;
+	const intakeVolume = totalVolume * 0.3;
+	const yagleVolume = totalVolume * 0.2;
 
 	return {
 		activeClients: [],
 		clientVolumes: [],
 		totalVolume,
 		perDestination: {
-			Gmail: gmailVolume,
-			Outlook: outlookVolume,
-			Yahoo: yahooVolume
+			zmail: zmailVolume,
+			intake: intakeVolume,
+			yagle: yagleVolume
 		}
 	};
 }
@@ -41,8 +41,8 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
-				filteringPolicies: { Gmail: 'permissive', Outlook: 'permissive', Yahoo: 'permissive' },
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				filteringPolicies: { zmail: 'permissive', intake: 'permissive', yagle: 'permissive' },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.05 // 5% spam rate
 			});
 
@@ -65,8 +65,8 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
-				filteringPolicies: { Gmail: 'moderate', Outlook: 'moderate', Yahoo: 'moderate' },
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				filteringPolicies: { zmail: 'moderate', intake: 'moderate', yagle: 'moderate' },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.05
 			});
 
@@ -90,8 +90,8 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
-				filteringPolicies: { Gmail: 'strict', Outlook: 'strict', Yahoo: 'strict' },
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				filteringPolicies: { zmail: 'strict', intake: 'strict', yagle: 'strict' },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.08
 			});
 
@@ -115,8 +115,8 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(200000),
-				filteringPolicies: { Gmail: 'maximum', Outlook: 'maximum', Yahoo: 'maximum' },
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				filteringPolicies: { zmail: 'maximum', intake: 'maximum', yagle: 'maximum' },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.1
 			});
 
@@ -142,11 +142,11 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
-				filteringPolicies: { Gmail: 'strict', Outlook: 'strict', Yahoo: 'strict' },
+				filteringPolicies: { zmail: 'strict', intake: 'strict', yagle: 'strict' },
 				ownedTools: {
-					Gmail: ['content_analysis_filter'],
-					Outlook: ['content_analysis_filter'],
-					Yahoo: ['content_analysis_filter']
+					zmail: ['content_analysis_filter'],
+					intake: ['content_analysis_filter'],
+					yagle: ['content_analysis_filter']
 				},
 				complaintRate: 0.08
 			});
@@ -172,22 +172,22 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
-				filteringPolicies: { Gmail: 'moderate', Outlook: 'moderate', Yahoo: 'moderate' },
+				filteringPolicies: { zmail: 'moderate', intake: 'moderate', yagle: 'moderate' },
 				ownedTools: {
-					Gmail: ['ml_system'],
-					Outlook: ['ml_system'],
-					Yahoo: [] // Yahoo doesn't have ML
+					zmail: ['ml_system'],
+					intake: ['ml_system'],
+					yagle: [] // yagle doesn't have ML
 				},
 				complaintRate: 0.03
 			});
 
-			// For Gmail and Outlook: Moderate base (35%) + ML (25%) = 60% spam blocked, 3% - 3% = 0% FP
-			// For Yahoo: Moderate base (35%), 3% FP
+			// For zmail and intake: Moderate base (35%) + ML (25%) = 60% spam blocked, 3% - 3% = 0% FP
+			// For yagle: Moderate base (35%), 3% FP
 			// Average weighted by volume: (50% + 30%) have ML, 20% don't
 			// This test verifies per-destination tech is applied correctly
-			expect(result.perDestination['Gmail']).toBeDefined();
-			expect(result.perDestination['Outlook']).toBeDefined();
-			expect(result.perDestination['Yahoo']).toBeDefined();
+			expect(result.perDestination['zmail']).toBeDefined();
+			expect(result.perDestination['intake']).toBeDefined();
+			expect(result.perDestination['yagle']).toBeDefined();
 		});
 
 		test('All tech combined reaches 95% cap', () => {
@@ -201,9 +201,9 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(200000),
-				filteringPolicies: { Gmail: 'maximum', Outlook: 'maximum', Yahoo: 'maximum' },
+				filteringPolicies: { zmail: 'maximum', intake: 'maximum', yagle: 'maximum' },
 				ownedTools: {
-					Gmail: [
+					zmail: [
 						'content_analysis_filter',
 						'ml_system',
 						'volume_throttling',
@@ -211,7 +211,7 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 						'auth_validator_l2',
 						'auth_validator_l3'
 					],
-					Outlook: [
+					intake: [
 						'content_analysis_filter',
 						'ml_system',
 						'volume_throttling',
@@ -219,7 +219,7 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 						'auth_validator_l2',
 						'auth_validator_l3'
 					],
-					Yahoo: ['content_analysis_filter', 'volume_throttling'] // Yahoo can't buy ML
+					yagle: ['content_analysis_filter', 'volume_throttling'] // yagle can't buy ML
 				},
 				complaintRate: 0.1
 			});
@@ -227,7 +227,7 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 			// Maximum base: 85%
 			// All tech: +15 (content) +25 (ML) +5 (throttling) +5 (L1) +8 (L2) +12 (L3) = +70
 			// Total: 85% + 70% = 155% -> capped at 95%
-			// Gmail spam_blocked = 10% * 95% = 9.5% of volume
+			// zmail spam_blocked = 10% * 95% = 9.5% of volume
 			// Should have very high satisfaction due to effective spam blocking
 			expect(result.aggregatedSatisfaction).toBeGreaterThan(85);
 		});
@@ -246,8 +246,8 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
-				filteringPolicies: { Gmail: 'permissive', Outlook: 'permissive', Yahoo: 'permissive' },
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				filteringPolicies: { zmail: 'permissive', intake: 'permissive', yagle: 'permissive' },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.1
 			});
 
@@ -267,8 +267,8 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
-				filteringPolicies: { Gmail: 'maximum', Outlook: 'maximum', Yahoo: 'maximum' },
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				filteringPolicies: { zmail: 'maximum', intake: 'maximum', yagle: 'maximum' },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.1
 			});
 
@@ -288,8 +288,8 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
-				filteringPolicies: { Gmail: 'maximum', Outlook: 'maximum', Yahoo: 'maximum' },
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				filteringPolicies: { zmail: 'maximum', intake: 'maximum', yagle: 'maximum' },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.01
 			});
 
@@ -317,27 +317,27 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
 				filteringPolicies: {
-					Gmail: 'moderate', // 50% volume, moderate filtering
-					Outlook: 'strict', // 30% volume, strict filtering
-					Yahoo: 'permissive' // 20% volume, permissive filtering
+					zmail: 'moderate', // 50% volume, moderate filtering
+					intake: 'strict', // 30% volume, strict filtering
+					yagle: 'permissive' // 20% volume, permissive filtering
 				},
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.05
 			});
 
 			// Should have per-destination scores
-			expect(result.perDestination['Gmail']).toBeDefined();
-			expect(result.perDestination['Outlook']).toBeDefined();
-			expect(result.perDestination['Yahoo']).toBeDefined();
+			expect(result.perDestination['zmail']).toBeDefined();
+			expect(result.perDestination['intake']).toBeDefined();
+			expect(result.perDestination['yagle']).toBeDefined();
 
 			// Aggregated should be volume-weighted average
-			const gmailWeight = 0.5;
-			const outlookWeight = 0.3;
-			const yahooWeight = 0.2;
+			const zmailWeight = 0.5;
+			const intakeWeight = 0.3;
+			const yagleWeight = 0.2;
 			const expectedAggregated =
-				result.perDestination['Gmail'] * gmailWeight +
-				result.perDestination['Outlook'] * outlookWeight +
-				result.perDestination['Yahoo'] * yahooWeight;
+				result.perDestination['zmail'] * zmailWeight +
+				result.perDestination['intake'] * intakeWeight +
+				result.perDestination['yagle'] * yagleWeight;
 
 			expect(result.aggregatedSatisfaction).toBeCloseTo(expectedAggregated, 1);
 		});
@@ -355,11 +355,11 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(300000),
-				filteringPolicies: { Gmail: 'maximum', Outlook: 'maximum', Yahoo: 'maximum' },
+				filteringPolicies: { zmail: 'maximum', intake: 'maximum', yagle: 'maximum' },
 				ownedTools: {
-					Gmail: ['content_analysis_filter', 'ml_system', 'volume_throttling'],
-					Outlook: ['content_analysis_filter', 'ml_system', 'volume_throttling'],
-					Yahoo: ['content_analysis_filter', 'volume_throttling']
+					zmail: ['content_analysis_filter', 'ml_system', 'volume_throttling'],
+					intake: ['content_analysis_filter', 'ml_system', 'volume_throttling'],
+					yagle: ['content_analysis_filter', 'volume_throttling']
 				},
 				complaintRate: 0.15
 			});
@@ -379,8 +379,8 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(200000),
-				filteringPolicies: { Gmail: 'permissive', Outlook: 'permissive', Yahoo: 'permissive' },
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				filteringPolicies: { zmail: 'permissive', intake: 'permissive', yagle: 'permissive' },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.2
 			});
 
@@ -402,12 +402,12 @@ describe('Satisfaction Calculator - Iteration 6.1: User Satisfaction', () => {
 				clients: [client],
 				clientStates: { [client.id]: { status: 'Active' } },
 				volumeData: buildVolumeData(100000),
-				filteringPolicies: { Gmail: 'moderate', Outlook: 'moderate', Yahoo: 'moderate' },
-				ownedTools: { Gmail: [], Outlook: [], Yahoo: [] },
+				filteringPolicies: { zmail: 'moderate', intake: 'moderate', yagle: 'moderate' },
+				ownedTools: { zmail: [], intake: [], yagle: [] },
 				complaintRate: 0.06
 			});
 
-			expect(result.breakdown).toHaveLength(3); // Gmail, Outlook, Yahoo
+			expect(result.breakdown).toHaveLength(3); // zmail, intake, yagle
 			expect(result.breakdown[0]).toHaveProperty('destination');
 			expect(result.breakdown[0]).toHaveProperty('spam_rate');
 			expect(result.breakdown[0]).toHaveProperty('spam_blocked_percentage');

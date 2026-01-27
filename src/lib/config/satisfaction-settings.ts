@@ -25,9 +25,9 @@ export const SATISFACTION_WEIGHTS = {
  * Reflects market position and scale
  */
 export const DESTINATION_BASE_REVENUE: Record<string, number> = {
-	Gmail: 300, // Largest player, highest revenue
-	Outlook: 200, // Medium player, moderate revenue
-	Yahoo: 150 // Smaller player, lower revenue
+	zmail: 300, // Largest player, highest revenue
+	intake: 200, // Medium player, moderate revenue
+	yagle: 150 // Smaller player, lower revenue
 };
 
 /**

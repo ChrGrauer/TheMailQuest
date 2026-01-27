@@ -32,7 +32,7 @@ function createTestSession(): GameSession {
 				clients: [],
 				technical_stack: [],
 				credits: 1000,
-				reputation: { Gmail: 80, Outlook: 75, Yahoo: 85 }, // avg = 80
+				reputation: { zmail: 80, intake: 75, yagle: 85 }, // avg = 80
 				active_clients: [],
 				owned_tech_upgrades: [],
 				round_history: [],
@@ -45,7 +45,7 @@ function createTestSession(): GameSession {
 				clients: [],
 				technical_stack: [],
 				credits: 800,
-				reputation: { Gmail: 50, Outlook: 55, Yahoo: 45 }, // avg = 50
+				reputation: { zmail: 50, intake: 55, yagle: 45 }, // avg = 50
 				active_clients: [],
 				owned_tech_upgrades: [],
 				round_history: [],
@@ -58,7 +58,7 @@ function createTestSession(): GameSession {
 				clients: [],
 				technical_stack: [],
 				credits: 600,
-				reputation: { Gmail: 65, Outlook: 70, Yahoo: 60 }, // avg = 65
+				reputation: { zmail: 65, intake: 70, yagle: 60 }, // avg = 65
 				active_clients: [],
 				owned_tech_upgrades: [],
 				round_history: [],
@@ -67,24 +67,24 @@ function createTestSession(): GameSession {
 		],
 		destinations: [
 			{
-				name: 'Gmail',
-				kingdom: 'Gmail',
+				name: 'zmail',
+				kingdom: 'zmail',
 				players: ['player-4'],
 				budget: 500,
 				filtering_policies: {},
 				esp_reputation: { SendWave: 80, MailMonkey: 50, QuickMail: 65 }
 			},
 			{
-				name: 'Outlook',
-				kingdom: 'Outlook',
+				name: 'intake',
+				kingdom: 'intake',
 				players: ['player-5'],
 				budget: 350,
 				filtering_policies: {},
 				esp_reputation: { SendWave: 75, MailMonkey: 55, QuickMail: 70 }
 			},
 			{
-				name: 'Yahoo',
-				kingdom: 'Yahoo',
+				name: 'yagle',
+				kingdom: 'yagle',
 				players: ['player-6'],
 				budget: 200,
 				filtering_policies: {},
@@ -199,7 +199,7 @@ describe('Incident Choice Manager - resolveTargetTeams', () => {
 
 	it('should handle tie-breaker for highest reputation (first team wins)', () => {
 		// Make QuickMail have same avg as SendWave
-		session.esp_teams[2].reputation = { Gmail: 80, Outlook: 75, Yahoo: 85 };
+		session.esp_teams[2].reputation = { zmail: 80, intake: 75, yagle: 85 };
 
 		const targets = resolveTargetTeams(session, 'highest_reputation');
 
@@ -410,9 +410,9 @@ describe('Incident Choice Manager - applyPendingChoiceEffects', () => {
 		setPendingChoice(session, 'SendWave', 'INC-017', 'option_b'); // +5 reputation
 
 		// Verify effects applied immediately
-		expect(sendWave.reputation.Gmail).toBe(initialRep.Gmail + 5);
-		expect(sendWave.reputation.Outlook).toBe(initialRep.Outlook + 5);
-		expect(sendWave.reputation.Yahoo).toBe(initialRep.Yahoo + 5);
+		expect(sendWave.reputation.zmail).toBe(initialRep.zmail + 5);
+		expect(sendWave.reputation.intake).toBe(initialRep.intake + 5);
+		expect(sendWave.reputation.yagle).toBe(initialRep.yagle + 5);
 		const choice = sendWave.pending_incident_choices?.find((c) => c.incidentId === 'INC-017');
 		expect(choice?.effectsApplied).toBe(true);
 
@@ -508,7 +508,7 @@ describe('Incident Choice Manager - applyPendingChoiceEffects', () => {
 
 	it('should clamp reputation to valid range (0-100)', () => {
 		// Set reputation near max
-		session.esp_teams[0].reputation = { Gmail: 98, Outlook: 99, Yahoo: 97 };
+		session.esp_teams[0].reputation = { zmail: 98, intake: 99, yagle: 97 };
 
 		const incident = createChoiceIncident('INC-017', 'highest_reputation');
 		initiatePendingChoices(session, incident);
@@ -519,9 +519,9 @@ describe('Incident Choice Manager - applyPendingChoiceEffects', () => {
 		setPendingChoice(session, 'SendWave', 'INC-017', 'option_b'); // +5 reputation
 
 		// Should be clamped to 100
-		expect(sendWave.reputation.Gmail).toBe(100);
-		expect(sendWave.reputation.Outlook).toBe(100);
-		expect(sendWave.reputation.Yahoo).toBe(100);
+		expect(sendWave.reputation.zmail).toBe(100);
+		expect(sendWave.reputation.intake).toBe(100);
+		expect(sendWave.reputation.yagle).toBe(100);
 
 		// Cleanup at lock-in
 		applyPendingChoiceEffects(session, sendWave);
