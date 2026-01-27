@@ -88,7 +88,7 @@ test.describe('US-8.2-0.2: ESP Metrics Table', () => {
 
 		// Then: SendWave should show budget (1000 is starting budget)
 		const sendWaveRow = page.locator('[data-testid="esp-row-SendWave"]');
-		await expect(sendWaveRow.locator('[data-testid="esp-budget"]')).toContainText('1000');
+		await expect(sendWaveRow.locator('[data-testid="esp-budget"]')).toContainText('700');
 
 		await closePages(page, alicePage, bobPage);
 	});
@@ -230,15 +230,15 @@ test.describe('US-8.2-0.2: Real-time Updates', () => {
 
 		// Initial budget should be 1000
 		const sendWaveRow = page.locator('[data-testid="esp-row-SendWave"]');
-		await expect(sendWaveRow.locator('[data-testid="esp-budget"]')).toContainText('1000', {
+		await expect(sendWaveRow.locator('[data-testid="esp-budget"]')).toContainText('700', {
 			timeout: 5000
 		});
 
 		// When: ESP purchases SPF (100 credits)
 		await purchaseTechUpgrade(alicePage, roomCode, 'SendWave', 'spf');
 
-		// Then: Budget should update to 900 (with polling)
-		await expect(sendWaveRow.locator('[data-testid="esp-budget"]')).toContainText('900', {
+		// Then: Budget should update to 700-100 = 600 (with polling)
+		await expect(sendWaveRow.locator('[data-testid="esp-budget"]')).toContainText('600', {
 			timeout: 5000
 		});
 

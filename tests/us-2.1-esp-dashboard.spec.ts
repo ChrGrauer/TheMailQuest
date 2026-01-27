@@ -63,8 +63,9 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// Calculate expected costs from config
 			const client1Cost = WARMUP_COST + LIST_HYGIENE_COST; // warmup + list hygiene
 			const client2Cost = LIST_HYGIENE_COST; // list hygiene only
+			const initialBudget = 700;
 			const totalPendingCost = client1Cost + client2Cost;
-			const expectedForecast = 1000 - totalPendingCost;
+			const expectedForecast = initialBudget - totalPendingCost;
 
 			// And: the team has pending onboarding decisions
 			// Client 1: warmup + list hygiene
@@ -105,7 +106,7 @@ test.describe('Feature: ESP Team Dashboard', () => {
 			// And: player "Alice" is viewing the dashboard
 			const budgetElement = alicePage.locator('[data-testid="budget-current"]');
 			let initialBudget = await budgetElement.textContent();
-			expect(initialBudget).toMatch(/1[,]?000/);
+			expect(initialBudget).toMatch(/700/);
 
 			// When: All players lock in to trigger resolution
 			await alicePage.locator('[data-testid="lock-in-button"]').click();

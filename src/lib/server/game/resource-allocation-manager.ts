@@ -21,8 +21,8 @@ import { initializeFilteringPolicies } from './filtering-policy-manager';
 // DEFAULT CONFIGURATION
 // ============================================================================
 
-const DEFAULT_CONFIGURATION: GameConfiguration = {
-	esp_starting_credits: 1000,
+export const DEFAULT_CONFIGURATION: GameConfiguration = {
+	esp_starting_credits: 700,
 	esp_starting_reputation: 70,
 	destination_budgets: {
 		zmail: 500,

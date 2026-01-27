@@ -232,8 +232,8 @@ describe('Feature: Technical Infrastructure Shop - Purchase Manager', () => {
 			expect(team.owned_tech_upgrades).toContain('dkim');
 			expect(team.owned_tech_upgrades).toContain('dmarc');
 
-			// Total cost: 100 + 150 + 200 = 450 credits
-			expect(team.credits).toBe(1000 - 450);
+			// Total cost: 100 + 150 + 400 = 650 credits
+			expect(team.credits).toBe(700 - 650);
 		});
 	});
 

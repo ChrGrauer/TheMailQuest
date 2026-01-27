@@ -8,6 +8,7 @@ import { createGameSession, deleteSession } from '$lib/server/game/session-manag
 import { allocateResources } from '$lib/server/game/resource-allocation-manager';
 import { transitionPhase } from '$lib/server/game/phase-manager';
 import { initializeTimer } from '$lib/server/game/timer-manager';
+import { DEFAULT_CONFIGURATION } from '$lib/server/game/resource-allocation-manager';
 
 describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 	let testRoomCode: string;
@@ -106,7 +107,7 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 		expect(data.success).toBe(true);
 		expect(data.team).toBeDefined();
 		expect(data.team.name).toBe('SendWave');
-		expect(data.team.credits).toBe(1000); // From resource allocation
+		expect(data.team.credits).toBe(700); // From resource allocation
 		expect(data.team.reputation).toEqual({
 			zmail: 70,
 			intake: 70,
@@ -241,10 +242,11 @@ describe('GET /api/sessions/[roomCode]/esp/[teamName]', () => {
 		const data2 = await response2.json();
 
 		// Then: should return correct data for each team
+		const initialCredits = DEFAULT_CONFIGURATION.esp_starting_credits;
 		expect(data1.team.name).toBe('SendWave');
 		expect(data2.team.name).toBe('MailMonkey');
-		expect(data1.team.credits).toBe(1000);
-		expect(data2.team.credits).toBe(1000);
+		expect(data1.team.credits).toBe(initialCredits);
+		expect(data2.team.credits).toBe(initialCredits);
 	});
 
 	it('should return empty arrays for teams without clients or tech', async () => {

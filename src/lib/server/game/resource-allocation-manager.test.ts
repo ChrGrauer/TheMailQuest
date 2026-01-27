@@ -42,7 +42,7 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 	// ============================================================================
 
 	describe('Scenario: ESP teams receive starting resources', () => {
-		test('Given 3 ESP teams have joined, When resource allocation starts, Then each ESP team receives 1000 credits and 70 reputation', () => {
+		test('Given 3 ESP teams have joined, When resource allocation starts, Then each ESP team receives 700 credits and 70 reputation', () => {
 			// Given - Create session with 3 ESP teams
 			const facilitatorId = 'facilitator_123';
 			const session = createGameSession(facilitatorId);
@@ -92,9 +92,9 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			const bluePost = updatedSession!.esp_teams.find((t) => t.name === 'BluePost');
 
 			// Each team should have 1000 credits
-			expect(sendWave?.credits).toBe(1000);
-			expect(mailMonkey?.credits).toBe(1000);
-			expect(bluePost?.credits).toBe(1000);
+			expect(sendWave?.credits).toBe(700);
+			expect(mailMonkey?.credits).toBe(700);
+			expect(bluePost?.credits).toBe(700);
 
 			// Each team should have 70 reputation for ALL destinations (not just active ones)
 			expect(sendWave?.reputation).toEqual({ zmail: 70, intake: 70, yagle: 70 });
@@ -244,7 +244,7 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 			// Then
 			expect(validation.isValid).toBe(true);
 			expect(validation.config).toBeDefined();
-			expect(validation.config?.esp_starting_credits).toBe(1000);
+			expect(validation.config?.esp_starting_credits).toBe(700);
 			expect(validation.config?.esp_starting_reputation).toBe(70);
 			expect(validation.config?.destination_budgets.zmail).toBe(500);
 			expect(validation.config?.destination_budgets.intake).toBe(350);

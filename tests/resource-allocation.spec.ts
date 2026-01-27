@@ -118,7 +118,7 @@ test.describe('Feature: Resources Allocation - E2E', () => {
 			const budgetElement = reconnectedAlicePage.locator('[data-testid="budget-current"]');
 			await expect(budgetElement).toBeVisible({ timeout: 5000 });
 			const budgetText = await budgetElement.textContent();
-			expect(budgetText).toMatch(/1[,]?000/); // Accepts both "1000" and "1,000"
+			expect(budgetText).toMatch(/700/); // Accepts both "1000" and "1,000"
 
 			const roundIndicator = reconnectedAlicePage.locator('[data-testid="round-indicator"]');
 			await expect(roundIndicator).toBeVisible({ timeout: 5000 });
