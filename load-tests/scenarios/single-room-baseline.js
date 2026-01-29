@@ -21,7 +21,7 @@ export const options = {
 			executor: 'shared-iterations',
 			vus: 1,
 			iterations: 1,
-			maxDuration: '5m'
+			maxDuration: '15s'
 		}
 	},
 	thresholds: {
@@ -60,29 +60,34 @@ export default function (data) {
 		return;
 	}
 
-	// Record memory before game
-	const preGameMetrics = getMetrics();
-	if (preGameMetrics) {
-		memoryHeapUsed.add(preGameMetrics.memory.heapUsed);
-		memoryRss.add(preGameMetrics.memory.rss);
-		console.log(
-			`Pre-game memory: ${preGameMetrics.memory.heapUsed}MB heap, ${preGameMetrics.memory.rss}MB RSS`
-		);
-	}
+	// Connect WebSockets and run game
+	console.log('Connecting WebSockets and starting game...');
 
-	// Play full game
-	const gameResult = room.playFullGame();
-
-	if (gameResult.success) {
-		console.log('\n=== Game Complete ===');
-		console.log(`Total duration: ${gameResult.totalDuration}ms`);
-		console.log('Round breakdown:');
-		for (const round of gameResult.rounds) {
-			console.log(`  Round ${round.round}: ${round.duration}ms`);
+	room.connectWebSockets(() => {
+		// Record memory before game
+		const preGameMetrics = getMetrics();
+		if (preGameMetrics) {
+			memoryHeapUsed.add(preGameMetrics.memory.heapUsed);
+			memoryRss.add(preGameMetrics.memory.rss);
+			console.log(
+				`Pre-game memory: ${preGameMetrics.memory.heapUsed}MB heap, ${preGameMetrics.memory.rss}MB RSS`
+			);
 		}
-	} else {
-		console.error('Game failed to complete');
-	}
+
+		// Play full game with player actions
+		const gameResult = room.playFullGameWithActions();
+
+		if (gameResult.success) {
+			console.log('\n=== Game Complete ===');
+			console.log(`Total duration: ${gameResult.totalDuration}ms`);
+			console.log('Round breakdown:');
+			for (const round of gameResult.rounds) {
+				console.log(`  Round ${round.round}: ${round.duration}ms`);
+			}
+		} else {
+			console.error('Game failed to complete');
+		}
+	});
 
 	// Record memory after game
 	const postGameMetrics = getMetrics();

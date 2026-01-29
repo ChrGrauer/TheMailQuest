@@ -23,7 +23,7 @@ export const options = {
 			executor: 'shared-iterations',
 			vus: 1,
 			iterations: 1,
-			maxDuration: '10m'
+			maxDuration: '1m'
 		}
 	},
 	thresholds: {
@@ -87,11 +87,19 @@ export default function (data) {
 		}
 		rooms.push(room);
 
+		// Connect WebSockets
+		// Note: We cannot easily use the nested callback pattern here without rewriting
+		// the entire scaling logic to be recursive instead of a loop.
+		// For now, we skip WS connection in scaling test to avoid blocking.
+		// room.connectWebSockets(() => {});
+
 		// Start the new room
 		if (!room.start()) {
 			console.error(`Failed to start room ${targetRoomCount}`);
 			break;
 		}
+		// Initialize round tracker for this room (it starts at round 1)
+		room.currentRound = 1;
 
 		// Record metrics at this room count
 		const metrics = getMetrics();
@@ -154,10 +162,16 @@ export default function (data) {
 			wsConnections: metrics?.websocket.totalConnections,
 			success: allSucceeded
 		});
-
-		// Advance all rooms to next round for the next iteration
+		// Advance all rooms to next round for the next iteration (if not finished)
 		for (const activeRoom of rooms) {
-			activeRoom.advanceRound();
+			if (activeRoom.currentRound < 4) {
+				if (activeRoom.advanceRound()) {
+					activeRoom.currentRound++;
+				}
+			} else {
+				// Room has finished 4 rounds, do nothing or log status
+				// console.log(`[Room ${activeRoom.roomId}] Game Finished (Round ${activeRoom.currentRound})`);
+			}
 		}
 
 		// Wait between room count levels

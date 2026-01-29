@@ -73,8 +73,8 @@ start_server() {
         npm run build
     fi
 
-    # Start server in background
-    NODE_ENV=test node server.js &
+    # Start server in background, redirecting output to server.log
+    NODE_ENV=test node server.js > server.log 2>&1 &
     SERVER_PID=$!
     echo $SERVER_PID > "$RESULTS_DIR/.server_pid"
 

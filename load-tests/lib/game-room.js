@@ -15,7 +15,11 @@ import {
 	lockInESP,
 	lockInDestination,
 	nextRound,
-	getMetrics
+	getMetrics,
+	acquireClient,
+	purchaseTechUpgrade,
+	purchaseDestinationTool,
+	getESPClients
 } from './http-client.js';
 import { wsLatency } from './websocket-client.js';
 
@@ -59,12 +63,8 @@ export class GameRoom {
 
 		this.roomCode = sessionResult.roomCode;
 
-		// Store facilitator cookies in a jar for later use
-		this.facilitatorJar = http.cookieJar();
-		// Set the facilitatorId cookie manually
-		this.facilitatorJar.set(BASE_URL, 'facilitatorId', sessionResult.facilitatorId, {
-			path: '/'
-		});
+		// Store facilitator ID for later requests (Cookie header)
+		this.facilitatorId = sessionResult.facilitatorId;
 
 		// 2. Join ESP players
 		for (const teamName of ESP_TEAMS) {
@@ -76,7 +76,8 @@ export class GameRoom {
 			this.players.push({
 				role: 'ESP',
 				teamName,
-				playerId: result.playerId
+				playerId: result.playerId,
+				cookies: result.cookies
 			});
 		}
 
@@ -90,7 +91,8 @@ export class GameRoom {
 			this.players.push({
 				role: 'Destination',
 				teamName: destName,
-				playerId: result.playerId
+				playerId: result.playerId,
+				cookies: result.cookies
 			});
 		}
 
@@ -105,24 +107,35 @@ export class GameRoom {
 	}
 
 	/**
-	 * Connect WebSocket for all players
-	 * Note: k6 WebSocket is synchronous, so we create connections sequentially
+	 * Connect WebSocket for all players and run the game logic inside the connection context
+	 * Note: k6 WebSocket is blocking, so we must nest the game logic inside the connections
+	 * @param {Function} gameLogic - Function to run once all sockets are connected
 	 */
-	connectWebSockets(callback) {
+	connectWebSockets(gameLogic) {
 		const self = this;
 
-		// Connect all players to WebSocket
-		for (const player of this.players) {
+		// Recursive function to connect players one by one
+		function connectPlayer(index) {
+			if (index >= self.players.length) {
+				// All players connected, run the game logic
+				console.log(`[Room ${self.roomId}] All ${self.players.length} players connected via WebSocket`);
+				try {
+					gameLogic();
+				} finally {
+					// Logic finished, cleanup will happen as we unwind or explicitly
+				}
+				return;
+			}
+
+			const player = self.players[index];
+
 			ws.connect(WS_URL, { timeout: 10000 }, function (socket) {
 				socket.on('open', () => {
 					socket.send(JSON.stringify({ type: 'join_room', roomCode: self.roomCode }));
 				});
 
 				socket.on('message', (data) => {
-					const message = JSON.parse(data);
-					if (callback) {
-						callback(player, message, Date.now());
-					}
+					// message handling
 				});
 
 				socket.on('error', (e) => {
@@ -130,8 +143,15 @@ export class GameRoom {
 				});
 
 				self.wsConnections.push({ player, socket });
+
+				// Connect next player inside this socket's closure
+				// This keeps this socket open while the next one connects
+				connectPlayer(index + 1);
 			});
 		}
+
+		// Start connecting from the first player
+		connectPlayer(0);
 	}
 
 	/**
@@ -139,8 +159,8 @@ export class GameRoom {
 	 * @returns {boolean} Success status
 	 */
 	start() {
-		const result = startGame(this.roomCode, this.facilitatorJar);
-		if (!result) {
+		const result = startGame(this.roomCode, this.facilitatorId);
+		if (!result || !result.success) {
 			console.error(`[Room ${this.roomId}] Failed to start game`);
 			return false;
 		}
@@ -150,30 +170,44 @@ export class GameRoom {
 	}
 
 	/**
-	 * Lock in all players and measure resolution time
-	 * @returns {Object} { success, resolutionTime }
+	 * Lock in decision for all players (ESP and Destination)
+	 * @returns {Object} { success, duration }
 	 */
 	lockInAll() {
 		const lockInStart = Date.now();
 
 		// Lock in all ESP teams
-		for (const teamName of ESP_TEAMS) {
-			const result = lockInESP(this.roomCode, teamName);
-			if (!result) {
-				console.error(`[Room ${this.roomId}] Failed to lock in ESP ${teamName}`);
-				return { success: false };
+		for (const player of this.players) {
+			if (player.role === 'ESP') {
+				try {
+					const result = lockInESP(this.roomCode, player.teamName, player.cookies);
+					if (!result) {
+						console.error(`[Room ${this.roomId}] Failed to lock in ESP ${player.teamName}`);
+						return { success: false };
+					}
+				} catch (e) {
+					console.error(`[Room ${this.roomId}] Exception locking in ESP ${player.teamName}: ${e}`);
+					return { success: false };
+				}
 			}
 		}
 
-		// Lock in all destinations
+		// Lock in all Destinations
 		let allLocked = false;
-		for (const destName of DESTINATIONS) {
-			const result = lockInDestination(this.roomCode, destName);
-			if (!result) {
-				console.error(`[Room ${this.roomId}] Failed to lock in Destination ${destName}`);
-				return { success: false };
+		for (const player of this.players) {
+			if (player.role === 'Destination') {
+				try {
+					const result = lockInDestination(this.roomCode, player.teamName, player.cookies);
+					if (!result) {
+						console.error(`[Room ${this.roomId}] Failed to lock in Destination ${player.teamName}`);
+						return { success: false };
+					}
+					allLocked = result.all_locked;
+				} catch (e) {
+					console.error(`[Room ${this.roomId}] Exception locking in Dest ${player.teamName}: ${e}`);
+					return { success: false };
+				}
 			}
-			allLocked = result.all_locked;
 		}
 
 		// Wait a bit for resolution to complete and broadcasts to arrive
@@ -195,8 +229,8 @@ export class GameRoom {
 		// Wait for consequences phase to settle
 		sleep(1);
 
-		const result = nextRound(this.roomCode, this.facilitatorJar);
-		if (!result) {
+		const result = nextRound(this.roomCode, this.facilitatorId);
+		if (!result || !result.success) {
 			console.error(`[Room ${this.roomId}] Failed to advance round`);
 			return false;
 		}
@@ -214,6 +248,85 @@ export class GameRoom {
 		const roundStart = Date.now();
 
 		console.log(`[Room ${this.roomId}] Playing round ${roundNum}`);
+
+		// Lock in all players
+		const lockInResult = this.lockInAll();
+		if (!lockInResult.success) {
+			return { success: false };
+		}
+
+		// Advance to next round (except after round 4)
+		if (roundNum < 4) {
+			if (!this.advanceRound()) {
+				return { success: false };
+			}
+		}
+
+		const roundDuration = Date.now() - roundStart;
+		roundTime.add(roundDuration);
+
+		return { success: true, duration: roundDuration };
+	}
+
+	/**
+	 * Play a round with simulated player actions (acquire clients, buy tech, then lock in)
+	 * @param {number} roundNum - Current round number
+	 * @returns {Object} { success, duration }
+	 */
+	playRoundWithActions(roundNum) {
+		const roundStart = Date.now();
+
+		console.log(`[Room ${this.roomId}] Playing round ${roundNum} with player actions`);
+
+		// Simulate ESP player actions (acquire clients and buy tech)
+		for (const player of this.players) {
+			if (player.role === 'ESP') {
+				// Round 1: Buy SPF for all teams
+				if (roundNum === 1) {
+					purchaseTechUpgrade(this.roomCode, player.teamName, 'spf', player.cookies);
+					sleep(0.1); // Small delay between actions
+				}
+
+				// Round 2: Buy DKIM, acquire first client
+				if (roundNum === 2) {
+					purchaseTechUpgrade(this.roomCode, player.teamName, 'dkim', player.cookies);
+					sleep(0.1);
+
+					// Acquire a client
+					const clientsData = getESPClients(this.roomCode, player.teamName, player.cookies);
+					if (clientsData && clientsData.clients && clientsData.clients.length > 0) {
+						const firstClient = clientsData.clients[0];
+						acquireClient(this.roomCode, player.teamName, firstClient.id, player.cookies);
+						sleep(0.1);
+					}
+				}
+
+				// Round 3: Buy DMARC (mandatory)
+				if (roundNum === 3) {
+					purchaseTechUpgrade(this.roomCode, player.teamName, 'dmarc', player.cookies);
+					sleep(0.1);
+				}
+
+
+			}
+		}
+
+		// Simulate Destination player actions (buy tools)
+		for (const player of this.players) {
+			if (player.role === 'Destination') {
+				// Round 1: Buy auth validator L1
+				if (roundNum === 1) {
+					purchaseDestinationTool(this.roomCode, player.teamName, 'auth_validator_l1', player.cookies);
+					sleep(0.1);
+				}
+
+				// Round 2: Buy auth validator L2
+				if (roundNum === 2) {
+					purchaseDestinationTool(this.roomCode, player.teamName, 'auth_validator_l2', player.cookies);
+					sleep(0.1);
+				}
+			}
+		}
 
 		// Lock in all players
 		const lockInResult = this.lockInAll();
@@ -265,6 +378,41 @@ export class GameRoom {
 		const totalDuration = Date.now() - gameStart;
 
 		console.log(`[Room ${this.roomId}] Full game complete in ${totalDuration}ms`);
+
+		return { success: true, totalDuration, rounds };
+	}
+
+	/**
+	 * Play full game with player activity (4 rounds)
+	 * @returns {Object} { success, totalDuration, rounds }
+	 */
+	playFullGameWithActions() {
+		const gameStart = Date.now();
+		const rounds = [];
+
+		// Start the game
+		if (!this.start()) {
+			return { success: false };
+		}
+
+		// Play all 4 rounds with player actions
+		for (let round = 1; round <= 4; round++) {
+			const result = this.playRoundWithActions(round);
+			rounds.push({ round, ...result });
+
+			if (!result.success) {
+				return { success: false, rounds };
+			}
+
+			// Small delay between rounds
+			if (round < 4) {
+				sleep(0.5);
+			}
+		}
+
+		const totalDuration = Date.now() - gameStart;
+
+		console.log(`[Room ${this.roomId}] Full game with actions complete in ${totalDuration}ms`);
 
 		return { success: true, totalDuration, rounds };
 	}

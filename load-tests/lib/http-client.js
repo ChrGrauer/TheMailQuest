@@ -74,18 +74,26 @@ export function joinAsPlayer(roomCode, displayName, role, teamName) {
 		return null;
 	}
 
-	return res.json();
+	// return res.json();
+	// Return body merged with cookies
+	const body = res.json();
+	return {
+		...body,
+		cookies: res.cookies
+	};
 }
 
 /**
  * Start a game session (requires facilitator cookies)
  * @param {string} roomCode - The room code
- * @param {Object} jar - Cookie jar with facilitator cookies
+ * @param {string} facilitatorId - The facilitator ID
  * @returns {Object} { success, phase, round }
  */
-export function startGame(roomCode, jar) {
+export function startGame(roomCode, facilitatorId) {
 	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/start`, null, {
-		jar: jar,
+		headers: {
+			Cookie: `facilitatorId=${facilitatorId}`
+		},
 		tags: { name: 'start_game' }
 	});
 
@@ -111,11 +119,27 @@ export function startGame(roomCode, jar) {
  * @param {string} teamName - The ESP team name (lowercase in URL)
  * @returns {Object} { success, all_locked, remaining_players }
  */
-export function lockInESP(roomCode, teamName) {
+/**
+ * Helper to format cookies for header
+ */
+function formatCookies(cookies) {
+	if (!cookies) return '';
+	return Object.entries(cookies)
+		.map(([name, cookie]) => `${name}=${cookie[0].value}`)
+		.join('; ');
+}
+
+export function lockInESP(roomCode, teamName, cookies) {
 	const urlTeamName = teamName.toLowerCase();
-	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/lock-in`, null, {
+	const params = {
 		tags: { name: 'lock_in_esp' }
-	});
+	};
+
+	if (cookies) {
+		params.headers = { Cookie: formatCookies(cookies) };
+	}
+
+	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/lock-in`, null, params);
 
 	const success = check(res, {
 		'ESP lock-in status 200': (r) => r.status === 200,
@@ -137,16 +161,23 @@ export function lockInESP(roomCode, teamName) {
  * Lock in a destination's decisions
  * @param {string} roomCode - The room code
  * @param {string} destName - The destination name (lowercase in URL)
+ * @param {Object} cookies - Player cookies
  * @returns {Object} { success, all_locked, remaining_players }
  */
-export function lockInDestination(roomCode, destName) {
+export function lockInDestination(roomCode, destName, cookies) {
 	const urlDestName = destName.toLowerCase();
+	const params = {
+		tags: { name: 'lock_in_destination' }
+	};
+
+	if (cookies) {
+		params.headers = { Cookie: formatCookies(cookies) };
+	}
+
 	const res = http.post(
 		`${BASE_URL}/api/sessions/${roomCode}/destination/${urlDestName}/lock-in`,
 		null,
-		{
-			tags: { name: 'lock_in_destination' }
-		}
+		params
 	);
 
 	const success = check(res, {
@@ -168,12 +199,14 @@ export function lockInDestination(roomCode, destName) {
 /**
  * Advance game to next round (only after consequences phase)
  * @param {string} roomCode - The room code
- * @param {Object} jar - Cookie jar with facilitator cookies
+ * @param {string} facilitatorId - The facilitator ID
  * @returns {Object} { success, round, phase }
  */
-export function nextRound(roomCode, jar) {
+export function nextRound(roomCode, facilitatorId) {
 	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/next-round`, null, {
-		jar: jar,
+		headers: {
+			Cookie: `facilitatorId=${facilitatorId}`
+		},
 		tags: { name: 'next_round' }
 	});
 
@@ -215,4 +248,153 @@ export function clearSessions() {
 	});
 
 	return res.status === 200;
+}
+
+/**
+ * Get available clients for an ESP team
+ * @param {string} roomCode - The room code
+ * @param {string} teamName - The ESP team name
+ * @param {Object} cookies - Player cookies
+ * @returns {Object} { success, clients, currentRound, totalAvailable }
+ */
+export function getESPClients(roomCode, teamName, cookies) {
+	const urlTeamName = teamName.toLowerCase();
+	const params = {
+		tags: { name: 'get_esp_clients' }
+	};
+
+	if (cookies) {
+		params.headers = { Cookie: formatCookies(cookies) };
+	}
+
+	const res = http.get(`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/clients`, params);
+
+	const success = check(res, {
+		'get ESP clients status 200': (r) => r.status === 200,
+		'get ESP clients success': (r) => {
+			const body = r.json();
+			return body && body.success;
+		}
+	});
+
+	if (!success) {
+		console.error(`Get ESP clients failed for ${teamName}: ${res.status} ${res.body}`);
+		return null;
+	}
+
+	return res.json();
+}
+
+/**
+ * Acquire a client for an ESP team
+ * @param {string} roomCode - The room code
+ * @param {string} teamName - The ESP team name
+ * @param {string} clientId - The client ID to acquire
+ * @param {Object} cookies - Player cookies
+ * @returns {Object} { success, client, team }
+ */
+export function acquireClient(roomCode, teamName, clientId, cookies) {
+	const urlTeamName = teamName.toLowerCase();
+	const params = {
+		headers: { 'Content-Type': 'application/json' },
+		tags: { name: 'acquire_client' }
+	};
+
+	if (cookies) {
+		params.headers.Cookie = formatCookies(cookies);
+	}
+
+	const payload = JSON.stringify({ clientId });
+	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/clients/acquire`, payload, params);
+
+	const success = check(res, {
+		'acquire client status 200': (r) => r.status === 200,
+		'acquire client success': (r) => {
+			const body = r.json();
+			return body && body.success;
+		}
+	});
+
+	if (!success) {
+		console.error(`Acquire client failed for ${teamName}/${clientId}: ${res.status} ${res.body}`);
+		return null;
+	}
+
+	return res.json();
+}
+
+/**
+ * Purchase a technical upgrade for an ESP team
+ * @param {string} roomCode - The room code
+ * @param {string} teamName - The ESP team name
+ * @param {string} upgradeId - The upgrade ID to purchase
+ * @param {Object} cookies - Player cookies
+ * @returns {Object} { success, team }
+ */
+export function purchaseTechUpgrade(roomCode, teamName, upgradeId, cookies) {
+	const urlTeamName = teamName.toLowerCase();
+	const params = {
+		headers: { 'Content-Type': 'application/json' },
+		tags: { name: 'purchase_tech' }
+	};
+
+	if (cookies) {
+		params.headers.Cookie = formatCookies(cookies);
+	}
+
+	const payload = JSON.stringify({ upgradeId });
+	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/techUpgrades/purchase`, payload, params);
+
+	const success = check(res, {
+		'purchase tech status 200': (r) => r.status === 200,
+		'purchase tech success': (r) => {
+			const body = r.json();
+			return body && body.success;
+		}
+	});
+
+	if (!success) {
+		console.error(`Purchase tech failed for ${teamName}/${upgradeId}: ${res.status} ${res.body}`);
+		return null;
+	}
+
+	return res.json();
+}
+
+/**
+ * Purchase a tool for a destination
+ * @param {string} roomCode - The room code
+ * @param {string} destName - The destination name
+ * @param {string} toolId - The tool ID to purchase
+ * @param {Object} cookies - Player cookies
+ * @returns {Object} { success, budget, owned_tools }
+ */
+export function purchaseDestinationTool(roomCode, destName, toolId, cookies) {
+	const urlDestName = destName.toLowerCase();
+	const params = {
+		headers: { 'Content-Type': 'application/json' },
+		tags: { name: 'purchase_dest_tool' }
+	};
+
+	if (cookies) {
+		params.headers.Cookie = formatCookies(cookies);
+	}
+
+	const payload = JSON.stringify({ toolId });
+	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/destination/${urlDestName}/tools/purchase`, payload, params);
+
+	const success = check(res, {
+		'purchase dest tool status 200': (r) => r.status === 200,
+		'purchase dest tool success': (r) => {
+			const body = r.json();
+			return body && body.success;
+		}
+	});
+
+	if (!success) {
+		console.error(`Purchase dest tool failed for ${destName}/${toolId}: ${res.status} ${res.body}`);
+		return null;
+	}
+
+	return res.json();
 }
