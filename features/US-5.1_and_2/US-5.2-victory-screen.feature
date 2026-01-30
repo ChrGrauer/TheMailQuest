@@ -286,7 +286,7 @@ Feature: Victory Screen
     When the winner is revealed
     Then confetti animation plays from top of screen
     And confetti particles fall for 3 seconds
-    And particle colors match the Brevo brand (greens: #0B5540, #10B981)
+    And particle colors match the design system (greens: #0B5540, #10B981)
     And a celebratory sound effect plays (optional, respects mute settings)
     And the trophy icon gleams with a gold shimmer animation
 

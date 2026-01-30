@@ -108,6 +108,4 @@ The application can be deployed to any Node.js hosting platform that supports We
 
 Project documentation and user stories are managed in Obsidian and linked to this repository.
 
-## License
 
-Private project for Brevo training purposes.

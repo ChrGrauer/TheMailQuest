@@ -471,4 +471,4 @@ Each incident card contains:
 - Facilitator can create custom cards for specific training
 - Industry-specific card packs (e.g., B2B focus, B2C focus)
 - Regional variations (GDPR for Europe, CAN-SPAM for US)
-- Company-specific scenarios relevant to Brevo operations
+- Company-specific scenarios

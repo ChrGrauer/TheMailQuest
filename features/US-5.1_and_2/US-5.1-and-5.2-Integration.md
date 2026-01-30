@@ -281,7 +281,7 @@ The Victory Screen receives the complete `FinalScoreOutput` object from US-5.1 a
 **Skippable:** Click anywhere to complete immediately
 
 **Celebration Effects:**
-- Confetti particles (Brevo brand colors)
+- Confetti particles
 - Trophy shimmer animation
 - Sound effects (optional, respects mute)
 
