@@ -4,6 +4,7 @@ import { transitionPhase } from '$lib/server/game/phase-manager';
 import { initializeTimer, calculateRemainingTime } from '$lib/server/game/timer-manager';
 import { gameWss } from '$lib/server/websocket';
 import { gameLogger } from '$lib/server/logger';
+import { calculateESPStatsForDestination } from '$lib/server/game/stats-manager';
 import type { RequestHandler } from './$types';
 
 /**
@@ -215,6 +216,39 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 			}
 		});
 
+		// Prepare satisfaction data for stats calculation (from latest resolution)
+		let espSatisfactionBreakdown = null;
+		if (session.resolution_history && session.resolution_history.length > 0) {
+			const latestResolution = session.resolution_history[session.resolution_history.length - 1];
+			if (latestResolution && latestResolution.results && latestResolution.results.espSatisfactionData) {
+				espSatisfactionBreakdown = latestResolution.results.espSatisfactionData;
+			}
+		}
+
+		// Broadcast destination dashboard updates to ensure clients have latest data
+		// This fixes the bug where ESP stats and spam trap resets weren't reflecting until refresh
+		session.destinations.forEach(dest => {
+			// Calculate fresh ESP stats for this destination
+			const esp_stats = session.esp_teams
+				.filter((esp) => esp.players.length > 0)
+				.map((esp) => {
+					return calculateESPStatsForDestination(esp, dest, session, espSatisfactionBreakdown);
+				});
+
+			gameWss.broadcastToRoom(roomCode, {
+				type: 'destination_dashboard_update',
+				destinationName: dest.name,
+				budget: dest.budget,
+				esp_stats: esp_stats, // Critical: Update stats for the new round
+				spam_level: (dest as any).spam_level || 0,
+				filtering_policies: dest.filtering_policies,
+				owned_tools: dest.owned_tools || [], // Critical: Update owned tools (spam traps may have been reset)
+				authentication_level: dest.authentication_level,
+				esp_metrics: dest.esp_metrics,
+				locked_in: false
+			});
+		});
+
 		// Re-apply auto-locks after phase transition broadcast (for INC-016 pending auto-locks)
 		// This must happen AFTER phase_transition so clients receive messages in correct order:
 		// 1. phase_transition (resets lock state) -> 2. lock_in_confirmed (sets lock state)
@@ -228,7 +262,7 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 					teamName: team.name,
 					role: 'ESP',
 					locked_in: true,
-					locked_in_at: team.locked_in_at
+					locked_in_at: team.locked_in_at as any
 				});
 
 				gameLogger.info('Applied pending auto-lock from INC-016', {

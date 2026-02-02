@@ -36,6 +36,8 @@ import {
 	createGameInSecondRound,
 	closePages
 } from './helpers/game-setup';
+import { acquireClient, getAvailableClientIds, getAvailableClients } from './helpers/client-management';
+import { closeIncidentModal, lockInAllPlayers } from './helpers/e2e-actions';
 
 // ============================================================================
 // TESTS
@@ -460,5 +462,83 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 
 			await closePages(facilitatorPage, alicePage, zmailPage);
 		});
+	});
+});
+
+// ============================================================================
+// SECTION 10: BUG FIXES & REGRESSION TESTS
+// ============================================================================
+
+test.describe('Section 10: Bug Fixes', () => {
+	test.setTimeout(40000); // Higher timeout for multi-phase test
+
+	test('Scenario: Destination dashboard updates (stats/tools) when starting a new round', async ({
+		page,
+		context
+	}) => {
+		// US-8.2: Ensure WebSocket updates broadcast to destination dashboards on round transition
+
+		// Setup: Start game with 1 ESP + 1 Destination
+		// Use helper to create game and get separate page objects
+		const {
+			zmailPage: destinationPage,
+			alicePage: espPage,
+			bobPage,
+			roomCode
+		} = await createGameWithDestinationPlayer(page, context);
+
+		const facilitatorPage = page;
+		const allPages = [destinationPage, espPage, bobPage];
+
+		// 1. Acquire high-risk clients to ensure meaningful stats
+		// Use API helper for reliability and speed
+		const espName = 'SendWave';
+		const clientIds = await getAvailableClientIds(espPage, roomCode, espName);
+
+		// Acquire up to 2 clients for higher volume/risk
+		if (clientIds.length > 0) await acquireClient(espPage, roomCode, espName, clientIds[0]);
+		if (clientIds.length > 1) await acquireClient(espPage, roomCode, espName, clientIds[1]);
+
+		// Wait for acquisition to reflect
+		await espPage.waitForTimeout(500);
+
+		// 2. Advance to Consequences Phase (Round 1)
+		// Use helper to reliably lock in all players already waiting
+		await lockInAllPlayers(allPages);
+
+		// 3. Advance to next round's planning phase
+		await facilitatorPage.click('[data-testid="start-next-round-button"]');
+		await facilitatorPage.waitForTimeout(500);
+
+		// Close any incident modals that appeared during round transition (e.g., automatic DMARC warning)
+		for (const page of allPages) {
+			await closeIncidentModal(page);
+		}
+
+		// 4. Verify Destination Dashboard updates WITHOUT refresh
+		// Verify we are back in dashboard view (Planning Phase)
+		await expect(destinationPage.locator('[data-testid="dashboard-layout"]')).toBeVisible({ timeout: 10000 });
+
+		// Verify Round 2 indicator
+		const roundIndicator = destinationPage.locator('[data-testid="round-indicator"]');
+		await expect(roundIndicator).toContainText('Round 2');
+
+		// Verify ESP stats are populated (not empty)
+		// The update should come via WebSocket 'destination_dashboard_update'
+		const espCard = destinationPage.locator('[data-testid="esp-card-sendwave"]');
+		await expect(espCard).toBeVisible();
+
+		// Verify the update actually happened by checking a value
+		const reputationValue = await espCard.locator('[data-testid="esp-reputation"]').textContent();
+
+		// Should have some number (volume from clients acquired)
+		// We expect non-zero volume if we acquired clients
+		expect(reputationValue).toMatch(/\d+/);
+		expect(reputationValue?.trim()).not.toBe('-'); // Explicitly check it's not the placeholder
+
+		const repInt = parseInt(reputationValue?.trim() || '100', 10);
+		expect(repInt).toBeLessThanOrEqual(69);
+
+		await closePages(page, destinationPage, espPage, bobPage, facilitatorPage);
 	});
 });
