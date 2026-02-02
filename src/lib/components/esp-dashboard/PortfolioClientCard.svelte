@@ -175,8 +175,7 @@
 			data-testid="suspension-message"
 			class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
 		>
-			<strong>Client suspended due to severe reputation damage.</strong> This client cannot be activated
-			until reputation is restored.
+			<strong>Client permanently suspended due to severe reputation damage.</strong>
 		</div>
 	{/if}
 

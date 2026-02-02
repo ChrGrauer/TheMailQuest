@@ -165,8 +165,8 @@ export function calculateSpamTraps(params: SpamTrapParams): SpamTrapResult {
 		}
 	}
 
-	// Total penalty for logging purposes
-	const reputationPenalty = Object.values(perDestinationPenalty).reduce((sum, p) => sum + p, 0);
+	// Total penalty on the average reputation for logging purposes
+	const reputationPenalty = Object.values(perDestinationPenalty).reduce((sum, p) => sum + p, 0) / 3;
 
 	return {
 		totalBaseRisk,
