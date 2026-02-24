@@ -1,0 +1,83 @@
+name: CI Pipeline
+
+# 1. When should the CI run?
+# We run it on pushes to `main` and on any Pull Requests targeting `main`.
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+# 2. What jobs should the CI execute?
+jobs:
+  # Job A: Fast Code Quality Checks
+  code-quality:
+    name: Code Quality & Types
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Prettier formatting check
+        run: npm run format:check
+
+      - name: Run Svelte and TypeScript checks
+        run: npm run check
+
+  # Job B: Unit Tests (runs alongside code-quality)
+  unit-tests:
+    name: Unit & Integration Tests (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test
+
+  # Job C: End-to-End Tests (runs only if the above tests pass)
+  e2e-tests:
+    name: End-to-End Tests (Playwright)
+    runs-on: ubuntu-latest
+    # We wait for the faster jobs to finish and pass first
+    needs: [code-quality, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      # Using standard setup to let your playwright.config.js handle the build step automatically:
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      # Upload screenshots/videos if tests fail
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

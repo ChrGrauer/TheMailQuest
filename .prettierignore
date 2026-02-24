@@ -24,6 +24,8 @@ logs
 
 # Other
 *.md
+load-tests/results/
+test-results/
 
 # Design mockups with mixed code
 features/designs/
