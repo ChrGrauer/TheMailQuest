@@ -78,9 +78,12 @@ test.describe('US-8.2-0.0: Facilitator Start Next Round', () => {
 		// facilitator dashboard with updated state via WebSocket. No need to navigate again.
 
 		// Verify we're in Round 4 consequences (check on facilitator page)
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
-			timeout: 5000
-		});
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText(
+			'Consequences Phase',
+			{
+				timeout: 5000
+			}
+		);
 		await expect(page.locator('text=/Round 4/i')).toBeVisible({ timeout: 3000 });
 
 		// Then: the "Start Next Round" button should NOT be visible

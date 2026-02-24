@@ -392,9 +392,10 @@ describe('Spam Trap Calculator - Iteration 7: Spam Trap Detection', () => {
 
 			// trapHit should be boolean
 			expect(typeof result.trapHit).toBe('boolean');
-			// If trap hit, reputation penalty should be -5
+			// If trap hit, reputation penalty should be negative
 			if (result.trapHit) {
-				expect(result.reputationPenalty).toBe(-5);
+				// The penalty is -5 for the specific destination, averaged across 3 destinations = -1.66...
+				expect(result.reputationPenalty).toBeCloseTo(-5 / 3, 5);
 				expect(result.hitClientIds.length).toBeGreaterThan(0);
 			}
 		});

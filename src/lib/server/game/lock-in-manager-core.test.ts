@@ -270,7 +270,7 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 				};
 			}
 
-			const expectedTotal = (WARMUP_COST + LIST_HYGIENE_COST) + WARMUP_COST + LIST_HYGIENE_COST;
+			const expectedTotal = WARMUP_COST + LIST_HYGIENE_COST + WARMUP_COST + LIST_HYGIENE_COST;
 
 			// When
 			const totalCost = calculatePendingOnboardingCosts(team!);

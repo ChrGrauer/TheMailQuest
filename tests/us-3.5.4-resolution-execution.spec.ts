@@ -41,9 +41,12 @@ test.describe('Resolution Execution Trigger', () => {
 		// Verified by checking consequences phase has data
 
 		// Wait for auto-transition to Consequences
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
-			timeout: 5000
-		});
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText(
+			'Consequences Phase',
+			{
+				timeout: 5000
+			}
+		);
 
 		// And: ESP page should have resolution data available
 		await expect(alicePage.locator('[data-testid="section-revenue-summary"]')).toContainText(

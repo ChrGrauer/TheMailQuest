@@ -460,9 +460,8 @@
 									>
 								</p>
 								<p class="text-xs text-green-700 mt-1">
-									Risk Level: {participatedInvestigation.result.suspendedClient.riskLevel} • Missing
-									Protection: {participatedInvestigation.result.suspendedClient
-										.missingProtection === 'both'
+									Risk Level: {participatedInvestigation.result.suspendedClient.riskLevel} • Missing Protection:
+									{participatedInvestigation.result.suspendedClient.missingProtection === 'both'
 										? 'Warm-up & List Hygiene'
 										: participatedInvestigation.result.suspendedClient.missingProtection ===
 											  'warmup'

@@ -153,19 +153,32 @@ function createWebSocketStore() {
 									}
 
 									if (payload.round !== undefined || (payload as any).current_round !== undefined) {
-										update.round = payload.round !== undefined ? payload.round : (payload as any).current_round;
+										update.round =
+											payload.round !== undefined ? payload.round : (payload as any).current_round;
 									}
 
-									if (payload.timer_duration !== undefined) update.timer_duration = payload.timer_duration;
-									if (payload.timer_remaining !== undefined) update.timer_remaining = payload.timer_remaining;
+									if (payload.timer_duration !== undefined)
+										update.timer_duration = payload.timer_duration;
+									if (payload.timer_remaining !== undefined)
+										update.timer_remaining = payload.timer_remaining;
 
 									// US-8.2: Ensure type is included for component branching logic
 									const messageType = (message as any).type || payload.type;
 									if (messageType) update.type = messageType;
 
 									// Include any other fields (incident_history, results, etc)
-									Object.keys(payload).forEach(key => {
-										if (!['type', 'phase', 'current_phase', 'round', 'current_round', 'timer_duration', 'timer_remaining'].includes(key)) {
+									Object.keys(payload).forEach((key) => {
+										if (
+											![
+												'type',
+												'phase',
+												'current_phase',
+												'round',
+												'current_round',
+												'timer_duration',
+												'timer_remaining'
+											].includes(key)
+										) {
 											update[key] = payload[key];
 										}
 									});

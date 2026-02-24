@@ -279,9 +279,12 @@ test.describe('INC-016: Legal Reckoning', () => {
 		await page.waitForTimeout(3000);
 
 		// Verify we're in consequences phase before triggering incident
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
-			timeout: 5000
-		});
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText(
+			'Consequences Phase',
+			{
+				timeout: 5000
+			}
+		);
 
 		// Now in Round 3 consequences phase - trigger INC-016 on Alice
 		await triggerIncident(page, 'INC-016', 'SendWave', [alicePage, bobPage]);

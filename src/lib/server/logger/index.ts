@@ -24,9 +24,9 @@ export const logger = pino(
 	dev
 		? pino.destination(1) // Just stdout in dev
 		: pino.multistream([
-			{ stream: pino.destination(1) }, // stdout
-			{ stream: logStream } // rotating file
-		])
+				{ stream: pino.destination(1) }, // stdout
+				{ stream: logStream } // rotating file
+			])
 );
 
 // Helper functions for common log patterns

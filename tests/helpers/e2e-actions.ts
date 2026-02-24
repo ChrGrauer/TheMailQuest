@@ -285,9 +285,8 @@ export async function acquireAndConfigureClients(
 	options?: { warmup?: boolean; listHygiene?: boolean }
 ): Promise<string[]> {
 	// Dynamically import client-management to avoid circular dependency
-	const { getAvailableClientIds, acquireClient, configureOnboarding } = await import(
-		'./client-management'
-	);
+	const { getAvailableClientIds, acquireClient, configureOnboarding } =
+		await import('./client-management');
 
 	const availableClients = await getAvailableClientIds(page, roomCode, teamName);
 	const clientsToAcquire = availableClients.slice(0, count);

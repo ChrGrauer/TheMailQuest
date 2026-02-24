@@ -1,6 +1,6 @@
 /**
  * US-8.2-DEBUG: Facilitator Dashboard Sync & Lock-in Status
- * 
+ *
  * This test verifies that the facilitator dashboard:
  * 1. Shows "Locked In" status for teams in real-time.
  * 2. Displays new clients acquired in later rounds correctly without a manual refresh.
@@ -9,14 +9,8 @@
 
 import { test, expect } from './fixtures';
 import type { Page } from '@playwright/test';
-import {
-	createGameInSecondRound,
-	closePages
-} from './helpers/game-setup';
-import {
-	acquireClient,
-	getAvailableClientIds
-} from './helpers/client-management';
+import { createGameInSecondRound, closePages } from './helpers/game-setup';
+import { acquireClient, getAvailableClientIds } from './helpers/client-management';
 
 test.describe('Facilitator Dashboard Real-time Sync Debug', () => {
 	let alicePage: Page;
@@ -26,16 +20,17 @@ test.describe('Facilitator Dashboard Real-time Sync Debug', () => {
 		await closePages(page, alicePage, bobPage);
 	});
 
-	test('should show lock-in status and new clients in real-time', async ({
-		page,
-		context
-	}) => {
+	test('should show lock-in status and new clients in real-time', async ({ page, context }) => {
 		// Pipe browser console to terminal
 		page.on('console', (msg) => console.log(`[FACILITATOR] ${msg.text()}`));
 
 		// Given: a game in Round 2 Planning phase
 		// alicePage is ESP (SendWave), bobPage is Destination (zmail)
-		const { roomCode, alicePage: alice, zmailPage: bob } = await createGameInSecondRound(page, context);
+		const {
+			roomCode,
+			alicePage: alice,
+			zmailPage: bob
+		} = await createGameInSecondRound(page, context);
 
 		alice.on('console', (msg) => console.log(`[ALICE] ${msg.text()}`));
 		bob.on('console', (msg) => console.log(`[BOB] ${msg.text()}`));

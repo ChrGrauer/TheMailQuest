@@ -679,7 +679,9 @@ test.describe('US-2.4.0: Client Basic Management (ESP)', () => {
 
 		// Verify pending costs are shown (warmup + list hygiene)
 		const expectedPendingCost = WARMUP_COST + LIST_HYGIENE_COST;
-		await expect(alicePage.getByTestId('onboarding-costs')).toContainText(`-${expectedPendingCost}`);
+		await expect(alicePage.getByTestId('onboarding-costs')).toContainText(
+			`-${expectedPendingCost}`
+		);
 
 		await closeClientManagementModal(alicePage);
 

@@ -220,14 +220,18 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
 		let espSatisfactionBreakdown = null;
 		if (session.resolution_history && session.resolution_history.length > 0) {
 			const latestResolution = session.resolution_history[session.resolution_history.length - 1];
-			if (latestResolution && latestResolution.results && latestResolution.results.espSatisfactionData) {
+			if (
+				latestResolution &&
+				latestResolution.results &&
+				latestResolution.results.espSatisfactionData
+			) {
 				espSatisfactionBreakdown = latestResolution.results.espSatisfactionData;
 			}
 		}
 
 		// Broadcast destination dashboard updates to ensure clients have latest data
 		// This fixes the bug where ESP stats and spam trap resets weren't reflecting until refresh
-		session.destinations.forEach(dest => {
+		session.destinations.forEach((dest) => {
 			// Calculate fresh ESP stats for this destination
 			const esp_stats = session.esp_teams
 				.filter((esp) => esp.players.length > 0)

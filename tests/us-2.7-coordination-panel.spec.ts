@@ -291,9 +291,9 @@ test.describe('US-2.7: Coordination Panel', () => {
 			bluePostPage = result.bluePostPage;
 
 			// US-2.7: Capture console logs for destination pages
-			zmailPage.on('console', msg => console.log(`[BROWSER zmail] ${msg.text()}`));
-			intakePage.on('console', msg => console.log(`[BROWSER intake] ${msg.text()}`));
-			yaglePage.on('console', msg => console.log(`[BROWSER yagle] ${msg.text()}`));
+			zmailPage.on('console', (msg) => console.log(`[BROWSER zmail] ${msg.text()}`));
+			intakePage.on('console', (msg) => console.log(`[BROWSER intake] ${msg.text()}`));
+			yaglePage.on('console', (msg) => console.log(`[BROWSER yagle] ${msg.text()}`));
 
 			// Record initial budgets
 			const zmailBudgetBefore = await extractBudget(zmailPage, 'budget-current');

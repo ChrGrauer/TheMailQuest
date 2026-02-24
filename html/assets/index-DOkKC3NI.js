@@ -13897,7 +13897,6 @@ b`.split(/\n/).length != 3
 									y = { changes: [Pf(n, i)], generation: u.generation },
 									u.done.push(y);
 								u.done.length > u.undoDepth;
-
 							)
 								(u.done.shift(), u.done[0].ranges || u.done.shift());
 						}
@@ -17441,7 +17440,6 @@ b`.split(/\n/).length != 3
 															return !/\s/.test(W) && !lt(W);
 														};
 										y > 0 && z(g.charAt(y - 1));
-
 									)
 										--y;
 									for (; w < g.length && z(g.charAt(w)); ) ++w;
@@ -17939,7 +17937,6 @@ b`.split(/\n/).length != 3
 								var W = n.doc.splitLines(J_(n, w, z, y, k)),
 									ee = Qr(n.doc, le(y, 0), le(k, Pe(n.doc, k).text.length));
 								W.length > 1 && ee.length > 1;
-
 							)
 								if (ve(W) == ve(ee)) (W.pop(), ee.pop(), k--);
 								else if (W[0] == ee[0]) (W.shift(), ee.shift(), y++);
@@ -17947,7 +17944,6 @@ b`.split(/\n/).length != 3
 							for (
 								var X = 0, ce = 0, ge = W[0], xe = ee[0], ke = Math.min(ge.length, xe.length);
 								X < ke && ge.charCodeAt(X) == xe.charCodeAt(X);
-
 							)
 								++X;
 							for (
@@ -17958,7 +17954,6 @@ b`.split(/\n/).length != 3
 										Te.length - (ee.length == 1 ? X : 0)
 									);
 								ce < Ne && Me.charCodeAt(Me.length - ce - 1) == Te.charCodeAt(Te.length - ce - 1);
-
 							)
 								++ce;
 							if (W.length == 1 && ee.length == 1 && y == l.line)
@@ -17967,7 +17962,6 @@ b`.split(/\n/).length != 3
 									X &&
 									X > l.ch &&
 									Me.charCodeAt(Me.length - ce - 1) == Te.charCodeAt(Te.length - ce - 1);
-
 								)
 									(X--, ce++);
 							((W[W.length - 1] = Me.slice(0, Me.length - ce).replace(/^\u200b+/, '')),
@@ -18123,7 +18117,6 @@ b`.split(/\n/).length != 3
 							i.firstChild.nodeType == 3 &&
 							((y = i.firstChild), a && (a = y.nodeValue.length));
 							w.parentNode != l;
-
 						)
 							w = w.parentNode;
 						var _ = n.measure,
@@ -18343,7 +18336,6 @@ b`.split(/\n/).length != 3
 							for (
 								var y = 0, w = Math.min(l.length, u.length);
 								y < w && l.charCodeAt(y) == u.charCodeAt(y);
-
 							)
 								++y;
 							return (
@@ -24115,7 +24107,6 @@ function Iw() {
 									O.style = B,
 									T.lexical.hasOwnProperty('align') || (T.lexical.align = !0);
 								;
-
 							) {
 								var pt = Le.length ? Le.pop() : h ? pe : V;
 								if (pt(de, we)) {
@@ -24745,7 +24736,6 @@ function Iw() {
 										((le = T.cc[T.cc.length - 1]) &&
 											(le == he || le == fe) &&
 											!/^[,\.=+\-*:?[\(]/.test(B)));
-
 								)
 									we = we.prev;
 								f && we.type == ')' && we.prev.type == 'stat' && (we = we.prev);
@@ -25810,7 +25800,6 @@ var qae = Xl(Oa, 9, 1),
 											? ((j = 3 + kr(e, m, 7)), (m += 3))
 											: D == 18 && ((j = 11 + kr(e, m, 127)), (m += 7));
 									j--;
-
 								)
 									ne[J++] = F;
 							}
@@ -28801,7 +28790,6 @@ function Lde(e, t, r) {
 				m = -1,
 				b = s.length;
 			++m < b;
-
 		)
 			s[m].call(e, v);
 		r.state === ah && (r.on.call('end', e, e.__data__, r.index, r.group), h());
@@ -29997,7 +29985,6 @@ function Vhe(e, t, r) {
 		x && b.push(new On(x, s, c, v, m)),
 			r == null ? (r = 1 / 0) : ((s = e - r), (c = t - r), (v = e + r), (m = t + r), (r *= r));
 		(C = b.pop());
-
 	)
 		if (!(!(x = C.node) || (f = C.x0) > v || (d = C.y0) > m || (h = C.x1) < s || (p = C.y1) < c))
 			if (x.length) {
@@ -30116,7 +30103,6 @@ function Jhe(e) {
 	for (
 		this._root && t.push(new On(this._root, this._x0, this._y0, this._x1, this._y1));
 		(o = t.pop());
-
 	) {
 		var s = o.node;
 		if (s.length) {

@@ -118,7 +118,9 @@ export class GameRoom {
 		function connectPlayer(index) {
 			if (index >= self.players.length) {
 				// All players connected, run the game logic
-				console.log(`[Room ${self.roomId}] All ${self.players.length} players connected via WebSocket`);
+				console.log(
+					`[Room ${self.roomId}] All ${self.players.length} players connected via WebSocket`
+				);
 				try {
 					gameLogic();
 				} finally {
@@ -306,8 +308,6 @@ export class GameRoom {
 					purchaseTechUpgrade(this.roomCode, player.teamName, 'dmarc', player.cookies);
 					sleep(0.1);
 				}
-
-
 			}
 		}
 
@@ -316,13 +316,23 @@ export class GameRoom {
 			if (player.role === 'Destination') {
 				// Round 1: Buy auth validator L1
 				if (roundNum === 1) {
-					purchaseDestinationTool(this.roomCode, player.teamName, 'auth_validator_l1', player.cookies);
+					purchaseDestinationTool(
+						this.roomCode,
+						player.teamName,
+						'auth_validator_l1',
+						player.cookies
+					);
 					sleep(0.1);
 				}
 
 				// Round 2: Buy auth validator L2
 				if (roundNum === 2) {
-					purchaseDestinationTool(this.roomCode, player.teamName, 'auth_validator_l2', player.cookies);
+					purchaseDestinationTool(
+						this.roomCode,
+						player.teamName,
+						'auth_validator_l2',
+						player.cookies
+					);
 					sleep(0.1);
 				}
 			}

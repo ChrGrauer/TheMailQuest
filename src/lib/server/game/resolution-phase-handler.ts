@@ -266,12 +266,12 @@ async function handleInvestigation(
 			message: investigationResult.message,
 			suspendedClient: investigationResult.suspendedClient
 				? {
-					clientId: investigationResult.suspendedClient.id,
-					clientName: investigationResult.suspendedClient.name,
-					riskLevel: investigationResult.suspendedClient.riskLevel as 'Low' | 'Medium' | 'High',
-					missingProtection: investigationResult.suspendedClient.missingProtection,
-					spamRate: investigationResult.suspendedClient.spamRate
-				}
+						clientId: investigationResult.suspendedClient.id,
+						clientName: investigationResult.suspendedClient.name,
+						riskLevel: investigationResult.suspendedClient.riskLevel as 'Low' | 'Medium' | 'High',
+						missingProtection: investigationResult.suspendedClient.missingProtection,
+						spamRate: investigationResult.suspendedClient.spamRate
+					}
 				: undefined
 		},
 		timestamp: new Date()

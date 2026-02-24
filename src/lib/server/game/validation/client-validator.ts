@@ -16,11 +16,11 @@ import type { ESPTeam, Client, Destination } from '../types';
 export interface ClientAcquisitionValidation {
 	canAcquire: boolean;
 	reason?:
-	| 'insufficient_credits'
-	| 'missing_tech'
-	| 'insufficient_reputation'
-	| 'client_not_found'
-	| 'already_owned';
+		| 'insufficient_credits'
+		| 'missing_tech'
+		| 'insufficient_reputation'
+		| 'client_not_found'
+		| 'already_owned';
 	missingTech?: string[];
 	requiredReputation?: number;
 	actualReputation?: number;

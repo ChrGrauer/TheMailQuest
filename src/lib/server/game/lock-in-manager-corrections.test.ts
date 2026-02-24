@@ -97,7 +97,9 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 
 			// Then - Some options removed until valid
 			expect(corrections.length).toBeGreaterThan(0);
-			expect(corrections.every(c => c.optionType === 'warmup' || c.optionType === 'listHygiene')).toBe(true);
+			expect(
+				corrections.every((c) => c.optionType === 'warmup' || c.optionType === 'listHygiene')
+			).toBe(true);
 
 			// And - Final budget is valid
 			const finalPendingCosts = calculatePendingOnboardingCosts(team!);
@@ -147,9 +149,8 @@ describe('Feature: Decision Lock-In - Business Logic', () => {
 
 			// Then - Corrections should favor removing warmup first
 			expect(corrections.length).toBeGreaterThan(0);
-			const hasWarmupCorrection = corrections.some(c => c.optionType === 'warmup');
+			const hasWarmupCorrection = corrections.some((c) => c.optionType === 'warmup');
 			expect(hasWarmupCorrection).toBe(true);
-
 		});
 	});
 

@@ -238,9 +238,12 @@ test.describe('End Current Phase', () => {
 		await page.waitForTimeout(2000);
 
 		// Then: the game should transition to consequences phase (through resolution)
-		await expect(page.locator('[data-testid="current-phase"]')).toContainText('Consequences Phase', {
-			timeout: 5000
-		});
+		await expect(page.locator('[data-testid="current-phase"]')).toContainText(
+			'Consequences Phase',
+			{
+				timeout: 5000
+			}
+		);
 
 		// Then: Bob should be auto-locked and see consequences
 		await expect(bobPage.locator('[data-testid="consequences-header"]')).toBeVisible({

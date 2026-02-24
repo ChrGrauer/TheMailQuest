@@ -36,7 +36,11 @@ import {
 	createGameInSecondRound,
 	closePages
 } from './helpers/game-setup';
-import { acquireClient, getAvailableClientIds, getAvailableClients } from './helpers/client-management';
+import {
+	acquireClient,
+	getAvailableClientIds,
+	getAvailableClients
+} from './helpers/client-management';
 import { closeIncidentModal, lockInAllPlayers } from './helpers/e2e-actions';
 
 // ============================================================================
@@ -306,9 +310,7 @@ test.describe('Feature: Destination Kingdom Dashboard', () => {
 
 			// Budgets should be different (per game configuration)
 			const zmailBudget = await zmailPage.locator('[data-testid="budget-current"]').textContent();
-			const intakeBudget = await intakePage
-				.locator('[data-testid="budget-current"]')
-				.textContent();
+			const intakeBudget = await intakePage.locator('[data-testid="budget-current"]').textContent();
 
 			// zmail (50%) gets more budget than intake (30%)
 			// This will depend on game configuration, but they should be different
@@ -517,7 +519,9 @@ test.describe('Section 10: Bug Fixes', () => {
 
 		// 4. Verify Destination Dashboard updates WITHOUT refresh
 		// Verify we are back in dashboard view (Planning Phase)
-		await expect(destinationPage.locator('[data-testid="dashboard-layout"]')).toBeVisible({ timeout: 10000 });
+		await expect(destinationPage.locator('[data-testid="dashboard-layout"]')).toBeVisible({
+			timeout: 10000
+		});
 
 		// Verify Round 2 indicator
 		const roundIndicator = destinationPage.locator('[data-testid="round-indicator"]');

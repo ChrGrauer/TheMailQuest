@@ -139,7 +139,11 @@ export function lockInESP(roomCode, teamName, cookies) {
 		params.headers = { Cookie: formatCookies(cookies) };
 	}
 
-	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/lock-in`, null, params);
+	const res = http.post(
+		`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/lock-in`,
+		null,
+		params
+	);
 
 	const success = check(res, {
 		'ESP lock-in status 200': (r) => r.status === 200,
@@ -305,7 +309,11 @@ export function acquireClient(roomCode, teamName, clientId, cookies) {
 	}
 
 	const payload = JSON.stringify({ clientId });
-	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/clients/acquire`, payload, params);
+	const res = http.post(
+		`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/clients/acquire`,
+		payload,
+		params
+	);
 
 	const success = check(res, {
 		'acquire client status 200': (r) => r.status === 200,
@@ -343,7 +351,11 @@ export function purchaseTechUpgrade(roomCode, teamName, upgradeId, cookies) {
 	}
 
 	const payload = JSON.stringify({ upgradeId });
-	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/techUpgrades/purchase`, payload, params);
+	const res = http.post(
+		`${BASE_URL}/api/sessions/${roomCode}/esp/${urlTeamName}/techUpgrades/purchase`,
+		payload,
+		params
+	);
 
 	const success = check(res, {
 		'purchase tech status 200': (r) => r.status === 200,
@@ -381,7 +393,11 @@ export function purchaseDestinationTool(roomCode, destName, toolId, cookies) {
 	}
 
 	const payload = JSON.stringify({ toolId });
-	const res = http.post(`${BASE_URL}/api/sessions/${roomCode}/destination/${urlDestName}/tools/purchase`, payload, params);
+	const res = http.post(
+		`${BASE_URL}/api/sessions/${roomCode}/destination/${urlDestName}/tools/purchase`,
+		payload,
+		params
+	);
 
 	const success = check(res, {
 		'purchase dest tool status 200': (r) => r.status === 200,

@@ -228,7 +228,6 @@ describe('Feature: Resources Allocation - Business Logic', () => {
 				}
 			});
 			expect(zmail?.esp_reputation).toEqual({});
-
 		});
 	});
 

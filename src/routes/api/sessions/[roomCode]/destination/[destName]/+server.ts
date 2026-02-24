@@ -143,10 +143,10 @@ export const GET: RequestHandler = async ({ params }) => {
 			remaining_players: remainingPlayersCount, // US-3.2
 			timer: session.timer
 				? {
-					duration: session.timer.duration,
-					remaining: timerRemaining,
-					isRunning: session.timer.isRunning
-				}
+						duration: session.timer.duration,
+						remaining: timerRemaining,
+						isRunning: session.timer.isRunning
+					}
 				: null,
 			resolution_history: session.resolution_history || [] // US-3.5: Resolution history for all rounds
 		},
